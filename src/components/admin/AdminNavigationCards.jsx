@@ -6,7 +6,8 @@ import {
   FaDatabase,
   FaFlag,
   FaLayerGroup,
-  FaGamepad
+  FaGamepad,
+  FaCubes
 } from "react-icons/fa";
 
 const AdminNavigationCards = ({
@@ -20,6 +21,12 @@ const AdminNavigationCards = ({
       text: "Lecciones",
       path: "/admin/lessons",
       bgColor: "bg-green-500 hover:bg-green-600"
+    },
+    {
+      icon: FaCubes,
+      text: "Módulos",
+      path: "/admin/modules",
+      bgColor: "bg-orange-500 hover:bg-orange-600"
     },
     {
       icon: FaClipboardList,
@@ -66,7 +73,7 @@ const AdminNavigationCards = ({
   );
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4 mb-8">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
       {cards.map((card) => (
         <AdminButton
           key={card.path}

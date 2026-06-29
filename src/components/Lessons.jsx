@@ -1,63 +1,70 @@
 // src/components/Lessons.jsx
-import React, { useState, useEffect, useCallback, useRef } from "react";
-import {
-  FaEdit,
-  FaTrash,
-  FaPlus,
-  FaChevronDown,
-  FaChevronUp,
-  FaArrowLeft
-} from "react-icons/fa";
+
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { FaArrowLeft, FaPlus } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
 import LessonForm from "../components/forms/LessonsForm";
-import LessonContent from "../components/content/LessonContent";
 import { createNewLesson, cleanLessonData } from "../utils/lessonStructure";
 import AIGeneratedLessonsReview from "./admin/AIGeneratedLessonsReview";
+
+import LessonFiltersPanel from "./lessons/LessonFiltersPanel";
+import ModuleLessonsGroup from "./lessons/ModuleLessonsGroup";
+
 import {
   createLesson,
   getLessonContent,
   deleteLesson,
   updateLesson,
   getLessonsByLevel,
-  getNextLessonNumber
+  getNextLessonNumber,
+  getNextLessonOrderInModule
 } from "../services/lessonManager";
+
+import {
+  getModulesByLevel,
+  refreshModuleLessonCount
+} from "../services/moduleService";
+
+const LEVELS = ["A1", "A2", "B1", "B2", "C1", "C2"];
+
+const AGE_GROUPS = [
+  { value: "all", label: "Todos" },
+  { value: "kids_early", label: "Niños 5–7" },
+  { value: "kids", label: "Niños 8–12" },
+  { value: "teens", label: "Jóvenes 13–17" },
+  { value: "adults", label: "Adultos 18+" }
+];
+
+const STATUS_OPTIONS = [
+  { value: "all", label: "Todos" },
+  { value: "published", label: "Publicadas" },
+  { value: "draft", label: "Borradores" }
+];
 
 const Lessons = () => {
   const navigate = useNavigate();
+  const formRef = useRef(null);
 
   const [lessons, setLessons] = useState([]);
+  const [modules, setModules] = useState([]);
   const [loading, setLoading] = useState(true);
+
   const [selectedLesson, setSelectedLesson] = useState(null);
   const [isCreating, setIsCreating] = useState(false);
   const [editingLesson, setEditingLesson] = useState(null);
   const [formData, setFormData] = useState(createNewLesson());
+
   const [error, setError] = useState(null);
   const [activeLevel, setActiveLevel] = useState("A1");
+  const [activeModuleId, setActiveModuleId] = useState("");
+
   const [filterAgeGroup, setFilterAgeGroup] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [filterModule, setFilterModule] = useState("all");
 
-  const formRef = useRef(null);
-
-  const levels = ["A1", "A2", "B1", "B2", "C1", "C2"];
-
-  const ageGroups = [
-    { value: "all", label: "Todos" },
-    { value: "kids_early", label: "Niños 5–7" },
-    { value: "kids", label: "Niños 8–12" },
-    { value: "teens", label: "Jóvenes 13–17" },
-    { value: "adults", label: "Adultos 18+" }
-  ];
-
-  const statusOptions = [
-    { value: "all", label: "Todos" },
-    { value: "published", label: "Publicadas" },
-    { value: "draft", label: "Borradores" }
-  ];
-
-  const getAgeGroupLabel = (value) => {
-    return ageGroups.find((group) => group.value === value)?.label || "Todos";
-  };
+  const getAgeGroupLabel = (value) =>
+    AGE_GROUPS.find((group) => group.value === value)?.label || "Todos";
 
   const getStatusLabel = (value) => {
     const labels = {
@@ -69,6 +76,33 @@ const Lessons = () => {
     return labels[value] || "Borrador";
   };
 
+  const getModuleTitle = (moduleId) => {
+    if (!moduleId) return "Sin módulo";
+
+    return (
+      modules.find(
+        (module) => module.moduleId === moduleId || module.id === moduleId
+      )?.title || moduleId
+    );
+  };
+
+  const fetchModules = useCallback(async () => {
+    try {
+      const modulesData = await getModulesByLevel(activeLevel, {
+        includeDrafts: true
+      });
+
+      setModules(modulesData || []);
+
+      if (!activeModuleId && modulesData?.length > 0) {
+        setActiveModuleId(modulesData[0].moduleId || modulesData[0].id);
+      }
+    } catch (error) {
+      console.error("Error fetching modules:", error);
+      setError("Error al cargar los módulos.");
+    }
+  }, [activeLevel, activeModuleId]);
+
   const fetchLessons = useCallback(async () => {
     try {
       setLoading(true);
@@ -76,13 +110,7 @@ const Lessons = () => {
 
       const lessonsData = await getLessonsByLevel(activeLevel);
 
-      const sortedLessons = [...lessonsData].sort((a, b) => {
-        const numA = parseInt((a.id || "").split("_").pop()) || 0;
-        const numB = parseInt((b.id || "").split("_").pop()) || 0;
-        return numA - numB;
-      });
-
-      setLessons(sortedLessons);
+      setLessons(lessonsData || []);
     } catch (error) {
       console.error("Error fetching lessons:", error);
       setError("Error al cargar las lecciones. Por favor, intenta nuevamente.");
@@ -92,21 +120,75 @@ const Lessons = () => {
   }, [activeLevel]);
 
   useEffect(() => {
+    fetchModules();
     fetchLessons();
-  }, [fetchLessons]);
+  }, [fetchModules, fetchLessons]);
 
-  const filteredLessons = lessons.filter((lesson) => {
-    const lessonAgeGroup = lesson.ageGroup || "all";
-    const lessonStatus = lesson.status || "published";
+  const filteredLessons = useMemo(() => {
+    return lessons.filter((lesson) => {
+      const lessonAgeGroup = lesson.ageGroup || "all";
+      const lessonStatus = lesson.status || "published";
+      const lessonModuleId = lesson.moduleId || "";
 
-    const matchesAgeGroup =
-      filterAgeGroup === "all" || lessonAgeGroup === filterAgeGroup;
+      const matchesAgeGroup =
+        filterAgeGroup === "all" || lessonAgeGroup === filterAgeGroup;
 
-    const matchesStatus =
-      filterStatus === "all" || lessonStatus === filterStatus;
+      const matchesStatus =
+        filterStatus === "all" || lessonStatus === filterStatus;
 
-    return matchesAgeGroup && matchesStatus;
-  });
+      const matchesModule =
+        filterModule === "all" || lessonModuleId === filterModule;
+
+      return matchesAgeGroup && matchesStatus && matchesModule;
+    });
+  }, [lessons, filterAgeGroup, filterStatus, filterModule]);
+
+  const lessonsByModule = useMemo(() => {
+    const grouped = new Map();
+
+    modules.forEach((module) => {
+      const moduleId = module.moduleId || module.id;
+      grouped.set(moduleId, {
+        module,
+        lessons: []
+      });
+    });
+
+    filteredLessons.forEach((lesson) => {
+      const moduleId = lesson.moduleId || "without_module";
+
+      if (!grouped.has(moduleId)) {
+        grouped.set(moduleId, {
+          module: {
+            id: moduleId,
+            moduleId,
+            title: moduleId === "without_module" ? "Sin módulo" : getModuleTitle(moduleId),
+            icon: "📚"
+          },
+          lessons: []
+        });
+      }
+
+      grouped.get(moduleId).lessons.push(lesson);
+    });
+
+    return Array.from(grouped.values())
+      .map((group) => ({
+        ...group,
+        lessons: [...group.lessons].sort((a, b) => {
+          const orderA = Number(a.orderInModule) || 999;
+          const orderB = Number(b.orderInModule) || 999;
+
+          if (orderA !== orderB) return orderA - orderB;
+
+          const numA = parseInt((a.id || "").split("_").pop()) || 0;
+          const numB = parseInt((b.id || "").split("_").pop()) || 0;
+
+          return numA - numB;
+        })
+      }))
+      .filter((group) => filterModule === "all" || group.lessons.length > 0);
+  }, [modules, filteredLessons, filterModule]);
 
   const resetFormState = () => {
     setIsCreating(false);
@@ -121,30 +203,43 @@ const Lessons = () => {
       setError(null);
       setLoading(true);
 
-      if (!levels.includes(activeLevel)) {
-        throw new Error("Nivel no válido");
+      if (!LEVELS.includes(activeLevel)) {
+        throw new Error("Nivel no válido.");
+      }
+
+      if (!lessonData.moduleId) {
+        throw new Error("Debes seleccionar un módulo para la lección.");
       }
 
       const nextNumber = await getNextLessonNumber(activeLevel);
+      const nextOrderInModule = await getNextLessonOrderInModule(
+        activeLevel,
+        lessonData.moduleId
+      );
 
       const newLessonData = {
         ...lessonData,
-        id: `${activeLevel}_${nextNumber}`,
-        lessonId: `${activeLevel}_${nextNumber}`,
+        id: lessonData.id || `${activeLevel}_${nextNumber}`,
+        lessonId: lessonData.lessonId || lessonData.id || `${activeLevel}_${nextNumber}`,
         nivel: activeLevel,
         level: activeLevel,
+        moduleId: lessonData.moduleId,
+        orderInModule: lessonData.orderInModule || nextOrderInModule,
         ageGroup: lessonData.ageGroup || "all",
         status: lessonData.status || "draft"
       };
 
       await createLesson(newLessonData);
+      await refreshModuleLessonCount(activeLevel, lessonData.moduleId);
+
       await fetchLessons();
+      await fetchModules();
 
       setIsCreating(false);
       setFormData(createNewLesson());
     } catch (error) {
       console.error("Error creating lesson:", error);
-      setError("Error al crear la lección. Verifica los datos e intenta nuevamente.");
+      setError(error.message || "Error al crear la lección.");
     } finally {
       setLoading(false);
     }
@@ -161,10 +256,19 @@ const Lessons = () => {
       setError(null);
       setLoading(true);
 
-      await deleteLesson(lesson.nivel || activeLevel, lesson.id);
+      const lessonLevel = lesson.nivel || lesson.level || activeLevel;
+      const moduleId = lesson.moduleId || "";
+
+      await deleteLesson(lessonLevel, lesson.id, moduleId);
+
+      if (moduleId) {
+        await refreshModuleLessonCount(lessonLevel, moduleId);
+      }
 
       setSelectedLesson(null);
+
       await fetchLessons();
+      await fetchModules();
     } catch (error) {
       console.error("Error deleting lesson:", error);
       setError("Error al eliminar la lección. Por favor, intenta nuevamente.");
@@ -178,7 +282,13 @@ const Lessons = () => {
       setError(null);
 
       const lessonLevel = lesson.nivel || lesson.level || activeLevel;
-      const fullContent = await getLessonContent(lessonLevel, lesson.id);
+      const moduleId = lesson.moduleId || "";
+
+      const fullContent = await getLessonContent(
+        lessonLevel,
+        lesson.id,
+        moduleId
+      );
 
       if (!fullContent) {
         setError("No se encontró el contenido completo de la lección.");
@@ -197,6 +307,8 @@ const Lessons = () => {
         descripcion: fullContent.descripcion || lesson.descripcion || "",
         nivel: lessonLevel,
         level: lessonLevel,
+        moduleId: fullContent.moduleId || lesson.moduleId || "",
+        orderInModule: fullContent.orderInModule || lesson.orderInModule || 1,
         ageGroup: fullContent.ageGroup || lesson.ageGroup || "all",
         status: fullContent.status || lesson.status || "draft"
       });
@@ -220,25 +332,33 @@ const Lessons = () => {
       setError(null);
       setLoading(true);
 
+      if (!updatedData.moduleId) {
+        throw new Error("Debes seleccionar un módulo para la lección.");
+      }
+
       const cleanedData = cleanLessonData({
         ...updatedData,
         id: updatedData.id || updatedData.lessonId,
         lessonId: updatedData.lessonId || updatedData.id,
         nivel: updatedData.nivel || activeLevel,
         level: updatedData.level || updatedData.nivel || activeLevel,
+        moduleId: updatedData.moduleId,
+        orderInModule: Number(updatedData.orderInModule) || 1,
         ageGroup: updatedData.ageGroup || "all",
         status: updatedData.status || "draft"
       });
 
       await updateLesson(cleanedData);
+      await refreshModuleLessonCount(cleanedData.nivel, cleanedData.moduleId);
 
       setEditingLesson(null);
       setFormData(createNewLesson());
 
       await fetchLessons();
+      await fetchModules();
     } catch (error) {
       console.error("Error updating lesson:", error);
-      setError("Error al actualizar la lección. Por favor, intenta nuevamente.");
+      setError(error.message || "Error al actualizar la lección.");
     } finally {
       setLoading(false);
     }
@@ -255,39 +375,48 @@ const Lessons = () => {
       if (newStatus === "published") {
         const confirmPublish = window.confirm(
           `¿Seguro que deseas publicar la lección "${lesson.titulo || lesson.id}"?\n\n` +
-          "Antes de publicar verifica:\n" +
-          "- Que el contenido sea correcto.\n" +
-          "- Que los recursos y enlaces funcionen.\n" +
-          "- Que la lectura, ejercicios y evaluación estén revisados."
+            "Antes de publicar verifica:\n" +
+            "- Que el contenido sea correcto.\n" +
+            "- Que los recursos y enlaces funcionen.\n" +
+            "- Que la lectura, ejercicios y evaluación estén revisados."
         );
-      
-        if (!confirmPublish) {
-          return;
-        }
+
+        if (!confirmPublish) return;
       }
 
       const lessonLevel = lesson.nivel || lesson.level || activeLevel;
-      const fullContent = await getLessonContent(lessonLevel, lesson.id);
+      const moduleId = lesson.moduleId || "";
+
+      const fullContent = await getLessonContent(
+        lessonLevel,
+        lesson.id,
+        moduleId
+      );
 
       if (!fullContent) {
         setError("No se encontró el contenido completo de la lección.");
         return;
       }
 
-      const updatedLesson = {
+      await updateLesson({
         ...fullContent,
         id: lesson.id,
         lessonId: lesson.id,
         nivel: lessonLevel,
         level: lessonLevel,
+        moduleId,
         titulo: fullContent.titulo || lesson.titulo || "",
         descripcion: fullContent.descripcion || lesson.descripcion || "",
         ageGroup: fullContent.ageGroup || lesson.ageGroup || "all",
         status: newStatus
-      };
+      });
 
-      await updateLesson(updatedLesson);
+      if (moduleId) {
+        await refreshModuleLessonCount(lessonLevel, moduleId);
+      }
+
       await fetchLessons();
+      await fetchModules();
     } catch (error) {
       console.error("Error changing lesson status:", error);
       setError("Error al cambiar el estado de la lección.");
@@ -296,19 +425,41 @@ const Lessons = () => {
     }
   };
 
-  const handleNewLessonClick = () => {
-    setIsCreating(true);
+  const handleNewLessonClick = async () => {
     setEditingLesson(null);
     setSelectedLesson(null);
     setError(null);
 
+    if (!modules.length) {
+      setError(
+        "Primero debes crear al menos un módulo para este nivel antes de crear lecciones."
+      );
+      return;
+    }
+
+    const selectedModuleId =
+      activeModuleId || modules[0]?.moduleId || modules[0]?.id || "";
+
+    const nextNumber = await getNextLessonNumber(activeLevel);
+
+    const nextOrderInModule = await getNextLessonOrderInModule(
+      activeLevel,
+      selectedModuleId
+    );
+
     setFormData({
       ...createNewLesson(),
+      id: `${activeLevel}_${nextNumber}`,
+      lessonId: `${activeLevel}_${nextNumber}`,
       nivel: activeLevel,
       level: activeLevel,
+      moduleId: selectedModuleId,
+      orderInModule: nextOrderInModule,
       ageGroup: "all",
       status: "draft"
     });
+
+    setIsCreating(true);
 
     setTimeout(() => {
       formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -317,168 +468,23 @@ const Lessons = () => {
 
   const handleLevelChange = (level) => {
     setActiveLevel(level);
+    setActiveModuleId("");
+    setFilterModule("all");
     setFilterAgeGroup("all");
     setFilterStatus("all");
     resetFormState();
   };
 
-  const handleCancelForm = () => {
-    resetFormState();
+  const handleModuleFilterChange = (moduleId) => {
+    setFilterModule(moduleId);
+
+    if (moduleId !== "all") {
+      setActiveModuleId(moduleId);
+    }
   };
 
-  const LevelTabs = () => (
-    <div className="mb-6">
-      <p className="text-sm font-medium text-gray-700 mb-2">Nivel</p>
-
-      <div className="flex gap-2 overflow-x-auto pb-2">
-        {levels.map((level) => (
-          <button
-            key={level}
-            type="button"
-            onClick={() => handleLevelChange(level)}
-            className={`px-4 py-2 rounded-lg whitespace-nowrap ${
-              activeLevel === level
-                ? "bg-primary-600 text-white"
-                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-            }`}
-          >
-            Nivel {level}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-
-  const AgeGroupFilter = () => (
-    <div className="mb-6">
-      <p className="text-sm font-medium text-gray-700 mb-2">
-        Filtrar por grupo de edad
-      </p>
-
-      <div className="flex flex-wrap gap-2">
-        {ageGroups.map((group) => (
-          <button
-            key={group.value}
-            type="button"
-            onClick={() => setFilterAgeGroup(group.value)}
-            className={`px-3 py-2 rounded-lg text-sm ${
-              filterAgeGroup === group.value
-                ? "bg-secondary-500 text-white"
-                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-            }`}
-          >
-            {group.label}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-
-  const StatusFilter = () => (
-    <div className="mb-6">
-      <p className="text-sm font-medium text-gray-700 mb-2">Filtrar por estado</p>
-
-      <div className="flex flex-wrap gap-2">
-        {statusOptions.map((status) => (
-          <button
-            key={status.value}
-            type="button"
-            onClick={() => setFilterStatus(status.value)}
-            className={`px-3 py-2 rounded-lg text-sm ${
-              filterStatus === status.value
-                ? "bg-primary-600 text-white"
-                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-            }`}
-          >
-            {status.label}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-
-  const LessonCard = ({ lesson }) => {
-    const lessonStatus = lesson.status || "draft";
-    const isPublished = lessonStatus === "published";
-
-    return (
-      <div className="bg-white rounded-2xl shadow p-4 border border-gray-100">
-        <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4">
-          <div className="min-w-0">
-            <h3 className="text-lg font-semibold text-gray-900 break-words">
-              {lesson.titulo || "Lección sin título"}
-            </h3>
-
-            <p className="text-gray-600 text-sm break-all">ID: {lesson.id}</p>
-
-            <div className="flex flex-wrap gap-2 mt-2">
-              <span className="text-xs px-2 py-1 bg-gray-200 text-gray-700 rounded">
-                {getAgeGroupLabel(lesson.ageGroup || "all")}
-              </span>
-
-              <span
-                className={`text-xs px-2 py-1 rounded ${
-                  isPublished
-                    ? "bg-green-100 text-green-700"
-                    : "bg-yellow-100 text-yellow-700"
-                }`}
-              >
-                {getStatusLabel(lessonStatus)}
-              </span>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap lg:justify-end gap-2">
-            <button
-              type="button"
-              onClick={() => handleToggleStatus(lesson)}
-              className={`px-3 py-2 rounded-md text-xs font-medium ${
-                isPublished
-                  ? "bg-yellow-100 text-yellow-700 hover:bg-yellow-200"
-                  : "bg-green-100 text-green-700 hover:bg-green-200"
-              }`}
-            >
-              {isPublished ? "Pasar a borrador" : "Publicar"}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleEditLesson(lesson)}
-              className="p-2 text-blue-600 hover:text-blue-800"
-              title="Editar lección"
-            >
-              <FaEdit />
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleDeleteLesson(lesson)}
-              className="p-2 text-red-600 hover:text-red-800"
-              title="Eliminar lección"
-            >
-              <FaTrash />
-            </button>
-
-            <button
-              type="button"
-              onClick={() =>
-                setSelectedLesson(selectedLesson === lesson.id ? null : lesson.id)
-              }
-              className="p-2 text-primary-600 hover:text-primary-800"
-              title="Ver detalles"
-            >
-              {selectedLesson === lesson.id ? <FaChevronUp /> : <FaChevronDown />}
-            </button>
-          </div>
-        </div>
-
-        {selectedLesson === lesson.id && (
-          <div className="mt-4 border-t pt-4 overflow-x-auto">
-            <LessonContent lesson={lesson} />
-          </div>
-        )}
-      </div>
-    );
+  const handleToggleDetails = (lessonId) => {
+    setSelectedLesson((prev) => (prev === lessonId ? null : lessonId));
   };
 
   return (
@@ -496,7 +502,7 @@ const Lessons = () => {
         <div>
           <h1 className="text-2xl font-bold">Gestión de Lecciones</h1>
           <p className="text-gray-600 text-sm mt-1">
-            Administra las lecciones por nivel, edad y estado.
+            Administra las lecciones por nivel, módulo, edad y estado.
           </p>
         </div>
 
@@ -521,17 +527,23 @@ const Lessons = () => {
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-6">
-        <LevelTabs />
-        <AgeGroupFilter />
-        <StatusFilter />
+      <LessonFiltersPanel
+        levels={LEVELS}
+        modules={modules}
+        ageGroups={AGE_GROUPS}
+        statusOptions={STATUS_OPTIONS}
+        activeLevel={activeLevel}
+        filterModule={filterModule}
+        filterAgeGroup={filterAgeGroup}
+        filterStatus={filterStatus}
+        totalLessons={lessons.length}
+        filteredLessonsCount={filteredLessons.length}
+        onLevelChange={handleLevelChange}
+        onModuleChange={handleModuleFilterChange}
+        onAgeGroupChange={setFilterAgeGroup}
+        onStatusChange={setFilterStatus}
+      />
 
-        <div className="text-sm text-gray-600">
-          Mostrando {filteredLessons.length} de {lessons.length} lecciones del
-          nivel {activeLevel}
-        </div>
-      </div>
-    
       {error && (
         <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-xl">
           {error}
@@ -547,11 +559,13 @@ const Lessons = () => {
           </h2>
 
           <LessonForm
+            key={formData.id || "new-lesson"}
             isEditing={!!editingLesson}
             initialData={formData}
             activeLevel={activeLevel}
+            modules={modules}
             onSubmit={editingLesson ? handleUpdateLesson : handleCreateLesson}
-            onCancel={handleCancelForm}
+            onCancel={resetFormState}
           />
         </div>
       )}
@@ -565,12 +579,25 @@ const Lessons = () => {
           No hay lecciones disponibles para este filtro.
         </div>
       ) : (
-        <div className="grid gap-4">
-          {filteredLessons.map((lesson) => (
-            <LessonCard key={lesson.id} lesson={lesson} />
+        <div className="space-y-6">
+          {lessonsByModule.map((group) => (
+            <ModuleLessonsGroup
+              key={group.module.moduleId || group.module.id}
+              module={group.module}
+              lessons={group.lessons}
+              selectedLesson={selectedLesson}
+              getAgeGroupLabel={getAgeGroupLabel}
+              getStatusLabel={getStatusLabel}
+              getModuleTitle={getModuleTitle}
+              onToggleStatus={handleToggleStatus}
+              onEdit={handleEditLesson}
+              onDelete={handleDeleteLesson}
+              onToggleDetails={handleToggleDetails}
+            />
           ))}
         </div>
       )}
+
       <AIGeneratedLessonsReview onPublished={fetchLessons} />
     </div>
   );

@@ -36,6 +36,7 @@ const Tests = lazy(() => import("./components/TestsSection"));
 const AdminTemas = lazy(() => import("./components/admin/AdminTemas"));
 const AdminForumReportsPage = lazy(() => import("./pages/AdminForumReports"));
 const AdminMissions = lazy(() => import("./components/admin/AdminMissions"));
+const AdminModules = lazy(() => import("./components/admin/AdminModules"));
 
 
 function App() {
@@ -236,6 +237,16 @@ function App() {
                   </AdminRoute>
                 }
               />
+
+              <Route
+                path="/admin/modules"
+                element={
+                  <AdminRoute>
+                    <AdminModules />
+                  </AdminRoute>
+                }
+              />
+
             </Routes>
           </Suspense>
         </main>

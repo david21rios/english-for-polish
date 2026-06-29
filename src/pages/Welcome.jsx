@@ -129,11 +129,11 @@ const Welcome = () => {
               <div className="text-center md:text-left">
                 <span className="inline-flex items-center gap-2 bg-white text-primary-700 px-4 py-2 rounded-full shadow-sm text-sm font-semibold mb-5">
                   <FaGraduationCap />
-                  Spanish learning platform
+                  English for Polish platform
                 </span>
 
                 <h1 className="text-4xl md:text-6xl font-heading font-bold text-primary-600 mb-6 leading-tight">
-                  Learn Spanish with lessons, tests and real practice
+                  Learn English with lessons, tests and real practice
                 </h1>
 
                 <p className="text-lg md:text-xl text-gray-700 leading-relaxed max-w-xl mx-auto md:mx-0">
@@ -209,7 +209,7 @@ const Welcome = () => {
               {
                 icon: FaGamepad,
                 title: "Practice missions",
-                text: "Use Spanish in real-life contexts."
+                text: "Use English in real-life contexts."
               },
               {
                 icon: FaChartLine,
