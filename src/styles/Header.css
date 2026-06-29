@@ -1,0 +1,87 @@
+.header {
+  background-color: #cce4f7;
+  padding: 10px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  /* Reducir el espacio entre el logo y los enlaces */
+}
+
+.logo {
+  height: 40px;
+  width: auto;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Centrar los enlaces en la parte media del header */
+  gap: 30px;
+  /* Espacio entre los enlaces */
+  position: absolute;
+  /* Hace que los enlaces estén centrados independientemente del espacio alrededor */
+  left: 50%;
+  transform: translateX(-50%);
+  /* Centra los enlaces de manera precisa */
+}
+
+.nav-links a {
+  text-decoration: none;
+  color: #003366;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.nav-links a:hover {
+  color: #007acc;
+}
+
+.header-right .profile-icon {
+  font-size: 32px;
+  color: #003366;
+  cursor: pointer;
+}
+
+.profile-menu {
+  position: absolute;
+  top: 50px;
+  right: 10px;
+  background-color: white;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 10px;
+  border-radius: 8px;
+  width: 150px;
+}
+
+.profile-menu a,
+.profile-menu button {
+  display: block;
+  text-decoration: none;
+  color: #003366;
+  padding: 8px 12px;
+  font-size: 14px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  width: 100%;
+}
+
+.profile-menu button:hover,
+.profile-menu a:hover {
+  background-color: #f1f1f1;
+}
+
+.profile-menu button {
+  text-align: left;
+}

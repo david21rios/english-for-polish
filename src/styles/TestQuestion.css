@@ -1,0 +1,42 @@
+/* Contenedor de la pregunta */
+.question-container {
+  margin-bottom: 20px;
+  /* Espacio entre preguntas */
+  width: 100%;
+  /* Asegurar que las preguntas ocupen todo el ancho del contenedor */
+  box-sizing: border-box;
+  /* Asegurarse de que el padding no afecte el layout */
+  max-width: 600px;
+  /* Limitar el ancho máximo de cada pregunta */
+  margin: 0 auto;
+  /* Centrar cada pregunta */
+}
+
+/* Estilo para las opciones de respuesta */
+.option-btn {
+  width: 100%;
+  /* Las opciones tienen el mismo ancho que las preguntas */
+  margin-bottom: 12px;
+  /* Espaciado entre las opciones */
+  padding: 12px;
+  font-size: 1rem;
+  border-radius: 5px;
+  background-color: #f1f1f1;
+  border: 1px solid #ddd;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.option-btn.selected {
+  background-color: #4CAF50;
+  color: white;
+  border: 2px solid #4CAF50;
+}
+
+.option-btn:hover {
+  background-color: #e0e0e0;
+}
+
+.option-btn.selected:hover {
+  background-color: #45a049;
+}

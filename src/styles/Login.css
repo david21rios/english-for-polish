@@ -1,0 +1,90 @@
+/* Estilos generales para el contenedor del login */
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f0f4f8;
+}
+
+/* Estilo para el cuadro de login */
+.login-box {
+  background-color: #ffffff;
+  padding: 40px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 400px;
+}
+
+/* Título del formulario */
+.login-title {
+  text-align: center;
+  font-size: 2rem;
+  color: #333333;
+  margin-bottom: 24px;
+  font-weight: bold;
+}
+
+/* Estilos para el formulario */
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Estilos para los campos de entrada */
+.login-input {
+  padding: 12px;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.3s;
+}
+
+.login-input:focus {
+  border-color: #3498db;
+}
+
+/* Estilo para el contenedor de la contraseña */
+.password-container {
+  position: relative;
+}
+
+/* Estilo para el ícono del ojo */
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #3498db;
+}
+
+/* Estilo para el botón de login */
+.login-button {
+  background-color: #3498db;
+  color: white;
+  padding: 12px;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.login-button:disabled {
+  background-color: #b0bec5;
+  cursor: not-allowed;
+}
+
+.login-button:hover:enabled {
+  background-color: #2980b9;
+}
+
+/* Estilo para los mensajes de error */
+.error-message {
+  color: red;
+  font-size: 0.875rem;
+  text-align: center;
+}
