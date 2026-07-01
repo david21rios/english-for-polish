@@ -1,9 +1,13 @@
 // src/services/ai/prompts/lessonAgentsPrompts.js
 
 export const buildCurriculumPlannerPrompt = ({
-  targetLanguage = "Spanish",
-  baseLanguage = "English",
-  levelId = "A1-A2",
+  targetLanguage = "English",
+  baseLanguage = "Polish",
+  supportLanguage = "Polish",
+  levelId = "A1",
+  moduleId = "",
+  moduleTitle = "",
+  orderInModule = 1,
   ageGroup = "adults",
   lessonTopic = "",
   lessonNumber = 1
@@ -12,44 +16,63 @@ export const buildCurriculumPlannerPrompt = ({
 You are Agent 1: Curriculum Planner.
 
 Role:
-You are an expert curriculum designer specialized in CEFR language learning.
+You are an expert CEFR curriculum designer for English language learning.
+
+Product context:
+- Product: Polish-learning
+- Target language: English
+- Support language: Polish
+- Students: Polish learners studying English
+- Academic hierarchy: levels/{levelId}/modules/{moduleId}/lessons/{lessonId}
 
 Task:
-Create the pedagogical plan for one lesson.
+Create the pedagogical plan for one English lesson.
 
 Input:
 Target language: ${targetLanguage}
-Student base language: ${baseLanguage}
+Student support language: ${supportLanguage || baseLanguage}
 CEFR level: ${levelId}
+Module ID: ${moduleId}
+Module title: ${moduleTitle}
+Lesson order in module: ${orderInModule}
 Age group: ${ageGroup}
 Lesson number: ${lessonNumber}
 Lesson topic: ${lessonTopic}
 
 Rules:
 - Align the lesson with CEFR level ${levelId}.
-- Keep the difficulty appropriate for ${ageGroup}.
+- The lesson teaches English to Polish students.
+- English is the target language.
+- Polish may be used for explanations, translations, contrastive notes and low-level support.
+- For A1-A2, use more Polish support.
+- For B1-B2, use mostly English with strategic Polish support.
+- For C1-C2, use English almost entirely, with Polish only for contrastive notes.
+- Include typical difficulties Polish learners have when learning English.
 - Focus on practical communication.
 - Do not write the full lesson yet.
 - Return only valid JSON.
 - Do not use Markdown.
 - Do not include explanations outside JSON.
-- All explanations, notes and comments must be inside JSON string values.
-- Do not write parenthetical comments outside strings.
-- Do not write text after a JSON value.
 
 JSON format:
 {
   "agent": "curriculum_planner",
-  "targetLanguage": "",
-  "baseLanguage": "",
-  "levelId": "",
-  "ageGroup": "",
-  "lessonNumber": 0,
-  "lessonTopic": "",
+  "product": "Polish-learning",
+  "targetLanguage": "English",
+  "supportLanguage": "Polish",
+  "levelId": "${levelId}",
+  "moduleId": "${moduleId}",
+  "moduleTitle": "${moduleTitle}",
+  "orderInModule": ${orderInModule},
+  "ageGroup": "${ageGroup}",
+  "lessonNumber": ${lessonNumber},
+  "lessonTopic": "${lessonTopic}",
   "cefrObjectives": [],
   "communicativeGoals": [],
   "grammarFocus": [],
   "vocabularyFocus": [],
+  "polishLearnerChallenges": [],
+  "contrastiveNotes": [],
   "skillsFocus": {
     "reading": "",
     "writing": "",
@@ -64,36 +87,44 @@ JSON format:
 
 export const buildResearchAgentPrompt = ({
   plannerOutput = {},
-  targetLanguage = "Spanish",
-  baseLanguage = "English"
+  lessonTopic = "",
+  levelId = "A1",
+  moduleId = "",
+  moduleTitle = "",
+  targetLanguage = "English",
+  baseLanguage = "Polish",
+  supportLanguage = "Polish"
 }) => {
   return `
 You are Agent 2: Controlled Research Agent.
 
 Role:
-You collect safe, relevant and educational information for a language lesson.
+You collect safe, relevant and educational information for an English lesson for Polish learners.
 
 Task:
-Use the curriculum plan to identify useful linguistic and cultural material.
+Use the curriculum plan to identify useful linguistic, pedagogical and contrastive material.
 
 Input curriculum plan:
 ${JSON.stringify(plannerOutput, null, 2)}
 
+Lesson topic: ${lessonTopic}
+CEFR level: ${levelId}
+Module ID: ${moduleId}
+Module title: ${moduleTitle}
 Target language: ${targetLanguage}
-Student base language: ${baseLanguage}
+Support language: ${supportLanguage || baseLanguage}
 
 Rules:
 - Do not browse the internet.
-- Use only general linguistic and cultural knowledge.
+- Use only general linguistic and pedagogical knowledge.
 - Avoid obscure facts.
 - Avoid unsupported claims.
-- Focus on practical language learning.
+- Focus on English communication.
+- Include common Polish learner mistakes where relevant.
+- Include contrastive English-Polish grammar/vocabulary notes where useful.
 - Return only valid JSON.
 - Do not use Markdown.
 - Do not include explanations outside JSON.
-- All explanations, notes and comments must be inside JSON string values.
-- Do not write parenthetical comments outside strings.
-- Do not write text after a JSON value.
 
 JSON format:
 {
@@ -102,6 +133,8 @@ JSON format:
   "usefulGrammarPoints": [],
   "culturalNotes": [],
   "commonMistakes": [],
+  "polishLearnerDifficulties": [],
+  "contrastiveEnglishPolishNotes": [],
   "exampleSituations": [],
   "sourceQualityNotes": []
 }
@@ -111,9 +144,10 @@ JSON format:
 export const buildPedagogicalCuratorPrompt = ({
   plannerOutput = {},
   researchOutput = {},
-  targetLanguage = "Spanish",
-  baseLanguage = "English",
-  levelId = "A1-A2"
+  targetLanguage = "English",
+  baseLanguage = "Polish",
+  supportLanguage = "Polish",
+  levelId = "A1"
 }) => {
   return `
 You are Agent 3: Pedagogical Curator.
@@ -131,20 +165,17 @@ Research material:
 ${JSON.stringify(researchOutput, null, 2)}
 
 Target language: ${targetLanguage}
-Student base language: ${baseLanguage}
+Support language: ${supportLanguage || baseLanguage}
 CEFR level: ${levelId}
 
 Rules:
 - Keep only content appropriate for ${levelId}.
 - Remove anything too advanced.
-- Remove unnecessary cultural information.
-- Prioritize clarity and usefulness.
+- Prioritize English learning usefulness for Polish students.
+- Keep contrastive English-Polish notes only when they help learning.
 - Return only valid JSON.
 - Do not use Markdown.
 - Do not include explanations outside JSON.
-- All explanations, notes and comments must be inside JSON string values.
-- Do not write parenthetical comments outside strings.
-- Do not write text after a JSON value.
 
 JSON format:
 {
@@ -154,6 +185,7 @@ JSON format:
   "approvedGrammar": [],
   "approvedCulturalNotes": [],
   "approvedSituations": [],
+  "approvedPolishSupportNotes": [],
   "removedItems": [],
   "curationWarnings": []
 }
@@ -165,9 +197,13 @@ export const buildInstructionalDesignerPrompt = ({
   curatorOutput = {},
   lessonId = "",
   lessonTopic = "",
-  levelId = "A1-A2",
-  targetLanguage = "Spanish",
-  baseLanguage = "English",
+  levelId = "A1",
+  moduleId = "",
+  moduleTitle = "",
+  orderInModule = 1,
+  targetLanguage = "English",
+  baseLanguage = "Polish",
+  supportLanguage = "Polish",
   ageGroup = "adults"
 }) => {
   return `
@@ -182,8 +218,11 @@ Create the complete lesson blueprint using the approved pedagogical material.
 Lesson ID: ${lessonId}
 Lesson topic: ${lessonTopic}
 Target language: ${targetLanguage}
-Student base language: ${baseLanguage}
+Support language: ${supportLanguage || baseLanguage}
 CEFR level: ${levelId}
+Module ID: ${moduleId}
+Module title: ${moduleTitle}
+Order in module: ${orderInModule}
 Age group: ${ageGroup}
 
 Curriculum plan:
@@ -194,20 +233,22 @@ ${JSON.stringify(curatorOutput, null, 2)}
 
 Rules:
 - Follow the platform lesson structure.
-- Include reading, interactive practice, writing, speaking and evaluation.
+- Include vocabulary, grammar, reading, interactive practice, writing, speaking and evaluation.
 - Keep the lesson coherent and progressive.
-- Do not write full long content yet.
+- Use English as the learning language.
+- Use Polish for support explanations where useful.
 - Return only valid JSON.
 - Do not use Markdown.
 - Do not include explanations outside JSON.
-- All explanations, notes and comments must be inside JSON string values.
-- Do not write parenthetical comments outside strings.
-- Do not write text after a JSON value.
 
 JSON format:
 {
   "agent": "instructional_designer",
-  "lessonId": "",
+  "lessonId": "${lessonId}",
+  "levelId": "${levelId}",
+  "moduleId": "${moduleId}",
+  "moduleTitle": "${moduleTitle}",
+  "orderInModule": ${orderInModule},
   "title": "",
   "description": "",
   "objectives": [],
@@ -235,470 +276,502 @@ JSON format:
 }
 `;
 };
-
 export const buildLessonWriterPrompt = ({
   blueprintOutput = {},
   lessonId = "",
   lessonTopic = "",
-  levelId = "A1-A2",
-  targetLanguage = "Spanish",
-  baseLanguage = "English",
+  lessonNumber = 1,
+  levelId = "A1",
+  moduleId = "",
+  moduleTitle = "",
+  orderInModule = 1,
+  targetLanguage = "English",
+  baseLanguage = "Polish",
+  supportLanguage = "Polish",
   ageGroup = "adults"
 }) => {
   return `
 You are Agent 5: Lesson Writer.
 
 Role:
-You write the complete lesson in the exact JSON structure required by the platform.
+You generate the COMPLETE lesson JSON exactly as required by the Polish-learning platform.
 
-Task:
-Generate a complete lesson ready for teacher review.
+===================================================
+PRODUCT
+===================================================
 
-Lesson ID: ${lessonId}
-Lesson topic: ${lessonTopic}
-Target language: ${targetLanguage}
-Student base language: ${baseLanguage}
-CEFR level: ${levelId}
-Age group: ${ageGroup}
+Platform: Polish-learning
 
-Blueprint:
+Students:
+Native Polish speakers learning English.
+
+Target language:
+English
+
+Support language:
+Polish
+
+===================================================
+ACADEMIC CONTEXT
+===================================================
+
+Lesson ID:
+${lessonId}
+
+Lesson number:
+${lessonNumber}
+
+Module:
+${moduleTitle}
+
+Module ID:
+${moduleId}
+
+Order inside module:
+${orderInModule}
+
+CEFR:
+${levelId}
+
+Age group:
+${ageGroup}
+
+Lesson topic:
+${lessonTopic}
+
+===================================================
+BLUEPRINT
+===================================================
+
 ${JSON.stringify(blueprintOutput, null, 2)}
 
-Rules:
-- Return only valid JSON.
-- Do not use Markdown.
-- Do not include explanations outside JSON.
-- Do not use comments.
-- Do not use trailing commas.
-- Use double quotes for all property names and string values.
-- The lesson must be appropriate for CEFR level ${levelId}.
-- Use simple, student-friendly objectives.
-- Avoid long technical CEFR objective sentences in lessonData.objetivos.
-- Target language practice content must be in ${targetLanguage}.
-- Explanations may use the student's base language: ${baseLanguage}.
-- Do not invent references.
-- Do not create empty grammar rules.
-- Never use generic grammar titles such as "Grammar" or "Gramática".
+===================================================
+GENERAL RULES
+===================================================
 
-Grammar rules:
+Return ONLY VALID JSON.
 
-- Generate between 1 and 3 grammar rules.
-- Never generate empty grammar sections.
-- Never use generic titles like "Grammar" or "Gramática".
-- Each rule must contain:
-  - titulo
-  - explicacion
-  - at least 2 ejemplos
-- Each ejemplo must contain:
-  - frase
-  - traduccion
-  - nota
+No markdown.
 
-- Reading content must use natural short paragraphs.
-- For writing exercises, always include extension_minima and tiempo_sugerido.
+No comments.
 
-Writing rules:
+No explanations outside JSON.
 
-extension_minima guidelines:
+No trailing commas.
 
-A1:
-children: 5-15 words
-teens: 10-25 words
-adults: 15-30 words
+All property names MUST use double quotes.
 
-A2:
-children: 15-25 words
-teens: 20-40 words
-adults: 30-60 words
+===================================================
+PEDAGOGICAL RULES
+===================================================
 
-B1:
-children: 30-50 words
-teens: 50-80 words
-adults: 60-120 words
+The lesson teaches ENGLISH.
 
-B2:
-children: 50-80 words
-teens: 80-150 words
-adults: 120-200 words
+The learner speaks POLISH.
 
-C1-C2:
-children: 80-120 words
-teens: 150-250 words
-adults: 200-400 words
+Vocabulary words:
+Always English.
 
-The generated value must be appropriate for:
-- CEFR level
-- student age
-- lesson difficulty
-- lesson number
+Grammar examples:
+Always English.
 
-- Do not include extension_maxima unless strictly necessary.
-- Always include 3 to 5 recursos_adicionales.
-- Resources must be age-appropriate, topic-related and useful.
-- Prefer educational websites, teacher-created resources, videos, pronunciation pages, dictionaries, grammar guides, printable activities or open learning references.
-- Do not recommend competitor language-learning apps or platforms such as Duolingo, Busuu, Babbel, Rosetta Stone, Memrise or similar apps.
-- Do not invent fake URLs.
-- If a real URL is uncertain, use tipo: "offline" and url: "".
-- Online video resources must use valid public video URLs, preferably YouTube educational videos.
-- Each resource must include titulo, descripcion, tipo, audiencia and url.
-- If the resource is online, url must contain a real valid URL.
-- If the resource is offline, use tipo: "offline" and url: "".
-- Do not create online resources with empty url.
-- Add a teacher-review reminder inside auditReport.warnings if any resource URL should be checked before publishing.
-- Resources must be age-appropriate, topic-related and useful.
-- Each resource must include titulo, descripcion, tipo, audiencia and url.
-- If the resource is online, url must contain a real valid URL.
-- If the resource is offline, use tipo: "offline" and url: "".
-- Do not create online resources with empty url.
+Reading:
+100% English.
 
-For tipo "relacionar":
+Listening:
+100% English.
 
-- Use exactly 4 pairs.
-- pares_izquierda and pares_derecha must have exactly the same length.
-- respuestas_correctas must contain exactly one key for each item in pares_izquierda.
+Writing:
+Students write in English.
 
-Example:
+Speaking:
+Students speak in English.
 
-pares_izquierda:
-[
-  "Buenos días",
-  "Buenas noches",
-  "Mucho gusto",
-  "Adiós"
-]
+Explanations:
+Polish.
 
-pares_derecha:
-[
-  "Good morning",
-  "Good evening",
-  "Nice to meet you",
-  "Goodbye"
-]
+Translations:
+Polish.
 
-respuestas_correctas:
-{
-  "par0": "Good morning",
-  "par1": "Good evening",
-  "par2": "Nice to meet you",
-  "par3": "Goodbye"
-}
+Grammar notes:
+Polish.
 
-Rules:
-- respuestas_correctas.par0 corresponds to pares_izquierda[0]
-- respuestas_correctas.par1 corresponds to pares_izquierda[1]
-- respuestas_correctas.par2 corresponds to pares_izquierda[2]
-- respuestas_correctas.par3 corresponds to pares_izquierda[3]
-- Never use left values inside respuestas_correctas.
-- Never create extra keys.
-- Never create fewer than 4 pairs.
+Hints:
+Polish.
 
-Evaluation rules:
+Feedback:
+Polish.
 
-- Questions that accept natural language answers must include respuestas_aceptadas.
-- Include common valid alternatives.
-- Ignore articles when they do not change meaning.
-- Accept equivalent answers.
+===================================================
+READING
+===================================================
 
-Example:
+Use natural English.
 
-respuesta_correcta:
-"Soy de Argentina"
+Use short paragraphs.
 
-respuestas_aceptadas:
-[
-  "Yo soy de Argentina",
-  "Soy argentino",
-  "Yo soy argentino"
-]
+Vocabulary must match CEFR.
 
-Interactive practice rules:
+Questions may be answered in English.
 
-- practica_interactiva.ejercicios MUST contain exactly 4 exercises.
-- Exactly one exercise of each type:
-  1. seleccion_multiple
-  2. completar
-  3. relacionar
-  4. ordenar
+===================================================
+VOCABULARY
+===================================================
 
-- Never repeat exercise types.
-- Never omit any exercise type.
-- Never generate ejercicios_interactivos.
-- Never use English property names.
+Each vocabulary item MUST include:
 
-For "seleccion_multiple":
-- Exactly 4 options.
-- Exactly 1 correct answer.
+palabra
 
-For "completar":
-- Use at least 2 blanks.
-- Use placeholders:
-  blank0
-  blank1
-  blank2
-  ...
-- respuestas and respuestas_aceptadas must contain the same blank keys.
+traduccion
 
-For "relacionar":
-- Use exactly 4 pairs.
+definicion
 
-For "ordenar":
-- Use exactly 4 elements.
-- orden_correcto must contain the final correct order.
+ejemplo
 
-Self validation before returning JSON:
+audioSrc must be ""
 
-- Validate that practica_interactiva contains exactly 4 exercises.
-- Validate that all exercise types are different.
-- Validate that relacionar has exactly 4 pairs.
-- Validate that ordenar has exactly 4 elements.
-- Validate that completar has at least 2 blanks.
-- Validate that grammar is not empty.
-- Validate that recursos_adicionales contains between 3 and 5 resources.
-- Validate that the JSON matches the required structure before responding.
+===================================================
+GRAMMAR
+===================================================
 
-Required JSON:
-{
-  "schemaVersion": "1.0.0",
-  "metadata": {
-    "lessonId": "${lessonId}",
-    "levelId": "${levelId}",
-    "targetLanguage": "${targetLanguage}",
-    "baseLanguage": "${baseLanguage}",
-    "ageGroup": "${ageGroup}",
-    "status": "pending_review",
-    "generatedByAI": true,
-    "approvedByTeacher": false
-  },
-  "lessonData": {
-    "id": "${lessonId}",
-    "lessonId": "${lessonId}",
-    "titulo": "",
-    "descripcion": "",
-    "nivel": "${levelId}",
-    "level": "${levelId}",
-    "ageGroup": "${ageGroup}",
-    "status": "pending_review",
-    "objetivos": [],
-    "contenidos": {
-      "vocabulario": {
-        "titulo": "",
-        "palabras": [
-          {
-            "palabra": "",
-            "termino": "",
-            "traduccion": "",
-            "definicion": "",
-            "ejemplo": "",
-            "audioSrc": ""
-          }
-        ]
-      },
-      "gramatica": {
-        "temas": [],
-        "reglas": [
-          {
-            "titulo": "",
-            "explicacion": "",
-            "ejemplos": [
-              {
-                "frase": "",
-                "traduccion": "",
-                "nota": ""
-              }
-            ]
-          }
-        ]
-      }
-    },
-    "lectura": {
-      "titulo": "",
-      "autor": "AI Tutor",
-      "contenido": "",
-      "preguntas": [
-        {
-          "pregunta": "",
-          "respuesta": ""
-        }
-      ]
-    },
-    "practica_interactiva": {
-      "titulo": "",
-      "descripcion": "",
-      "ejercicios": [
-        {
-          "tipo": "seleccion_multiple",
-          "pregunta": "",
-          "opciones": [],
-          "respuesta_correcta": ""
-        },
-        {
-          "tipo": "completar",
-          "pregunta": "",
-          "instrucciones": "",
-          "texto": "",
-          "palabras": [],
-          "respuestas": {
-            "blank0": ""
-          },
-          "respuestas_aceptadas": {
-            "blank0": []
-          }
-        },
-        {
-          "tipo": "relacionar",
-          "pregunta": "",
-          "instrucciones": "",
-          "pares_izquierda": [],
-          "pares_derecha": [],
-          "respuestas_correctas": {
-            "par0": "",
-            "par1": "",
-            "par2": "",
-            "par3": ""
-          }
-        },
-        {
-          "tipo": "ordenar",
-          "pregunta": "",
-          "instrucciones": "",
-          "elementos": [],
-          "orden_correcto": []
-        }
-      ]
-    },
-    "produccion_escrita": {
-      "titulo": "",
-      "descripcion": "",
-      "ejercicios": [
-        {
-          "consigna": "",
-          "guia": "",
-          "extension_minima": 0,
-          "tiempo_sugerido": 0,
-          "criterios": []
-        }
-      ]
-    },
-    "produccion_oral": {
-      "titulo": "",
-      "descripcion": "",
-      "ejercicios": [
-        {
-          "consigna": "",
-          "guia": ""
-        }
-      ]
-    },
-    "evaluacion": {
-      "autoevaluacion": "",
-      "cuestionario": [
-        {
-          "pregunta": "",
-          "opciones": [],
-          "respuesta_correcta": "",
-          "respuestas_aceptadas": []
-        }
-      ]
-    },
-    "recursos_adicionales": [
-      {
-        "titulo": "",
-        "descripcion": "",
-        "tipo": "",
-        "audiencia": "",
-        "url": ""
-      }
-    ],
-    "reflexion_final": ""
-  },
-  "auditReport": {
-    "cefrAlignment": "pending",
-    "languageAccuracy": "pending",
-    "culturalLocalization": "pending",
-    "jsonValidation": "pending",
-    "warnings": [],
-    "errors": []
-  }
-}
+Generate between 1 and 3 grammar rules.
+
+Each rule includes:
+
+titulo
+
+explicacion
+
+2-4 ejemplos
+
+Each example contains:
+
+frase
+
+traduccion
+
+nota
+
+Grammar explanations are in Polish.
+
+Example sentences remain in English.
+
+===================================================
+INTERACTIVE PRACTICE
+===================================================
+
+Generate EXACTLY four exercises.
+
+One of each:
+
+seleccion_multiple
+
+completar
+
+relacionar
+
+ordenar
+
+Never repeat exercise types.
+
+===================================================
+WRITING
+===================================================
+
+Students write in English.
+
+Instructions:
+Polish.
+
+Guide:
+Polish.
+
+===================================================
+SPEAKING
+===================================================
+
+Students speak English.
+
+Instructions:
+Polish.
+
+===================================================
+EVALUATION
+===================================================
+
+Questions:
+English.
+
+Feedback:
+Polish.
+
+Accepted answers allowed.
+
+===================================================
+RESOURCES
+===================================================
+
+Generate between 3 and 5 resources.
+
+Educational only.
+
+No Duolingo.
+
+No Babbel.
+
+No Busuu.
+
+Prefer:
+
+British Council
+
+Cambridge
+
+Oxford
+
+BBC Learning English
+
+ELLLO
+
+YouTube educational channels
+
+IMPORTANT OUTPUT SIZE LIMITS:
+
+- Generate a compact lesson.
+- Maximum 6 vocabulary items.
+- Maximum 1 grammar rule.
+- Maximum 2 grammar examples.
+- Maximum 1 short reading text.
+- Maximum 2 reading questions.
+- Exactly 4 interactive exercises.
+- Maximum 1 writing exercise.
+- Maximum 1 speaking exercise.
+- Maximum 3 evaluation questions.
+- Maximum 2 additional resources.
+- Do not generate audio file paths.
+- audioSrc must always be an empty string.
+- Do not use long explanations.
+- Keep every text short.
+- Never generate nested arrays.
+- Arrays may contain strings, numbers or objects.
+- Arrays must never contain other arrays.
+- For matching pairs, use objects instead of arrays.
+
+===================================================
+OUTPUT JSON
+===================================================
+
+The JSON MUST include:
+
+schemaVersion
+
+metadata
+
+lessonData
+
+auditReport
+
+Metadata MUST contain:
+
+lessonId
+
+lessonNumber
+
+levelId
+
+moduleId
+
+moduleTitle
+
+orderInModule
+
+targetLanguage
+
+supportLanguage
+
+generatedByAI
+
+approvedByTeacher
+
+status
+
+lessonData MUST contain:
+
+id
+
+lessonId
+
+titulo
+
+descripcion
+
+nivel
+
+level
+
+moduleId
+
+moduleTitle
+
+orderInModule
+
+ageGroup
+
+status
+
+objetivos
+
+contenidos
+
+lectura
+
+practica_interactiva
+
+produccion_escrita
+
+produccion_oral
+
+evaluacion
+
+recursos_adicionales
+
+reflexion_final
+
+auditReport MUST contain:
+
+cefrAlignment
+
+languageAccuracy
+
+culturalLocalization
+
+jsonValidation
+
+warnings
+
+errors
 `;
 };
 
 export const buildLocalizationAgentPrompt = ({
   lessonOutput = {},
-  targetLanguage = "Spanish",
-  baseLanguage = "English",
+  targetLanguage = "English",
+  baseLanguage = "Polish",
+  supportLanguage = "Polish",
   ageGroup = "adults"
 }) => {
   return `
-You are Agent 6: Cultural Localizer.
+You are Agent 6: Localization Specialist.
 
 Role:
-You adapt the lesson to the student's base language and cultural context.
 
-Task:
-Review the generated lesson and improve clarity for students whose base language is ${baseLanguage}.
+Improve the lesson for Polish students learning English.
 
-Target language: ${targetLanguage}
-Student base language: ${baseLanguage}
-Age group: ${ageGroup}
+Lesson:
 
-Lesson JSON:
 ${JSON.stringify(lessonOutput, null, 2)}
 
 Rules:
-- Keep the same JSON structure.
-- Do not remove required fields.
-- Improve translations and cultural explanations.
-- Avoid stereotypes.
-- Avoid unsupported cultural claims.
-- Return only valid JSON.
-- Do not use Markdown.
-- Do not include explanations outside JSON.
-- All explanations, notes and comments must be inside JSON string values.
-- Do not write parenthetical comments outside strings.
-- Do not write text after a JSON value.
+
+Keep exactly the same JSON.
+
+Do not delete fields.
+
+Improve only:
+
+Polish explanations
+
+Translations
+
+Hints
+
+Grammar explanations
+
+Teacher notes
+
+Cultural adaptation.
+
+Do not translate English practice into Polish.
+
+Return ONLY JSON.
 `;
 };
 
 export const buildQualityAuditorPrompt = ({
   lessonOutput = {},
-  levelId = "A1-A2",
-  targetLanguage = "Spanish",
-  baseLanguage = "English"
+  levelId = "A1",
+  moduleId = "",
+  moduleTitle = "",
+  targetLanguage = "English",
+  baseLanguage = "Polish",
+  supportLanguage = "Polish"
 }) => {
   return `
-You are Agent 7: CEFR and JSON Quality Auditor.
+You are Agent 7: Quality Auditor.
 
 Role:
-You audit the generated lesson before it is saved for teacher review.
 
-Task:
-Validate CEFR alignment, grammar accuracy, cultural localization and JSON consistency.
+Review the generated lesson before publication.
 
-Target language: ${targetLanguage}
-Student base language: ${baseLanguage}
-CEFR level: ${levelId}
+Lesson:
 
-Lesson JSON:
 ${JSON.stringify(lessonOutput, null, 2)}
 
-Rules:
-- Keep the same JSON structure.
-- Do not remove required fields.
-- Update auditReport.
-- If the lesson is usable, set:
-  auditReport.cefrAlignment = "passed"
-  auditReport.languageAccuracy = "passed"
-  auditReport.culturalLocalization = "passed"
-  auditReport.jsonValidation = "passed"
-- If something is weak, add warnings.
-- If something is structurally invalid, add errors.
-- Return only valid JSON.
-- Do not use Markdown.
-- Do not include explanations outside JSON.
-- All explanations, notes and comments must be inside JSON string values.
-- Do not write parenthetical comments outside strings.
-- Do not write text after a JSON value.
+Checklist:
+
+✓ English is the learning language.
+
+✓ Polish is only used for explanations.
+
+✓ Reading is entirely English.
+
+✓ Vocabulary is English.
+
+✓ Grammar examples are English.
+
+✓ Grammar explanations are Polish.
+
+✓ Feedback is Polish.
+
+✓ JSON structure is valid.
+
+✓ CEFR level matches ${levelId}.
+
+✓ Module information is correct.
+
+Module ID:
+
+${moduleId}
+
+Module title:
+
+${moduleTitle}
+
+Target language:
+
+${targetLanguage}
+
+Support language:
+
+${supportLanguage || baseLanguage}
+
+If everything is correct:
+
+auditReport.cefrAlignment="passed"
+
+auditReport.languageAccuracy="passed"
+
+auditReport.culturalLocalization="passed"
+
+auditReport.jsonValidation="passed"
+
+Otherwise:
+
+Fill warnings.
+
+Fill errors.
+
+Return ONLY JSON.
 `;
 };
 

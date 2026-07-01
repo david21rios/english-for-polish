@@ -139,10 +139,32 @@ const LessonContent = ({ lesson }) => {
         {safeArray(lesson.lectura.preguntas).length > 0 && (
           <div className="mt-4">
             <h6 className="font-medium text-gray-700 mb-2">Preguntas de comprensión:</h6>
-            <ul className="list-decimal pl-5 space-y-2">
-              {lesson.lectura.preguntas.map((pregunta, idx) => (
-                <li key={idx} className="text-gray-600">{pregunta}</li>
-              ))}
+            <ul className="list-decimal pl-5 space-y-3">
+              {lesson.lectura.preguntas.map((pregunta, idx) => {
+                const questionText =
+                  typeof pregunta === "string"
+                    ? pregunta
+                    : pregunta.pregunta ||
+                      pregunta.question ||
+                      "Pregunta sin texto";
+              
+                return (
+                  <li key={idx} className="text-gray-700">
+                    <p className="font-medium">{questionText}</p>
+                
+                    {Array.isArray(pregunta.opciones) &&
+                      pregunta.opciones.length > 0 && (
+                        <ul className="list-disc ml-6 mt-2 space-y-1">
+                          {pregunta.opciones.map((opcion, i) => (
+                            <li key={i} className="text-gray-600">
+                              {opcion}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                  </li>
+                );
+              })}
             </ul>
           </div>
         )}

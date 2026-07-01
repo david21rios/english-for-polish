@@ -7,7 +7,7 @@ import {
   FaTrash
 } from "react-icons/fa";
 
-import LessonContent from "../content/LessonContent";
+import AdminLessonPreview from "../admin/AdminLessonPreview";
 
 const LessonCard = ({
   lesson,
@@ -103,7 +103,7 @@ const LessonCard = ({
 
       {isSelected && (
         <div className="mt-4 border-t pt-4 overflow-x-auto">
-          <LessonContent lesson={lesson} />
+          <AdminLessonPreview lesson={lesson} />
         </div>
       )}
     </div>

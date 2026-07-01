@@ -383,7 +383,8 @@ const LessonSectionRenderer = ({
 
                 <div className="w-full overflow-hidden">
                   <InteractiveQuiz
-                    questions={preguntas.map(normalizeQuizQuestion)}
+                    questions={preguntas}
+                    normalizeQuestion={normalizeQuizQuestion}
                     onComplete={() => markSectionCompleted("reading")}
                   />
                 </div>

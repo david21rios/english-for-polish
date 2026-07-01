@@ -13,14 +13,14 @@ import {
   limit
 } from "firebase/firestore";
 
+import { getFlatLessonsByLevel } from "./courseService";
+
 const getProgressDocId = (levelId, lessonId) => {
   return `${levelId}_${lessonId}`;
 };
 
 export const getLessonProgress = async (userId, levelId, lessonId) => {
-  if (!userId || !levelId || !lessonId) {
-    return null;
-  }
+  if (!userId || !levelId || !lessonId) return null;
 
   try {
     const progressRef = doc(
@@ -33,12 +33,12 @@ export const getLessonProgress = async (userId, levelId, lessonId) => {
 
     const progressSnap = await getDoc(progressRef);
 
-    if (!progressSnap.exists()) {
-      return null;
-    }
+    if (!progressSnap.exists()) return null;
 
     return {
       id: progressSnap.id,
+      activityResults: {},
+      completedSections: [],
       ...progressSnap.data()
     };
   } catch (error) {
@@ -51,21 +51,39 @@ export const saveLessonProgress = async ({
   userId,
   levelId,
   lessonId,
+  moduleId = null,
   currentSectionIndex = 0,
   completedSections = [],
+  activityResults = {},
   totalSections = 1,
   completed = false
 }) => {
-  if (!userId || !levelId || !lessonId) {
-    return null;
-  }
+  if (!userId || !levelId || !lessonId) return null;
 
   try {
-    const safeTotalSections = Math.max(totalSections, 1);
-
-    const progressPercentage = Math.round(
-      ((currentSectionIndex + 1) / safeTotalSections) * 100
+    const safeTotalSections = Math.max(Number(totalSections) || 1, 1);
+    const safeCurrentSectionIndex = Math.max(
+      Number(currentSectionIndex) || 0,
+      0
     );
+
+    const safeCompletedSections = Array.isArray(completedSections)
+      ? completedSections
+      : [];
+
+    const safeActivityResults =
+      activityResults && typeof activityResults === "object"
+        ? activityResults
+        : {};
+
+    const progressPercentage = completed
+      ? 100
+      : Math.min(
+          100,
+          Math.round(
+            ((safeCurrentSectionIndex + 1) / safeTotalSections) * 100
+          )
+        );
 
     const progressRef = doc(
       db,
@@ -85,8 +103,10 @@ export const saveLessonProgress = async ({
       userId,
       levelId,
       lessonId,
-      currentSectionIndex,
-      completedSections,
+      ...(moduleId ? { moduleId } : {}),
+      currentSectionIndex: safeCurrentSectionIndex,
+      completedSections: safeCompletedSections,
+      activityResults: safeActivityResults,
       totalSections: safeTotalSections,
       progressPercentage,
       completed,
@@ -107,15 +127,19 @@ export const markLessonAsCompleted = async ({
   userId,
   levelId,
   lessonId,
+  moduleId = null,
   completedSections = [],
+  activityResults = {},
   totalSections = 1
 }) => {
   return saveLessonProgress({
     userId,
     levelId,
     lessonId,
+    moduleId,
     currentSectionIndex: totalSections - 1,
     completedSections,
+    activityResults,
     totalSections,
     completed: true
   });
@@ -136,23 +160,11 @@ export const getUserLevelProgressSummary = async ({
     };
   }
 
-  const lessonsRef = collection(db, "levels", levelId, "lessons");
-  const lessonsSnap = await getDocs(lessonsRef);
-
-  const publishedLessons = lessonsSnap.docs
-    .map((docSnap) => ({
-      id: docSnap.id,
-      ...docSnap.data()
-    }))
-    .filter((lesson) => {
-      const status = lesson.status || "published";
-      const ageGroup = lesson.ageGroup || "all";
-
-      return (
-        status === "published" &&
-        (!userAgeGroup || ageGroup === "all" || ageGroup === userAgeGroup)
-      );
-    });
+  const publishedLessons = await getFlatLessonsByLevel({
+    levelId,
+    userAgeGroup,
+    includeDrafts: false
+  });
 
   const progressRef = collection(db, "users", userId, "progress");
   const progressSnap = await getDocs(progressRef);
@@ -163,8 +175,9 @@ export const getUserLevelProgressSummary = async ({
     .map((progress) => progress.lessonId);
 
   const totalLessons = publishedLessons.length;
+
   const completedLessons = publishedLessons.filter((lesson) =>
-    completedLessonIds.includes(lesson.id)
+    completedLessonIds.includes(lesson.id || lesson.lessonId)
   ).length;
 
   const progressPercent =
@@ -257,6 +270,8 @@ export const getLastLessonProgress = async (userId) => {
 
     return {
       id: docSnap.id,
+      activityResults: {},
+      completedSections: [],
       ...docSnap.data()
     };
   } catch (error) {

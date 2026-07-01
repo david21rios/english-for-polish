@@ -3,45 +3,72 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  FaMagic,
-  FaSpinner,
-  FaSave,
+  FaArrowLeft,
   FaCheckCircle,
   FaExclamationTriangle,
-  FaArrowLeft
+  FaMagic,
+  FaSave,
+  FaSpinner
 } from "react-icons/fa";
-import {
-  addDoc,
-  collection,
-  serverTimestamp
-} from "firebase/firestore";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 
 import { db, auth } from "../../firebase";
 import { generateLessonWithAgents } from "../../services/ai/lessonAgentsService";
-import { getNextLessonNumber } from "../../services/lessonManager";
+import {
+  getNextLessonNumber,
+  getNextLessonOrderInModule
+} from "../../services/lessonManager";
+import { getModulesByLevel } from "../../services/moduleService";
 
 const LEVEL_OPTIONS = ["A1", "A2", "B1", "B2", "C1", "C2"];
 
 const AGE_GROUP_OPTIONS = [
-  { value: "all", label: "Todos los usuarios" },
-  { value: "kids_early", label: "Niños 5–7" },
-  { value: "kids", label: "Niños 8–12" },
-  { value: "teens", label: "Jóvenes 13–17" },
-  { value: "adults", label: "Adultos 18+" }
+  { value: "all", label: "Wszyscy użytkownicy" },
+  { value: "kids_early", label: "Dzieci 5–7" },
+  { value: "kids", label: "Dzieci 8–12" },
+  { value: "teens", label: "Młodzież 13–17" },
+  { value: "adults", label: "Dorośli 18+" }
 ];
+
+const TARGET_LANGUAGE = "English";
+const SUPPORT_LANGUAGE = "Polish";
+
+const sanitizeForFirestore = (value, insideArray = false) => {
+  if (Array.isArray(value)) {
+    if (insideArray) {
+      return value.map((item, index) => ({
+        index,
+        value: sanitizeForFirestore(item, false)
+      }));
+    }
+
+    return value.map((item) => sanitizeForFirestore(item, true));
+  }
+
+  if (value && typeof value === "object") {
+    return Object.entries(value).reduce((acc, [key, item]) => {
+      acc[key] = sanitizeForFirestore(item, false);
+      return acc;
+    }, {});
+  }
+
+  return value;
+};
 
 const AILessonGenerator = () => {
   const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     lessonId: "A1_1",
     lessonNumber: 1,
+    orderInModule: 1,
     lessonTopic: "Greetings and introductions",
     levelId: "A1",
-    targetLanguage: "Spanish",
-    baseLanguage: "English",
+    moduleId: "",
     ageGroup: "all"
   });
 
+  const [modules, setModules] = useState([]);
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [generatedLesson, setGeneratedLesson] = useState(null);
@@ -49,38 +76,80 @@ const AILessonGenerator = () => {
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
+  const selectedModule = modules.find(
+    (module) => (module.moduleId || module.id) === formData.moduleId
+  );
+
+  const loadModulesAndLessonId = async (levelId) => {
+    try {
+      const levelModules = await getModulesByLevel(levelId, {
+        includeDrafts: true
+      });
+
+      const firstModuleId =
+        levelModules[0]?.moduleId || levelModules[0]?.id || "";
+
+      const moduleId = formData.moduleId || firstModuleId;
+
+      const nextNumber = await getNextLessonNumber(levelId);
+      const nextOrder = moduleId
+        ? await getNextLessonOrderInModule(levelId, moduleId)
+        : 1;
+
+      setModules(levelModules);
+
+      setFormData((prev) => ({
+        ...prev,
+        levelId,
+        moduleId,
+        lessonNumber: nextNumber,
+        lessonId: `${levelId}_${nextNumber}`,
+        orderInModule: nextOrder
+      }));
+    } catch (err) {
+      console.error("Error loading modules or next lesson ID:", err);
+      setError("Nie można załadować modułów lub numeru lekcji.");
+    }
+  };
+
+  useEffect(() => {
+    loadModulesAndLessonId(formData.levelId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleChange = async (event) => {
     const { name, value } = event.target;
-    
+
+    setError("");
+    setSuccessMessage("");
+
     if (name === "levelId") {
-      await loadNextLessonId(value);
+      setGeneratedLesson(null);
+      await loadModulesAndLessonId(value);
       return;
     }
-  
+
+    if (name === "moduleId") {
+      const nextOrder = await getNextLessonOrderInModule(
+        formData.levelId,
+        value
+      );
+
+      setFormData((prev) => ({
+        ...prev,
+        moduleId: value,
+        orderInModule: nextOrder
+      }));
+
+      setGeneratedLesson(null);
+      return;
+    }
+
     setFormData((prev) => ({
       ...prev,
       [name]: name === "lessonNumber" ? Number(value) : value
     }));
   };
-
-  const loadNextLessonId = async (level) => {
-    try {
-      const nextNumber = await getNextLessonNumber(level);
-
-      setFormData((prev) => ({
-        ...prev,
-        levelId: level,
-        lessonNumber: nextNumber,
-        lessonId: `${level}_${nextNumber}`
-      }));
-    } catch (error) {
-      console.error("Error loading next lesson number:", error);
-    }
-  };
-
-  useEffect(() => {
-    loadNextLessonId(formData.levelId);
-  }, []);
 
   const handleGenerateLesson = async (event) => {
     event.preventDefault();
@@ -91,12 +160,17 @@ const AILessonGenerator = () => {
     setExecutionLog([]);
 
     if (!formData.lessonId.trim()) {
-      setError("Debes escribir un ID válido para la lección.");
+      setError("Brakuje poprawnego ID lekcji.");
+      return;
+    }
+
+    if (!formData.moduleId) {
+      setError("Najpierw wybierz moduł dla tej lekcji.");
       return;
     }
 
     if (!formData.lessonTopic.trim()) {
-      setError("Debes escribir un tema para la lección.");
+      setError("Wpisz temat lekcji.");
       return;
     }
 
@@ -108,8 +182,12 @@ const AILessonGenerator = () => {
         lessonTopic: formData.lessonTopic.trim(),
         lessonNumber: formData.lessonNumber,
         levelId: formData.levelId,
-        targetLanguage: formData.targetLanguage.trim(),
-        baseLanguage: formData.baseLanguage.trim(),
+        moduleId: formData.moduleId,
+        moduleTitle: selectedModule?.title || "",
+        orderInModule: formData.orderInModule,
+        targetLanguage: TARGET_LANGUAGE,
+        baseLanguage: SUPPORT_LANGUAGE,
+        supportLanguage: SUPPORT_LANGUAGE,
         ageGroup: formData.ageGroup
       });
 
@@ -119,18 +197,50 @@ const AILessonGenerator = () => {
         setError(
           result.errors?.join(", ") ||
             result.error ||
-            "No se pudo generar la lección."
+            "Nie udało się wygenerować lekcji."
         );
         return;
       }
 
-      setGeneratedLesson(result.lesson);
+      const lessonData = result.lesson?.lessonData || {};
+
+      const normalizedGeneratedLesson = {
+        ...result.lesson,
+        lessonData: {
+          ...lessonData,
+          id: formData.lessonId.trim(),
+          lessonId: formData.lessonId.trim(),
+          nivel: formData.levelId,
+          level: formData.levelId,
+          moduleId: formData.moduleId,
+          moduleTitle: selectedModule?.title || "",
+          orderInModule: formData.orderInModule,
+          ageGroup: formData.ageGroup,
+          status: "draft"
+        },
+        metadata: {
+          ...(result.lesson?.metadata || {}),
+          status: "pending_review",
+          levelId: formData.levelId,
+          moduleId: formData.moduleId,
+          moduleTitle: selectedModule?.title || "",
+          lessonId: formData.lessonId.trim(),
+          lessonNumber: formData.lessonNumber,
+          orderInModule: formData.orderInModule,
+          targetLanguage: TARGET_LANGUAGE,
+          baseLanguage: SUPPORT_LANGUAGE,
+          supportLanguage: SUPPORT_LANGUAGE,
+          product: "Polish-learning"
+        }
+      };
+
+      setGeneratedLesson(normalizedGeneratedLesson);
       setSuccessMessage(
-        "Lección generada correctamente. Revísala antes de guardarla."
+        "Lekcja została wygenerowana. Sprawdź ją przed zapisaniem."
       );
     } catch (err) {
       console.error("AI lesson generation error:", err);
-      setError("Ocurrió un error generando la lección.");
+      setError("Wystąpił błąd podczas generowania lekcji.");
     } finally {
       setGenerating(false);
     }
@@ -138,7 +248,12 @@ const AILessonGenerator = () => {
 
   const handleSavePendingLesson = async () => {
     if (!generatedLesson) {
-      setError("No hay una lección generada para guardar.");
+      setError("Brak wygenerowanej lekcji do zapisania.");
+      return;
+    }
+
+    if (!formData.moduleId) {
+      setError("Lekcja musi mieć przypisany moduł.");
       return;
     }
 
@@ -149,24 +264,29 @@ const AILessonGenerator = () => {
 
       const currentUser = auth.currentUser;
 
+      const safeGeneratedLesson = sanitizeForFirestore(generatedLesson);
+
       await addDoc(collection(db, "aiGeneratedLessons"), {
-        ...generatedLesson,
+        ...safeGeneratedLesson,
         status: "pending_review",
+        metadata: {
+          ...(safeGeneratedLesson.metadata || {}),
+          status: "pending_review"
+        },
         createdBy: currentUser?.uid || null,
         createdByEmail: currentUser?.email || null,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       });
 
-      setSuccessMessage(
-        "Lección guardada como pendiente de revisión."
-      );
+      setSuccessMessage("Lekcja została zapisana jako oczekująca na przegląd.");
       setGeneratedLesson(null);
       setExecutionLog([]);
-      await loadNextLessonId(formData.levelId);
+
+      await loadModulesAndLessonId(formData.levelId);
     } catch (err) {
       console.error("Error saving generated lesson:", err);
-      setError("No se pudo guardar la lección generada.");
+      setError("Nie można zapisać wygenerowanej lekcji.");
     } finally {
       setSaving(false);
     }
@@ -182,27 +302,27 @@ const AILessonGenerator = () => {
         className="mb-6 inline-flex items-center gap-2 text-gray-600 hover:text-primary-600 font-medium"
       >
         <FaArrowLeft />
-        Volver al panel de lecciones
+        Wróć do panelu lekcji
       </button>
+
       <div className="flex items-start gap-4 mb-8">
         <div className="w-14 h-14 rounded-2xl bg-primary-100 text-primary-600 flex items-center justify-center text-2xl shrink-0">
           <FaMagic />
         </div>
-        
+
         <div>
           <p className="text-sm font-semibold text-primary-600 uppercase tracking-wide">
             AI Lesson Generator
           </p>
 
           <h2 className="text-3xl font-bold text-gray-900">
-            Generador de lecciones con agentes IA
+            Generator lekcji AI
           </h2>
 
           <p className="text-gray-600 mt-2 max-w-3xl">
-            Este módulo genera una lección usando agentes en cascada:
-            planificación curricular, investigación controlada, curaduría
-            pedagógica, diseño instruccional, redacción, localización cultural y
-            auditoría final.
+            Ten moduł generuje lekcje języka angielskiego dla polskich
+            studentów. Lekcja zostanie przypisana do konkretnego poziomu CEFR i
+            modułu akademickiego.
           </p>
         </div>
       </div>
@@ -213,36 +333,7 @@ const AILessonGenerator = () => {
       >
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2">
-            ID de lección
-          </label>
-
-          <input
-            type="text"
-            name="lessonId"
-            value={formData.lessonId}
-            readOnly
-            className="w-full border border-gray-300 rounded-2xl px-4 py-3 bg-gray-100 text-gray-600 cursor-not-allowed"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Número de lección
-          </label>
-
-          <input
-            type="number"
-            name="lessonNumber"
-            min="1"
-            value={formData.lessonNumber}
-            readOnly
-            className="w-full border border-gray-300 rounded-2xl px-4 py-3 bg-gray-100 text-gray-600 cursor-not-allowed"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Nivel CEFR
+            Poziom CEFR
           </label>
 
           <select
@@ -261,37 +352,41 @@ const AILessonGenerator = () => {
 
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Idioma objetivo
+            Moduł
           </label>
 
-          <input
-            type="text"
-            name="targetLanguage"
-            value={formData.targetLanguage}
+          <select
+            name="moduleId"
+            value={formData.moduleId}
             onChange={handleChange}
-            placeholder="Ej: Spanish"
-            className="w-full border border-gray-300 rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
-          />
+            disabled={modules.length === 0}
+            className="w-full border border-gray-300 rounded-2xl px-4 py-3 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:bg-gray-100 disabled:text-gray-500"
+          >
+            {modules.length === 0 ? (
+              <option value="">Brak modułów dla tego poziomu</option>
+            ) : (
+              modules.map((module) => {
+                const moduleId = module.moduleId || module.id;
+
+                return (
+                  <option key={moduleId} value={moduleId}>
+                    {module.icon || "📚"} {module.title}
+                  </option>
+                );
+              })
+            )}
+          </select>
+
+          {modules.length === 0 && (
+            <p className="text-xs text-red-600 mt-2">
+              Najpierw utwórz moduł w panelu administratora.
+            </p>
+          )}
         </div>
 
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Idioma base del estudiante
-          </label>
-
-          <input
-            type="text"
-            name="baseLanguage"
-            value={formData.baseLanguage}
-            onChange={handleChange}
-            placeholder="Ej: Polish"
-            className="w-full border border-gray-300 rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Grupo de edad
+            Grupa wiekowa
           </label>
 
           <select
@@ -308,9 +403,53 @@ const AILessonGenerator = () => {
           </select>
         </div>
 
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            ID lekcji
+          </label>
+
+          <input
+            type="text"
+            name="lessonId"
+            value={formData.lessonId}
+            readOnly
+            className="w-full border border-gray-300 rounded-2xl px-4 py-3 bg-gray-100 text-gray-600 cursor-not-allowed"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            Numer lekcji
+          </label>
+
+          <input
+            type="number"
+            name="lessonNumber"
+            min="1"
+            value={formData.lessonNumber}
+            readOnly
+            className="w-full border border-gray-300 rounded-2xl px-4 py-3 bg-gray-100 text-gray-600 cursor-not-allowed"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            Kolejność w module
+          </label>
+
+          <input
+            type="number"
+            name="orderInModule"
+            min="1"
+            value={formData.orderInModule}
+            readOnly
+            className="w-full border border-gray-300 rounded-2xl px-4 py-3 bg-gray-100 text-gray-600 cursor-not-allowed"
+          />
+        </div>
+
         <div className="md:col-span-2 xl:col-span-3">
           <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Tema de la lección
+            Temat lekcji
           </label>
 
           <input
@@ -318,26 +457,33 @@ const AILessonGenerator = () => {
             name="lessonTopic"
             value={formData.lessonTopic}
             onChange={handleChange}
-            placeholder="Ej: Greetings and introductions"
+            placeholder="Np. Greetings and introductions"
             className="w-full border border-gray-300 rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
           />
+        </div>
+
+        <div className="md:col-span-2 xl:col-span-3 bg-blue-50 border border-blue-100 rounded-2xl p-4">
+          <p className="text-sm text-blue-800">
+            <strong>Język docelowy:</strong> English ·{" "}
+            <strong>Język wsparcia:</strong> Polish
+          </p>
         </div>
 
         <div className="md:col-span-2 xl:col-span-3 flex flex-col sm:flex-row gap-3">
           <button
             type="submit"
-            disabled={generating}
+            disabled={generating || modules.length === 0}
             className="inline-flex items-center justify-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-2xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {generating ? (
               <>
                 <FaSpinner className="animate-spin" />
-                Generando con agentes...
+                Generowanie...
               </>
             ) : (
               <>
                 <FaMagic />
-                Generar lección con IA
+                Wygeneruj lekcję AI
               </>
             )}
           </button>
@@ -351,12 +497,12 @@ const AILessonGenerator = () => {
             {saving ? (
               <>
                 <FaSpinner className="animate-spin" />
-                Guardando...
+                Zapisywanie...
               </>
             ) : (
               <>
                 <FaSave />
-                Guardar pendiente
+                Zapisz do przeglądu
               </>
             )}
           </button>
@@ -379,9 +525,7 @@ const AILessonGenerator = () => {
 
       {executionLog.length > 0 && (
         <div className="mb-8 bg-gray-50 border border-gray-100 rounded-2xl p-5">
-          <h3 className="font-bold text-gray-900 mb-4">
-            Ejecución de agentes
-          </h3>
+          <h3 className="font-bold text-gray-900 mb-4">Log agentów</h3>
 
           <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-3">
             {executionLog.map((item, index) => (
@@ -389,13 +533,8 @@ const AILessonGenerator = () => {
                 key={`${item.agent}-${index}`}
                 className="bg-white border border-gray-100 rounded-xl p-3 text-sm"
               >
-                <p className="font-semibold text-gray-900">
-                  {item.agent}
-                </p>
-
-                <p className="text-green-600">
-                  {item.status}
-                </p>
+                <p className="font-semibold text-gray-900">{item.agent}</p>
+                <p className="text-green-600">{item.status}</p>
               </div>
             ))}
           </div>
@@ -406,28 +545,28 @@ const AILessonGenerator = () => {
         <div className="space-y-6">
           <div className="bg-primary-50 border border-primary-100 rounded-3xl p-6">
             <p className="text-sm font-semibold text-primary-600 uppercase tracking-wide">
-              Vista previa
+              Podgląd
             </p>
 
             <h3 className="text-3xl font-bold text-gray-900 mt-2">
-              {lessonData.titulo || "Sin título"}
+              {lessonData.titulo || "Untitled lesson"}
             </h3>
 
             <p className="text-gray-700 mt-3">
-              {lessonData.descripcion || "Sin descripción"}
+              {lessonData.descripcion || "Brak opisu."}
             </p>
 
             <div className="flex flex-wrap gap-2 mt-4">
               <span className="bg-white text-primary-700 px-3 py-1 rounded-full text-sm font-semibold">
-                Nivel {lessonData.level}
+                Poziom {lessonData.level || lessonData.nivel}
               </span>
 
               <span className="bg-white text-primary-700 px-3 py-1 rounded-full text-sm font-semibold">
-                {generatedLesson.metadata?.targetLanguage}
+                Moduł: {lessonData.moduleTitle || formData.moduleId}
               </span>
 
               <span className="bg-white text-primary-700 px-3 py-1 rounded-full text-sm font-semibold">
-                Base: {generatedLesson.metadata?.baseLanguage}
+                English → Polish support
               </span>
 
               <span className="bg-white text-primary-700 px-3 py-1 rounded-full text-sm font-semibold">
@@ -436,89 +575,7 @@ const AILessonGenerator = () => {
             </div>
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-6">
-            <PreviewCard title="Objetivos">
-              <ul className="list-disc pl-5 space-y-1">
-                {(lessonData.objetivos || []).map((item, index) => (
-                  <li key={index}>{item}</li>
-                ))}
-              </ul>
-            </PreviewCard>
-
-            <PreviewCard title="Vocabulario">
-              <div className="space-y-3">
-                {(lessonData.contenidos?.vocabulario?.palabras || []).map(
-                  (item, index) => (
-                    <div
-                      key={index}
-                      className="border border-gray-100 rounded-xl p-3"
-                    >
-                      <p className="font-semibold text-gray-900">
-                        {item.palabra || item.termino}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        {item.traduccion || item.definicion}
-                      </p>
-                      <p className="text-sm text-gray-500 mt-1">
-                        {item.ejemplo}
-                      </p>
-                    </div>
-                  )
-                )}
-              </div>
-            </PreviewCard>
-
-            <PreviewCard title="Gramática">
-              <p className="text-gray-700">
-                {lessonData.contenidos?.gramatica?.explanation}
-              </p>
-
-              <div className="mt-4 space-y-3">
-                {(lessonData.contenidos?.gramatica?.reglas || []).map((regla, index) => (
-                  <div key={index} className="border border-gray-100 rounded-xl p-3">
-                    <h4 className="font-semibold text-gray-900">
-                      {regla.titulo}
-                    </h4>
-                                
-                    <p className="text-gray-700 mt-2">
-                      {regla.explicacion}
-                    </p>
-                                
-                    <div className="mt-3 space-y-2">
-                      {(regla.ejemplos || []).map((ejemplo, ejemploIndex) => (
-                        <div
-                          key={ejemploIndex}
-                          className="bg-gray-50 rounded-lg p-3"
-                        >
-                          <p className="font-medium text-gray-900">
-                            {ejemplo.frase}
-                          </p>
-                          <p className="text-sm text-gray-600">
-                            {ejemplo.traduccion}
-                          </p>
-                          <p className="text-sm text-gray-500">
-                            {ejemplo.nota}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </PreviewCard>
-
-            <PreviewCard title="Lectura">
-              <h4 className="font-bold text-gray-900">
-                {lessonData.lectura?.titulo}
-              </h4>
-
-              <p className="text-gray-700 mt-2 whitespace-pre-wrap">
-                {lessonData.lectura?.contenido}
-              </p>
-            </PreviewCard>
-          </div>
-
-          <PreviewCard title="JSON generado">
+          <PreviewCard title="JSON wygenerowany">
             <pre className="bg-gray-900 text-gray-100 rounded-2xl p-4 overflow-auto text-xs max-h-[520px]">
               {JSON.stringify(generatedLesson, null, 2)}
             </pre>
@@ -532,13 +589,8 @@ const AILessonGenerator = () => {
 const PreviewCard = ({ title, children }) => {
   return (
     <div className="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm">
-      <h3 className="text-xl font-bold text-gray-900 mb-4">
-        {title}
-      </h3>
-
-      <div className="text-gray-700">
-        {children}
-      </div>
+      <h3 className="text-xl font-bold text-gray-900 mb-4">{title}</h3>
+      <div className="text-gray-700">{children}</div>
     </div>
   );
 };

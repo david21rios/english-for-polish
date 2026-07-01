@@ -28,7 +28,7 @@ ${userMessage}
   const generationConfig = {
     temperature: forceJson ? 0.2 : 0.7,
     topP: forceJson ? 0.8 : 0.9,
-    maxOutputTokens: forceJson ? 4096 : 1200
+    maxOutputTokens: forceJson ? 30000 : 3000
   };
 
   if (forceJson) {

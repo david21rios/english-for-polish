@@ -14,11 +14,8 @@ import { validateGeneratedLessonSchema } from "./schemas/lessonSchema";
 const DEBUG_AI_AGENTS = true;
 const AGENT_DELAY_MS = 8000;
 
-const wait = (ms) =>
-  new Promise((resolve) => setTimeout(resolve, ms));
-/**
- * Limpia respuestas Gemini y extrae JSON válido.
- */
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
 const extractJson = (responseText = "") => {
   try {
     let cleaned = String(responseText)
@@ -45,21 +42,18 @@ const extractJson = (responseText = "") => {
     console.error("Raw AI response:", responseText);
 
     throw new Error(
-      "No se pudo crear la lección porque la respuesta de la IA llegó incompleta o no tenía el formato requerido por la plataforma. " +
-      "La lección no fue guardada. Intenta nuevamente. Si vuelve a fallar, escribe un tema más específico, reduce la complejidad o verifica el nivel, idioma objetivo, idioma base y grupo de edad."
+      "The AI response was incomplete or did not match the required JSON format. The lesson was not saved. Try again with a more specific topic or a simpler lesson scope."
     );
   }
 };
 
-/**
- * Ejecuta un agente IA.
- */
 const runAgent = async (agentName, prompt) => {
   await wait(AGENT_DELAY_MS);
 
   const response = await sendAIMessage({
     userMessage: prompt,
     mode: "lesson_generator",
+    forceJson: true,
     context:
       "Return only valid JSON. Do not use Markdown. Do not include comments. Do not include trailing commas. Use double quotes for all property names and string values."
   });
@@ -74,126 +68,183 @@ const runAgent = async (agentName, prompt) => {
   return parsedJson;
 };
 
-/**
- * Reduce el tamaño del output del Research Agent para evitar prompts gigantes.
- */
 const compactResearchOutput = (researchOutput = {}) => {
   return {
     agent: researchOutput.agent || "controlled_research",
-
     usefulVocabulary: (researchOutput.usefulVocabulary || []).slice(0, 12),
-
     usefulGrammarPoints: (researchOutput.usefulGrammarPoints || []).slice(0, 4),
-
-    culturalNotes: (researchOutput.culturalNotes || []).slice(0, 2),
-
-    commonMistakes: (researchOutput.commonMistakes || []).slice(0, 3),
-
-    exampleSituations: (researchOutput.exampleSituations || []).slice(0, 2),
-
+    culturalNotes: (researchOutput.culturalNotes || []).slice(0, 3),
+    commonMistakes: (researchOutput.commonMistakes || []).slice(0, 4),
+    exampleSituations: (researchOutput.exampleSituations || []).slice(0, 3),
     sourceQualityNotes: (researchOutput.sourceQualityNotes || []).slice(0, 2)
   };
 };
 
-/**
- * Blueprint mínimo para que el Writer pueda construir la lección final
- * sin depender del Instructional Designer en esta primera versión.
- */
 const buildCompactBlueprint = ({
   plannerOutput,
   researchOutput,
   lessonId,
   lessonTopic,
+  lessonNumber,
   levelId,
+  moduleId,
+  moduleTitle,
+  orderInModule,
   targetLanguage,
   baseLanguage,
+  supportLanguage,
   ageGroup
 }) => {
   return {
     agent: "compact_blueprint",
+    product: "Polish-learning",
+
     lessonId,
+    lessonNumber,
+    orderInModule,
     title: lessonTopic,
-    description: `Introductory lesson about ${lessonTopic} for ${levelId} learners.`,
+    description: `Lesson about ${lessonTopic} for ${levelId} learners.`,
+
+    levelId,
+    moduleId,
+    moduleTitle,
+
     targetLanguage,
     baseLanguage,
-    levelId,
+    supportLanguage,
+
     ageGroup,
+
+    pedagogicalContext: {
+      targetLanguage: "English",
+      supportLanguage: "Polish",
+      audience: "Polish students learning English",
+      cefrLevel: levelId,
+      moduleTitle
+    },
+
     objectives: plannerOutput.cefrObjectives || [],
     communicativeGoals: plannerOutput.communicativeGoals || [],
     grammarFocus: plannerOutput.grammarFocus || [],
     vocabularyFocus: plannerOutput.vocabularyFocus || [],
     skillsFocus: plannerOutput.skillsFocus || {},
     approvedMaterial: researchOutput,
+
     requiredLimits: {
       maxObjectives: 4,
       maxVocabularyItems: 10,
-      maxGrammarExamples: 4,
-      maxReadingParagraphs: 2,
-      maxPracticeExercises: 4,
-      maxEvaluationQuestions: 4
+      maxGrammarRules: 2,
+      maxGrammarExamplesPerRule: 3,
+      maxReadingParagraphs: 3,
+      maxReadingQuestions: 3,
+      maxPracticeExercises: 5,
+      maxWritingExercises: 1,
+      maxSpeakingExercises: 1,
+      maxEvaluationQuestions: 5
     }
   };
 };
 
-/**
- * Pipeline estable de generación:
- * 1. Curriculum Planner
- * 2. Controlled Research
- * 3. Lesson Writer
- * 4. Quality Auditor
- */
+const enforcePolishLearningMetadata = ({
+  lesson,
+  lessonId,
+  lessonTopic,
+  lessonNumber,
+  levelId,
+  moduleId,
+  moduleTitle,
+  orderInModule,
+  targetLanguage,
+  baseLanguage,
+  supportLanguage,
+  ageGroup
+}) => {
+  const lessonData = lesson.lessonData || {};
+
+  return {
+    ...lesson,
+
+    lessonData: {
+      ...lessonData,
+      id: lessonId,
+      lessonId,
+      titulo: lessonData.titulo || lessonTopic,
+      title: lessonData.title || lessonData.titulo || lessonTopic,
+      nivel: levelId,
+      level: levelId,
+      moduleId,
+      moduleTitle,
+      orderInModule,
+      ageGroup,
+      status: "draft"
+    },
+
+    metadata: {
+      ...(lesson.metadata || {}),
+      product: "Polish-learning",
+      status: "pending_review",
+      lessonId,
+      lessonNumber,
+      levelId,
+      moduleId,
+      moduleTitle,
+      orderInModule,
+      targetLanguage,
+      baseLanguage,
+      supportLanguage,
+      audience: "Polish students learning English"
+    }
+  };
+};
+
 export const generateLessonWithAgents = async ({
   lessonId,
   lessonTopic,
+  lessonNumber = 1,
   levelId,
-  targetLanguage,
-  baseLanguage,
-  ageGroup,
-  lessonNumber = 1
+  moduleId,
+  moduleTitle = "",
+  orderInModule = 1,
+  targetLanguage = "English",
+  baseLanguage = "Polish",
+  supportLanguage = "Polish",
+  ageGroup = "all"
 }) => {
   const executionLog = [];
 
   try {
-    /*
-    ==========================================
-    AGENTE 1: Curriculum Planner
-    ==========================================
-    */
     const plannerPrompt = buildCurriculumPlannerPrompt({
       lessonTopic,
       lessonNumber,
       levelId,
+      moduleId,
+      moduleTitle,
+      orderInModule,
       targetLanguage,
       baseLanguage,
+      supportLanguage,
       ageGroup
     });
 
-    const plannerOutput = await runAgent(
-      "curriculum_planner",
-      plannerPrompt
-    );
+    const plannerOutput = await runAgent("curriculum_planner", plannerPrompt);
 
     executionLog.push({
       agent: "curriculum_planner",
       status: "completed"
     });
 
-    /*
-    ==========================================
-    AGENTE 2: Controlled Research
-    ==========================================
-    */
     const researchPrompt = buildResearchAgentPrompt({
       plannerOutput,
+      lessonTopic,
+      levelId,
+      moduleId,
+      moduleTitle,
       targetLanguage,
-      baseLanguage
+      baseLanguage,
+      supportLanguage
     });
 
-    const rawResearchOutput = await runAgent(
-      "research_agent",
-      researchPrompt
-    );
-
+    const rawResearchOutput = await runAgent("research_agent", researchPrompt);
     const researchOutput = compactResearchOutput(rawResearchOutput);
 
     executionLog.push({
@@ -201,19 +252,19 @@ export const generateLessonWithAgents = async ({
       status: "completed"
     });
 
-    /*
-    ==========================================
-    AGENTE 3: Lesson Writer
-    ==========================================
-    */
     const compactBlueprint = buildCompactBlueprint({
       plannerOutput,
       researchOutput,
       lessonId,
       lessonTopic,
+      lessonNumber,
       levelId,
+      moduleId,
+      moduleTitle,
+      orderInModule,
       targetLanguage,
       baseLanguage,
+      supportLanguage,
       ageGroup
     });
 
@@ -221,49 +272,56 @@ export const generateLessonWithAgents = async ({
       blueprintOutput: compactBlueprint,
       lessonId,
       lessonTopic,
+      lessonNumber,
       levelId,
+      moduleId,
+      moduleTitle,
+      orderInModule,
       targetLanguage,
       baseLanguage,
+      supportLanguage,
       ageGroup
     });
 
-    const lessonOutput = await runAgent(
-      "lesson_writer",
-      writerPrompt
-    );
+    const lessonOutput = await runAgent("lesson_writer", writerPrompt);
 
     executionLog.push({
       agent: "lesson_writer",
       status: "completed"
     });
 
-    /*
-    ==========================================
-    AGENTE 4: Quality Auditor
-    ==========================================
-    */
     const auditPrompt = buildQualityAuditorPrompt({
       lessonOutput,
       levelId,
+      moduleId,
+      moduleTitle,
       targetLanguage,
-      baseLanguage
+      baseLanguage,
+      supportLanguage
     });
 
-    const finalLesson = await runAgent(
-      "quality_auditor",
-      auditPrompt
-    );
+    const auditedLesson = await runAgent("quality_auditor", auditPrompt);
 
     executionLog.push({
       agent: "quality_auditor",
       status: "completed"
     });
 
-    /*
-    ==========================================
-    VALIDACIÓN LOCAL
-    ==========================================
-    */
+    const finalLesson = enforcePolishLearningMetadata({
+      lesson: auditedLesson,
+      lessonId,
+      lessonTopic,
+      lessonNumber,
+      levelId,
+      moduleId,
+      moduleTitle,
+      orderInModule,
+      targetLanguage,
+      baseLanguage,
+      supportLanguage,
+      ageGroup
+    });
+
     const validation = validateGeneratedLessonSchema(finalLesson);
 
     if (!validation.valid) {

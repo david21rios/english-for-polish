@@ -41,15 +41,15 @@ const AIGeneratedLessonsReview = ({ onPublished }) => {
       const lessonsQuery = query(lessonsRef, orderBy("createdAt", "desc"));
       const snapshot = await getDocs(lessonsQuery);
 
-      const data = snapshot.docs.map((item) => ({
-        docId: item.id,
-        ...item.data()
-      }));
-
-      setLessons(data);
+      setLessons(
+        snapshot.docs.map((item) => ({
+          docId: item.id,
+          ...item.data()
+        }))
+      );
     } catch (err) {
       console.error("Error loading AI generated lessons:", err);
-      setError("No se pudieron cargar las lecciones generadas por IA.");
+      setError("Nie można załadować lekcji wygenerowanych przez AI.");
     } finally {
       setLoading(false);
     }
@@ -59,23 +59,18 @@ const AIGeneratedLessonsReview = ({ onPublished }) => {
     loadGeneratedLessons();
   }, []);
 
-  const getVisibleLessons = () => {
-    return lessons.filter((lesson) => {
-      const rootStatus = lesson.status || "";
-      const metadataStatus = lesson.metadata?.status || "";
+  const visibleLessons = lessons.filter((lesson) => {
+    const rootStatus = lesson.status || "";
+    const metadataStatus = lesson.metadata?.status || "";
 
-      return (
-        rootStatus === "pending_review" ||
-        metadataStatus === "pending_review"
-      );
-    });
-  };
+    return rootStatus === "pending_review" || metadataStatus === "pending_review";
+  });
 
   const handleReject = async (lesson) => {
+    const title = lesson.lessonData?.titulo || lesson.docId;
+
     const confirmReject = window.confirm(
-      `¿Seguro que deseas rechazar la lección "${
-        lesson.lessonData?.titulo || lesson.docId
-      }"?`
+      `Czy na pewno chcesz odrzucić lekcję "${title}"?`
     );
 
     if (!confirmReject) return;
@@ -94,29 +89,36 @@ const AIGeneratedLessonsReview = ({ onPublished }) => {
         updatedAt: serverTimestamp()
       });
 
-      setSuccessMessage("Lección rechazada correctamente.");
+      setSuccessMessage("Lekcja została odrzucona.");
       setSelectedLesson(null);
       await loadGeneratedLessons();
     } catch (err) {
       console.error("Error rejecting AI lesson:", err);
-      setError("No se pudo rechazar la lección.");
+      setError("Nie można odrzucić lekcji.");
     } finally {
       setProcessingId("");
     }
   };
 
   const handlePublish = async (lesson) => {
-    const lessonData = lesson.lessonData;
+    const lessonData = lesson.lessonData || {};
+    const metadata = lesson.metadata || {};
 
-    if (!lessonData?.id || !lessonData?.level) {
-      setError("La lección generada no tiene ID o nivel válido.");
+    const levelId = lessonData.level || lessonData.nivel || metadata.levelId;
+    const moduleId = lessonData.moduleId || metadata.moduleId;
+    const lessonId = lessonData.id || lessonData.lessonId || metadata.lessonId;
+
+    if (!levelId || !moduleId || !lessonId) {
+      setError(
+        "Lekcja AI musi mieć levelId, moduleId oraz lessonId przed publikacją."
+      );
       return;
     }
 
     const confirmPublish = window.confirm(
-      `¿Publicar la lección "${
-        lessonData.titulo || lessonData.id
-      }" en el nivel ${lessonData.level}?`
+      `Opublikować lekcję "${lessonData.titulo || lessonId}" w module ${
+        lessonData.moduleTitle || moduleId
+      }?`
     );
 
     if (!confirmPublish) return;
@@ -125,35 +127,61 @@ const AIGeneratedLessonsReview = ({ onPublished }) => {
       setProcessingId(lesson.docId);
       setError("");
       setSuccessMessage("");
-      const normalizedLessonData = normalizeAIGeneratedLessonForApp(lessonData);
+
+      const normalizedLessonData = normalizeAIGeneratedLessonForApp({
+        ...lessonData,
+        id: lessonId,
+        lessonId,
+        nivel: levelId,
+        level: levelId,
+        moduleId,
+        moduleTitle: lessonData.moduleTitle || metadata.moduleTitle || "",
+        orderInModule:
+          Number(lessonData.orderInModule || metadata.orderInModule) || 1
+      });
+
       const cleanedLesson = cleanLessonData({
         ...normalizedLessonData,
-        id: normalizedLessonData.id,
-        lessonId: normalizedLessonData.lessonId || normalizedLessonData.id,
-        nivel: normalizedLessonData.nivel || normalizedLessonData.level,
-        level: normalizedLessonData.level || normalizedLessonData.nivel,
+        id: lessonId,
+        lessonId,
+        nivel: levelId,
+        level: levelId,
+        moduleId,
+        moduleTitle: normalizedLessonData.moduleTitle || "",
         status: "draft",
         generatedByAI: true,
         approvedByTeacher: true,
         approvedAt: new Date().toISOString()
       });
 
-      const levelId = cleanedLesson.level || cleanedLesson.nivel;
-      const lessonId = cleanedLesson.id;
+      const lessonPayload = {
+        ...cleanedLesson,
+        id: lessonId,
+        lessonId,
+        nivel: levelId,
+        level: levelId,
+        moduleId,
+        moduleTitle: cleanedLesson.moduleTitle || "",
+        updatedAt: serverTimestamp(),
+        createdAt: serverTimestamp()
+      };
+
+      await setDoc(
+        doc(db, "levels", levelId, "modules", moduleId, "lessons", lessonId),
+        lessonPayload,
+        { merge: true }
+      );
 
       await setDoc(
         doc(db, "levels", levelId, "lessons", lessonId),
-        {
-          ...cleanedLesson,
-          updatedAt: serverTimestamp(),
-          createdAt: serverTimestamp()
-        },
+        lessonPayload,
         { merge: true }
       );
 
       await updateDoc(doc(db, "aiGeneratedLessons", lesson.docId), {
         status: "published",
         "metadata.status": "published",
+        "metadata.publishedPath": `levels/${levelId}/modules/${moduleId}/lessons/${lessonId}`,
         approvedBy: auth.currentUser?.uid || null,
         approvedByEmail: auth.currentUser?.email || null,
         approvedAt: serverTimestamp(),
@@ -162,31 +190,26 @@ const AIGeneratedLessonsReview = ({ onPublished }) => {
       });
 
       setSuccessMessage(
-        "Lección publicada correctamente como borrador en Gestión de Lecciones."
+        "Lekcja została opublikowana jako szkic w wybranym module."
       );
 
       setSelectedLesson(null);
       await loadGeneratedLessons();
-
-      if (onPublished) {
-        onPublished();
-      }
+      onPublished?.();
     } catch (err) {
       console.error("Error publishing AI lesson:", err);
-      setError("No se pudo publicar la lección generada.");
+      setError("Nie można opublikować lekcji wygenerowanej przez AI.");
     } finally {
       setProcessingId("");
     }
   };
-
-  const visibleLessons = getVisibleLessons();
 
   if (loading) {
     return (
       <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
         <div className="flex items-center gap-3 text-gray-600">
           <FaSpinner className="animate-spin" />
-          Cargando lecciones generadas por IA...
+          Ładowanie lekcji wygenerowanych przez AI...
         </div>
       </section>
     );
@@ -197,11 +220,11 @@ const AIGeneratedLessonsReview = ({ onPublished }) => {
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 mb-5">
         <div>
           <h2 className="text-xl font-bold text-gray-900">
-            Lecciones IA pendientes de revisión
+            Lekcje AI oczekujące na przegląd
           </h2>
 
           <p className="text-sm text-gray-600 mt-1">
-            Revisa, rechaza o publica las lecciones generadas por agentes IA.
+            Sprawdź, odrzuć albo opublikuj lekcje wygenerowane przez agentów AI.
           </p>
         </div>
 
@@ -210,7 +233,7 @@ const AIGeneratedLessonsReview = ({ onPublished }) => {
           onClick={loadGeneratedLessons}
           className="px-4 py-2 rounded-xl bg-gray-100 text-gray-700 hover:bg-gray-200 text-sm font-semibold"
         >
-          Actualizar
+          Odśwież
         </button>
       </div>
 
@@ -228,12 +251,13 @@ const AIGeneratedLessonsReview = ({ onPublished }) => {
 
       {visibleLessons.length === 0 ? (
         <div className="text-center py-6 text-gray-500 bg-gray-50 rounded-xl">
-          No hay lecciones pendientes generadas por IA.
+          Brak lekcji AI oczekujących na przegląd.
         </div>
       ) : (
         <div className="space-y-4">
           {visibleLessons.map((lesson) => {
             const lessonData = lesson.lessonData || {};
+            const metadata = lesson.metadata || {};
             const isProcessing = processingId === lesson.docId;
 
             return (
@@ -244,23 +268,27 @@ const AIGeneratedLessonsReview = ({ onPublished }) => {
                 <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
                   <div>
                     <h3 className="font-bold text-gray-900">
-                      {lessonData.titulo || "Lección sin título"}
+                      {lessonData.titulo || "Untitled lesson"}
                     </h3>
 
                     <p className="text-sm text-gray-600 mt-1">
-                      ID: {lessonData.id || lessonData.lessonId} · Nivel:{" "}
-                      {lessonData.level || lessonData.nivel} · Edad:{" "}
-                      {lessonData.ageGroup || "all"}
+                      ID: {lessonData.id || lessonData.lessonId} · Poziom:{" "}
+                      {lessonData.level || lessonData.nivel || metadata.levelId} ·
+                      Moduł:{" "}
+                      {lessonData.moduleTitle ||
+                        metadata.moduleTitle ||
+                        lessonData.moduleId ||
+                        metadata.moduleId ||
+                        "N/A"}
                     </p>
 
                     <p className="text-sm text-gray-500 mt-1">
-                      Idioma objetivo:{" "}
-                      {lesson.metadata?.targetLanguage || "N/A"} · Base:{" "}
-                      {lesson.metadata?.baseLanguage || "N/A"}
+                      Target: {metadata.targetLanguage || "English"} · Support:{" "}
+                      {metadata.supportLanguage || metadata.baseLanguage || "Polish"}
                     </p>
 
                     <p className="text-sm text-gray-700 mt-2">
-                      {lessonData.descripcion || "Sin descripción"}
+                      {lessonData.descripcion || "Brak opisu."}
                     </p>
                   </div>
 
@@ -269,16 +297,14 @@ const AIGeneratedLessonsReview = ({ onPublished }) => {
                       type="button"
                       onClick={() => {
                         setSelectedLesson(
-                          selectedLesson?.docId === lesson.docId
-                            ? null
-                            : lesson
+                          selectedLesson?.docId === lesson.docId ? null : lesson
                         );
                         setShowTechnicalJson(false);
                       }}
                       className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white border border-gray-200 text-gray-700 hover:bg-gray-100 text-sm font-semibold"
                     >
                       <FaEye />
-                      Ver
+                      Podgląd
                     </button>
 
                     <button
@@ -292,7 +318,7 @@ const AIGeneratedLessonsReview = ({ onPublished }) => {
                       ) : (
                         <FaCheckCircle />
                       )}
-                      Publicar
+                      Opublikuj
                     </button>
 
                     <button
@@ -302,7 +328,7 @@ const AIGeneratedLessonsReview = ({ onPublished }) => {
                       className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-red-600 text-white hover:bg-red-700 text-sm font-semibold disabled:opacity-50"
                     >
                       <FaTimesCircle />
-                      Rechazar
+                      Odrzuć
                     </button>
                   </div>
                 </div>
@@ -311,9 +337,7 @@ const AIGeneratedLessonsReview = ({ onPublished }) => {
                   <GeneratedLessonPreview
                     lesson={lesson}
                     showTechnicalJson={showTechnicalJson}
-                    onToggleJson={() =>
-                      setShowTechnicalJson((prev) => !prev)
-                    }
+                    onToggleJson={() => setShowTechnicalJson((prev) => !prev)}
                   />
                 )}
               </article>
@@ -331,114 +355,63 @@ const GeneratedLessonPreview = ({
   onToggleJson
 }) => {
   const lessonData = lesson.lessonData || {};
+  const metadata = lesson.metadata || {};
   const auditReport = lesson.auditReport || {};
 
   return (
     <div className="mt-5 bg-white border border-gray-100 rounded-2xl p-5 space-y-5">
       <div className="bg-primary-50 border border-primary-100 rounded-2xl p-5">
         <p className="text-sm font-semibold text-primary-600 uppercase tracking-wide">
-          Vista previa de la lección
+          Podgląd lekcji
         </p>
 
         <h3 className="text-2xl font-bold text-gray-900 mt-2">
-          {lessonData.titulo || "Sin título"}
+          {lessonData.titulo || "Untitled lesson"}
         </h3>
 
         <p className="text-gray-700 mt-2">
-          {lessonData.descripcion || "Sin descripción"}
+          {lessonData.descripcion || "Brak opisu."}
         </p>
 
         <div className="flex flex-wrap gap-2 mt-4">
           <span className="bg-white text-primary-700 px-3 py-1 rounded-full text-sm font-semibold">
-            Nivel {lessonData.level || lessonData.nivel}
+            Poziom {lessonData.level || lessonData.nivel || metadata.levelId}
           </span>
 
           <span className="bg-white text-primary-700 px-3 py-1 rounded-full text-sm font-semibold">
-            Edad: {lessonData.ageGroup || "all"}
+            Moduł:{" "}
+            {lessonData.moduleTitle ||
+              metadata.moduleTitle ||
+              lessonData.moduleId ||
+              metadata.moduleId ||
+              "N/A"}
           </span>
 
           <span className="bg-white text-primary-700 px-3 py-1 rounded-full text-sm font-semibold">
-            {lesson.metadata?.targetLanguage || "Target N/A"}
+            {metadata.targetLanguage || "English"}
           </span>
 
           <span className="bg-white text-primary-700 px-3 py-1 rounded-full text-sm font-semibold">
-            Base: {lesson.metadata?.baseLanguage || "N/A"}
+            Support: {metadata.supportLanguage || metadata.baseLanguage || "Polish"}
           </span>
         </div>
       </div>
 
-      <PreviewSection title="Objetivos">
+      <PreviewSection title="Cele lekcji">
         <ul className="list-disc pl-5 space-y-1">
           {(lessonData.objetivos || []).map((item, index) => (
-            <li key={index}>{item}</li>
+            <li key={index}>{renderText(item)}</li>
           ))}
         </ul>
       </PreviewSection>
 
-      <PreviewSection title="Vocabulario">
-        <div className="grid md:grid-cols-2 gap-3">
-          {(lessonData.contenidos?.vocabulario?.items || []).map(
-            (item, index) => (
-              <div
-                key={index}
-                className="border border-gray-100 rounded-xl p-3 bg-gray-50"
-              >
-                <p className="font-semibold text-gray-900">{item.term}</p>
-                <p className="text-sm text-gray-600">{item.translation}</p>
-                <p className="text-sm text-gray-500 mt-1">{item.example}</p>
-              </div>
-            )
-          )}
-        </div>
-      </PreviewSection>
-
-      <PreviewSection title="Gramática">
-        {(lessonData.contenidos?.gramatica?.reglas || []).map(
-          (regla, index) => (
-            <div
-              key={index}
-              className="mb-4 border border-gray-100 rounded-xl p-4 bg-gray-50"
-            >
-              <h5 className="font-bold text-gray-900 mb-2">
-                {regla.titulo}
-              </h5>
-          
-              <p className="text-gray-700 mb-3">
-                {regla.explicacion}
-              </p>
-          
-              {(regla.ejemplos || []).map((ejemplo, idx) => (
-                <div
-                  key={idx}
-                  className="ml-4 mb-2"
-                >
-                  <p className="font-medium">
-                    {ejemplo.frase}
-                  </p>
-              
-                  <p className="text-sm text-gray-600">
-                    {ejemplo.traduccion}
-                  </p>
-              
-                  {ejemplo.nota && (
-                    <p className="text-xs text-gray-500">
-                      {ejemplo.nota}
-                    </p>
-                  )}
-                </div>
-              ))}
-            </div>
-          )
-        )}
-      </PreviewSection>
-
-      <PreviewSection title="Lectura">
+      <PreviewSection title="Czytanie">
         <h4 className="font-semibold text-gray-900">
-          {lessonData.lectura?.titulo || "Lectura"}
+          {lessonData.lectura?.titulo || "Reading"}
         </h4>
 
         <p className="text-gray-700 mt-2 whitespace-pre-wrap">
-          {lessonData.lectura?.contenido || "Sin contenido de lectura."}
+          {lessonData.lectura?.contenido || "Brak tekstu czytania."}
         </p>
 
         {(lessonData.lectura?.preguntas || []).length > 0 && (
@@ -449,10 +422,24 @@ const GeneratedLessonPreview = ({
                 className="bg-gray-50 border border-gray-100 rounded-xl p-3"
               >
                 <p className="font-medium text-gray-900">
-                  {item.question}
+                  {item.pregunta || item.question || "Question"}
                 </p>
-                <p className="text-sm text-gray-600 mt-1">
-                  Respuesta: {item.answer}
+
+                {(item.opciones || item.options || []).length > 0 && (
+                  <ul className="list-disc pl-5 mt-2 text-sm text-gray-600">
+                    {(item.opciones || item.options || []).map((option, i) => (
+                      <li key={i}>{option}</li>
+                    ))}
+                  </ul>
+                )}
+
+                <p className="text-sm text-green-700 mt-2">
+                  Answer:{" "}
+                  {item.respuesta_correcta ||
+                    item.respuesta ||
+                    item.answer ||
+                    item.correctAnswer ||
+                    "N/A"}
                 </p>
               </div>
             ))}
@@ -461,50 +448,32 @@ const GeneratedLessonPreview = ({
       </PreviewSection>
 
       <PreviewExercises
-        title="Práctica interactiva"
+        title="Ćwiczenia interaktywne"
         block={lessonData.practica_interactiva}
       />
 
-      <PreviewExercises
-        title="Producción escrita"
-        block={lessonData.produccion_escrita}
-      />
+      <PreviewExercises title="Pisanie" block={lessonData.produccion_escrita} />
 
-      <PreviewExercises
-        title="Producción oral"
-        block={lessonData.produccion_oral}
-      />
+      <PreviewExercises title="Mówienie" block={lessonData.produccion_oral} />
 
       <PreviewEvaluation evaluation={lessonData.evaluacion} />
 
-      <PreviewSection title="Reflexión final">
+      <PreviewSection title="Podsumowanie">
         <p className="text-gray-700">
-          {lessonData.reflexion_final || "Sin reflexión final."}
+          {lessonData.reflexion_final || "Brak podsumowania."}
         </p>
       </PreviewSection>
 
-      <PreviewSection title="Auditoría IA">
+      <PreviewSection title="Audyt AI">
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-3">
           <AuditBadge label="CEFR" value={auditReport.cefrAlignment} />
-          <AuditBadge label="Idioma" value={auditReport.languageAccuracy} />
+          <AuditBadge label="Language" value={auditReport.languageAccuracy} />
           <AuditBadge
-            label="Localización"
+            label="Localization"
             value={auditReport.culturalLocalization}
           />
           <AuditBadge label="JSON" value={auditReport.jsonValidation} />
         </div>
-
-        {(auditReport.warnings || []).length > 0 && (
-          <div className="mt-4 text-sm text-yellow-700">
-            Advertencias: {(auditReport.warnings || []).join(", ")}
-          </div>
-        )}
-
-        {(auditReport.errors || []).length > 0 && (
-          <div className="mt-4 text-sm text-red-700">
-            Errores: {(auditReport.errors || []).join(", ")}
-          </div>
-        )}
       </PreviewSection>
 
       <div>
@@ -514,7 +483,7 @@ const GeneratedLessonPreview = ({
           className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-100 text-gray-700 hover:bg-gray-200 text-sm font-semibold"
         >
           {showTechnicalJson ? <FaChevronUp /> : <FaChevronDown />}
-          {showTechnicalJson ? "Ocultar JSON técnico" : "Ver JSON técnico"}
+          {showTechnicalJson ? "Ukryj JSON techniczny" : "Pokaż JSON techniczny"}
         </button>
 
         {showTechnicalJson && (
@@ -527,14 +496,12 @@ const GeneratedLessonPreview = ({
   );
 };
 
-const PreviewSection = ({ title, children }) => {
-  return (
-    <section className="border border-gray-100 rounded-2xl p-4">
-      <h4 className="font-bold text-gray-900 mb-3">{title}</h4>
-      <div className="text-gray-700">{children}</div>
-    </section>
-  );
-};
+const PreviewSection = ({ title, children }) => (
+  <section className="border border-gray-100 rounded-2xl p-4">
+    <h4 className="font-bold text-gray-900 mb-3">{title}</h4>
+    <div className="text-gray-700">{children}</div>
+  </section>
+);
 
 const PreviewExercises = ({ title, block }) => {
   if (!block) return null;
@@ -542,7 +509,7 @@ const PreviewExercises = ({ title, block }) => {
   return (
     <PreviewSection title={title}>
       <p className="text-gray-600 mb-3">
-        {block.descripcion || "Sin descripción."}
+        {block.descripcion || block.description || "Brak opisu."}
       </p>
 
       <div className="space-y-3">
@@ -552,26 +519,25 @@ const PreviewExercises = ({ title, block }) => {
             className="bg-gray-50 border border-gray-100 rounded-xl p-3"
           >
             <p className="font-medium text-gray-900">
-              {item.question || item.prompt || "Ejercicio"}
+              {item.pregunta ||
+                item.question ||
+                item.prompt ||
+                item.instrucciones ||
+                item.instructions ||
+                "Exercise"}
             </p>
 
-            {item.options && (
+            {(item.opciones || item.options || []).length > 0 && (
               <ul className="list-disc pl-5 mt-2 text-sm text-gray-600">
-                {item.options.map((option, optionIndex) => (
+                {(item.opciones || item.options || []).map((option, optionIndex) => (
                   <li key={optionIndex}>{option}</li>
                 ))}
               </ul>
             )}
 
-            {item.guidance && (
+            {(item.elementos || item.items || []).length > 0 && (
               <p className="text-sm text-gray-600 mt-2">
-                Guía: {item.guidance}
-              </p>
-            )}
-
-            {item.answer && (
-              <p className="text-sm text-green-700 mt-2">
-                Respuesta: {item.answer}
+                Items: {(item.elementos || item.items || []).join(", ")}
               </p>
             )}
           </div>
@@ -585,9 +551,9 @@ const PreviewEvaluation = ({ evaluation }) => {
   if (!evaluation) return null;
 
   return (
-    <PreviewSection title="Evaluación">
+    <PreviewSection title="Ocena">
       <p className="text-gray-700 mb-3">
-        {evaluation.autoevaluacion || "Sin autoevaluación."}
+        {evaluation.autoevaluacion || "Brak samooceny."}
       </p>
 
       <div className="space-y-3">
@@ -597,19 +563,24 @@ const PreviewEvaluation = ({ evaluation }) => {
             className="bg-gray-50 border border-gray-100 rounded-xl p-3"
           >
             <p className="font-medium text-gray-900">
-              {item.question}
+              {item.pregunta || item.question || "Question"}
             </p>
 
-            {item.options && (
+            {(item.opciones || item.options || []).length > 0 && (
               <ul className="list-disc pl-5 mt-2 text-sm text-gray-600">
-                {item.options.map((option, optionIndex) => (
+                {(item.opciones || item.options || []).map((option, optionIndex) => (
                   <li key={optionIndex}>{option}</li>
                 ))}
               </ul>
             )}
 
             <p className="text-sm text-green-700 mt-2">
-              Respuesta: {item.answer}
+              Answer:{" "}
+              {item.respuesta_correcta ||
+                item.respuesta ||
+                item.answer ||
+                item.correctAnswer ||
+                "N/A"}
             </p>
           </div>
         ))}
@@ -634,22 +605,31 @@ const AuditBadge = ({ label, value }) => {
   );
 };
 
+const renderText = (value) => {
+  if (typeof value === "string" || typeof value === "number") return value;
+
+  if (value && typeof value === "object") {
+    return (
+      value.text ||
+      value.titulo ||
+      value.title ||
+      value.pregunta ||
+      value.question ||
+      JSON.stringify(value)
+    );
+  }
+
+  return "";
+};
+
 const normalizeAIGeneratedLessonForApp = (lessonData = {}) => {
   const vocabularyItems =
     lessonData.contenidos?.vocabulario?.items ||
     lessonData.contenidos?.vocabulario?.palabras ||
     [];
 
-  const grammarExamples =
-    lessonData.contenidos?.gramatica?.examples ||
-    lessonData.contenidos?.gramatica?.ejemplos ||
-    [];
-
-  const interactivePracticeExercises =
+  const practiceExercises =
     lessonData.practica_interactiva?.ejercicios || [];
-
-  const normalizedPracticeExercises =
-    interactivePracticeExercises.map(normalizeExerciseForApp);
 
   return {
     ...lessonData,
@@ -659,7 +639,6 @@ const normalizeAIGeneratedLessonForApp = (lessonData = {}) => {
 
       vocabulario: {
         ...lessonData.contenidos?.vocabulario,
-
         palabras: vocabularyItems.map((item) => ({
           termino: item.term || item.termino || item.palabra || "",
           palabra: item.term || item.termino || item.palabra || "",
@@ -678,144 +657,116 @@ const normalizeAIGeneratedLessonForApp = (lessonData = {}) => {
           ejemplo: item.example || item.ejemplo || "",
           audioSrc: item.audioSrc || ""
         })),
-
         items: vocabularyItems
       },
 
       gramatica: {
         ...lessonData.contenidos?.gramatica,
-            
-        temas:
-          lessonData.contenidos?.gramatica?.temas || [],
-            
-        reglas:
-          lessonData.contenidos?.gramatica?.reglas || [],
-            
-        ejemplos: grammarExamples
+        temas: lessonData.contenidos?.gramatica?.temas || [],
+        reglas: lessonData.contenidos?.gramatica?.reglas || []
       }
+    },
+
+    lectura: {
+      titulo: lessonData.lectura?.titulo || "",
+      autor: lessonData.lectura?.autor || "Polish Learning AI",
+      contenido: lessonData.lectura?.contenido || "",
+      preguntas: (lessonData.lectura?.preguntas || []).map(normalizeQuestion)
     },
 
     practica_interactiva: {
       titulo:
         lessonData.practica_interactiva?.titulo ||
         lessonData.practica_interactiva?.title ||
-        "Práctica interactiva",
+        "Interactive practice",
       descripcion:
         lessonData.practica_interactiva?.descripcion ||
         lessonData.practica_interactiva?.description ||
         "",
-      ejercicios: normalizedPracticeExercises
+      ejercicios: practiceExercises.map(normalizeExerciseForApp)
     },
 
-    actividades:
-      lessonData.actividades?.length > 0
-        ? lessonData.actividades
-        : normalizedPracticeExercises,
-
-    activities:
-      lessonData.activities?.length > 0
-        ? lessonData.activities
-        : normalizedPracticeExercises
+    evaluacion: {
+      autoevaluacion: lessonData.evaluacion?.autoevaluacion || "",
+      cuestionario: (lessonData.evaluacion?.cuestionario || []).map(
+        normalizeQuestion
+      )
+    }
   };
 };
+
+const normalizeQuestion = (question = {}) => ({
+  tipo: question.tipo || question.type || "seleccion_multiple",
+  pregunta: question.pregunta || question.question || "",
+  opciones: question.opciones || question.options || [],
+  respuesta_correcta:
+    question.respuesta_correcta ||
+    question.respuesta ||
+    question.answer ||
+    question.correctAnswer ||
+    "",
+  respuestas_aceptadas: question.respuestas_aceptadas || []
+});
 
 const normalizeExerciseForApp = (exercise = {}) => {
   const type = (exercise.tipo || exercise.type || "").toLowerCase();
 
-  switch (type) {
-    case "multiple_choice":
-    case "seleccion_multiple":
-      return {
-        tipo: "seleccion_multiple",
-        pregunta: exercise.pregunta || exercise.question || "",
-        opciones: exercise.opciones || exercise.options || [],
-        respuesta_correcta:
-          exercise.respuesta_correcta ||
-          exercise.answer ||
-          exercise.correctAnswer ||
-          ""
-      };
-
-    case "fill_blank":
-    case "completar":
-      return {
-        tipo: "completar",
-        pregunta: exercise.pregunta || exercise.question || "",
-        instrucciones:
-          exercise.instrucciones ||
-          exercise.instructions ||
-          "Completa los espacios en blanco.",
-        texto:
-          exercise.texto ||
-          exercise.text ||
-          convertQuestionToBlankText(exercise.question || ""),
-        palabras: exercise.palabras || exercise.words || [],
-        respuestas:
-          exercise.respuestas ||
-          exercise.answers ||
-          buildBlankAnswers(exercise)
-      };
-
-    case "matching":
-    case "relacionar":
-      return {
-        tipo: "relacionar",
-        instrucciones:
-          exercise.instrucciones ||
-          exercise.instructions ||
-          "Relaciona cada elemento con su respuesta correcta.",
-        pares_izquierda:
-          exercise.pares_izquierda ||
-          exercise.leftItems ||
-          exercise.left ||
-          [],
-        pares_derecha:
-          exercise.pares_derecha ||
-          exercise.rightItems ||
-          exercise.right ||
-          [],
-        respuestas_correctas:
-          exercise.respuestas_correctas ||
-          exercise.correctPairs ||
-          {}
-      };
-
-    case "ordering":
-    case "ordenar":
-      return {
-        tipo: "ordenar",
-        instrucciones:
-          exercise.instrucciones ||
-          exercise.instructions ||
-          "Ordena los elementos correctamente.",
-        elementos: exercise.elementos || exercise.items || [],
-        orden_correcto:
-          exercise.orden_correcto ||
-          exercise.correctOrder ||
-          []
-      };
-
-    default:
-      return {
-        tipo: "seleccion_multiple",
-        pregunta: exercise.pregunta || exercise.question || "Pregunta",
-        opciones: exercise.opciones || exercise.options || [],
-        respuesta_correcta:
-          exercise.respuesta_correcta ||
-          exercise.answer ||
-          exercise.correctAnswer ||
-          ""
-      };
+  if (["multiple_choice", "seleccion_multiple"].includes(type)) {
+    return normalizeQuestion(exercise);
   }
+
+  if (["fill_blank", "completar"].includes(type)) {
+    return {
+      tipo: "completar",
+      pregunta: exercise.pregunta || exercise.question || "",
+      instrucciones:
+        exercise.instrucciones ||
+        exercise.instructions ||
+        "Complete the blanks.",
+      texto:
+        exercise.texto ||
+        exercise.text ||
+        convertQuestionToBlankText(exercise.question || ""),
+      palabras: exercise.palabras || exercise.words || [],
+      respuestas:
+        exercise.respuestas || exercise.answers || buildBlankAnswers(exercise)
+    };
+  }
+
+  if (["matching", "relacionar"].includes(type)) {
+    return {
+      tipo: "relacionar",
+      instrucciones:
+        exercise.instrucciones ||
+        exercise.instructions ||
+        "Match each item with the correct answer.",
+      pares_izquierda:
+        exercise.pares_izquierda || exercise.leftItems || exercise.left || [],
+      pares_derecha:
+        exercise.pares_derecha || exercise.rightItems || exercise.right || [],
+      respuestas_correctas:
+        exercise.respuestas_correctas || exercise.correctPairs || {}
+    };
+  }
+
+  if (["ordering", "ordenar"].includes(type)) {
+    return {
+      tipo: "ordenar",
+      instrucciones:
+        exercise.instrucciones ||
+        exercise.instructions ||
+        "Put the items in the correct order.",
+      elementos: exercise.elementos || exercise.items || [],
+      orden_correcto:
+        exercise.orden_correcto || exercise.correctOrder || []
+    };
+  }
+
+  return normalizeQuestion(exercise);
 };
 
-const convertQuestionToBlankText = (question = "") => {
-  if (!question) return "__";
-
-  return question.includes("____")
-    ? question.replace("____", "__")
-    : `${question} __`;
-};
+const convertQuestionToBlankText = (question = "") =>
+  question.includes("____") ? question.replace("____", "__") : `${question} __`;
 
 const buildBlankAnswers = (exercise = {}) => {
   const answer =
