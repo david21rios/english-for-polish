@@ -28,9 +28,15 @@ const validateUserMessage = (text = "") => {
 
   const words = cleanedText
     .split(" ")
-    .filter((word) => word.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ]/g, "").length > 1);
+    .filter(
+      (word) =>
+        word.replace(/[^a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ'-]/g, "").length > 1
+    );
 
-  const usefulCharacters = cleanedText.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ]/g, "");
+  const usefulCharacters = cleanedText.replace(
+    /[^a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ]/g,
+    ""
+  );
 
   const repeatedSingleLetters = /^[a-zA-Z](\s+[a-zA-Z]){1,}$/i.test(
     cleanedText
@@ -43,7 +49,7 @@ const validateUserMessage = (text = "") => {
     return {
       isValid: false,
       message:
-        "Write a more complete answer. Use at least 3 real words. Example: “I want to talk with my friend.”"
+        'Napisz pełniejszą odpowiedź. Użyj co najmniej 3 prawdziwych słów. Przykład: „I want to talk with my friend.”'
     };
   }
 
@@ -55,10 +61,10 @@ const validateUserMessage = (text = "") => {
 
 const formatDifficulty = (difficulty = "easy") => {
   const labels = {
-    easy: "Easy",
-    medium: "Medium",
-    hard: "Hard",
-    adaptive: "Adaptive"
+    easy: "Łatwa",
+    medium: "Średnia",
+    hard: "Trudna",
+    adaptive: "Adaptacyjna"
   };
 
   return labels[difficulty] || difficulty;
@@ -88,7 +94,7 @@ const MissionPlayer = ({
   const openingLoadedRef = useRef(false);
   const sendingRef = useRef(false);
   const evaluatingRef = useRef(false);
-  
+
   const objectives = Array.isArray(mission?.objectives)
     ? mission.objectives
     : [];
@@ -110,24 +116,24 @@ const MissionPlayer = ({
   useEffect(() => {
     openingLoadedRef.current = false;
   }, [mission?.id]);
-  
+
   useEffect(() => {
     const loadOpeningMessage = async () => {
       if (!mission || openingLoadedRef.current) return;
-    
+
       openingLoadedRef.current = true;
-    
+
       try {
         setOpeningLoading(true);
         setAiWarning("");
         setMessages([]);
-      
+
         const openingText = await generateMissionOpening({
           mission,
           userContext,
           topic
         });
-      
+
         setMessages([
           {
             id: `npc-opening-${Date.now()}`,
@@ -137,11 +143,11 @@ const MissionPlayer = ({
         ]);
       } catch (error) {
         console.error("Error generating mission opening:", error);
-      
+
         setAiWarning(
-          "AI is temporarily unavailable. A local fallback message was used."
+          "Sztuczna inteligencja jest chwilowo niedostępna. Użyto lokalnej wiadomości zastępczej."
         );
-      
+
         setMessages([
           {
             id: `npc-opening-fallback-${Date.now()}`,
@@ -153,7 +159,7 @@ const MissionPlayer = ({
         setOpeningLoading(false);
       }
     };
-  
+
     loadOpeningMessage();
   }, [mission?.id, userContext, topic]);
 
@@ -185,6 +191,7 @@ const MissionPlayer = ({
 
     if (!validation.isValid) {
       setValidationMessage(validation.message);
+      sendingRef.current = false;
       return;
     }
 
@@ -225,7 +232,7 @@ const MissionPlayer = ({
       console.error("Error generating mission reply:", error);
 
       setAiWarning(
-        "AI response failed. A fallback reply was used to continue the mission."
+        "Nie udało się uzyskać odpowiedzi AI. Aby kontynuować misję, użyto odpowiedzi zastępczej."
       );
 
       setMessages((prev) => [
@@ -270,7 +277,7 @@ const MissionPlayer = ({
         console.error("Error evaluating mission with AI:", error);
 
         setAiWarning(
-          "AI evaluation failed. A local fallback evaluation was used."
+          "Ocena AI nie powiodła się. Użyto lokalnej oceny zastępczej."
         );
 
         feedback = buildLocalFallbackFeedback({
@@ -281,7 +288,7 @@ const MissionPlayer = ({
 
       if (!feedback.passed) {
         setValidationMessage(
-          "Your conversation is still too short to complete the mission. Try using clearer and more complete sentences."
+          "Rozmowa jest jeszcze zbyt krótka, aby ukończyć misję. Spróbuj używać jaśniejszych i pełniejszych zdań."
         );
         return;
       }
@@ -314,13 +321,13 @@ const MissionPlayer = ({
           className="inline-flex items-center gap-2 text-sm text-white/90 hover:text-white mb-4 md:mb-6 disabled:opacity-50"
         >
           <FaArrowLeft />
-          Back to missions
+          Powrót do misji
         </button>
 
         <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-5 md:gap-6">
           <div className="min-w-0">
             <p className="text-xs md:text-sm font-semibold uppercase tracking-wide text-primary-100">
-              AI conversation mission
+              Misja konwersacyjna z AI
             </p>
 
             <h2 className="text-2xl md:text-4xl font-bold mt-2 leading-tight break-words">
@@ -346,7 +353,9 @@ const MissionPlayer = ({
               <p className="text-lg md:text-2xl font-bold">
                 {mission.level || "A1"}
               </p>
-              <p className="text-[10px] md:text-xs text-primary-100">Level</p>
+              <p className="text-[10px] md:text-xs text-primary-100">
+                Poziom
+              </p>
             </div>
 
             <div className="bg-white/15 border border-white/10 rounded-2xl p-3 md:p-4 text-center">
@@ -354,7 +363,7 @@ const MissionPlayer = ({
                 {formatDifficulty(mission.difficulty || "easy")}
               </p>
               <p className="text-[10px] md:text-xs text-primary-100">
-                Difficulty
+                Trudność
               </p>
             </div>
           </div>
@@ -367,11 +376,11 @@ const MissionPlayer = ({
             <FaLightbulb className="text-primary-600 mt-1 shrink-0" />
 
             <div className="min-w-0">
-              <h3 className="font-semibold text-gray-900">Situation</h3>
+              <h3 className="font-semibold text-gray-900">Sytuacja</h3>
 
               <p className="text-sm md:text-base text-gray-700 mt-1 leading-relaxed break-words">
                 {mission.scenario ||
-                  "Respond naturally according to the situation."}
+                  "Odpowiadaj naturalnie, zgodnie z przedstawioną sytuacją."}
               </p>
             </div>
           </div>
@@ -380,7 +389,7 @@ const MissionPlayer = ({
         {objectives.length > 0 && (
           <div className="bg-white border border-gray-100 rounded-2xl p-4 mb-5 md:mb-6">
             <h3 className="font-semibold text-gray-900 mb-3">
-              Mission objectives
+              Cele misji
             </h3>
 
             <ul className="space-y-2 text-sm text-gray-700">
@@ -396,8 +405,8 @@ const MissionPlayer = ({
             </ul>
 
             <p className="text-xs text-gray-500 mt-3">
-              The assistant will not correct you during the conversation. You
-              will receive feedback after completing the mission.
+              Asystent nie będzie poprawiał Cię podczas rozmowy. Informację
+              zwrotną otrzymasz po ukończeniu misji.
             </p>
           </div>
         )}
@@ -410,10 +419,10 @@ const MissionPlayer = ({
 
         <div className="bg-white border border-gray-100 rounded-2xl p-4 mb-5 md:mb-6">
           <div className="flex items-center justify-between text-xs md:text-sm text-gray-600 mb-2">
-            <span className="font-medium">Conversation progress</span>
+            <span className="font-medium">Postęp rozmowy</span>
 
             <span>
-              {userMessagesCount}/{minUserReplies} replies
+              {userMessagesCount}/{minUserReplies} odpowiedzi
             </span>
           </div>
 
@@ -429,7 +438,7 @@ const MissionPlayer = ({
           {openingLoading ? (
             <div className="flex items-center gap-3 text-gray-500 text-sm">
               <FaSpinner className="animate-spin text-primary-600" />
-              Preparing the AI character...
+              Przygotowywanie postaci AI...
             </div>
           ) : (
             messages.map((item) => {
@@ -476,7 +485,7 @@ const MissionPlayer = ({
 
               <div className="bg-white text-gray-500 border border-gray-100 rounded-2xl rounded-bl-sm px-4 py-3 text-sm inline-flex items-center gap-2">
                 <FaSpinner className="animate-spin text-primary-600" />
-                AI is typing...
+                AI pisze...
               </div>
             </div>
           )}
@@ -496,7 +505,7 @@ const MissionPlayer = ({
                   setValidationMessage("");
                 }
               }}
-              placeholder="Write your reply. Focus on communication, not perfection..."
+              placeholder="Napisz odpowiedź po angielsku. Skup się na komunikacji, nie na perfekcji..."
               disabled={openingLoading || aiLoading || finishingMission}
               className="flex-1 border rounded-xl px-4 py-3 text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none disabled:bg-gray-100 disabled:text-gray-500"
             />
@@ -510,13 +519,20 @@ const MissionPlayer = ({
                 finishingMission
               }
               className={`inline-flex items-center justify-center gap-2 rounded-xl px-5 md:px-6 py-3 font-semibold transition-colors ${
-                message.trim() && !openingLoading && !aiLoading && !finishingMission
+                message.trim() &&
+                !openingLoading &&
+                !aiLoading &&
+                !finishingMission
                   ? "bg-primary-600 text-white hover:bg-primary-700"
                   : "bg-gray-300 text-gray-500 cursor-not-allowed"
               }`}
             >
-              {aiLoading ? <FaSpinner className="animate-spin" /> : <FaPaperPlane />}
-              Send
+              {aiLoading ? (
+                <FaSpinner className="animate-spin" />
+              ) : (
+                <FaPaperPlane />
+              )}
+              Wyślij
             </button>
           </div>
 
@@ -532,13 +548,13 @@ const MissionPlayer = ({
             {canFinish ? (
               <span className="inline-flex items-center gap-2 text-green-700 font-medium">
                 <FaCheckCircle />
-                You can now complete this mission.
+                Możesz teraz ukończyć tę misję.
               </span>
             ) : (
               <span className="inline-flex items-start gap-2">
                 <FaFlagCheckered className="text-primary-600 mt-0.5 shrink-0" />
-                Complete at least {remainingReplies} more reply
-                {remainingReplies === 1 ? "" : "ies"}.
+                Udziel jeszcze co najmniej {remainingReplies}{" "}
+                {remainingReplies === 1 ? "odpowiedzi" : "odpowiedzi"}.
               </span>
             )}
           </div>
@@ -563,7 +579,8 @@ const MissionPlayer = ({
             ) : (
               <FaCheckCircle />
             )}
-            {finishingMission ? "Evaluating..." : "Complete mission"}
+
+            {finishingMission ? "Ocenianie..." : "Ukończ misję"}
           </button>
         </div>
 
@@ -572,8 +589,8 @@ const MissionPlayer = ({
             <FaBolt className="mt-1 shrink-0" />
 
             <p className="leading-relaxed">
-              Focus on completing the situation. Corrections are delayed until
-              the final feedback so the conversation can feel natural.
+              Skup się na wykonaniu zadania. Poprawki otrzymasz dopiero w
+              końcowej informacji zwrotnej, aby rozmowa była naturalna.
             </p>
           </div>
         </div>

@@ -12,16 +12,16 @@ const TopicGrid = ({
     <section className="w-full">
       <div className="mb-5 md:mb-8">
         <p className="text-sm font-semibold text-primary-600 uppercase tracking-wide">
-          Practice topics
+          Tematy do ćwiczeń
         </p>
 
         <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mt-2">
-          Choose a real-life situation
+          Wybierz sytuację z życia codziennego
         </h2>
 
         <p className="text-gray-600 mt-2 text-sm md:text-base max-w-2xl">
-          Start with a topic, personalize your context and practice useful
-          conversations through missions.
+          Zacznij od tematu, dopasuj kontekst do siebie i ćwicz przydatne
+          rozmowy poprzez misje.
         </p>
       </div>
 

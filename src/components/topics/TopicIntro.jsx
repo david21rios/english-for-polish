@@ -13,35 +13,35 @@ import {
 const features = [
   {
     icon: <FaComments />,
-    title: "Real situations",
-    description: "Practice Spanish in daily-life contexts.",
+    title: "Sytuacje z życia",
+    description: "Ćwicz angielski w codziennych kontekstach.",
     details:
-      "Practice Spanish in real contexts such as family, travel, shopping, work, food, health and social conversations. The goal is not only to memorize vocabulary, but to use Spanish naturally in situations that may happen in real life.",
-    status: "Available now"
+      "Ćwicz angielski w realnych sytuacjach, takich jak rodzina, podróże, zakupy, praca, jedzenie, zdrowie i rozmowy społeczne. Celem nie jest tylko zapamiętywanie słownictwa, ale używanie angielskiego naturalnie w sytuacjach, które mogą pojawić się w prawdziwym życiu.",
+    status: "Dostępne teraz"
   },
   {
     icon: <FaGamepad />,
-    title: "Missions",
-    description: "Complete short challenges by topic.",
+    title: "Misje",
+    description: "Wykonuj krótkie wyzwania według tematów.",
     details:
-      "Each topic can include guided missions, short conversations, questions, roleplay activities and practical challenges. This makes learning more active and less repetitive.",
-    status: "Available now"
+      "Każdy temat może zawierać prowadzone misje, krótkie rozmowy, pytania, odgrywanie ról i praktyczne wyzwania. Dzięki temu nauka jest bardziej aktywna i mniej monotonna.",
+    status: "Dostępne teraz"
   },
   {
     icon: <FaBolt />,
-    title: "XP rewards",
-    description: "Earn points as you practice.",
+    title: "Punkty XP",
+    description: "Zdobywaj punkty podczas ćwiczeń.",
     details:
-      "XP points are part of the gamification system. They help represent effort and progress. Later, XP can be connected to streaks, achievements, ranking and personalized learning goals.",
-    status: "In progress"
+      "Punkty XP są częścią systemu grywalizacji. Pomagają pokazać wysiłek i postęp. W kolejnych etapach XP mogą zostać połączone z seriami nauki, osiągnięciami, rankingiem i spersonalizowanymi celami edukacyjnymi.",
+    status: "W trakcie rozwoju"
   },
   {
     icon: <FaRobot />,
-    title: "AI support",
-    description: "Future guided assistance.",
+    title: "Wsparcie AI",
+    description: "Przyszła pomoc kontekstowa.",
     details:
-      "The platform is being prepared to include AI support for contextual help, writing feedback, guided practice and future conversation activities. This will be added carefully to keep responses safe, useful and adapted to the learner.",
-    status: "Future feature"
+      "Platforma jest przygotowywana do obsługi AI w zakresie pomocy kontekstowej, informacji zwrotnej do pisania, ćwiczeń prowadzonych oraz przyszłych aktywności konwersacyjnych. Funkcja będzie dodawana ostrożnie, aby odpowiedzi były bezpieczne, użyteczne i dopasowane do ucznia.",
+    status: "Funkcja planowana"
   }
 ];
 
@@ -59,16 +59,16 @@ const TopicIntro = () => {
         <div className="relative z-10 max-w-5xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 bg-white/15 border border-white/20 backdrop-blur-sm rounded-full px-4 py-2 text-white text-xs sm:text-sm font-medium mb-4">
             <FaComments className="shrink-0" />
-            Real world Spanish practice
+            Praktyka angielskiego w realnych sytuacjach
           </div>
 
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white leading-tight max-w-4xl mx-auto">
-            Practice Spanish through real situations
+            Ćwicz angielski przez codzienne sytuacje
           </h1>
 
           <p className="mt-4 text-base md:text-lg text-primary-50 leading-relaxed max-w-3xl mx-auto">
-            Choose a daily-life topic, complete missions, earn XP and practice
-            conversations adapted to your level.
+            Wybierz temat z życia codziennego, wykonuj misje, zdobywaj XP
+            i ćwicz rozmowy dopasowane do Twojego poziomu.
           </p>
 
           <div className="mt-6 grid grid-cols-2 md:flex md:flex-wrap justify-center gap-2 md:gap-3">
@@ -118,7 +118,7 @@ const TopicIntro = () => {
                 type="button"
                 onClick={() => setSelectedFeature(null)}
                 className="text-gray-400 hover:text-gray-700"
-                aria-label="Close modal"
+                aria-label="Zamknij okno"
               >
                 <FaTimes />
               </button>
@@ -133,7 +133,7 @@ const TopicIntro = () => {
               onClick={() => setSelectedFeature(null)}
               className="mt-8 w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-3 rounded-xl"
             >
-              Got it
+              Rozumiem
             </button>
           </div>
         </div>

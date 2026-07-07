@@ -21,7 +21,7 @@ const TopicContextForm = ({ topicTitle, onStart }) => {
     setError("");
 
     if (!goal.trim() || !situation.trim()) {
-      setError("Please complete your goal and situation before starting.");
+      setError("Uzupełnij cel i sytuację przed rozpoczęciem.");
       return;
     }
 
@@ -44,18 +44,18 @@ const TopicContextForm = ({ topicTitle, onStart }) => {
 
           <div>
             <p className="text-xs md:text-sm uppercase tracking-wide text-primary-100 font-semibold">
-              Mission setup
+              Konfiguracja misji
             </p>
 
             <h2 className="text-xl md:text-3xl font-bold leading-tight">
-              Personalize your practice
+              Spersonalizuj swoją praktykę
             </h2>
           </div>
         </div>
 
         <p className="text-primary-50 leading-relaxed text-sm md:text-base max-w-3xl mt-4">
-          Tell the app what kind of situation you want to practice so the
-          conversation feels more realistic.
+          Opisz, jaką sytuację chcesz przećwiczyć, aby rozmowa była bardziej
+          realistyczna.
         </p>
       </div>
 
@@ -63,14 +63,14 @@ const TopicContextForm = ({ topicTitle, onStart }) => {
         <div>
           <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
             <FaBullseye className="text-primary-600 shrink-0" />
-            What is your goal?
+            Jaki jest Twój cel?
           </label>
 
           <input
             type="text"
             value={goal}
             onChange={(event) => setGoal(event.target.value)}
-            placeholder="Example: I want to practice asking for information."
+            placeholder="Przykład: Chcę poćwiczyć pytanie o informacje."
             className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-primary-500"
           />
         </div>
@@ -78,14 +78,14 @@ const TopicContextForm = ({ topicTitle, onStart }) => {
         <div>
           <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
             <FaComments className="text-primary-600 shrink-0" />
-            Describe your situation
+            Opisz swoją sytuację
           </label>
 
           <textarea
             rows="3"
             value={situation}
             onChange={(event) => setSituation(event.target.value)}
-            placeholder="Example: I am traveling and need to speak with someone at a hotel."
+            placeholder="Przykład: Podróżuję i muszę porozmawiać z kimś w hotelu."
             className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
           />
         </div>
@@ -94,7 +94,7 @@ const TopicContextForm = ({ topicTitle, onStart }) => {
           <div>
             <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
               <FaUserEdit className="text-primary-600 shrink-0" />
-              Practice level
+              Poziom praktyki
             </label>
 
             <select
@@ -102,19 +102,19 @@ const TopicContextForm = ({ topicTitle, onStart }) => {
               onChange={(event) => setLevel(event.target.value)}
               className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
             >
-              <option value="A1">A1 - Beginner</option>
-              <option value="A2">A2 - Elementary</option>
-              <option value="B1">B1 - Intermediate</option>
-              <option value="B2">B2 - Upper intermediate</option>
-              <option value="C1">C1 - Advanced</option>
-              <option value="C2">C2 - Proficient</option>
+              <option value="A1">A1 - Początkujący</option>
+              <option value="A2">A2 - Podstawowy</option>
+              <option value="B1">B1 - Średnio zaawansowany</option>
+              <option value="B2">B2 - Wyższy średnio zaawansowany</option>
+              <option value="C1">C1 - Zaawansowany</option>
+              <option value="C2">C2 - Biegły</option>
             </select>
           </div>
 
           <div>
             <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
               <FaComments className="text-primary-600 shrink-0" />
-              Conversation tone
+              Ton rozmowy
             </label>
 
             <select
@@ -122,10 +122,10 @@ const TopicContextForm = ({ topicTitle, onStart }) => {
               onChange={(event) => setTone(event.target.value)}
               className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
             >
-              <option value="friendly">Friendly</option>
-              <option value="formal">Formal</option>
-              <option value="casual">Casual</option>
-              <option value="professional">Professional</option>
+              <option value="friendly">Przyjazny</option>
+              <option value="formal">Formalny</option>
+              <option value="casual">Swobodny</option>
+              <option value="professional">Profesjonalny</option>
             </select>
           </div>
         </div>
@@ -137,16 +137,16 @@ const TopicContextForm = ({ topicTitle, onStart }) => {
         )}
 
         <div className="bg-blue-50 border border-blue-100 rounded-2xl p-3 md:p-4 text-xs md:text-sm text-blue-800 leading-relaxed">
-          This context will be used for the current practice session. Later, it
-          can also be sent to an AI backend to generate more personalized
-          conversations.
+          Ten kontekst zostanie użyty w bieżącej sesji ćwiczeniowej. Później
+          może być także przesyłany do backendu AI, aby generować bardziej
+          spersonalizowane rozmowy.
         </div>
 
         <button
           type="submit"
           className="w-full inline-flex items-center justify-center gap-2 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl px-6 py-3 transition-colors"
         >
-          Start missions
+          Rozpocznij misje
           <FaArrowRight />
         </button>
       </form>

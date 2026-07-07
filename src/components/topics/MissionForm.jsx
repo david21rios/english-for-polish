@@ -111,19 +111,19 @@ const MissionForm = ({
 
   const validateForm = () => {
     if (!formData.title.trim()) {
-      return "El título de la misión es obligatorio.";
+      return "Tytuł misji jest wymagany.";
     }
 
     if (!formData.description.trim()) {
-      return "La descripción de la misión es obligatoria.";
+      return "Opis misji jest wymagany.";
     }
 
     if (!formData.scenario.trim()) {
-      return "El escenario de la misión es obligatorio.";
+      return "Scenariusz misji jest wymagany.";
     }
 
     if (!formData.aiRole.trim()) {
-      return "El rol de la IA es obligatorio.";
+      return "Rola AI jest wymagana.";
     }
 
     const validObjectives = formData.objectives.filter((objective) =>
@@ -131,19 +131,19 @@ const MissionForm = ({
     );
 
     if (validObjectives.length === 0) {
-      return "Debes agregar al menos un objetivo.";
+      return "Dodaj co najmniej jeden cel.";
     }
 
     if (Number(formData.xpReward) <= 0) {
-      return "La recompensa XP debe ser mayor que 0.";
+      return "Nagroda XP musi być większa niż 0.";
     }
 
     if (Number(formData.estimatedMinutes) <= 0) {
-      return "El tiempo estimado debe ser mayor que 0.";
+      return "Szacowany czas musi być większy niż 0.";
     }
 
     if (Number(formData.order) <= 0) {
-      return "El orden debe ser mayor que 0.";
+      return "Kolejność musi być większa niż 0.";
     }
 
     return "";
@@ -194,16 +194,16 @@ const MissionForm = ({
     >
       <div>
         <p className="text-sm font-semibold text-primary-600 uppercase tracking-wide">
-          Mission editor
+          Edytor misji
         </p>
 
         <h2 className="text-2xl font-bold text-gray-900 mt-1">
-          {initialData?.id ? "Editar misión" : "Crear misión"}
+          {initialData?.id ? "Edytuj misję" : "Utwórz misję"}
         </h2>
 
         <p className="text-gray-600 mt-2 text-sm">
-          Diseña una misión conversacional realista. La IA debe acompañar la
-          conversación y entregar la corrección al final.
+          Zaprojektuj realistyczną misję konwersacyjną. AI powinno prowadzić
+          rozmowę i przekazać informację zwrotną dopiero na końcu.
         </p>
       </div>
 
@@ -216,7 +216,7 @@ const MissionForm = ({
       <div className="grid md:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Título
+            Tytuł
           </label>
 
           <input
@@ -224,7 +224,7 @@ const MissionForm = ({
             name="title"
             value={formData.title}
             onChange={handleChange}
-            placeholder="Ej: Meeting your partner's parents"
+            placeholder="Np. Meeting your partner's parents"
             className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
             disabled={saving}
           />
@@ -232,7 +232,7 @@ const MissionForm = ({
 
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Rol de la IA
+            Rola AI
           </label>
 
           <input
@@ -240,7 +240,7 @@ const MissionForm = ({
             name="aiRole"
             value={formData.aiRole}
             onChange={handleChange}
-            placeholder="Ej: Mother of your partner"
+            placeholder="Np. Mother of your partner"
             className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
             disabled={saving}
           />
@@ -249,7 +249,7 @@ const MissionForm = ({
 
       <div>
         <label className="block text-sm font-semibold text-gray-700 mb-2">
-          Descripción breve
+          Krótki opis
         </label>
 
         <textarea
@@ -257,7 +257,7 @@ const MissionForm = ({
           value={formData.description}
           onChange={handleChange}
           rows="3"
-          placeholder="Describe qué practicará el estudiante."
+          placeholder="Opisz, co student będzie ćwiczyć."
           className="w-full border border-gray-300 rounded-xl px-4 py-3 resize-none focus:outline-none focus:ring-2 focus:ring-primary-500"
           disabled={saving}
         />
@@ -265,7 +265,7 @@ const MissionForm = ({
 
       <div>
         <label className="block text-sm font-semibold text-gray-700 mb-2">
-          Escenario
+          Scenariusz
         </label>
 
         <textarea
@@ -273,7 +273,7 @@ const MissionForm = ({
           value={formData.scenario}
           onChange={handleChange}
           rows="4"
-          placeholder="Ej: You are visiting your partner's parents for the first time..."
+          placeholder="Np. You are visiting your partner's parents for the first time..."
           className="w-full border border-gray-300 rounded-xl px-4 py-3 resize-none focus:outline-none focus:ring-2 focus:ring-primary-500"
           disabled={saving}
         />
@@ -281,7 +281,7 @@ const MissionForm = ({
 
       <div>
         <label className="block text-sm font-semibold text-gray-700 mb-2">
-          Instrucciones para la IA
+          Instrukcje dla AI
         </label>
 
         <textarea
@@ -289,7 +289,7 @@ const MissionForm = ({
           value={formData.aiInstructions}
           onChange={handleChange}
           rows="4"
-          placeholder="Ej: Do not correct during the conversation. Keep the role. Provide feedback only after mission completion."
+          placeholder="Np. Do not correct during the conversation. Keep the role. Provide feedback only after mission completion."
           className="w-full border border-gray-300 rounded-xl px-4 py-3 resize-none focus:outline-none focus:ring-2 focus:ring-primary-500"
           disabled={saving}
         />
@@ -299,11 +299,11 @@ const MissionForm = ({
         <div className="flex items-center justify-between gap-3 mb-4">
           <div>
             <h3 className="font-bold text-gray-900">
-              Objetivos de la misión
+              Cele misji
             </h3>
 
             <p className="text-sm text-gray-600">
-              La IA los evaluará silenciosamente durante la conversación.
+              AI będzie oceniać je w tle podczas rozmowy.
             </p>
           </div>
 
@@ -314,7 +314,7 @@ const MissionForm = ({
             className="inline-flex items-center gap-2 bg-primary-600 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-primary-700 disabled:opacity-50"
           >
             <FaPlus />
-            Agregar
+            Dodaj
           </button>
         </div>
 
@@ -330,7 +330,7 @@ const MissionForm = ({
                 onChange={(event) =>
                   handleObjectiveChange(index, "text", event.target.value)
                 }
-                placeholder={`Objetivo ${index + 1}`}
+                placeholder={`Cel ${index + 1}`}
                 className="flex-1 border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
                 disabled={saving}
               />
@@ -348,7 +348,7 @@ const MissionForm = ({
                   }
                   disabled={saving}
                 />
-                Obligatorio
+                Wymagany
               </label>
 
               <button
@@ -356,6 +356,7 @@ const MissionForm = ({
                 onClick={() => removeObjective(index)}
                 disabled={saving || formData.objectives.length === 1}
                 className="inline-flex items-center justify-center gap-2 text-red-600 hover:text-red-800 disabled:opacity-40"
+                aria-label="Usuń cel"
               >
                 <FaTrash />
               </button>
@@ -367,7 +368,7 @@ const MissionForm = ({
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Nivel
+            Poziom
           </label>
 
           <select
@@ -388,7 +389,7 @@ const MissionForm = ({
 
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Dificultad
+            Trudność
           </label>
 
           <select
@@ -398,10 +399,10 @@ const MissionForm = ({
             className="w-full border border-gray-300 rounded-xl px-4 py-3 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500"
             disabled={saving}
           >
-            <option value="easy">Easy</option>
-            <option value="medium">Medium</option>
-            <option value="hard">Hard</option>
-            <option value="adaptive">Adaptive</option>
+            <option value="easy">Łatwa</option>
+            <option value="medium">Średnia</option>
+            <option value="hard">Trudna</option>
+            <option value="adaptive">Adaptacyjna</option>
           </select>
         </div>
 
@@ -423,7 +424,7 @@ const MissionForm = ({
 
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Minutos
+            Minuty
           </label>
 
           <input
@@ -441,7 +442,7 @@ const MissionForm = ({
       <div className="grid sm:grid-cols-3 gap-4">
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Orden
+            Kolejność
           </label>
 
           <input
@@ -457,7 +458,7 @@ const MissionForm = ({
 
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Grupo edad
+            Grupa wiekowa
           </label>
 
           <select
@@ -467,17 +468,17 @@ const MissionForm = ({
             className="w-full border border-gray-300 rounded-xl px-4 py-3 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500"
             disabled={saving}
           >
-            <option value="all">All</option>
-            <option value="children">Children</option>
-            <option value="teen">Teen</option>
-            <option value="adult">Adult</option>
-            <option value="senior">Senior</option>
+            <option value="all">Wszystkie grupy</option>
+            <option value="children">Dzieci</option>
+            <option value="teen">Nastolatki</option>
+            <option value="adult">Dorośli</option>
+            <option value="senior">Seniorzy</option>
           </select>
         </div>
 
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Estado
+            Status
           </label>
 
           <select
@@ -487,16 +488,16 @@ const MissionForm = ({
             className="w-full border border-gray-300 rounded-xl px-4 py-3 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500"
             disabled={saving}
           >
-            <option value="draft">Draft</option>
-            <option value="published">Published</option>
-            <option value="archived">Archived</option>
+            <option value="draft">Szkic</option>
+            <option value="published">Opublikowana</option>
+            <option value="archived">Zarchiwizowana</option>
           </select>
         </div>
       </div>
 
       <div>
         <label className="block text-sm font-semibold text-gray-700 mb-2">
-          Tags
+          Tagi
         </label>
 
         <input
@@ -517,7 +518,7 @@ const MissionForm = ({
           className="inline-flex items-center justify-center gap-2 bg-primary-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-primary-700 disabled:opacity-50"
         >
           <FaSave />
-          {saving ? "Guardando..." : "Guardar misión"}
+          {saving ? "Zapisywanie..." : "Zapisz misję"}
         </button>
 
         <button
@@ -527,7 +528,7 @@ const MissionForm = ({
           className="inline-flex items-center justify-center gap-2 bg-gray-200 text-gray-700 px-6 py-3 rounded-xl font-semibold hover:bg-gray-300 disabled:opacity-50"
         >
           <FaTimes />
-          Cancelar
+          Anuluj
         </button>
       </div>
     </form>

@@ -18,23 +18,23 @@ const TopicProgress = ({
 
   const nextReward =
     progressPercent >= 100
-      ? "Topic completed"
-      : "Next reward at 100%";
+      ? "Temat ukończony"
+      : "Następna nagroda przy 100%";
 
   return (
     <section className="bg-white rounded-3xl shadow-sm border border-gray-100 p-4 md:p-8">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 md:gap-6">
         <div className="min-w-0">
           <p className="text-xs md:text-sm font-semibold text-primary-600 uppercase tracking-wide">
-            Topic progress
+            Postęp tematu
           </p>
 
           <h2 className="text-xl md:text-2xl font-bold text-gray-900 mt-1 md:mt-2 leading-tight">
-            Your mission journey
+            Twoja ścieżka misji
           </h2>
 
           <p className="text-sm md:text-base text-gray-600 mt-2 leading-relaxed">
-            Complete missions, earn XP and unlock more practice challenges.
+            Kończ misje, zdobywaj XP i odblokowuj kolejne wyzwania praktyczne.
           </p>
         </div>
 
@@ -45,7 +45,7 @@ const TopicProgress = ({
               {completedCount}/{totalMissions}
             </p>
             <p className="text-[10px] md:text-xs text-gray-600">
-              Missions
+              Misje
             </p>
           </div>
 
@@ -65,7 +65,7 @@ const TopicProgress = ({
               {progressPercent}%
             </p>
             <p className="text-[10px] md:text-xs text-gray-600">
-              Complete
+              Ukończono
             </p>
           </div>
         </div>
@@ -73,7 +73,7 @@ const TopicProgress = ({
 
       <div className="mt-5 md:mt-7">
         <div className="flex justify-between text-xs md:text-sm text-gray-600 mb-2">
-          <span>Overall progress</span>
+          <span>Postęp ogólny</span>
           <span>{progressPercent}%</span>
         </div>
 
@@ -96,7 +96,7 @@ const TopicProgress = ({
           </p>
 
           <p className="text-xs md:text-sm text-gray-600 leading-relaxed">
-            Keep practicing to strengthen your real-world Spanish skills.
+            Ćwicz dalej, aby wzmacniać swoje praktyczne umiejętności języka angielskiego.
           </p>
         </div>
       </div>

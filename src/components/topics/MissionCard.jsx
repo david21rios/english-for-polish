@@ -14,10 +14,10 @@ import {
 
 const formatDifficulty = (difficulty = "easy") => {
   const labels = {
-    easy: "Easy",
-    medium: "Medium",
-    hard: "Hard",
-    adaptive: "Adaptive"
+    easy: "Łatwa",
+    medium: "Średnia",
+    hard: "Trudna",
+    adaptive: "Adaptacyjna"
   };
 
   return labels[difficulty] || difficulty;
@@ -52,11 +52,11 @@ const MissionCard = ({ mission, onStart }) => {
               isCompleted ? "text-green-700" : "text-primary-600"
             }`}
           >
-            Conversation mission
+            Misja konwersacyjna
           </p>
 
           <h3 className="text-lg md:text-xl font-bold text-gray-900 mt-1 leading-snug break-words line-clamp-2">
-            {mission.title || "Untitled mission"}
+            {mission.title || "Misja bez tytułu"}
           </h3>
         </div>
 
@@ -79,15 +79,13 @@ const MissionCard = ({ mission, onStart }) => {
         </div>
       </div>
 
-      {mission.description && (
+      {mission.description ? (
         <p className="text-sm text-gray-600 mt-3 leading-relaxed break-words line-clamp-3 flex-grow">
           {mission.description}
         </p>
-      )}
-
-      {!mission.description && (
+      ) : (
         <p className="text-sm text-gray-500 mt-3 leading-relaxed flex-grow">
-          Complete a realistic conversation and receive feedback at the end.
+          Ukończ realistyczną rozmowę i otrzymaj informację zwrotną na końcu.
         </p>
       )}
 
@@ -100,7 +98,7 @@ const MissionCard = ({ mission, onStart }) => {
           }`}
         >
           <FaBolt />
-          {isCompleted ? `Earned ${xpReward} XP` : `${xpReward} XP`}
+          {isCompleted ? `Zdobyto ${xpReward} XP` : `${xpReward} XP`}
         </span>
 
         <span className="inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 px-2.5 py-1.5 rounded-full font-semibold">
@@ -120,8 +118,7 @@ const MissionCard = ({ mission, onStart }) => {
 
       {objectivesCount > 0 && (
         <p className="mt-3 text-xs text-gray-500">
-          🎯 {objectivesCount} objective{objectivesCount === 1 ? "" : "s"} to
-          complete
+          🎯 Cele do wykonania: {objectivesCount}
         </p>
       )}
 
@@ -141,24 +138,24 @@ const MissionCard = ({ mission, onStart }) => {
           {isLocked ? (
             <>
               <FaLock />
-              Locked
+              Zablokowana
             </>
           ) : isCompleted ? (
             <>
               <FaRedo />
-              Practice again
+              Ćwicz ponownie
             </>
           ) : (
             <>
               <FaPlay />
-              Start mission
+              Rozpocznij misję
             </>
           )}
         </button>
 
         {isCompleted && (
           <p className="mt-2 text-[11px] text-green-700 text-center leading-relaxed">
-            Repeating this mission is useful, but it will not add XP again.
+            Powtórzenie tej misji jest przydatne, ale nie doda ponownie XP.
           </p>
         )}
       </div>

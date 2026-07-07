@@ -26,7 +26,7 @@ const TemaDetalle = () => {
   const [error, setError] = useState("");
 
   const userId = auth.currentUser?.uid || null;
-  const topicTitle = topic?.title || topic?.titulo || temaTitle || "Topic";
+  const topicTitle = topic?.title || topic?.titulo || temaTitle || "Temat";
 
   const loadTopicAndMissions = useCallback(async () => {
     try {
@@ -45,7 +45,7 @@ const TemaDetalle = () => {
         setTopic({
           id: temaTitle,
           title: temaTitle,
-          description: "Practice real-life situations through missions.",
+          description: "Ćwicz codzienne sytuacje poprzez misje.",
           icon: "🎯"
         });
       }
@@ -62,7 +62,7 @@ const TemaDetalle = () => {
       }
     } catch (error) {
       console.error("Error loading topic missions:", error);
-      setError("Error loading topic missions.");
+      setError("Nie udało się załadować misji dla tego tematu.");
     } finally {
       setLoading(false);
     }
@@ -146,7 +146,7 @@ const TemaDetalle = () => {
       <div className="flex justify-center items-center min-h-[calc(100vh-4rem)] bg-gray-50 px-4">
         <div className="text-center">
           <div className="animate-spin rounded-full h-11 w-11 border-t-2 border-b-2 border-primary-600 mx-auto mb-4" />
-          <p className="text-sm text-gray-600">Loading topic...</p>
+          <p className="text-sm text-gray-600">Ładowanie tematu...</p>
         </div>
       </div>
     );
@@ -170,7 +170,7 @@ const TemaDetalle = () => {
           onClick={() => navigate("/temas")}
           className="inline-flex items-center text-sm text-gray-600 hover:text-primary-600 font-medium mb-3 md:mb-6"
         >
-          ← Back to topics
+          ← Powrót do tematów
         </button>
 
         <header className="mb-5 md:mb-8 bg-white rounded-3xl shadow-sm border border-gray-100 p-5 md:p-8 overflow-hidden">
@@ -182,7 +182,7 @@ const TemaDetalle = () => {
 
               <div className="min-w-0">
                 <p className="text-xs md:text-sm font-semibold text-primary-600 uppercase tracking-wide">
-                  Real world missions
+                  Misje w realnych sytuacjach
                 </p>
 
                 <h1 className="text-2xl md:text-4xl font-bold text-gray-900 mt-1 md:mt-2 leading-tight break-words">
@@ -192,20 +192,20 @@ const TemaDetalle = () => {
                 <p className="text-gray-600 mt-3 max-w-3xl leading-relaxed text-sm md:text-base break-words">
                   {topic?.description ||
                     topic?.descripcion ||
-                    "Choose a mission, complete the conversation and receive feedback at the end."}
+                    "Wybierz misję, ukończ rozmowę i otrzymaj informację zwrotną na końcu."}
                 </p>
 
                 <div className="mt-4 flex flex-wrap gap-2">
                   <span className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 px-3 py-2 rounded-full text-xs font-semibold">
-                    🎮 Game-based practice
+                    🎮 Nauka przez grę
                   </span>
 
                   <span className="inline-flex items-center gap-2 bg-primary-50 text-primary-700 px-3 py-2 rounded-full text-xs font-semibold">
-                    💬 Conversation flow
+                    💬 Ćwiczenie rozmowy
                   </span>
 
                   <span className="inline-flex items-center gap-2 bg-yellow-50 text-yellow-700 px-3 py-2 rounded-full text-xs font-semibold">
-                    🏆 XP rewards
+                    🏆 Punkty XP
                   </span>
                 </div>
               </div>
@@ -228,16 +228,16 @@ const TemaDetalle = () => {
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div>
                 <p className="text-xs md:text-sm font-semibold text-primary-600 uppercase tracking-wide">
-                  Personalized practice
+                  Praktyka personalizowana
                 </p>
 
                 <h2 className="text-xl md:text-2xl font-bold text-gray-900 mt-1">
-                  Create your own AI mission
+                  Utwórz własną misję AI
                 </h2>
 
                 <p className="text-sm md:text-base text-gray-600 mt-2 leading-relaxed max-w-3xl">
-                  Build a custom conversation based on your own situation, goal,
-                  level and AI role.
+                  Zbuduj własną rozmowę na podstawie Twojej sytuacji, celu,
+                  poziomu i roli AI.
                 </p>
               </div>
 
@@ -246,7 +246,7 @@ const TemaDetalle = () => {
                 onClick={handleCreatePersonalizedMission}
                 className="inline-flex items-center justify-center bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl px-5 py-3 transition-colors"
               >
-                Create personalized AI mission
+                Utwórz personalizowaną misję AI
               </button>
             </div>
           </section>

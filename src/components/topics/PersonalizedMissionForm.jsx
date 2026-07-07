@@ -10,27 +10,27 @@ import {
 } from "react-icons/fa";
 
 const CATEGORIES = [
-  "Family",
-  "Work",
-  "Restaurant",
-  "Shopping",
-  "Travel",
-  "Hotel",
-  "Doctor",
-  "Friends",
-  "Other"
+  { value: "Family", label: "Rodzina" },
+  { value: "Work", label: "Praca" },
+  { value: "Restaurant", label: "Restauracja" },
+  { value: "Shopping", label: "Zakupy" },
+  { value: "Travel", label: "Podróże" },
+  { value: "Hotel", label: "Hotel" },
+  { value: "Doctor", label: "Lekarz" },
+  { value: "Friends", label: "Przyjaciele" },
+  { value: "Other", label: "Inne" }
 ];
 
 const AI_ROLES = [
-  "Family member",
-  "Friend",
-  "Teacher",
-  "Customer",
-  "Waiter",
-  "Hotel receptionist",
-  "Doctor",
-  "Employer",
-  "Custom"
+  { value: "Family member", label: "Członek rodziny" },
+  { value: "Friend", label: "Przyjaciel" },
+  { value: "Teacher", label: "Nauczyciel" },
+  { value: "Customer", label: "Klient" },
+  { value: "Waiter", label: "Kelner" },
+  { value: "Hotel receptionist", label: "Recepcjonista hotelowy" },
+  { value: "Doctor", label: "Lekarz" },
+  { value: "Employer", label: "Pracodawca" },
+  { value: "Custom", label: "Własna rola" }
 ];
 
 const LEVELS = ["A1", "A2", "B1", "B2", "C1", "C2", "Adaptive"];
@@ -40,7 +40,7 @@ const PersonalizedMissionForm = ({
   onCreateMission,
   onCancel
 }) => {
-  const topicTitle = topic?.title || topic?.titulo || "Topic";
+  const topicTitle = topic?.title || topic?.titulo || "tematu";
 
   const [category, setCategory] = useState("Family");
   const [level, setLevel] = useState("Adaptive");
@@ -58,25 +58,25 @@ const PersonalizedMissionForm = ({
     setError("");
 
     if (!situation.trim()) {
-      setError("Please describe the situation you want to practice.");
+      setError("Opisz sytuację, którą chcesz przećwiczyć.");
       return;
     }
 
     if (!goal.trim()) {
-      setError("Please write your goal for this mission.");
+      setError("Napisz cel tej misji.");
       return;
     }
 
     if (!finalAiRole) {
-      setError("Please select or write the AI role.");
+      setError("Wybierz albo wpisz rolę AI.");
       return;
     }
 
     const personalizedMission = {
       id: `custom_${Date.now()}`,
-      title: `Personalized ${topicTitle} mission`,
+      title: `Personalizowana misja: ${topicTitle}`,
       description:
-        "A personalized AI mission created from your own context and goal.",
+        "Personalizowana misja AI utworzona na podstawie Twojej sytuacji i celu.",
       scenario: situation.trim(),
       goal: goal.trim(),
       aiRole: finalAiRole,
@@ -121,16 +121,16 @@ const PersonalizedMissionForm = ({
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-xs md:text-sm font-semibold uppercase tracking-wide text-primary-100">
-              Personalized AI mission
+              Personalizowana misja AI
             </p>
 
             <h2 className="text-2xl md:text-3xl font-bold mt-1">
-              Create your own mission
+              Utwórz własną misję
             </h2>
 
             <p className="text-sm md:text-base text-primary-50 mt-2 max-w-2xl leading-relaxed">
-              Practice exactly the situation you need. The AI will become a
-              character and talk with you naturally.
+              Ćwicz dokładnie taką sytuację, jakiej potrzebujesz. AI przyjmie
+              wybraną rolę i będzie rozmawiać z Tobą naturalnie.
             </p>
           </div>
 
@@ -139,7 +139,7 @@ const PersonalizedMissionForm = ({
               type="button"
               onClick={onCancel}
               className="w-10 h-10 rounded-xl bg-white/15 hover:bg-white/25 flex items-center justify-center shrink-0"
-              aria-label="Close personalized mission form"
+              aria-label="Zamknij formularz misji personalizowanej"
             >
               <FaTimes />
             </button>
@@ -157,7 +157,7 @@ const PersonalizedMissionForm = ({
         <div className="grid md:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Situation type
+              Typ sytuacji
             </label>
 
             <select
@@ -166,8 +166,8 @@ const PersonalizedMissionForm = ({
               className="w-full border border-gray-300 rounded-xl px-4 py-3 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500"
             >
               {CATEGORIES.map((item) => (
-                <option key={item} value={item}>
-                  {item}
+                <option key={item.value} value={item.value}>
+                  {item.label}
                 </option>
               ))}
             </select>
@@ -175,7 +175,7 @@ const PersonalizedMissionForm = ({
 
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              AI role
+              Rola AI
             </label>
 
             <select
@@ -184,8 +184,8 @@ const PersonalizedMissionForm = ({
               className="w-full border border-gray-300 rounded-xl px-4 py-3 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500"
             >
               {AI_ROLES.map((item) => (
-                <option key={item} value={item}>
-                  {item}
+                <option key={item.value} value={item.value}>
+                  {item.label}
                 </option>
               ))}
             </select>
@@ -193,7 +193,7 @@ const PersonalizedMissionForm = ({
 
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Level
+              Poziom
             </label>
 
             <select
@@ -203,7 +203,7 @@ const PersonalizedMissionForm = ({
             >
               {LEVELS.map((item) => (
                 <option key={item} value={item}>
-                  {item}
+                  {item === "Adaptive" ? "Adaptacyjny" : item}
                 </option>
               ))}
             </select>
@@ -213,14 +213,14 @@ const PersonalizedMissionForm = ({
         {aiRole === "Custom" && (
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Custom AI role
+              Własna rola AI
             </label>
 
             <input
               type="text"
               value={customAiRole}
               onChange={(event) => setCustomAiRole(event.target.value)}
-              placeholder="Example: immigration officer, coworker, client..."
+              placeholder="Przykład: urzędnik imigracyjny, współpracownik, klient..."
               className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
             />
           </div>
@@ -229,14 +229,14 @@ const PersonalizedMissionForm = ({
         <div>
           <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
             <FaBrain className="text-primary-600" />
-            Describe your situation
+            Opisz swoją sytuację
           </label>
 
           <textarea
             rows="4"
             value={situation}
             onChange={(event) => setSituation(event.target.value)}
-            placeholder="Example: I am going to meet my partner's family for the first time and I want to introduce myself politely."
+            placeholder="Przykład: Spotykam rodzinę mojego partnera po raz pierwszy i chcę przedstawić się uprzejmie."
             className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
           />
         </div>
@@ -244,14 +244,14 @@ const PersonalizedMissionForm = ({
         <div>
           <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
             <FaBullseye className="text-primary-600" />
-            What is your goal?
+            Jaki jest Twój cel?
           </label>
 
           <input
             type="text"
             value={goal}
             onChange={(event) => setGoal(event.target.value)}
-            placeholder="Example: I want to introduce myself and ask simple family questions."
+            placeholder="Przykład: Chcę się przedstawić i zadać proste pytania rodzinne."
             className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
           />
         </div>
@@ -261,8 +261,8 @@ const PersonalizedMissionForm = ({
             <FaRobot className="mt-1 shrink-0" />
 
             <p className="leading-relaxed">
-              The AI will talk with you naturally. It will not correct you
-              during the conversation. You will receive feedback at the end.
+              AI będzie rozmawiać z Tobą naturalnie. Nie będzie poprawiać Cię
+              w trakcie rozmowy. Informację zwrotną otrzymasz na końcu.
             </p>
           </div>
         </div>
@@ -272,7 +272,7 @@ const PersonalizedMissionForm = ({
             type="submit"
             className="inline-flex items-center justify-center gap-2 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl px-6 py-3 transition-colors"
           >
-            Create mission
+            Utwórz misję
             <FaArrowRight />
           </button>
 
@@ -282,7 +282,7 @@ const PersonalizedMissionForm = ({
               onClick={onCancel}
               className="inline-flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl px-6 py-3 transition-colors"
             >
-              Cancel
+              Anuluj
             </button>
           )}
         </div>

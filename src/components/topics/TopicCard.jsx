@@ -13,7 +13,7 @@ const TopicCard = forwardRef(({ tema, onClick }, ref) => {
     tema.title ||
     tema.titulo ||
     tema.name ||
-    "Topic";
+    "Temat";
 
   const icon =
     tema.icon ||
@@ -64,18 +64,18 @@ const TopicCard = forwardRef(({ tema, onClick }, ref) => {
       <div className="mt-3 flex flex-col gap-2">
         <span className="inline-flex items-center gap-2 w-fit text-[11px] bg-blue-50 text-blue-700 px-2 py-1 rounded-full font-semibold">
           <FaBolt size={10} />
-          Missions
+          Misje
         </span>
 
         <span className="inline-flex items-center gap-2 w-fit text-[11px] bg-gray-50 text-gray-700 px-2 py-1 rounded-full font-semibold">
           <FaLayerGroup size={10} />
-          Adaptive
+          Adaptacyjne
         </span>
       </div>
 
       {/* Footer */}
       <div className="mt-auto pt-3 flex items-center justify-between text-primary-600 font-semibold text-sm">
-        <span>Start</span>
+        <span>Rozpocznij</span>
 
         <FaArrowRight className="group-hover:translate-x-1 transition-transform duration-300" />
       </div>

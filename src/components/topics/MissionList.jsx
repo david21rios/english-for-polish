@@ -8,12 +8,12 @@ const MissionList = ({ missions = [], onStartMission }) => {
     return (
       <section className="bg-white rounded-3xl shadow-sm p-5 md:p-8 border border-gray-100 text-center">
         <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-3">
-          No missions available yet
+          Nie ma jeszcze dostępnych misji
         </h2>
 
         <p className="text-sm md:text-base text-gray-600 max-w-xl mx-auto">
-          This topic does not have missions yet. An administrator can create
-          missions from the admin panel.
+          Ten temat nie ma jeszcze misji. Administrator może utworzyć misje
+          w panelu administracyjnym.
         </p>
       </section>
     );
@@ -27,35 +27,35 @@ const MissionList = ({ missions = [], onStartMission }) => {
     <section className="space-y-5 md:space-y-6">
       <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-5 md:p-6">
         <p className="text-xs md:text-sm font-semibold text-primary-600 uppercase tracking-wide">
-          Choose your challenge
+          Wybierz swoje wyzwanie
         </p>
 
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mt-1">
           <div>
             <h2 className="text-xl md:text-2xl font-bold text-gray-900">
-              Play real-life missions
+              Wykonuj misje z życia codziennego
             </h2>
 
             <p className="text-sm md:text-base text-gray-600 mt-2 leading-relaxed max-w-3xl">
-              Select a mission, complete the conversation, earn XP, and receive
-              feedback only after finishing.
+              Wybierz misję, ukończ rozmowę, zdobądź XP i otrzymaj informację
+              zwrotną dopiero po zakończeniu.
             </p>
           </div>
 
           <div className="grid grid-cols-3 gap-2 text-center shrink-0">
             <div className="bg-primary-50 text-primary-700 rounded-2xl px-3 py-2">
               <p className="font-bold">{missions.length}</p>
-              <p className="text-[11px]">Total</p>
+              <p className="text-[11px]">Razem</p>
             </div>
 
             <div className="bg-green-50 text-green-700 rounded-2xl px-3 py-2">
               <p className="font-bold">{completedCount}</p>
-              <p className="text-[11px]">Done</p>
+              <p className="text-[11px]">Ukończone</p>
             </div>
 
             <div className="bg-gray-50 text-gray-600 rounded-2xl px-3 py-2">
               <p className="font-bold">{availableCount}</p>
-              <p className="text-[11px]">Open</p>
+              <p className="text-[11px]">Dostępne</p>
             </div>
           </div>
         </div>

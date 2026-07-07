@@ -39,12 +39,12 @@ const MissionFeedback = ({ result, onRetry, onBackToMissions }) => {
   const strengths =
     feedback.strengths?.length > 0
       ? feedback.strengths
-      : ["You completed the mission and participated in the conversation."];
+      : ["Ukończyłeś misję i aktywnie uczestniczyłeś w rozmowie."];
 
   const improvements =
     feedback.improvements?.length > 0
       ? feedback.improvements
-      : ["Try to write longer and clearer answers next time."];
+      : ["Następnym razem spróbuj pisać dłuższe i jaśniejsze odpowiedzi."];
 
   const objectivesCompleted = Array.isArray(feedback.objectivesCompleted)
     ? feedback.objectivesCompleted
@@ -74,11 +74,11 @@ const MissionFeedback = ({ result, onRetry, onBackToMissions }) => {
         </div>
 
         <p className="text-xs md:text-sm font-semibold uppercase tracking-wide text-green-100">
-          Mission completed
+          Misja ukończona
         </p>
 
         <h2 className="text-2xl md:text-4xl font-bold mt-2">
-          Great job!
+          Świetna robota!
         </h2>
 
         <div className="mt-4 flex justify-center gap-1 text-2xl">
@@ -86,8 +86,9 @@ const MissionFeedback = ({ result, onRetry, onBackToMissions }) => {
         </div>
 
         <p className="text-sm md:text-base text-green-50 mt-3 max-w-2xl mx-auto leading-relaxed">
-          You completed this real-world practice mission. Corrections are shown
-          now, after the conversation, so your speaking flow was protected.
+          Ukończyłeś praktyczną misję opartą na sytuacji z życia codziennego.
+          Poprawki są wyświetlane dopiero teraz, po zakończeniu rozmowy, aby
+          zachować jej naturalny przebieg.
         </p>
 
         <div className="mt-5 md:mt-8 grid grid-cols-3 gap-3 max-w-2xl mx-auto">
@@ -95,8 +96,9 @@ const MissionFeedback = ({ result, onRetry, onBackToMissions }) => {
             <div className="text-xl md:text-2xl font-bold">
               {score}%
             </div>
+
             <p className="text-xs md:text-sm text-green-100 mt-1">
-              Score
+              Wynik
             </p>
           </div>
 
@@ -105,8 +107,9 @@ const MissionFeedback = ({ result, onRetry, onBackToMissions }) => {
               <FaStar />
               +{xpEarned}
             </div>
+
             <p className="text-xs md:text-sm text-green-100 mt-1">
-              {alreadyCompleted ? "Already completed" : "XP earned"}
+              {alreadyCompleted ? "Już ukończona" : "Zdobyte XP"}
             </p>
           </div>
 
@@ -114,8 +117,9 @@ const MissionFeedback = ({ result, onRetry, onBackToMissions }) => {
             <div className="text-xl md:text-2xl font-bold">
               {totalXp}
             </div>
+
             <p className="text-xs md:text-sm text-green-100 mt-1">
-              Topic XP
+              XP tematu
             </p>
           </div>
         </div>
@@ -123,8 +127,8 @@ const MissionFeedback = ({ result, onRetry, onBackToMissions }) => {
 
       {alreadyCompleted && (
         <div className="mx-4 md:mx-8 mt-5 md:mt-6 bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-2xl p-3 md:p-4 text-xs md:text-sm">
-          You already completed this mission before. Practicing again is useful,
-          but it does not add extra XP.
+          Ta misja została już wcześniej ukończona. Ponowne ćwiczenie jest
+          przydatne, ale nie przyznaje dodatkowych punktów XP.
         </div>
       )}
 
@@ -133,8 +137,9 @@ const MissionFeedback = ({ result, onRetry, onBackToMissions }) => {
           <div className="bg-primary-50 rounded-2xl p-3 md:p-5 border border-primary-100">
             <div className="flex items-center gap-2 md:gap-3 mb-2 md:mb-3">
               <FaComments className="text-primary-600 shrink-0" />
+
               <h3 className="font-semibold text-gray-900 text-xs md:text-base">
-                Replies
+                Odpowiedzi
               </h3>
             </div>
 
@@ -146,8 +151,9 @@ const MissionFeedback = ({ result, onRetry, onBackToMissions }) => {
           <div className="bg-green-50 rounded-2xl p-3 md:p-5 border border-green-100">
             <div className="flex items-center gap-2 md:gap-3 mb-2 md:mb-3">
               <FaChartLine className="text-green-600 shrink-0" />
+
               <h3 className="font-semibold text-gray-900 text-xs md:text-base">
-                Words
+                Słowa
               </h3>
             </div>
 
@@ -159,8 +165,9 @@ const MissionFeedback = ({ result, onRetry, onBackToMissions }) => {
           <div className="bg-yellow-50 rounded-2xl p-3 md:p-5 border border-yellow-100">
             <div className="flex items-center gap-2 md:gap-3 mb-2 md:mb-3">
               <FaBrain className="text-yellow-600 shrink-0" />
+
               <h3 className="font-semibold text-gray-900 text-xs md:text-base">
-                Level
+                Poziom
               </h3>
             </div>
 
@@ -173,7 +180,7 @@ const MissionFeedback = ({ result, onRetry, onBackToMissions }) => {
         {objectivesCompleted.length > 0 && (
           <div className="mt-5 md:mt-8 bg-blue-50 border border-blue-100 rounded-2xl p-4 md:p-6">
             <h3 className="text-base md:text-lg font-semibold text-blue-800 mb-4">
-              Mission objectives
+              Cele misji
             </h3>
 
             <ul className="space-y-3">
@@ -206,7 +213,7 @@ const MissionFeedback = ({ result, onRetry, onBackToMissions }) => {
         <div className="grid lg:grid-cols-2 gap-4 md:gap-6 mt-5 md:mt-8">
           <div className="bg-green-50 border border-green-100 rounded-2xl p-4 md:p-6">
             <h3 className="text-base md:text-lg font-semibold text-green-800 mb-3 md:mb-4">
-              Strengths
+              Mocne strony
             </h3>
 
             <ul className="space-y-2 md:space-y-3">
@@ -224,7 +231,7 @@ const MissionFeedback = ({ result, onRetry, onBackToMissions }) => {
 
           <div className="bg-orange-50 border border-orange-100 rounded-2xl p-4 md:p-6">
             <h3 className="text-base md:text-lg font-semibold text-orange-800 mb-3 md:mb-4">
-              Improvements
+              Obszary do poprawy
             </h3>
 
             <ul className="space-y-2 md:space-y-3">
@@ -244,7 +251,7 @@ const MissionFeedback = ({ result, onRetry, onBackToMissions }) => {
         {corrections.length > 0 && (
           <div className="mt-5 md:mt-8 bg-red-50 border border-red-100 rounded-2xl p-4 md:p-6">
             <h3 className="text-base md:text-lg font-semibold text-red-800 mb-4">
-              Suggested corrections
+              Sugerowane poprawki
             </h3>
 
             <div className="space-y-4">
@@ -254,15 +261,17 @@ const MissionFeedback = ({ result, onRetry, onBackToMissions }) => {
                   className="bg-white border border-red-100 rounded-xl p-4"
                 >
                   <p className="text-sm text-red-700">
-                    Original:
+                    Oryginał:
                   </p>
+
                   <p className="font-semibold text-gray-900">
                     {item.original}
                   </p>
 
                   <p className="text-sm text-green-700 mt-3">
-                    Better:
+                    Lepsza wersja:
                   </p>
+
                   <p className="font-semibold text-gray-900">
                     {item.suggested}
                   </p>
@@ -283,7 +292,7 @@ const MissionFeedback = ({ result, onRetry, onBackToMissions }) => {
             {vocabulary.length > 0 && (
               <div className="bg-purple-50 border border-purple-100 rounded-2xl p-4 md:p-6">
                 <h3 className="text-base md:text-lg font-semibold text-purple-800 mb-4">
-                  Vocabulary
+                  Słownictwo
                 </h3>
 
                 <ul className="space-y-3">
@@ -295,6 +304,7 @@ const MissionFeedback = ({ result, onRetry, onBackToMissions }) => {
                       <p className="font-semibold text-gray-900">
                         {item.word}
                       </p>
+
                       <p className="text-sm text-gray-600">
                         {item.meaning}
                       </p>
@@ -307,7 +317,7 @@ const MissionFeedback = ({ result, onRetry, onBackToMissions }) => {
             {grammarTips.length > 0 && (
               <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-4 md:p-6">
                 <h3 className="text-base md:text-lg font-semibold text-indigo-800 mb-4">
-                  Grammar tips
+                  Wskazówki gramatyczne
                 </h3>
 
                 <ul className="space-y-3">
@@ -330,7 +340,7 @@ const MissionFeedback = ({ result, onRetry, onBackToMissions }) => {
           <div className="mt-5 md:mt-8 bg-gray-50 rounded-2xl p-4 md:p-6 border border-gray-100">
             <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
               <FaRocket className="text-primary-600" />
-              Next steps
+              Kolejne kroki
             </h3>
 
             <ul className="space-y-3">
@@ -342,6 +352,7 @@ const MissionFeedback = ({ result, onRetry, onBackToMissions }) => {
                   <span className="text-primary-600 font-bold">
                     {index + 1}.
                   </span>
+
                   <span>{item}</span>
                 </li>
               ))}
@@ -351,7 +362,7 @@ const MissionFeedback = ({ result, onRetry, onBackToMissions }) => {
 
         <div className="mt-5 md:mt-8 bg-gray-50 rounded-2xl p-4 md:p-5 text-left border border-gray-100">
           <h3 className="font-semibold text-gray-900 mb-4">
-            Your conversation
+            Twoja rozmowa
           </h3>
 
           <div className="space-y-3 max-h-[360px] md:max-h-[420px] overflow-y-auto pr-1">
@@ -368,7 +379,7 @@ const MissionFeedback = ({ result, onRetry, onBackToMissions }) => {
                   }`}
                 >
                   <p className="text-xs md:text-sm font-semibold mb-1">
-                    {isUser ? "You" : "Assistant"}
+                    {isUser ? "Ty" : "Asystent"}
                   </p>
 
                   <p className="leading-relaxed">{message.text}</p>
@@ -385,7 +396,7 @@ const MissionFeedback = ({ result, onRetry, onBackToMissions }) => {
             className="inline-flex items-center justify-center gap-2 rounded-xl px-5 md:px-6 py-3 font-semibold bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
           >
             <FaRedo />
-            Practice again
+            Ćwicz ponownie
           </button>
 
           <button
@@ -394,7 +405,7 @@ const MissionFeedback = ({ result, onRetry, onBackToMissions }) => {
             className="inline-flex items-center justify-center gap-2 rounded-xl px-5 md:px-6 py-3 font-semibold bg-primary-600 text-white hover:bg-primary-700"
           >
             <FaArrowLeft />
-            Back to missions
+            Powrót do misji
           </button>
         </div>
       </div>

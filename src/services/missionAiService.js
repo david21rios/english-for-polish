@@ -12,8 +12,6 @@ const GEMINI_MODEL =
 const GEMINI_FALLBACK_MODEL =
   import.meta.env.VITE_GEMINI_FALLBACK_MODEL || "gemini-2.5-flash";
 
-  const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
-
 const cleanJsonText = (text = "") => {
   return text
     .replace(/```json/gi, "")
@@ -193,16 +191,23 @@ ${formData.aiRole || ""}
 Student level:
 ${formData.level || "Adaptive"}
 
+Language policy:
+- The practice conversation must be in English.
+- All student-facing instructions, briefing, feedback and explanations must be in Polish.
+- Mission title and description should be in Polish.
+- Objectives may describe English communication goals, but must be written in Polish.
+- AI/NPC role may stay in English if it represents the role used during the English conversation.
+
 Rules:
 ${buildMissionRulesText()}
 
 Return ONLY valid JSON with this exact structure:
 
 {
-  "title": "short mission title",
-  "description": "short description",
-  "scenario": "clear mission scenario",
-  "goal": "student goal",
+  "title": "short mission title in Polish",
+  "description": "short description in Polish",
+  "scenario": "clear mission scenario in Polish",
+  "goal": "student goal in Polish",
   "aiRole": "NPC role",
   "level": "A1",
   "difficulty": "adaptive",
@@ -212,15 +217,15 @@ Return ONLY valid JSON with this exact structure:
   "objectives": [
     {
       "id": "objective_1",
-      "text": "objective text",
+      "text": "objective text in Polish",
       "required": true
     }
   ],
   "briefing": {
-    "studentInstructions": "short instructions for the student",
+    "studentInstructions": "short instructions for the student in Polish",
     "successCriteria": [
-      "criterion 1",
-      "criterion 2"
+      "criterion 1 in Polish",
+      "criterion 2 in Polish"
     ]
   }
 }
@@ -244,10 +249,10 @@ Important:
 
   return {
     id: `custom_${now}`,
-    title: parsed.title || `Personalized ${topicTitle} mission`,
+    title: parsed.title || `Personalizowana misja: ${topicTitle}`,
     description:
       parsed.description ||
-      "A personalized AI mission created from your own context and goal.",
+      "Personalizowana misja AI utworzona na podstawie sytuacji i celu ucznia.",
     scenario: parsed.scenario || formData.situation || "",
     goal: parsed.goal || formData.goal || "",
     aiRole: parsed.aiRole || formData.aiRole || "Conversation partner",
@@ -268,20 +273,23 @@ Important:
       : [
           {
             id: "objective_1",
-            text: parsed.goal || formData.goal || "Complete the conversation goal.",
+            text:
+              parsed.goal ||
+              formData.goal ||
+              "Zrealizuj główny cel rozmowy.",
             required: true
           }
         ],
     briefing: {
       studentInstructions:
         parsed.briefing?.studentInstructions ||
-        "Complete the conversation naturally. Focus on communication.",
+        "Ukończ rozmowę naturalnie. Skup się na komunikacji.",
       successCriteria: Array.isArray(parsed.briefing?.successCriteria)
         ? parsed.briefing.successCriteria
         : [
-            "Stay inside the mission scenario.",
-            "Answer with meaningful replies.",
-            "Try to achieve your goal."
+            "Trzymaj się scenariusza misji.",
+            "Odpowiadaj pełnymi i sensownymi wypowiedziami.",
+            "Spróbuj osiągnąć swój cel komunikacyjny."
           ]
     },
     createdAt: new Date().toISOString()
@@ -303,6 +311,12 @@ export const generateMissionOpening = async ({
 You are the NPC in a language-learning mission.
 
 ${missionContext}
+
+Language policy:
+- Speak as the NPC in English.
+- Do not use Polish unless the student asks for help or clarification.
+- Keep the English appropriate for the student level.
+- The platform UI is Polish, but the practice conversation is English.
 
 Rules:
 ${buildMissionRulesText()}
@@ -341,6 +355,12 @@ export const generateMissionReply = async ({
 You are the NPC in a language-learning mission.
 
 ${missionContext}
+
+Language policy:
+- Speak as the NPC in English.
+- Do not use Polish unless the student asks for help or clarification.
+- Keep the English appropriate for the student level.
+- The platform UI is Polish, but the practice conversation is English.
 
 Rules:
 ${buildMissionRulesText()}
@@ -388,6 +408,11 @@ You are an internal mission controller.
 Analyze whether the student can complete this mission yet.
 
 ${missionContext}
+
+Language policy:
+- Analyze the student's English conversation.
+- Return internal controller fields in English because this result is not directly shown to the student.
+- Do not produce user-facing coaching here.
 
 Rules:
 ${buildMissionRulesText()}
@@ -455,6 +480,14 @@ You are an expert language teacher evaluating a completed language-learning miss
 
 ${missionContext}
 
+Language policy:
+- Evaluate the student's English.
+- Return all explanations, strengths, improvements, grammar tips and next steps in Polish.
+- Corrections must keep original/suggested English phrases, but explanations must be in Polish.
+- Vocabulary meanings must be in Polish.
+- Objective evidence must be in Polish.
+- Do not translate the student's original English phrases.
+
 Evaluation rules:
 ${buildEvaluationRulesText()}
 
@@ -473,35 +506,35 @@ Return ONLY valid JSON with this exact structure:
   "totalWords": 0,
   "objectivesCompleted": [
     {
-      "objective": "objective text",
+      "objective": "objective text in Polish",
       "completed": true,
-      "evidence": "short evidence"
+      "evidence": "short evidence in Polish"
     }
   ],
   "strengths": [
-    "short strength"
+    "short strength in Polish"
   ],
   "improvements": [
-    "short improvement"
+    "short improvement in Polish"
   ],
   "corrections": [
     {
-      "original": "student phrase",
-      "suggested": "better phrase",
-      "explanation": "brief explanation"
+      "original": "student phrase in English",
+      "suggested": "better phrase in English",
+      "explanation": "brief explanation in Polish"
     }
   ],
   "vocabulary": [
     {
-      "word": "word or phrase",
-      "meaning": "brief meaning"
+      "word": "word or phrase in English",
+      "meaning": "brief meaning in Polish"
     }
   ],
   "grammarTips": [
-    "short grammar tip"
+    "short grammar tip in Polish"
   ],
   "nextSteps": [
-    "short next step"
+    "short next step in Polish"
   ]
 }
 
@@ -573,17 +606,17 @@ export const buildLocalFallbackFeedback = ({
     totalWords,
     objectivesCompleted: [],
     strengths: passed
-      ? ["You completed a basic conversation and kept the interaction going."]
-      : ["You started the conversation."],
+      ? ["Ukończyłeś podstawową rozmowę i utrzymałeś interakcję."]
+      : ["Rozpocząłeś rozmowę."],
     improvements: [
-      "Try to write more complete and relevant answers.",
-      "Stay focused on the mission scenario."
+      "Spróbuj pisać pełniejsze i bardziej trafne odpowiedzi.",
+      "Trzymaj się scenariusza misji."
     ],
     corrections: [],
     vocabulary: [],
-    grammarTips: ["Use complete sentences when possible."],
+    grammarTips: ["Używaj pełnych zdań, kiedy to możliwe."],
     nextSteps: [
-      "Practice the mission again and give more specific answers."
+      "Powtórz misję i podawaj bardziej konkretne odpowiedzi."
     ]
   };
 };
