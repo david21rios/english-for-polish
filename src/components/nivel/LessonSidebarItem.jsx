@@ -21,11 +21,19 @@ const LessonSidebarItem = ({
   handleSectionClick,
   setSidebarOpen
 }) => {
-  const isCurrentLesson = currentLesson?.id === lesson.id;
+  const lessonId = lesson?.lessonId || lesson?.id || "";
+
+  const lessonTitle =
+    lesson?.title ||
+    lesson?.titulo ||
+    "Lekcja bez tytułu";
+
+  const isCurrentLesson = currentLesson?.id === lessonId;
+
   const [isOpen, setIsOpen] = useState(isCurrentLesson);
 
   const handleOpenLesson = async () => {
-    await handleLessonClick(lesson.id);
+    await handleLessonClick(lessonId);
     setIsOpen(true);
     setSidebarOpen?.(false);
   };
@@ -59,17 +67,19 @@ const LessonSidebarItem = ({
             <FaBookOpen />
           </span>
 
-          <span className="min-w-0">
+          <span className="min-w-0 flex-1">
             <span
               className={`block text-sm font-semibold truncate ${
-                isCurrentLesson ? "text-primary-700" : "text-gray-800"
+                isCurrentLesson
+                  ? "text-primary-700"
+                  : "text-gray-800"
               }`}
             >
-              {lesson.titulo || "Untitled lesson"}
+              {lessonTitle}
             </span>
 
             <span className="block text-xs text-gray-500 truncate">
-              {lesson.id}
+              {lessonId}
             </span>
           </span>
         </button>
@@ -79,7 +89,7 @@ const LessonSidebarItem = ({
             type="button"
             onClick={handleToggleSections}
             className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-primary-600"
-            title="Show lesson sections"
+            title="Pokaż sekcje lekcji"
           >
             {isOpen ? <FaChevronDown /> : <FaChevronRight />}
           </button>
@@ -89,14 +99,28 @@ const LessonSidebarItem = ({
       {isCurrentLesson && isOpen && (
         <div className="border-t border-primary-100 p-2 space-y-1">
           {lessonSections.map((section, index) => {
-            const isCurrentSection = index === currentSectionIndex;
-            const isCompleted = completedSections.includes(section.id);
-            const isRequired = sectionHasRequiredWork?.(section.id);
-            const isAccessible = isSectionAccessible?.(index);
+            const sectionId = section?.id || `section_${index}`;
+
+            const sectionTitle =
+              section?.title ||
+              section?.name ||
+              "Sekcja";
+
+            const isCurrentSection =
+              index === currentSectionIndex;
+
+            const isCompleted =
+              completedSections.includes(sectionId);
+
+            const isRequired =
+              sectionHasRequiredWork?.(sectionId);
+
+            const isAccessible =
+              isSectionAccessible?.(index);
 
             return (
               <button
-                key={section.id}
+                key={sectionId}
                 type="button"
                 disabled={!isAccessible}
                 onClick={() => {
@@ -122,18 +146,18 @@ const LessonSidebarItem = ({
                 </span>
 
                 <span className="flex-1 truncate">
-                  {section.title}
+                  {sectionTitle}
                 </span>
 
                 {isRequired && (
                   <span
-                    className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                    className={`text-[10px] px-2 py-0.5 rounded-full ${
                       isCurrentSection
                         ? "bg-white/20 text-white"
                         : "bg-yellow-100 text-yellow-700"
                     }`}
                   >
-                    req
+                    WYM.
                   </span>
                 )}
               </button>

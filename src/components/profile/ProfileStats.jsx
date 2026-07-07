@@ -7,9 +7,18 @@ import {
   FaChartLine
 } from "react-icons/fa";
 
+const normalizeCurrentLevel = (level = "A1") => {
+  return level?.toString().split("-")[0] || "A1";
+};
+
 const ProfileStats = ({ userData, testHistory = [] }) => {
   const testsCompleted = testHistory.length;
-  const currentLevel = userData?.currentLevel || "A1-A2";
+  const currentLevel = normalizeCurrentLevel(
+    userData?.currentLevel ||
+    userData?.level ||
+    userData?.finalLevel ||
+    "A1"
+  );
 
   const averageScore =
     testsCompleted > 0
@@ -19,9 +28,10 @@ const ProfileStats = ({ userData, testHistory = [] }) => {
 
             if (!scores.length) return acc;
 
-            const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
+            const average =
+              scores.reduce((total, score) => total + score, 0) / scores.length;
 
-            return acc + avg;
+            return acc + average;
           }, 0) / testsCompleted
         )
       : 0;
@@ -30,25 +40,25 @@ const ProfileStats = ({ userData, testHistory = [] }) => {
 
   const cards = [
     {
-      title: "Current Level",
+      title: "Aktualny poziom",
       value: currentLevel,
       icon: <FaGraduationCap />,
       color: "blue"
     },
     {
-      title: "Tests Completed",
+      title: "Ukończone testy",
       value: testsCompleted,
       icon: <FaClipboardCheck />,
       color: "green"
     },
     {
-      title: "Average Score",
+      title: "Średni wynik",
       value: `${averageScore}%`,
       icon: <FaChartLine />,
       color: "purple"
     },
     {
-      title: "Total XP",
+      title: "Łączne XP",
       value: xp,
       icon: <FaTrophy />,
       color: "yellow"
@@ -87,9 +97,7 @@ const ProfileStats = ({ userData, testHistory = [] }) => {
             {card.icon}
           </div>
 
-          <p className="text-xs md:text-sm text-gray-500">
-            {card.title}
-          </p>
+          <p className="text-xs md:text-sm text-gray-500">{card.title}</p>
 
           <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mt-1 md:mt-2 break-words">
             {card.value}

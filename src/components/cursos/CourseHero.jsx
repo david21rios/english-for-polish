@@ -6,6 +6,7 @@ const CourseHero = ({ currentLevel, userAgeGroup, levelOrder = [] }) => {
   const getLevelIndex = (levelId = "") => {
     const cleanLevel = levelId?.split("-")?.[0] || levelId;
     const index = levelOrder.indexOf(cleanLevel);
+
     return index === -1 ? 0 : index;
   };
 
@@ -14,30 +15,31 @@ const CourseHero = ({ currentLevel, userAgeGroup, levelOrder = [] }) => {
       <div className="grid lg:grid-cols-2 gap-6 md:gap-8 items-center">
         <div>
           <p className="text-sm font-semibold text-primary-600 uppercase tracking-wide">
-            Course path
+            Ścieżka kursu
           </p>
 
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-heading font-bold text-gray-900 mt-2 md:mt-3 mb-4 md:mb-5 leading-tight">
-            Start learning English by level
+            Ucz się angielskiego według poziomu
           </h1>
 
           <p className="text-base md:text-lg text-gray-600 leading-relaxed">
-            Courses are organized by CEFR levels and academic modules, designed
-            for Polish students learning English progressively.
+            Kursy są uporządkowane według poziomów CEFR i modułów akademickich,
+            aby polscy studenci mogli uczyć się języka angielskiego krok po
+            kroku.
           </p>
 
           <div className="mt-5 md:mt-6 flex flex-wrap gap-2 md:gap-3 text-sm">
             {currentLevel && (
               <span className="inline-flex items-center gap-2 bg-primary-100 text-primary-700 px-4 py-2 rounded-full font-semibold">
                 <FaGraduationCap />
-                Current level: {currentLevel}
+                Aktualny poziom: {currentLevel}
               </span>
             )}
 
             {userAgeGroup && (
               <span className="inline-flex items-center gap-2 bg-green-100 text-green-700 px-4 py-2 rounded-full font-semibold">
                 <FaLayerGroup />
-                Age group: {userAgeGroup}
+                Grupa wiekowa: {userAgeGroup}
               </span>
             )}
           </div>
@@ -63,7 +65,11 @@ const CourseHero = ({ currentLevel, userAgeGroup, levelOrder = [] }) => {
               >
                 <p className="text-2xl font-bold">{level}</p>
                 <p className="text-xs mt-1">
-                  {isLocked ? "Locked" : isCurrent ? "Current" : "Level"}
+                  {isLocked
+                    ? "Zablokowany"
+                    : isCurrent
+                    ? "Aktualny"
+                    : "Poziom"}
                 </p>
               </div>
             );

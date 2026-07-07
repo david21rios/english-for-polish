@@ -2,145 +2,155 @@
 
 export const levelStructure = {
   A1: {
-    title: "Curso A1",
+    title: "A1 Course",
     level: "A1",
-    description:
-      "Curso para principiantes. Aprende saludos, verbos básicos y frases comunes.",
-    content: "Contenido completo del curso A1. Aquí incluirás texto, ejemplos y más."
+    description: "Beginner English course for Polish learners.",
+    content: "Core A1 content: greetings, basic verbs and simple sentences."
   },
   A2: {
-    title: "Curso A2",
+    title: "A2 Course",
     level: "A2",
-    description:
-      "Curso para estudiantes de nivel A2. Frases más complejas y situaciones cotidianas.",
-    content: "Contenido del curso A2..."
+    description: "Elementary English course for everyday communication.",
+    content: "Core A2 content for daily situations."
   },
   B1: {
-    title: "Curso B1",
+    title: "B1 Course",
     level: "B1",
-    description: "Curso intermedio. Mejora tu comprensión y fluidez.",
-    content: "Contenido del curso B1..."
+    description: "Intermediate English course focused on fluency and comprehension.",
+    content: "Core B1 content."
   },
   B2: {
-    title: "Curso B2",
+    title: "B2 Course",
     level: "B2",
-    description:
-      "Curso intermedio-alto. Profundiza en gramática y conversación.",
-    content: "Contenido del curso B2..."
+    description: "Upper-intermediate English course.",
+    content: "Core B2 content."
   },
   C1: {
-    title: "Curso C1",
+    title: "C1 Course",
     level: "C1",
-    description:
-      "Curso avanzado. Expresiones idiomáticas, textos complejos y más.",
-    content: "Contenido del curso C1..."
+    description: "Advanced English course.",
+    content: "Core C1 content."
   },
   C2: {
-    title: "Curso C2",
+    title: "C2 Course",
     level: "C2",
-    description:
-      "Curso experto. Habla como un nativo con precisión y profundidad.",
-    content: "Contenido del curso C2..."
+    description: "Proficiency English course.",
+    content: "Core C2 content."
   }
 };
 
 export const lessonTemplate = {
   id: "",
   lessonId: "",
-  nivel: "",
   level: "",
-  tema: "",
+  moduleId: "",
+  moduleTitle: "",
+  orderInModule: 1,
   ageGroup: "all",
-  status: "published",
-  titulo: "",
-  descripcion: "",
-  objetivos: [],
-  contenidos: {
-    vocabulario: {},
-    gramatica: {
-      temas: []
-    }
+  status: "draft",
+
+  title: "",
+  description: "",
+  objectives: [],
+
+  intro: {
+    title: "",
+    content: ""
   },
-  actividades: [],
-  lectura: {
-    titulo: "",
-    autor: "",
-    contenido: ""
+
+  vocabulary: {
+    title: "",
+    items: []
   },
-  practica_interactiva: {
-    titulo: "",
-    descripcion: "",
-    ejercicios: []
+
+  grammar: {
+    title: "",
+    explanation: "",
+    rules: [],
+    examples: []
   },
-  produccion_escrita: {
-    titulo: "",
-    descripcion: "",
-    ejercicios: []
+
+  reading: {
+    title: "",
+    author: "",
+    text: "",
+    questions: []
   },
-  produccion_oral: {
-    titulo: "",
-    descripcion: "",
-    ejercicios: []
+
+  practice: {
+    title: "",
+    description: "",
+    exercises: []
   },
-  evaluacion: {
-    autoevaluacion: "",
-    cuestionario: []
+
+  writing: {
+    title: "",
+    description: "",
+    activities: []
   },
-  recursos_adicionales: [],
-  reflexion_final: ""
+
+  speaking: {
+    title: "",
+    description: "",
+    activities: []
+  },
+
+  evaluation: {
+    title: "",
+    selfAssessment: "",
+    questions: []
+  },
+
+  resources: [],
+  reflection: ""
 };
 
-export const createNewLesson = (id = "", titulo = "", descripcion = "") => {
-  const nivel = id.includes("_") ? id.split("_")[0] : "";
+export const createNewLesson = (id = "", title = "", description = "") => {
+  const level = id.includes("_") ? id.split("_")[0] : "";
 
   return {
     ...structuredCloneSafe(lessonTemplate),
     id,
     lessonId: id,
-    titulo,
-    descripcion,
-    nivel,
-    level: nivel,
+    title,
+    description,
+    level,
     ageGroup: "all",
-    status: "published"
+    status: "draft"
   };
 };
 
 export const createNewThemeLessonTemplate = (
   id = "",
-  titulo = "",
-  descripcion = "",
-  tema = ""
+  title = "",
+  description = "",
+  topic = ""
 ) => {
-  const detectedTema = tema || "";
-
   return {
     ...structuredCloneSafe(lessonTemplate),
     id,
     lessonId: id,
-    titulo,
-    descripcion,
-    tema: detectedTema,
-    nivel: "",
+    title,
+    description,
+    topic,
     level: "",
     ageGroup: "all",
-    status: "published"
+    status: "draft"
   };
 };
 
-export const createDetailedLesson = (id = "", titulo = "", descripcion = "") => {
-  const nivel = id.includes("_") ? id.split("_")[0] : "";
+export const createDetailedLesson = (id = "", title = "", description = "") => {
+  const level = id.includes("_") ? id.split("_")[0] : "";
 
   return {
     ...structuredCloneSafe(lessonTemplate),
     id,
     lessonId: id,
-    titulo,
-    descripcion,
-    nivel,
-    level: nivel,
+    title,
+    description,
+    level,
     ageGroup: "all",
-    status: "published"
+    status: "draft"
   };
 };
 
@@ -161,6 +171,7 @@ export const cleanLessonData = (data) => {
             if (item && typeof item === "object" && !Array.isArray(item)) {
               return cleanObject(item);
             }
+
             return item;
           })
           .filter((item) => item !== null && item !== undefined && item !== "");
@@ -188,8 +199,8 @@ export const cleanLessonData = (data) => {
 export const validateLessonData = (data, mode = "level") => {
   const requiredFields =
     mode === "theme"
-      ? ["id", "titulo", "tema"]
-      : ["id", "titulo", "nivel", "ageGroup"];
+      ? ["id", "title", "topic"]
+      : ["id", "title", "level", "ageGroup"];
 
   const missingFields = requiredFields.filter((field) => !data[field]);
 
@@ -197,52 +208,50 @@ export const validateLessonData = (data, mode = "level") => {
     throw new Error(`Missing required fields: ${missingFields.join(", ")}`);
   }
 
-  if (mode === "theme") {
-    return true;
-  }
+  if (mode === "theme") return true;
 
   const allowedAgeGroups = ["kids_early", "kids", "teens", "adults", "all"];
 
   if (!allowedAgeGroups.includes(data.ageGroup)) {
     throw new Error(
-      "Invalid ageGroup. Debe ser kids_early, kids, teens, adults, o all."
+      "Invalid ageGroup. Allowed values: kids_early, kids, teens, adults, all."
     );
   }
 
   if (!/^[A-C][1-2]_\d+$/.test(data.id)) {
-    throw new Error("Invalid lesson ID format. Should be like: A1_1, B2_3, etc.");
+    throw new Error("Invalid lesson ID format. Expected format: A1_1, B2_3.");
   }
 
-  const nivelFromId = data.id.split("_")[0];
+  const levelFromId = data.id.split("_")[0];
 
-  if (data.nivel !== nivelFromId) {
-    throw new Error("Level mismatch between ID and nivel field");
+  if (data.level !== levelFromId) {
+    throw new Error("Level mismatch between ID and level field.");
   }
 
   return true;
 };
 
-export const generateLessonId = (nivel, numero) => {
-  return `${nivel}_${numero}`;
+export const generateLessonId = (level, number) => {
+  return `${level}_${number}`;
 };
 
-export const generateThemeLessonId = (temaId, numero) => {
-  return `${temaId}_${numero}`;
+export const generateThemeLessonId = (topicId, number) => {
+  return `${topicId}_${number}`;
 };
 
-export const getNextLessonNumber = (existingLessons = [], nivel) => {
+export const getNextLessonNumber = (existingLessons = [], level) => {
   const lessonNumbers = existingLessons
-    .filter((lesson) => lesson.nivel === nivel || lesson.level === nivel)
-    .map((lesson) => parseInt((lesson.id || "").split("_").pop()))
-    .filter((num) => !Number.isNaN(num));
+    .filter((lesson) => lesson.level === level || lesson.nivel === level)
+    .map((lesson) => parseInt((lesson.id || "").split("_").pop(), 10))
+    .filter((number) => !Number.isNaN(number));
 
   return lessonNumbers.length > 0 ? Math.max(...lessonNumbers) + 1 : 1;
 };
 
 export const getNextThemeLessonNumber = (existingLessons = []) => {
   const lessonNumbers = existingLessons
-    .map((lesson) => parseInt((lesson.id || "").split("_").pop()))
-    .filter((num) => !Number.isNaN(num));
+    .map((lesson) => parseInt((lesson.id || "").split("_").pop(), 10))
+    .filter((number) => !Number.isNaN(number));
 
   return lessonNumbers.length > 0 ? Math.max(...lessonNumbers) + 1 : 1;
 };

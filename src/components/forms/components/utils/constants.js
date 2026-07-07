@@ -1,92 +1,98 @@
-// utils/constants.js
+// src/components/forms/components/utils/constants.js
 
-// Tabs para la navegación principal
+// Main lesson form navigation tabs.
+// Internal identifiers remain in English.
+// Visible labels and descriptions are shown in Polish.
 export const tabs = [
   {
-    id: 'basic',
-    label: 'Información Básica',
-    description: 'Datos básicos de la lección'
+    id: "basic",
+    label: "Informacje podstawowe",
+    description: "Podstawowe dane lekcji"
   },
   {
-    id: 'objetivos',
-    label: 'Objetivos',
-    description: 'Objetivos de aprendizaje'
+    id: "objectives",
+    label: "Cele",
+    description: "Cele edukacyjne lekcji"
   },
   {
-    id: 'contenidos',
-    label: 'Contenidos',
-    description: 'Contenido educativo'
+    id: "contents",
+    label: "Treści",
+    description: "Treści edukacyjne"
   },
   {
-    id: 'lectura',
-    label: 'Lectura',
-    description: 'Material de lectura'
+    id: "reading",
+    label: "Czytanie",
+    description: "Materiały do czytania"
   },
   {
-    id: 'practica',
-    label: 'Práctica Interactiva',
-    description: 'Ejercicios prácticos'
+    id: "practice",
+    label: "Ćwiczenia interaktywne",
+    description: "Interaktywne ćwiczenia praktyczne"
   },
   {
-    id: 'produccion_escrita',
-    label: 'Producción Escrita',
-    description: 'Ejercicios de escritura'
+    id: "writing",
+    label: "Pisanie",
+    description: "Ćwiczenia rozwijające umiejętność pisania"
   },
   {
-    id: 'produccion_oral',
-    label: 'Producción Oral',
-    description: 'Ejercicios orales'
+    id: "speaking",
+    label: "Mówienie",
+    description: "Ćwiczenia rozwijające umiejętność mówienia"
   },
   {
-    id: 'evaluacion',
-    label: 'Evaluación',
-    description: 'Evaluación del aprendizaje'
+    id: "evaluation",
+    label: "Ocena",
+    description: "Ocena efektów uczenia się"
   },
   {
-    id: 'recursos',
-    label: 'Recursos Adicionales',
-    description: 'Material complementario'
+    id: "resources",
+    label: "Materiały dodatkowe",
+    description: "Materiały uzupełniające"
   },
   {
-    id: 'reflexion',
-    label: 'Reflexión Final',
-    description: 'Reflexión sobre lo aprendido'
+    id: "reflection",
+    label: "Refleksja końcowa",
+    description: "Refleksja nad zdobytą wiedzą"
   }
 ];
 
-// Tipos de ejercicios interactivos
+// Interactive exercise types.
+// These values are part of the internal data model.
 export const EXERCISE_TYPES = {
-  MULTIPLE_CHOICE: 'multiple_choice',
-  FILL_BLANK: 'fill_blank',
-  MATCHING: 'matching',
-  ORDERING: 'ordering'
+  MULTIPLE_CHOICE: "multiple_choice",
+  FILL_BLANK: "fill_blank",
+  MATCHING: "matching",
+  ORDERING: "ordering"
 };
 
-// Tipos de recursos
+// Resource types.
+// These values are part of the internal data model.
 export const RESOURCE_TYPES = {
-  VIDEO: 'video',
-  DOCUMENT: 'documento',
-  LINK: 'enlace',
-  AUDIO: 'audio',
-  IMAGE: 'imagen'
+  VIDEO: "video",
+  DOCUMENT: "document",
+  LINK: "link",
+  AUDIO: "audio",
+  IMAGE: "image",
+  ACTIVITY: "activity",
+  OFFLINE: "offline"
 };
 
-// Estados de validación
+// Validation states.
 export const VALIDATION_STATES = {
-  VALID: 'valid',
-  INVALID: 'invalid',
-  PENDING: 'pending'
+  VALID: "valid",
+  INVALID: "invalid",
+  PENDING: "pending"
 };
 
-// Mensajes de error comunes
+// Common validation messages shown in the Polish interface.
 export const ERROR_MESSAGES = {
-  REQUIRED: 'Este campo es requerido',
-  INVALID_FORMAT: 'El formato no es válido',
-  MIN_LENGTH: (min) => `Debe tener al menos ${min} caracteres`,
-  MAX_LENGTH: (max) => `No puede exceder los ${max} caracteres`
+  REQUIRED: "To pole jest wymagane.",
+  INVALID_FORMAT: "Format jest nieprawidłowy.",
+  MIN_LENGTH: (min) => `Pole musi zawierać co najmniej ${min} znaków.`,
+  MAX_LENGTH: (max) => `Pole nie może przekraczać ${max} znaków.`
 };
 
-// Configuración de límites
+// Form limits.
 export const LIMITS = {
   MIN_OBJECTIVES: 1,
   MAX_OBJECTIVES: 10,

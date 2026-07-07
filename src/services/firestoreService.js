@@ -718,40 +718,254 @@ export const duplicateMission = async (themeId, missionId) => {
   }
 };
 
+/* THEMES */
+
+const normalizeThemeData = (themeData = {}) => ({
+  icon: String(themeData.icon || "").trim(),
+  title: String(themeData.title || "").trim(),
+  description: String(themeData.description || "").trim(),
+  numero: Number(themeData.numero) || 0
+});
+
+const validateThemeData = (themeData = {}) => {
+  const normalizedTheme = normalizeThemeData(themeData);
+
+  if (!normalizedTheme.title) {
+    throw new Error("Theme title is required.");
+  }
+
+  if (!normalizedTheme.icon) {
+    throw new Error("Theme icon is required.");
+  }
+
+  if (!normalizedTheme.description) {
+    throw new Error("Theme description is required.");
+  }
+
+  if (
+    !Number.isInteger(normalizedTheme.numero) ||
+    normalizedTheme.numero <= 0
+  ) {
+    throw new Error("Theme number must be a positive integer.");
+  }
+
+  return normalizedTheme;
+};
+
+export const getAllThemes = async () => {
+  try {
+    const themesSnapshot = await getDocs(collection(db, "temas"));
+
+    return themesSnapshot.docs
+      .map((document) => ({
+        id: document.id,
+        ...document.data()
+      }))
+      .sort(
+        (a, b) =>
+          (Number(a.numero) || 0) -
+          (Number(b.numero) || 0)
+      );
+  } catch (error) {
+    console.error("Error getting themes:", error);
+    throw error;
+  }
+};
+
+export const createTheme = async (themeData) => {
+  try {
+    const normalizedTheme = validateThemeData(themeData);
+
+    const themeRef = await addDoc(collection(db, "temas"), {
+      ...normalizedTheme,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    });
+
+    return {
+      id: themeRef.id,
+      ...normalizedTheme
+    };
+  } catch (error) {
+    console.error("Error creating theme:", error);
+    throw error;
+  }
+};
+
+export const updateTheme = async (themeId, themeData) => {
+  try {
+    if (!themeId) {
+      throw new Error("Invalid theme.");
+    }
+
+    const normalizedTheme = validateThemeData(themeData);
+    const themeRef = doc(db, "temas", themeId);
+
+    await updateDoc(themeRef, {
+      ...normalizedTheme,
+      updatedAt: serverTimestamp()
+    });
+
+    return {
+      id: themeId,
+      ...normalizedTheme
+    };
+  } catch (error) {
+    console.error("Error updating theme:", error);
+    throw error;
+  }
+};
+
+export const deleteTheme = async (themeId) => {
+  try {
+    if (!themeId) {
+      throw new Error("Invalid theme.");
+    }
+
+    const themeRef = doc(db, "temas", themeId);
+
+    await deleteDoc(themeRef);
+
+    return true;
+  } catch (error) {
+    console.error("Error deleting theme:", error);
+    throw error;
+  }
+};
+
 /* TESTS */
 
+const CEFR_LEVELS = ["A1", "A2", "B1", "B2", "C1", "C2"];
+const RECENT_TEST_DAYS = 20;
+const MIN_PASSING_SCORE = 70;
+
+const normalizeCefrLevel = (level, fallback = "A1") => {
+  const normalizedLevel = String(level || "").trim().toUpperCase();
+
+  return CEFR_LEVELS.includes(normalizedLevel)
+    ? normalizedLevel
+    : fallback;
+};
+
+const getUnlockedLevels = (placementLevel) => {
+  const normalizedLevel = normalizeCefrLevel(placementLevel);
+  const levelIndex = CEFR_LEVELS.indexOf(normalizedLevel);
+
+  return CEFR_LEVELS.slice(0, levelIndex + 1);
+};
+
+const getTimestampMillis = (value) => {
+  if (!value) return 0;
+
+  if (typeof value.toMillis === "function") {
+    return value.toMillis();
+  }
+
+  if (typeof value.toDate === "function") {
+    return value.toDate().getTime();
+  }
+
+  if (value instanceof Date) {
+    return value.getTime();
+  }
+
+  const parsedDate = new Date(value).getTime();
+
+  return Number.isNaN(parsedDate) ? 0 : parsedDate;
+};
+
+const getUserTests = async (userId) => {
+  if (!userId) return [];
+
+  const testsRef = collection(db, "userTests");
+
+  const userTestsQuery = query(
+    testsRef,
+    where("userId", "==", userId)
+  );
+
+  const snapshot = await getDocs(userTestsQuery);
+
+  return snapshot.docs.map((document) => ({
+    id: document.id,
+    ...document.data()
+  }));
+};
+
 export const logUserTest = async (userId) => {
-  if (!userId) throw new Error("Usuario no válido");
+  try {
+    if (!userId) {
+      throw new Error("Invalid user.");
+    }
 
-  const testRef = collection(db, "userTests");
+    const testRef = collection(db, "userTests");
 
-  await addDoc(testRef, {
-    userId,
-    testDate: serverTimestamp(),
-    completed: false
-  });
+    const result = await addDoc(testRef, {
+      userId,
+      testDate: serverTimestamp(),
+      completed: false,
+      testProgress: null,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    });
+
+    return result.id;
+  } catch (error) {
+    console.error("Error logging user test:", error);
+    throw error;
+  }
 };
 
 export const saveUserTestResult = async (userId, testResults) => {
   try {
     if (!userId || !testResults) {
-      throw new Error("Usuario o resultados no válidos");
+      throw new Error("Invalid user or test results.");
     }
 
-    const overallScore = calculateOverallScore(testResults.levelResults);
+    const placementLevel = normalizeCefrLevel(
+      testResults.placementLevel || testResults.finalLevel
+    );
+
+    const finalLevel = normalizeCefrLevel(
+      testResults.finalLevel || placementLevel
+    );
+
+    const currentLevel = placementLevel;
+    const unlockedLevels = getUnlockedLevels(placementLevel);
+
+    const levelResults =
+      testResults.levelResults &&
+      typeof testResults.levelResults === "object" &&
+      !Array.isArray(testResults.levelResults)
+        ? testResults.levelResults
+        : {};
+
+    const skillResults =
+      testResults.skillResults &&
+      typeof testResults.skillResults === "object" &&
+      !Array.isArray(testResults.skillResults)
+        ? testResults.skillResults
+        : {};
+
+    const overallScore = calculateOverallScore(levelResults);
+    const now = Timestamp.now();
 
     const testRef = collection(db, "userTests");
 
     const testData = {
       userId,
-      testDate: Timestamp.now(),
+      testDate: now,
       completed: true,
       results: {
-        finalLevel: testResults.finalLevel,
+        placementLevel,
+        finalLevel,
         overallScore,
-        levelResults: testResults.levelResults || {},
-        timeSpent: testResults.timeSpent || 0
-      }
+        levelResults,
+        skillResults,
+        timeSpent: Math.max(Number(testResults.timeSpent) || 0, 0)
+      },
+      createdAt: now,
+      updatedAt: now
     };
 
     const result = await addDoc(testRef, testData);
@@ -759,14 +973,19 @@ export const saveUserTestResult = async (userId, testResults) => {
     const userRef = doc(db, "users", userId);
 
     await updateDoc(userRef, {
-      currentLevel: testResults.finalLevel,
-      lastTestDate: Timestamp.now(),
+      placementLevel,
+      currentLevel,
+      unlockedLevels,
+      lastTestDate: now,
       updatedAt: serverTimestamp(),
       testHistory: arrayUnion({
-        date: Timestamp.now(),
-        level: testResults.finalLevel,
+        testId: result.id,
+        date: now,
+        placementLevel,
+        finalLevel,
+        level: placementLevel,
         score: overallScore,
-        passed: overallScore >= 70
+        passed: overallScore >= MIN_PASSING_SCORE
       })
     });
 
@@ -781,24 +1000,17 @@ export const getIncompleteTest = async (userId) => {
   try {
     if (!userId) return null;
 
-    const testRef = collection(db, "userTests");
+    const tests = await getUserTests(userId);
 
-    const q = query(
-      testRef,
-      where("userId", "==", userId),
-      where("completed", "==", false),
-      orderBy("testDate", "desc"),
-      limit(1)
-    );
+    const incompleteTests = tests
+      .filter((test) => test.completed === false)
+      .sort(
+        (a, b) =>
+          getTimestampMillis(b.testDate) -
+          getTimestampMillis(a.testDate)
+      );
 
-    const snapshot = await getDocs(q);
-
-    if (snapshot.empty) return null;
-
-    return {
-      id: snapshot.docs[0].id,
-      ...snapshot.docs[0].data()
-    };
+    return incompleteTests[0] || null;
   } catch (error) {
     console.error("Error getting incomplete test:", error);
     throw error;
@@ -807,14 +1019,19 @@ export const getIncompleteTest = async (userId) => {
 
 export const updateTestProgress = async (testId, progress) => {
   try {
-    if (!testId) throw new Error("Test no válido");
+    if (!testId) {
+      throw new Error("Invalid test.");
+    }
 
     const testRef = doc(db, "userTests", testId);
 
     await updateDoc(testRef, {
-      testProgress: progress,
-      lastUpdated: serverTimestamp()
+      testProgress: progress || null,
+      lastUpdated: serverTimestamp(),
+      updatedAt: serverTimestamp()
     });
+
+    return true;
   } catch (error) {
     console.error("Error updating test progress:", error);
     throw error;
@@ -825,24 +1042,18 @@ export const getUserTestHistory = async (userId) => {
   try {
     if (!userId) return [];
 
-    const testRef = collection(db, "userTests");
-    const q = query(testRef, where("userId", "==", userId));
-    const snapshot = await getDocs(q);
+    const tests = await getUserTests(userId);
 
-    return snapshot.docs
-      .map((document) => ({
-        id: document.id,
-        ...document.data()
-      }))
-      .filter((test) => test.completed)
-      .sort((a, b) => {
-        const dateA = a.testDate?.toDate?.() || new Date(0);
-        const dateB = b.testDate?.toDate?.() || new Date(0);
-        return dateB - dateA;
-      });
+    return tests
+      .filter((test) => test.completed === true)
+      .sort(
+        (a, b) =>
+          getTimestampMillis(b.testDate) -
+          getTimestampMillis(a.testDate)
+      );
   } catch (error) {
     console.error("Error getting test history:", error);
-    return [];
+    throw error;
   }
 };
 
@@ -850,21 +1061,30 @@ export const getUserStats = async (userId) => {
   try {
     const tests = await getUserTestHistory(userId);
 
+    const levelProgress = tests.reduce((acc, test) => {
+      const level =
+        test.results?.placementLevel ||
+        test.results?.finalLevel ||
+        "unknown";
+
+      acc[level] = (acc[level] || 0) + 1;
+
+      return acc;
+    }, {});
+
+    const averageScore =
+      tests.length > 0
+        ? tests.reduce(
+            (sum, test) =>
+              sum + Number(test.results?.overallScore || 0),
+            0
+          ) / tests.length
+        : 0;
+
     return {
       totalTests: tests.length,
-      levelProgress: tests.reduce((acc, test) => {
-        const level = test.results?.finalLevel || "unknown";
-        if (!acc[level]) acc[level] = 0;
-        acc[level]++;
-        return acc;
-      }, {}),
-      averageScore:
-        tests.length > 0
-          ? tests.reduce(
-              (acc, test) => acc + (test.results?.overallScore || 0),
-              0
-            ) / tests.length
-          : 0,
+      levelProgress,
+      averageScore,
       lastTestDate: tests[0]?.testDate || null
     };
   } catch (error) {
@@ -874,25 +1094,23 @@ export const getUserStats = async (userId) => {
 };
 
 export const hasRecentTest = async (userId) => {
-  if (!userId) return false;
+  try {
+    if (!userId) return false;
 
-  const twentyDaysAgo = Timestamp.fromDate(
-    new Date(Date.now() - 20 * 24 * 60 * 60 * 1000)
-  );
+    const tests = await getUserTests(userId);
 
-  const testRef = collection(db, "userTests");
+    const recentTestLimit = Date.now() -
+      RECENT_TEST_DAYS * 24 * 60 * 60 * 1000;
 
-  const q = query(
-    testRef,
-    where("userId", "==", userId),
-    where("testDate", ">", twentyDaysAgo),
-    orderBy("testDate", "desc"),
-    limit(1)
-  );
-
-  const snapshot = await getDocs(q);
-
-  return !snapshot.empty;
+    return tests.some(
+      (test) =>
+        test.completed === true &&
+        getTimestampMillis(test.testDate) > recentTestLimit
+    );
+  } catch (error) {
+    console.error("Error checking recent test:", error);
+    throw error;
+  }
 };
 
 /* PRESENTATIONS */
@@ -938,7 +1156,7 @@ export const addPresentation = async (presentationData) => {
 
 export const addComment = async (presentationId, commentData) => {
   try {
-    if (!presentationId) throw new Error("Presentación no válida");
+    if (!presentationId) throw new Error("Invalid presentation.");
 
     const presentationRef = doc(db, "presentations", presentationId);
 
@@ -962,7 +1180,7 @@ export const addComment = async (presentationId, commentData) => {
 
 export const uploadAudio = async (audioBlob) => {
   try {
-    if (!audioBlob) throw new Error("Audio no válido");
+    if (!audioBlob) throw new Error("Invalid audio.");
 
     const audioRef = ref(storage, `presentations/${Date.now()}_audio.wav`);
 
@@ -1011,6 +1229,11 @@ export default {
   updateMission,
   deleteMission,
   duplicateMission,
+  
+  getAllThemes,
+  createTheme,
+  updateTheme,
+  deleteTheme,
 
   logUserTest,
   saveUserTestResult,

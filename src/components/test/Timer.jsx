@@ -51,7 +51,7 @@ const Timer = ({ timeLeft, setTimeLeft, onTimeUp }) => {
         container: "bg-red-50 border-red-200",
         iconBox: "bg-red-100 text-red-600",
         text: "text-red-600",
-        label: "Time running out",
+        label: "Kończy się czas",
         icon: <FaExclamationTriangle />
       };
     }
@@ -61,7 +61,7 @@ const Timer = ({ timeLeft, setTimeLeft, onTimeUp }) => {
         container: "bg-yellow-50 border-yellow-200",
         iconBox: "bg-yellow-100 text-yellow-700",
         text: "text-yellow-700",
-        label: "Time remaining",
+        label: "Pozostały czas",
         icon: <FaClock />
       };
     }
@@ -70,7 +70,7 @@ const Timer = ({ timeLeft, setTimeLeft, onTimeUp }) => {
       container: "bg-white border-gray-200",
       iconBox: "bg-primary-100 text-primary-600",
       text: "text-gray-900",
-      label: "Time remaining",
+      label: "Pozostały czas",
       icon: <FaClock />
     };
   }, [isDanger, isWarning]);
@@ -103,12 +103,12 @@ const Timer = ({ timeLeft, setTimeLeft, onTimeUp }) => {
 
           <div className="hidden sm:block text-right">
             <p className="text-xs text-gray-500">
-              The test will close automatically when time ends.
+              Test zakończy się automatycznie po upływie czasu.
             </p>
 
             {isDanger && (
               <p className="text-xs font-semibold text-red-600 mt-1">
-                Less than 5 minutes left.
+                Zostało mniej niż 5 minut.
               </p>
             )}
           </div>

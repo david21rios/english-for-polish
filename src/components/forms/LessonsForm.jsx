@@ -1,6 +1,6 @@
 // src/components/forms/LessonsForm.jsx
 
-import React, { useState, useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import PropTypes from "prop-types";
 
 import { tabs } from "./components/utils/constants";
@@ -8,6 +8,262 @@ import TabNavigation from "./components/TabNavigation";
 import TabContent from "./components/TabContent";
 import useFormData from "./components/hooks/useFormData";
 import useFormValidation from "./components/hooks/useFormalValidation.js";
+
+const toArray = (value) => (Array.isArray(value) ? value : []);
+
+const adaptWritingExercise = (exercise = {}) => ({
+  ...exercise,
+  instrucciones:
+    exercise.instrucciones ||
+    exercise.instructions ||
+    exercise.prompt ||
+    exercise.task ||
+    "",
+  extension_minima:
+    exercise.extension_minima ??
+    exercise.minimumWords ??
+    exercise.minWords ??
+    "",
+  extension_maxima:
+    exercise.extension_maxima ??
+    exercise.maximumWords ??
+    exercise.maxWords ??
+    "",
+  tiempo_sugerido:
+    exercise.tiempo_sugerido ??
+    exercise.suggestedTimeMinutes ??
+    exercise.suggestedTime ??
+    "",
+  criterios:
+    exercise.criterios ||
+    exercise.criteria ||
+    exercise.evaluationCriteria ||
+    []
+});
+
+const adaptOralExercise = (exercise = {}) => ({
+  ...exercise,
+  consigna:
+    exercise.consigna ||
+    exercise.prompt ||
+    exercise.task ||
+    exercise.instructions ||
+    "",
+  guia:
+    exercise.guia ||
+    exercise.guide ||
+    exercise.studentGuide ||
+    exercise.hints ||
+    "",
+  tiempo_sugerido:
+    exercise.tiempo_sugerido ||
+    exercise.suggestedTime ||
+    exercise.suggestedTimeMinutes ||
+    "",
+  criterios:
+    exercise.criterios ||
+    exercise.criteria ||
+    exercise.selfAssessmentCriteria ||
+    []
+});
+
+const adaptLessonToAdminForm = (lesson = {}, activeLevel = "A1") => {
+  const lessonData = lesson.lessonData || {};
+
+  const vocabulary =
+    lesson.contenidos?.vocabulario ||
+    lesson.contents?.vocabulary ||
+    lessonData.vocabulary ||
+    lessonData.contents?.vocabulary ||
+    {};
+
+  const grammar =
+    lesson.contenidos?.gramatica ||
+    lesson.contents?.grammar ||
+    lessonData.grammar ||
+    lessonData.contents?.grammar ||
+    {};
+
+  const reading =
+    lesson.lectura ||
+    lesson.reading ||
+    lessonData.reading ||
+    {};
+
+  const interactivePractice =
+    lesson.practica_interactiva ||
+    lesson.interactivePractice ||
+    lessonData.interactivePractice ||
+    lessonData.practice ||
+    {};
+
+  const writing =
+    lesson.produccion_escrita ||
+    lesson.writingProduction ||
+    lessonData.writing ||
+    lessonData.writingProduction ||
+    {};
+
+  const speaking =
+    lesson.produccion_oral ||
+    lesson.oralProduction ||
+    lessonData.speaking ||
+    lessonData.oralProduction ||
+    {};
+
+  const evaluation =
+    lesson.evaluacion ||
+    lesson.evaluation ||
+    lessonData.evaluation ||
+    {};
+
+  const resources =
+    lesson.recursos_adicionales ||
+    lesson.resources ||
+    lesson.additionalResources ||
+    lessonData.resources ||
+    lessonData.additionalResources ||
+    [];
+
+  return {
+    ...lesson,
+
+    id: lesson.id || lesson.lessonId || "",
+    lessonId: lesson.lessonId || lesson.id || "",
+
+    level: lesson.level || lesson.nivel || activeLevel,
+    nivel: lesson.nivel || lesson.level || activeLevel,
+
+    titulo: lesson.titulo || lesson.title || lessonData.title || "",
+    descripcion:
+      lesson.descripcion || lesson.description || lessonData.description || "",
+
+    objetivos:
+      lesson.objetivos ||
+      lesson.objectives ||
+      lessonData.objectives ||
+      [],
+
+    contenidos: {
+      vocabulario: {
+        titulo:
+          vocabulary.titulo ||
+          vocabulary.title ||
+          "Key Vocabulary",
+        palabras:
+          vocabulary.palabras ||
+          vocabulary.words ||
+          vocabulary.items ||
+          []
+      },
+      gramatica: {
+        temas:
+          grammar.temas ||
+          grammar.topics ||
+          [],
+        reglas:
+          grammar.reglas ||
+          grammar.rules ||
+          []
+      }
+    },
+
+    lectura: {
+      titulo:
+        reading.titulo ||
+        reading.title ||
+        "",
+      autor:
+        reading.autor ||
+        reading.author ||
+        "AI Tutor",
+      contenido:
+        reading.contenido ||
+        reading.content ||
+        reading.text ||
+        "",
+      preguntas:
+        reading.preguntas ||
+        reading.questions ||
+        []
+    },
+
+    practica_interactiva: {
+      titulo:
+        interactivePractice.titulo ||
+        interactivePractice.title ||
+        "",
+      descripcion:
+        interactivePractice.descripcion ||
+        interactivePractice.description ||
+        "",
+      ejercicios:
+        interactivePractice.ejercicios ||
+        interactivePractice.exercises ||
+        []
+    },
+
+    produccion_escrita: {
+      titulo:
+        writing.titulo ||
+        writing.title ||
+        "",
+      descripcion:
+        writing.descripcion ||
+        writing.description ||
+        "",
+      ejercicios: toArray(
+        writing.ejercicios ||
+        writing.exercises ||
+        writing.activities
+      ).map(adaptWritingExercise)
+    },
+
+    produccion_oral: {
+      titulo:
+        speaking.titulo ||
+        speaking.title ||
+        "",
+      descripcion:
+        speaking.descripcion ||
+        speaking.description ||
+        "",
+      ejercicios: toArray(
+        speaking.ejercicios ||
+        speaking.exercises ||
+        speaking.activities
+      ).map(adaptOralExercise)
+    },
+
+    evaluacion: {
+      autoevaluacion:
+        evaluation.autoevaluacion ||
+        evaluation.selfAssessment ||
+        evaluation.self_assessment ||
+        "",
+      cuestionario:
+        evaluation.cuestionario ||
+        evaluation.questions ||
+        evaluation.quiz ||
+        [],
+      criterios_evaluacion:
+        evaluation.criterios_evaluacion ||
+        evaluation.criteria ||
+        evaluation.evaluationCriteria ||
+        []
+    },
+
+    recursos_adicionales: resources,
+
+    reflexion_final:
+      lesson.reflexion_final ||
+      lesson.finalReflection ||
+      lesson.reflection ||
+      lessonData.finalReflection ||
+      lessonData.reflection ||
+      ""
+  };
+};
 
 const LessonForm = ({
   isEditing,
@@ -36,15 +292,18 @@ const LessonForm = ({
 
   useEffect(() => {
     if (initialData) {
+      const adaptedData = adaptLessonToAdminForm(initialData, activeLevel);
+
       setLocalFormData((prev) => ({
         ...prev,
-        ...initialData,
-        id: initialData.id || initialData.lessonId || prev.id || "",
-        lessonId: initialData.lessonId || initialData.id || prev.lessonId || "",
-        nivel: initialData.nivel || initialData.level || activeLevel,
-        level: initialData.level || initialData.nivel || activeLevel,
-        moduleId: initialData.moduleId || prev.moduleId || "",
-        orderInModule: Number(initialData.orderInModule) || prev.orderInModule || 1
+        ...adaptedData,
+        id: adaptedData.id || adaptedData.lessonId || prev.id || "",
+        lessonId: adaptedData.lessonId || adaptedData.id || prev.lessonId || "",
+        nivel: adaptedData.nivel || adaptedData.level || activeLevel,
+        level: adaptedData.level || adaptedData.nivel || activeLevel,
+        moduleId: adaptedData.moduleId || prev.moduleId || "",
+        orderInModule:
+          Number(adaptedData.orderInModule) || prev.orderInModule || 1
       }));
     }
   }, [initialData, activeLevel, setLocalFormData]);
@@ -54,10 +313,15 @@ const LessonForm = ({
       validateField("id", localFormData.id);
     }
 
-    if (localFormData.titulo) {
-      validateField("titulo", localFormData.titulo);
+    if (localFormData.titulo || localFormData.title) {
+      validateField("titulo", localFormData.titulo || localFormData.title);
     }
-  }, [localFormData.id, localFormData.titulo, validateField]);
+  }, [
+    localFormData.id,
+    localFormData.titulo,
+    localFormData.title,
+    validateField
+  ]);
 
   useEffect(() => {
     if (!localFormData.moduleId && modules.length > 0) {
@@ -71,22 +335,18 @@ const LessonForm = ({
   }, [modules, localFormData.moduleId, setLocalFormData]);
 
   const handleModuleChange = (event) => {
-    const moduleId = event.target.value;
-
     setLocalFormData((prev) => ({
       ...prev,
-      moduleId
+      moduleId: event.target.value
     }));
 
     setLocalError("");
   };
 
   const handleOrderChange = (event) => {
-    const orderInModule = Number(event.target.value) || 1;
-
     setLocalFormData((prev) => ({
       ...prev,
-      orderInModule
+      orderInModule: Number(event.target.value) || 1
     }));
   };
 
@@ -98,22 +358,30 @@ const LessonForm = ({
       setFieldTouched("titulo", true);
 
       if (!localFormData.moduleId) {
-        setLocalError("Debes seleccionar un módulo para esta lección.");
+        setLocalError("Wybierz moduł dla tej lekcji.");
         return;
       }
 
       if (Number(localFormData.orderInModule || 0) < 1) {
-        setLocalError("El orden dentro del módulo debe ser mayor que cero.");
+        setLocalError("Kolejność w module musi być większa niż zero.");
         return;
       }
 
       if (validateAllFields()) {
         setLocalError("");
 
+        const lessonTitle = localFormData.title || localFormData.titulo || "";
+        const lessonDescription =
+          localFormData.description || localFormData.descripcion || "";
+
         onSubmit({
           ...localFormData,
-          nivel: localFormData.nivel || activeLevel,
-          level: localFormData.level || activeLevel,
+          level: localFormData.level || localFormData.nivel || activeLevel,
+          nivel: localFormData.nivel || localFormData.level || activeLevel,
+          title: lessonTitle,
+          description: lessonDescription,
+          titulo: localFormData.titulo || lessonTitle,
+          descripcion: localFormData.descripcion || lessonDescription,
           moduleId: localFormData.moduleId,
           orderInModule: Number(localFormData.orderInModule) || 1
         });
@@ -129,11 +397,7 @@ const LessonForm = ({
   );
 
   useEffect(() => {
-    if (isDirty) {
-      window.onbeforeunload = () => true;
-    } else {
-      window.onbeforeunload = undefined;
-    }
+    window.onbeforeunload = isDirty ? () => true : undefined;
 
     return () => {
       window.onbeforeunload = undefined;
@@ -142,34 +406,32 @@ const LessonForm = ({
 
   const handleCancel = useCallback(() => {
     if (isDirty) {
-      if (
-        window.confirm(
-          "¿Estás seguro de que quieres cancelar? Hay cambios sin guardar."
-        )
-      ) {
-        onCancel();
-      }
-    } else {
-      onCancel();
+      const confirmCancel = window.confirm(
+        "Czy na pewno chcesz anulować? Masz niezapisane zmiany."
+      );
+
+      if (!confirmCancel) return;
     }
+
+    onCancel();
   }, [isDirty, onCancel]);
 
   const areBasicFieldsComplete =
     localFormData.id?.trim() &&
-    localFormData.titulo?.trim() &&
+    (localFormData.titulo?.trim() || localFormData.title?.trim()) &&
     localFormData.moduleId;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="bg-primary-50 border border-primary-100 rounded-2xl p-4">
         <h3 className="font-semibold text-gray-900 mb-3">
-          Ubicación académica
+          Lokalizacja akademicka
         </h3>
 
         <div className="grid md:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Nivel
+              Poziom
             </label>
 
             <input
@@ -182,7 +444,7 @@ const LessonForm = ({
 
           <div className="md:col-span-1">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Módulo
+              Moduł
             </label>
 
             <select
@@ -190,7 +452,7 @@ const LessonForm = ({
               onChange={handleModuleChange}
               className="w-full border border-gray-300 rounded-xl px-4 py-3 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500"
             >
-              <option value="">Selecciona un módulo...</option>
+              <option value="">Wybierz moduł...</option>
 
               {modules.map((module) => {
                 const moduleId = module.moduleId || module.id;
@@ -206,7 +468,7 @@ const LessonForm = ({
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Orden en el módulo
+              Kolejność w module
             </label>
 
             <input
@@ -221,15 +483,12 @@ const LessonForm = ({
 
         {modules.length === 0 && (
           <p className="text-sm text-red-600 mt-3">
-            No hay módulos creados para este nivel. Crea un módulo antes de
-            crear lecciones.
+            Brak modułów dla tego poziomu. Utwórz moduł przed dodaniem lekcji.
           </p>
         )}
 
         {localError && (
-          <p className="text-sm text-red-600 mt-3">
-            {localError}
-          </p>
+          <p className="text-sm text-red-600 mt-3">{localError}</p>
         )}
       </div>
 
@@ -254,7 +513,7 @@ const LessonForm = ({
           onClick={handleCancel}
           className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50"
         >
-          Cancelar
+          Anuluj
         </button>
 
         {isDirty && (
@@ -263,7 +522,7 @@ const LessonForm = ({
             onClick={saveDraft}
             className="px-4 py-2 border border-blue-300 text-blue-700 rounded-md shadow-sm text-sm font-medium hover:bg-blue-50"
           >
-            Guardar borrador
+            Zapisz szkic
           </button>
         )}
 
@@ -276,7 +535,7 @@ const LessonForm = ({
               : "bg-gray-400 cursor-not-allowed"
           }`}
         >
-          {isEditing ? "Guardar cambios" : "Crear lección"}
+          {isEditing ? "Zapisz zmiany" : "Utwórz lekcję"}
         </button>
       </div>
     </form>

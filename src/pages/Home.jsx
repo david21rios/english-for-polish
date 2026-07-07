@@ -36,10 +36,8 @@ const Home = () => {
   const [topicXp, setTopicXp] = useState(0);
   const [completedMissions, setCompletedMissions] = useState(0);
   const [loading, setLoading] = useState(true);
-
   const [lastLesson, setLastLesson] = useState(null);
   const [lastLessonTitle, setLastLessonTitle] = useState("");
-
   const [suggestedMissions, setSuggestedMissions] = useState([]);
 
   useEffect(() => {
@@ -107,7 +105,7 @@ const Home = () => {
 
         setLastLesson(lastProgress);
         setLastLessonTitle("");
-              
+
         if (lastProgress?.levelId && lastProgress?.lessonId) {
           const lessonRef = doc(
             db,
@@ -116,18 +114,17 @@ const Home = () => {
             "lessons",
             lastProgress.lessonId
           );
-        
+
           const lessonSnap = await getDoc(lessonRef);
-        
+
           if (lessonSnap.exists()) {
             const lessonData = lessonSnap.data();
-          
+
             setLastLessonTitle(
-              lessonData.titulo ||
-                lessonData.title ||
+              lessonData.title ||
                 lessonData.lessonTitle ||
                 lessonData.name ||
-                lessonData.nombre ||
+                lessonData.titulo ||
                 lastProgress.lessonId
             );
           } else {
@@ -136,7 +133,7 @@ const Home = () => {
               lastProgress.levelId,
               lastProgress.lessonId
             );
-          
+
             setLastLessonTitle(lastProgress.lessonId);
           }
         }
@@ -153,7 +150,7 @@ const Home = () => {
   const userName = userData?.name || "Student";
 
   const currentLevel =
-    userData?.currentLevel || latestTest?.results?.finalLevel || "Not assigned";
+    userData?.currentLevel || latestTest?.results?.finalLevel || "Nie przypisano";
 
   const latestScore = latestTest?.results?.overallScore
     ? Math.round(latestTest.results.overallScore)
@@ -163,32 +160,32 @@ const Home = () => {
     ? `${lastLesson.levelId} · ${
         lastLessonTitle && lastLessonTitle !== lastLesson.lessonId
           ? lastLessonTitle
-          : "Lesson unavailable"
+          : "Lekcja niedostępna"
       }`
-    : "No lesson started yet";
+    : "Nie rozpoczęto jeszcze lekcji";
 
   const stats = [
     {
-      title: "Current level",
+      title: "Aktualny poziom",
       value: currentLevel,
       icon: FaUserGraduate,
       color: "bg-primary-100 text-primary-600"
     },
     {
-      title: "Total XP",
+      title: "Łączne XP",
       value: topicXp,
       icon: FaStar,
       color: "bg-yellow-100 text-yellow-700"
     },
     {
-      title: "Completed missions",
+      title: "Ukończone misje",
       value: completedMissions,
       icon: FaMedal,
       color: "bg-green-100 text-green-700"
     },
     {
-      title: "Last test score",
-      value: latestScore !== null ? `${latestScore}%` : "Pending",
+      title: "Ostatni wynik testu",
+      value: latestScore !== null ? `${latestScore}%` : "Oczekuje",
       icon: FaClipboardCheck,
       color: "bg-blue-100 text-blue-700"
     }
@@ -213,7 +210,7 @@ const Home = () => {
       navigate("/temas");
       return;
     }
-  
+
     navigate(`/tema/${mission.topicId}/mission/${mission.missionId}`);
   };
 
@@ -222,7 +219,7 @@ const Home = () => {
       <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary-600 mx-auto mb-4" />
-          <p className="text-gray-600">Loading your dashboard...</p>
+          <p className="text-gray-600">Ładowanie panelu ucznia...</p>
         </div>
       </div>
     );
@@ -235,20 +232,20 @@ const Home = () => {
           <div className="grid lg:grid-cols-2 gap-8 items-center">
             <div>
               <p className="text-sm font-semibold text-primary-600 uppercase tracking-wide">
-                Student dashboard
+                Panel ucznia
               </p>
 
               <h1 className="text-2xl sm:text-3xl md:text-5xl font-heading font-bold text-gray-900 mt-2 md:mt-3 leading-tight">
-                Welcome, {userName}
+                Witaj, {userName}
               </h1>
 
               <p className="text-gray-600 text-base md:text-lg mt-3 md:mt-4 leading-relaxed">
-                Continue your Spanish learning path, review your progress,
-                complete missions and keep improving step by step.
+                Kontynuuj naukę języka angielskiego, sprawdzaj swoje postępy,
+                wykonuj misje i rozwijaj umiejętności krok po kroku.
               </p>
 
               <p className="mt-5 text-sm text-gray-500">
-                Current lesson:
+                Aktualna lekcja:
                 <span className="font-semibold text-primary-600 ml-2">
                   {currentLessonText}
                 </span>
@@ -261,7 +258,7 @@ const Home = () => {
                   className="inline-flex items-center justify-center gap-2 bg-primary-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-primary-700"
                 >
                   <FaBookOpen />
-                  Continue course
+                  Kontynuuj kurs
                 </button>
 
                 <button
@@ -270,7 +267,7 @@ const Home = () => {
                   className="inline-flex items-center justify-center gap-2 bg-secondary-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-secondary-600"
                 >
                   <FaGamepad />
-                  Practice topics
+                  Ćwicz tematy
                 </button>
               </div>
             </div>
@@ -308,11 +305,11 @@ const Home = () => {
             </div>
 
             <h2 className="text-xl font-bold text-gray-900 mb-2">
-              Level test
+              Test poziomujący
             </h2>
 
             <p className="text-gray-600 mb-5">
-              Check your Spanish level and update your learning route.
+              Sprawdź swój poziom języka angielskiego i zaktualizuj ścieżkę nauki.
             </p>
 
             <button
@@ -320,7 +317,7 @@ const Home = () => {
               onClick={() => navigate("/test")}
               className="w-full mt-auto bg-accent-yellow hover:bg-accent-yellow-dark text-gray-900 font-semibold py-3 px-6 rounded-xl"
             >
-              Open test
+              Otwórz test
             </button>
           </div>
 
@@ -330,11 +327,11 @@ const Home = () => {
             </div>
 
             <h2 className="text-xl font-bold text-gray-900 mb-2">
-              Course path
+              Ścieżka kursu
             </h2>
 
             <p className="text-gray-600 mb-5">
-              Continue studying lessons organized by level from A1 to C2.
+              Kontynuuj lekcje języka angielskiego uporządkowane od poziomu A1 do C2.
             </p>
 
             <button
@@ -342,7 +339,7 @@ const Home = () => {
               onClick={() => navigate("/curso")}
               className="w-full mt-auto bg-primary-600 hover:bg-primary-700 text-white font-semibold py-3 px-6 rounded-xl"
             >
-              Go to course
+              Przejdź do kursu
             </button>
           </div>
 
@@ -352,11 +349,11 @@ const Home = () => {
             </div>
 
             <h2 className="text-xl font-bold text-gray-900 mb-2">
-              Topics and missions
+              Tematy i misje
             </h2>
 
             <p className="text-gray-600 mb-5">
-              Practice Spanish in real-life situations and collect XP.
+              Ćwicz język angielski w praktycznych sytuacjach i zdobywaj XP.
             </p>
 
             <button
@@ -364,7 +361,7 @@ const Home = () => {
               onClick={() => navigate("/temas")}
               className="w-full mt-auto bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-xl"
             >
-              Start missions
+              Rozpocznij misje
             </button>
           </div>
         </section>
@@ -377,10 +374,10 @@ const Home = () => {
 
             <div>
               <h2 className="text-2xl font-bold text-gray-900">
-                Suggested missions
+                Sugerowane misje
               </h2>
               <p className="text-gray-600 text-sm">
-                Choose one activity to keep your progress moving today.
+                Wybierz jedną aktywność, aby kontynuować postęp już dziś.
               </p>
             </div>
           </div>
@@ -389,7 +386,7 @@ const Home = () => {
             {suggestedMissions.length === 0 ? (
               <div className="md:col-span-3 text-center py-8">
                 <p className="text-gray-500">
-                  No missions are available today.
+                  Brak dostępnych misji na dziś.
                 </p>
 
                 <button
@@ -397,7 +394,7 @@ const Home = () => {
                   onClick={() => navigate("/temas")}
                   className="mt-4 bg-primary-600 text-white px-5 py-2 rounded-xl hover:bg-primary-700"
                 >
-                  Explore topics
+                  Przeglądaj tematy
                 </button>
               </div>
             ) : (
@@ -407,17 +404,17 @@ const Home = () => {
                   className="rounded-2xl border border-gray-100 bg-gray-50 p-5 hover:bg-white hover:shadow-md transition-all flex flex-col"
                 >
                   <p className="text-xs text-primary-600 font-semibold mb-2">
-                    {mission.topicTitle || "Topic"}
+                    {mission.topicTitle || "Temat"}
                   </p>
 
                   <h3 className="font-bold text-gray-900">
-                    {mission.missionTitle || mission.title || "Mission"}
+                    {mission.missionTitle || mission.title || "Misja"}
                   </h3>
 
                   <p className="text-sm text-gray-600 mt-3 mb-5 flex-grow">
                     {mission.missionDescription ||
                       mission.description ||
-                      "Practice a real-life situation."}
+                      "Ćwicz praktyczną sytuację komunikacyjną."}
                   </p>
 
                   <div className="mb-4">
@@ -431,7 +428,7 @@ const Home = () => {
                     onClick={() => handleStartMission(mission)}
                     className="w-full mt-auto bg-white border border-gray-200 hover:border-primary-500 text-primary-600 font-semibold py-2 rounded-xl"
                   >
-                    Start mission
+                    Rozpocznij misję
                   </button>
                 </article>
               ))
@@ -442,13 +439,14 @@ const Home = () => {
 
       <AIChatWidget
         mode="language_tutor"
-        title="AI Spanish Tutor"
+        title="AI English Tutor"
         currentLevel={userData?.currentLevel || "A1-A2"}
-        targetLanguage="Spanish"
-        baseLanguage="English"
+        targetLanguage="English"
+        baseLanguage="Polish"
         context={`
           The student is in the main dashboard.
-          Help with Spanish learning, grammar, vocabulary, translation and practice.
+          Help with English learning, grammar, vocabulary, translation and practice.
+          Use Polish for explanations when helpful.
         `}
       />
     </div>

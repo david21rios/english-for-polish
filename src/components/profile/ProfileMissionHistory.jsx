@@ -1,4 +1,5 @@
-//src/components/profile/ProfileMissionHistory.jsx
+// src/components/profile/ProfileMissionHistory.jsx
+
 import {
   FaBullseye,
   FaCheckCircle,
@@ -7,13 +8,13 @@ import {
 } from "react-icons/fa";
 
 const formatDate = (dateValue) => {
-  if (!dateValue) return "No date";
+  if (!dateValue) return "Brak daty";
 
   const date = new Date(dateValue);
 
-  if (Number.isNaN(date.getTime())) return "No date";
+  if (Number.isNaN(date.getTime())) return "Brak daty";
 
-  return date.toLocaleDateString("en-US", {
+  return date.toLocaleDateString("pl-PL", {
     year: "numeric",
     month: "short",
     day: "numeric"
@@ -25,15 +26,15 @@ const ProfileMissionHistory = ({ missionHistory = [] }) => {
     <section className="bg-white rounded-3xl shadow-lg border border-gray-100 p-5 md:p-8 mb-6 md:mb-8">
       <div className="mb-5 md:mb-6">
         <p className="text-xs md:text-sm font-semibold text-primary-600 uppercase tracking-wide">
-          Mission history
+          Historia misji
         </p>
 
         <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mt-2">
-          Your recent missions
+          Twoje ostatnie misje
         </h2>
 
         <p className="text-sm md:text-base text-gray-600 mt-2">
-          Review your latest topic missions, scores, XP and progress.
+          Sprawdź ostatnie misje tematyczne, wyniki, XP i postępy.
         </p>
       </div>
 
@@ -42,7 +43,7 @@ const ProfileMissionHistory = ({ missionHistory = [] }) => {
           <FaGamepad className="text-3xl text-gray-400 mx-auto mb-3" />
 
           <p className="text-gray-600 text-sm md:text-base">
-            You have not completed any missions yet.
+            Nie ukończono jeszcze żadnych misji.
           </p>
         </div>
       ) : (
@@ -61,11 +62,11 @@ const ProfileMissionHistory = ({ missionHistory = [] }) => {
 
                     <div>
                       <h3 className="font-bold text-gray-900 text-base md:text-lg break-words">
-                        {mission.missionTitle || "Mission completed"}
+                        {mission.missionTitle || "Ukończona misja"}
                       </h3>
 
                       <p className="text-xs md:text-sm text-gray-500">
-                        {mission.topicTitle || mission.topicId || "Topic"} ·{" "}
+                        {mission.topicTitle || mission.topicId || "Temat"} ·{" "}
                         {formatDate(mission.completedAt)}
                       </p>
                     </div>
@@ -73,21 +74,21 @@ const ProfileMissionHistory = ({ missionHistory = [] }) => {
 
                   {mission.isCustomMission && (
                     <span className="inline-flex items-center gap-2 bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs font-semibold">
-                      Personalized mission
+                      Misja spersonalizowana
                     </span>
                   )}
                 </div>
 
                 <div className="grid grid-cols-3 gap-2 md:min-w-[260px]">
                   <div className="bg-white rounded-xl border border-gray-100 p-3 text-center">
-                    <p className="text-xs text-gray-500">Score</p>
+                    <p className="text-xs text-gray-500">Wynik</p>
                     <p className="font-bold text-gray-900">
                       {mission.score || 0}%
                     </p>
                   </div>
 
                   <div className="bg-white rounded-xl border border-gray-100 p-3 text-center">
-                    <p className="text-xs text-gray-500">Stars</p>
+                    <p className="text-xs text-gray-500">Gwiazdki</p>
                     <p className="font-bold text-yellow-600 inline-flex items-center justify-center gap-1">
                       <FaStar />
                       {mission.stars || 0}
@@ -106,7 +107,7 @@ const ProfileMissionHistory = ({ missionHistory = [] }) => {
               {mission.passed && (
                 <div className="mt-4 inline-flex items-center gap-2 text-green-700 text-sm font-semibold">
                   <FaCheckCircle />
-                  Mission passed
+                  Misja zaliczona
                 </div>
               )}
             </article>

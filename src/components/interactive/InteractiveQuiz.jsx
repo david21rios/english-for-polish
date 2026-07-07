@@ -12,28 +12,30 @@ const normalizeAnswer = (text = "") =>
     .replace(/\s+/g, " ")
     .trim();
 
-const getQuestionText = (question = {}) =>
-  question.pregunta || question.question || "";
-
-const getCorrectAnswer = (question = {}) =>
-  question.respuesta_correcta ||
-  question.respuesta ||
-  question.answer ||
-  question.correctAnswer ||
-  "";
-
-const getAcceptedAnswers = (question = {}) => {
-  const accepted =
-    question.respuestas_aceptadas || question.acceptedAnswers || [];
-
-  return Array.isArray(accepted) ? accepted : [];
+const toArray = (value) => {
+  if (Array.isArray(value)) return value.filter(Boolean);
+  if (value) return [value];
+  return [];
 };
 
-const getOptions = (question = {}) =>
-  question.opciones || question.options || [];
-
-const getHint = (question = {}) =>
-  question.pista || question.hint || "";
+const normalizeQuizQuestion = (question = {}) => ({
+  id: question.id || "",
+  type: question.type || question.tipo || "multiple_choice",
+  question: question.question || question.pregunta || "",
+  options: toArray(question.options || question.opciones),
+  correctAnswer:
+    question.correctAnswer ||
+    question.correct_answer ||
+    question.respuesta_correcta ||
+    question.respuesta ||
+    question.answer ||
+    "",
+  acceptedAnswers: toArray(
+    question.acceptedAnswers || question.respuestas_aceptadas
+  ),
+  hint: question.hint || question.pista || "",
+  feedback: question.feedback || question.retroalimentacion || ""
+});
 
 const InteractiveQuiz = ({
   questions = [],
@@ -41,17 +43,18 @@ const InteractiveQuiz = ({
   onComplete
 }) => {
   const normalizedQuestions = useMemo(() => {
-    return questions.map((question) =>
-      normalizeQuestion ? normalizeQuestion(question) : question
-    );
+    const rawQuestions = toArray(questions);
+
+    return rawQuestions.map((question) => {
+      const normalized = normalizeQuestion ? normalizeQuestion(question) : question;
+      return normalizeQuizQuestion(normalized);
+    });
   }, [questions, normalizeQuestion]);
 
   const questionsKey = useMemo(() => {
     return normalizedQuestions
       .map((question, index) => {
-        const text = getQuestionText(question);
-        const answer = getCorrectAnswer(question);
-        return `${index}-${text}-${answer}`;
+        return `${index}-${question.question}-${question.correctAnswer}`;
       })
       .join("|");
   }, [normalizedQuestions]);
@@ -96,24 +99,24 @@ const InteractiveQuiz = ({
     }));
   };
 
+  const getCorrectAnswer = (question = {}) => {
+    if (typeof question.correctAnswer === "number") {
+      return question.options?.[question.correctAnswer] || "";
+    }
+
+    return question.correctAnswer || "";
+  };
+
   const checkAnswer = (questionId) => {
     const question = normalizedQuestions[questionId];
 
     if (!question) return;
 
-    let correctAnswer = getCorrectAnswer(question);
-    const options = getOptions(question);
-
-    if (typeof correctAnswer === "number") {
-      correctAnswer = options[correctAnswer] || "";
-    }
-
+    const correctAnswer = getCorrectAnswer(question);
     const userAnswer = normalizeAnswer(answers[questionId] || "");
     const normalizedCorrectAnswer = normalizeAnswer(correctAnswer);
 
-    const alternativeAnswers = getAcceptedAnswers(question).map(
-      normalizeAnswer
-    );
+    const alternativeAnswers = question.acceptedAnswers.map(normalizeAnswer);
 
     const isCorrect =
       userAnswer === normalizedCorrectAnswer ||
@@ -126,7 +129,7 @@ const InteractiveQuiz = ({
         correctAnswer,
         selectedAnswer: answers[questionId] || "",
         message: isCorrect
-          ? "Dobrze! Poprawna odpowiedź. 👏"
+          ? question.feedback || "Dobrze! Poprawna odpowiedź. 👏"
           : `Niepoprawnie. Poprawna odpowiedź: ${correctAnswer}`
       }
     }));
@@ -146,10 +149,7 @@ const InteractiveQuiz = ({
   return (
     <div className="space-y-5 w-full overflow-hidden">
       {normalizedQuestions.map((question, index) => {
-        const questionText = getQuestionText(question);
-        const options = getOptions(question);
-        const hint = getHint(question);
-        const hasOptions = options.length > 0;
+        const hasOptions = question.options.length > 0;
         const currentFeedback = feedback[index];
 
         return (
@@ -158,12 +158,12 @@ const InteractiveQuiz = ({
             className="w-full overflow-hidden bg-white p-4 rounded-xl shadow border border-gray-100"
           >
             <p className="font-medium mb-4 break-words">
-              {index + 1}. {questionText}
+              {index + 1}. {question.question || "Question unavailable"}
             </p>
 
             {hasOptions ? (
               <div className="space-y-2 mb-3">
-                {options.map((option, optionIndex) => {
+                {question.options.map((option, optionIndex) => {
                   const selected = answers[index] === option;
 
                   const isCorrectOption =
@@ -178,13 +178,9 @@ const InteractiveQuiz = ({
                       type="button"
                       onClick={() => handleAnswer(index, option)}
                       className={`w-full text-left p-3 rounded-lg border transition break-words ${
-                        showResult &&
-                        selected &&
-                        currentFeedback.isCorrect
+                        showResult && selected && currentFeedback.isCorrect
                           ? "bg-green-100 border-green-500 text-green-800"
-                          : showResult &&
-                            selected &&
-                            !currentFeedback.isCorrect
+                          : showResult && selected && !currentFeedback.isCorrect
                           ? "bg-red-100 border-red-500 text-red-800"
                           : showResult && isCorrectOption
                           ? "bg-green-50 border-green-400 text-green-700"
@@ -193,7 +189,7 @@ const InteractiveQuiz = ({
                           : "bg-white border-gray-200 hover:bg-gray-50"
                       }`}
                     >
-                      {option}
+                      {option || "Option unavailable"}
                     </button>
                   );
                 })}
@@ -203,9 +199,7 @@ const InteractiveQuiz = ({
                 <input
                   type="text"
                   value={answers[index] || ""}
-                  onChange={(event) =>
-                    handleAnswer(index, event.target.value)
-                  }
+                  onChange={(event) => handleAnswer(index, event.target.value)}
                   placeholder="Wpisz odpowiedź..."
                   className="w-full min-w-0 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
                   onKeyDown={(event) => {
@@ -237,7 +231,7 @@ const InteractiveQuiz = ({
               </button>
             )}
 
-            {hint && (
+            {question.hint && (
               <button
                 type="button"
                 onClick={() => toggleHint(index)}
@@ -249,7 +243,7 @@ const InteractiveQuiz = ({
 
             {showHints[index] && (
               <p className="text-sm text-gray-600 mt-2 break-words">
-                Podpowiedź: {hint}
+                Podpowiedź: {question.hint}
               </p>
             )}
 

@@ -1,259 +1,398 @@
-// components/WritingProduction/index.jsx
-import React from 'react';
-import { FaTrash, FaPlus } from 'react-icons/fa';
+// src/components/forms/components/WritingProduction.jsx
+
+import PropTypes from "prop-types";
+import { FaPlus, FaTrash } from "react-icons/fa";
+
+const normalizeExercise = (exercise = {}) => ({
+  instructions: exercise.instructions || exercise.instrucciones || "",
+  criteria: Array.isArray(exercise.criteria)
+    ? exercise.criteria
+    : Array.isArray(exercise.criterios)
+      ? exercise.criterios
+      : [],
+  minWords:
+    exercise.minWords ||
+    exercise.extension_minima ||
+    "",
+  maxWords:
+    exercise.maxWords ||
+    exercise.extension_maxima ||
+    "",
+  suggestedMinutes:
+    exercise.suggestedMinutes ||
+    exercise.tiempo_sugerido ||
+    ""
+});
+
+const normalizeWritingProduction = (writingProduction = {}) => ({
+  title: writingProduction.title || writingProduction.titulo || "",
+  description:
+    writingProduction.description || writingProduction.descripcion || "",
+  exercises: (
+    Array.isArray(writingProduction.exercises)
+      ? writingProduction.exercises
+      : Array.isArray(writingProduction.ejercicios)
+        ? writingProduction.ejercicios
+        : []
+  ).map(normalizeExercise)
+});
+
+const buildLegacyWritingProduction = (writingProduction = {}) => ({
+  titulo: writingProduction.title || "",
+  descripcion: writingProduction.description || "",
+  ejercicios: (writingProduction.exercises || []).map((exercise) => ({
+    instrucciones: exercise.instructions || "",
+    criterios: exercise.criteria || [],
+    extension_minima: exercise.minWords || "",
+    extension_maxima: exercise.maxWords || "",
+    tiempo_sugerido: exercise.suggestedMinutes || ""
+  }))
+});
 
 const WritingProduction = ({ formData, setFormData }) => {
+  const writingProduction = normalizeWritingProduction(
+    formData.writingProduction || formData.produccion_escrita || {}
+  );
+
+  const updateWritingProduction = (updatedWritingProduction) => {
+    const normalizedWritingProduction = normalizeWritingProduction(
+      updatedWritingProduction
+    );
+
+    setFormData((prev) => ({
+      ...prev,
+
+      // Canonical model.
+      writingProduction: normalizedWritingProduction,
+
+      // Legacy compatibility during migration.
+      produccion_escrita: buildLegacyWritingProduction(
+        normalizedWritingProduction
+      )
+    }));
+  };
+
   const handleChange = (field, value) => {
-    setFormData(prev => ({
-      ...prev,
-      produccion_escrita: {
-        ...prev.produccion_escrita,
-        [field]: value
-      }
-    }));
-  };
-
-  const handleAddEjercicio = () => {
-    setFormData(prev => ({
-      ...prev,
-      produccion_escrita: {
-        ...prev.produccion_escrita,
-        ejercicios: [...(prev.produccion_escrita?.ejercicios || []), {
-          instrucciones: '',
-          criterios: [],
-          extension_minima: '',
-          extension_maxima: '',
-          tiempo_sugerido: ''
-        }]
-      }
-    }));
-  };
-
-  const handleEjercicioChange = (index, field, value) => {
-    setFormData(prev => {
-      const newEjercicios = [...prev.produccion_escrita.ejercicios];
-      newEjercicios[index] = {
-        ...newEjercicios[index],
-        [field]: value
-      };
-      return {
-        ...prev,
-        produccion_escrita: {
-          ...prev.produccion_escrita,
-          ejercicios: newEjercicios
-        }
-      };
+    updateWritingProduction({
+      ...writingProduction,
+      [field]: value
     });
   };
 
-  const handleAddCriterio = (ejercicioIndex) => {
-    setFormData(prev => {
-      const newEjercicios = [...prev.produccion_escrita.ejercicios];
-      newEjercicios[ejercicioIndex] = {
-        ...newEjercicios[ejercicioIndex],
-        criterios: [...(newEjercicios[ejercicioIndex].criterios || []), '']
-      };
-      return {
-        ...prev,
-        produccion_escrita: {
-          ...prev.produccion_escrita,
-          ejercicios: newEjercicios
+  const handleAddExercise = () => {
+    updateWritingProduction({
+      ...writingProduction,
+      exercises: [
+        ...writingProduction.exercises,
+        {
+          instructions: "",
+          criteria: [],
+          minWords: "",
+          maxWords: "",
+          suggestedMinutes: ""
         }
-      };
+      ]
     });
   };
 
-  const handleCriterioChange = (ejercicioIndex, criterioIndex, value) => {
-    setFormData(prev => {
-      const newEjercicios = [...prev.produccion_escrita.ejercicios];
-      const newCriterios = [...newEjercicios[ejercicioIndex].criterios];
-      newCriterios[criterioIndex] = value;
-      newEjercicios[ejercicioIndex] = {
-        ...newEjercicios[ejercicioIndex],
-        criterios: newCriterios
-      };
-      return {
-        ...prev,
-        produccion_escrita: {
-          ...prev.produccion_escrita,
-          ejercicios: newEjercicios
-        }
-      };
+  const handleExerciseChange = (index, field, value) => {
+    const newExercises = [...writingProduction.exercises];
+
+    newExercises[index] = {
+      ...newExercises[index],
+      [field]: value
+    };
+
+    updateWritingProduction({
+      ...writingProduction,
+      exercises: newExercises
     });
   };
 
-  const handleRemoveCriterio = (ejercicioIndex, criterioIndex) => {
-    setFormData(prev => {
-      const newEjercicios = [...prev.produccion_escrita.ejercicios];
-      newEjercicios[ejercicioIndex] = {
-        ...newEjercicios[ejercicioIndex],
-        criterios: newEjercicios[ejercicioIndex].criterios.filter((_, i) => i !== criterioIndex)
-      };
-      return {
-        ...prev,
-        produccion_escrita: {
-          ...prev.produccion_escrita,
-          ejercicios: newEjercicios
-        }
-      };
+  const handleAddCriterion = (exerciseIndex) => {
+    const newExercises = [...writingProduction.exercises];
+
+    newExercises[exerciseIndex] = {
+      ...newExercises[exerciseIndex],
+      criteria: [...(newExercises[exerciseIndex].criteria || []), ""]
+    };
+
+    updateWritingProduction({
+      ...writingProduction,
+      exercises: newExercises
     });
   };
 
-  const handleRemoveEjercicio = (index) => {
-    setFormData(prev => ({
-      ...prev,
-      produccion_escrita: {
-        ...prev.produccion_escrita,
-        ejercicios: prev.produccion_escrita.ejercicios.filter((_, i) => i !== index)
-      }
-    }));
+  const handleCriterionChange = (
+    exerciseIndex,
+    criterionIndex,
+    value
+  ) => {
+    const newExercises = [...writingProduction.exercises];
+    const newCriteria = [
+      ...(newExercises[exerciseIndex].criteria || [])
+    ];
+
+    newCriteria[criterionIndex] = value;
+
+    newExercises[exerciseIndex] = {
+      ...newExercises[exerciseIndex],
+      criteria: newCriteria
+    };
+
+    updateWritingProduction({
+      ...writingProduction,
+      exercises: newExercises
+    });
+  };
+
+  const handleRemoveCriterion = (
+    exerciseIndex,
+    criterionIndex
+  ) => {
+    const newExercises = [...writingProduction.exercises];
+
+    newExercises[exerciseIndex] = {
+      ...newExercises[exerciseIndex],
+      criteria: newExercises[exerciseIndex].criteria.filter(
+        (_, index) => index !== criterionIndex
+      )
+    };
+
+    updateWritingProduction({
+      ...writingProduction,
+      exercises: newExercises
+    });
+  };
+
+  const handleRemoveExercise = (index) => {
+    updateWritingProduction({
+      ...writingProduction,
+      exercises: writingProduction.exercises.filter(
+        (_, exerciseIndex) => exerciseIndex !== index
+      )
+    });
   };
 
   return (
     <div className="space-y-4">
       <div>
         <label className="block text-sm font-medium text-gray-700">
-          Título de la Producción Escrita
+          Tytuł zadania pisemnego
         </label>
+
         <input
           type="text"
-          value={formData.produccion_escrita?.titulo || ''}
-          onChange={(e) => handleChange('titulo', e.target.value)}
-          className="mt-1 block w-full rounded-md border-gray-300"
-          placeholder="Título de la actividad de escritura"
+          value={writingProduction.title}
+          onChange={(event) =>
+            handleChange("title", event.target.value)
+          }
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+          placeholder="Wpisz tytuł aktywności pisemnej..."
         />
       </div>
 
       <div>
         <label className="block text-sm font-medium text-gray-700">
-          Descripción
+          Opis
         </label>
+
         <textarea
-          value={formData.produccion_escrita?.descripcion || ''}
-          onChange={(e) => handleChange('descripcion', e.target.value)}
-          className="mt-1 block w-full rounded-md border-gray-300"
+          value={writingProduction.description}
+          onChange={(event) =>
+            handleChange("description", event.target.value)
+          }
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
           rows={4}
-          placeholder="Descripción de la actividad de escritura"
+          placeholder="Wpisz opis aktywności pisemnej..."
         />
       </div>
 
       <div className="space-y-4">
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <label className="block text-sm font-medium text-gray-700">
-            Ejercicios de Escritura
+            Ćwiczenia pisemne
           </label>
+
           <button
             type="button"
-            onClick={handleAddEjercicio}
-            className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700"
+            onClick={handleAddExercise}
+            className="inline-flex items-center justify-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700"
           >
-            <FaPlus className="mr-2" /> Añadir ejercicio
+            <FaPlus className="mr-2" />
+            Dodaj ćwiczenie
           </button>
         </div>
 
-        {(formData.produccion_escrita?.ejercicios || []).map((ejercicio, index) => (
-          <div key={index} className="border p-4 rounded-lg space-y-4">
-            <div className="flex justify-between items-start">
-              <h4 className="text-lg font-medium">Ejercicio {index + 1}</h4>
-              <button
-                type="button"
-                onClick={() => handleRemoveEjercicio(index)}
-                className="text-red-600 hover:text-red-800"
-              >
-                <FaTrash />
-              </button>
-            </div>
+        {writingProduction.exercises.length === 0 ? (
+          <p className="text-sm text-gray-500 italic">
+            Nie zdefiniowano jeszcze ćwiczeń pisemnych.
+          </p>
+        ) : (
+          writingProduction.exercises.map((exercise, index) => (
+            <div
+              key={index}
+              className="border border-gray-200 p-4 rounded-lg space-y-4 bg-white"
+            >
+              <div className="flex justify-between items-start gap-3">
+                <h4 className="text-lg font-medium">
+                  Ćwiczenie {index + 1}
+                </h4>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Instrucciones
-              </label>
-              <textarea
-                value={ejercicio.instrucciones || ''}
-                onChange={(e) => handleEjercicioChange(index, 'instrucciones', e.target.value)}
-                className="mt-1 block w-full rounded-md border-gray-300"
-                rows={3}
-                placeholder="Instrucciones detalladas del ejercicio"
-              />
-            </div>
-
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Extensión mínima (palabras)
-                </label>
-                <input
-                  type="number"
-                  value={ejercicio.extension_minima || ''}
-                  onChange={(e) => handleEjercicioChange(index, 'extension_minima', e.target.value)}
-                  className="mt-1 block w-full rounded-md border-gray-300"
-                  min="0"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Extensión máxima (palabras)
-                </label>
-                <input
-                  type="number"
-                  value={ejercicio.extension_maxima || ''}
-                  onChange={(e) => handleEjercicioChange(index, 'extension_maxima', e.target.value)}
-                  className="mt-1 block w-full rounded-md border-gray-300"
-                  min="0"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Tiempo sugerido (minutos)
-                </label>
-                <input
-                  type="number"
-                  value={ejercicio.tiempo_sugerido || ''}
-                  onChange={(e) => handleEjercicioChange(index, 'tiempo_sugerido', e.target.value)}
-                  className="mt-1 block w-full rounded-md border-gray-300"
-                  min="0"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <label className="block text-sm font-medium text-gray-700">
-                  Criterios de evaluación
-                </label>
                 <button
                   type="button"
-                  onClick={() => handleAddCriterio(index)}
-                  className="text-primary-600 hover:text-primary-700"
+                  onClick={() => handleRemoveExercise(index)}
+                  className="p-2 text-red-600 hover:text-red-800 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                  aria-label={`Usuń ćwiczenie ${index + 1}`}
+                  title="Usuń ćwiczenie"
                 >
-                  <FaPlus className="inline mr-2" /> Añadir criterio
+                  <FaTrash />
                 </button>
               </div>
 
-              {(ejercicio.criterios || []).map((criterio, criterioIndex) => (
-                <div key={criterioIndex} className="flex items-center gap-2">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Instrukcje
+                </label>
+
+                <textarea
+                  value={exercise.instructions}
+                  onChange={(event) =>
+                    handleExerciseChange(
+                      index,
+                      "instructions",
+                      event.target.value
+                    )
+                  }
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                  rows={3}
+                  placeholder="Wpisz szczegółowe instrukcje ćwiczenia..."
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Minimalna liczba słów
+                  </label>
+
                   <input
-                    type="text"
-                    value={criterio}
-                    onChange={(e) => handleCriterioChange(index, criterioIndex, e.target.value)}
-                    className="flex-1 rounded-md border-gray-300"
-                    placeholder="Criterio de evaluación"
+                    type="number"
+                    value={exercise.minWords}
+                    onChange={(event) =>
+                      handleExerciseChange(
+                        index,
+                        "minWords",
+                        event.target.value
+                      )
+                    }
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                    min="0"
                   />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Maksymalna liczba słów
+                  </label>
+
+                  <input
+                    type="number"
+                    value={exercise.maxWords}
+                    onChange={(event) =>
+                      handleExerciseChange(
+                        index,
+                        "maxWords",
+                        event.target.value
+                      )
+                    }
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                    min="0"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Sugerowany czas
+                  </label>
+
+                  <input
+                    type="number"
+                    value={exercise.suggestedMinutes}
+                    onChange={(event) =>
+                      handleExerciseChange(
+                        index,
+                        "suggestedMinutes",
+                        event.target.value
+                      )
+                    }
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                    min="0"
+                    placeholder="Minuty"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Kryteria oceny
+                  </label>
+
                   <button
                     type="button"
-                    onClick={() => handleRemoveCriterio(index, criterioIndex)}
-                    className="text-red-600"
+                    onClick={() => handleAddCriterion(index)}
+                    className="text-primary-600 hover:text-primary-700"
                   >
-                    <FaTrash />
+                    <FaPlus className="inline mr-2" />
+                    Dodaj kryterium
                   </button>
                 </div>
-              ))}
+
+                {(exercise.criteria || []).map((criterion, criterionIndex) => (
+                  <div
+                    key={criterionIndex}
+                    className="flex items-center gap-2"
+                  >
+                    <input
+                      type="text"
+                      value={criterion}
+                      onChange={(event) =>
+                        handleCriterionChange(
+                          index,
+                          criterionIndex,
+                          event.target.value
+                        )
+                      }
+                      className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                      placeholder="Wpisz kryterium oceny..."
+                    />
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleRemoveCriterion(index, criterionIndex)
+                      }
+                      className="p-2 text-red-600 hover:text-red-800 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                      aria-label={`Usuń kryterium ${criterionIndex + 1}`}
+                      title="Usuń kryterium"
+                    >
+                      <FaTrash />
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );
+};
+
+WritingProduction.propTypes = {
+  formData: PropTypes.object.isRequired,
+  setFormData: PropTypes.func.isRequired
 };
 
 export default WritingProduction;

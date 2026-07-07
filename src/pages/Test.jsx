@@ -1,6 +1,6 @@
 // src/pages/Test.jsx
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import { FaSpinner } from "react-icons/fa";
@@ -25,7 +25,6 @@ import TestNavigation from "../components/test/TestNavigation";
 import { calculateWritingSectionScore } from "../utils/testScoring";
 
 const CEFR_LEVELS = ["A1", "A2", "B1", "B2", "C1", "C2"];
-
 const TEST_SECTIONS = ["multipleChoice", "writing", "reading"];
 
 const MIN_SCORE_TO_PASS = 70;
@@ -33,18 +32,94 @@ const QUESTIONS_PER_SECTION = 10;
 const TEST_DURATION_SECONDS = 7200;
 
 const shuffleArray = (array = []) => {
-  return [...array].sort(() => Math.random() - 0.5);
+  const shuffled = [...array];
+
+  for (let index = shuffled.length - 1; index > 0; index -= 1) {
+    const randomIndex = Math.floor(Math.random() * (index + 1));
+
+    [shuffled[index], shuffled[randomIndex]] = [
+      shuffled[randomIndex],
+      shuffled[index]
+    ];
+  }
+
+  return shuffled;
 };
 
-const normalizeTest = (test = {}) => ({
-  ...test,
-  level: test.level || test.id,
-  sections: {
-    multipleChoice: test.sections?.multipleChoice || { questions: [] },
-    writing: test.sections?.writing || { questions: [] },
-    reading: test.sections?.reading || { texts: [] }
-  }
+const normalizeAnswer = (value = "") =>
+  value.toString().trim().toLowerCase();
+
+const normalizeMultipleChoiceQuestion = (question = {}, index = 0) => ({
+  ...question,
+  id: question.id || `multiple_choice_${index}`,
+  question: question.question || "",
+  options: Array.isArray(question.options) ? question.options : [],
+  correctAnswer:
+    question.correctAnswer ??
+    question.correct_answer ??
+    question.answer ??
+    ""
 });
+
+const normalizeWritingQuestion = (question = {}, index = 0) => ({
+  ...question,
+  id: question.id || `writing_${index}`,
+  question: question.question || question.prompt || "",
+  prompt: question.prompt || question.question || "",
+  minWords: Number(question.minWords) || 0,
+  maxWords: Number(question.maxWords) || 0
+});
+
+const normalizeReadingText = (text = {}, textIndex = 0) => ({
+  ...text,
+  id: text.id || `reading_${textIndex}`,
+  title: text.title || "",
+  author: text.author || "",
+  text: text.text || "",
+  questions: Array.isArray(text.questions)
+    ? text.questions.map((question, questionIndex) => ({
+        ...question,
+        id:
+          question.id ||
+          `reading_${textIndex}_question_${questionIndex}`,
+        question: question.question || "",
+        options: Array.isArray(question.options) ? question.options : [],
+        correctAnswer:
+          question.correctAnswer ??
+          question.correct_answer ??
+          question.answer ??
+          ""
+      }))
+    : []
+});
+
+const normalizeTest = (test = {}) => {
+  const level = test.level || test.id;
+
+  return {
+    ...test,
+    level,
+    sections: {
+      multipleChoice: {
+        questions: Array.isArray(test.sections?.multipleChoice?.questions)
+          ? test.sections.multipleChoice.questions.map(
+              normalizeMultipleChoiceQuestion
+            )
+          : []
+      },
+      writing: {
+        questions: Array.isArray(test.sections?.writing?.questions)
+          ? test.sections.writing.questions.map(normalizeWritingQuestion)
+          : []
+      },
+      reading: {
+        texts: Array.isArray(test.sections?.reading?.texts)
+          ? test.sections.reading.texts.map(normalizeReadingText)
+          : []
+      }
+    }
+  };
+};
 
 const buildSelectedQuestionsForLevel = (level, testsSource) => {
   const levelTest = testsSource[level];
@@ -76,6 +151,18 @@ const shouldAllowBrowserAction = (event) => {
   return ["input", "textarea", "select"].includes(tagName);
 };
 
+const hasSectionQuestions = (selectedLevelQuestions = {}, section) => {
+  const sectionQuestions = selectedLevelQuestions[section] || [];
+
+  if (section === "reading") {
+    return sectionQuestions.some((text) => {
+      return Array.isArray(text.questions) && text.questions.length > 0;
+    });
+  }
+
+  return sectionQuestions.length > 0;
+};
+
 const Test = () => {
   const navigate = useNavigate();
 
@@ -95,6 +182,7 @@ const Test = () => {
 
   const [levelResults, setLevelResults] = useState({});
   const [finalResults, setFinalResults] = useState(null);
+  const [loadError, setLoadError] = useState("");
 
   const availableTestLevels = useMemo(() => {
     return CEFR_LEVELS.filter((level) => tests[level]);
@@ -102,10 +190,208 @@ const Test = () => {
 
   const testsLoaded = availableTestLevels.length > 0;
 
+  const getSelectedSectionQuestions = useCallback(
+    (level, section) => {
+      return selectedQuestions?.[level]?.[section] || [];
+    },
+    [selectedQuestions]
+  );
+
+  const getQuestionsForValidation = useCallback(
+    (level, section) => {
+      const sectionQuestions = getSelectedSectionQuestions(level, section);
+
+      if (section === "reading") {
+        return sectionQuestions.flatMap((text) => text.questions || []);
+      }
+
+      return sectionQuestions;
+    },
+    [getSelectedSectionQuestions]
+  );
+
+  const calculateSectionScore = useCallback(
+    async (section, level) => {
+      try {
+        const sectionAnswers = answers?.[level]?.[section] || {};
+        const sectionQuestions = getSelectedSectionQuestions(level, section);
+
+        if (!sectionQuestions.length) return null;
+
+        if (section === "multipleChoice") {
+          const total = sectionQuestions.length;
+
+          const correct = sectionQuestions.filter((question) => {
+            return (
+              normalizeAnswer(sectionAnswers[question.id]) ===
+              normalizeAnswer(question.correctAnswer)
+            );
+          }).length;
+
+          return total > 0 ? (correct / total) * 100 : null;
+        }
+
+        if (section === "writing") {
+          return await calculateWritingSectionScore(
+            sectionAnswers,
+            sectionQuestions
+          );
+        }
+
+        if (section === "reading") {
+          const allReadingQuestions = sectionQuestions.flatMap(
+            (text) => text.questions || []
+          );
+
+          const total = allReadingQuestions.length;
+
+          const correct = allReadingQuestions.filter((question) => {
+            return (
+              normalizeAnswer(sectionAnswers[question.id]) ===
+              normalizeAnswer(question.correctAnswer)
+            );
+          }).length;
+
+          return total > 0 ? (correct / total) * 100 : null;
+        }
+
+        return null;
+      } catch (error) {
+        console.error("Error calculating section score:", error);
+        return null;
+      }
+    },
+    [answers, getSelectedSectionQuestions]
+  );
+
+  const calculateLevelScore = useCallback(
+    async (level) => {
+      const sectionScores = await Promise.all(
+        TEST_SECTIONS.map(async (section) => {
+          const score = await calculateSectionScore(section, level);
+
+          return score === null ? null : Number(score);
+        })
+      );
+
+      const validScores = sectionScores.filter(
+        (score) => typeof score === "number" && !Number.isNaN(score)
+      );
+
+      if (validScores.length === 0) return 0;
+
+      return (
+        validScores.reduce((sum, score) => sum + score, 0) /
+        validScores.length
+      );
+    },
+    [calculateSectionScore]
+  );
+
+  const validateCurrentLevelAnswers = useCallback(() => {
+    return TEST_SECTIONS.every((section) => {
+      const sectionQuestions = getQuestionsForValidation(
+        currentLevel,
+        section
+      );
+
+      const sectionAnswers = answers?.[currentLevel]?.[section] || {};
+
+      if (!sectionQuestions.length) return false;
+
+      return sectionQuestions.every((question) => {
+        const answer = sectionAnswers[question.id];
+
+        if (typeof answer === "string") {
+          return answer.trim().length > 0;
+        }
+
+        return Boolean(answer);
+      });
+    });
+  }, [answers, currentLevel, getQuestionsForValidation]);
+
+  const determineFinalLevel = useCallback(
+    (results) => {
+      if (availableTestLevels.length === 0) {
+        return "A1";
+      }
+
+      let finalLevel = availableTestLevels[0];
+
+      for (const level of availableTestLevels) {
+        const score = Number(results?.[level]);
+
+        if (!Number.isNaN(score) && score >= MIN_SCORE_TO_PASS) {
+          finalLevel = level;
+          continue;
+        }
+
+        break;
+      }
+
+      return finalLevel;
+    },
+    [availableTestLevels]
+  );
+
+  const finishTest = useCallback(
+    async (resultsToSave = levelResults) => {
+      try {
+        if (!auth.currentUser) {
+          throw new Error("Authenticated user not found.");
+        }
+
+        const safeResults = resultsToSave || {};
+        const calculatedFinalLevel = determineFinalLevel(safeResults);
+        const timeSpent = TEST_DURATION_SECONDS - Math.max(timeLeft || 0, 0);
+
+        const finalTestData = {
+          userId: auth.currentUser.uid,
+          placementLevel: calculatedFinalLevel,
+          finalLevel: calculatedFinalLevel,
+          levelResults: safeResults,
+          skillResults: {},
+          timeSpent,
+          testDate: new Date().toISOString(),
+          completed: true
+        };
+
+        await saveUserTestResult(auth.currentUser.uid, finalTestData);
+
+        setFinalResults({
+          placementLevel: calculatedFinalLevel,
+          finalLevel: calculatedFinalLevel,
+          overallScore:
+            Object.values(safeResults).length > 0
+              ? Math.round(
+                  Object.values(safeResults).reduce(
+                    (sum, score) => sum + Number(score || 0),
+                    0
+                  ) / Object.values(safeResults).length
+                )
+              : 0,
+          levelResults: safeResults
+        });
+
+        setShowResults(true);
+        setShowLevelResults(false);
+        setTestStarted(false);
+      } catch (error) {
+        console.error("Error finishing test:", error);
+        alert(
+          "Nie udało się zapisać wyników testu. Spróbuj ponownie."
+        );
+      }
+    },
+    [determineFinalLevel, levelResults, timeLeft]
+  );
+
   useEffect(() => {
     const loadTests = async () => {
       try {
         setIsLoading(true);
+        setLoadError("");
 
         const allTests = await getAllTests();
 
@@ -130,29 +416,42 @@ const Test = () => {
         }
       } catch (error) {
         console.error("Error loading tests:", error);
-        alert("Error al cargar los tests.");
+        setLoadError(
+          "Nie udało się załadować testów. Spróbuj ponownie później."
+        );
       } finally {
         setIsLoading(false);
       }
     };
 
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        navigate("/login");
-        return;
-      }
+      try {
+        setIsLoading(true);
 
-      const alreadyTested = await hasRecentTest(user.uid);
+        if (!user) {
+          navigate("/login");
+          return;
+        }
 
-      if (alreadyTested) {
-        alert(
-          "Ya has realizado un test recientemente. Puedes intentarlo nuevamente en 20 días."
+        const alreadyTested = await hasRecentTest(user.uid);
+
+        if (alreadyTested) {
+          alert(
+            "Test został już wykonany niedawno. Możesz spróbować ponownie za 20 dni."
+          );
+
+          navigate("/home");
+          return;
+        }
+
+        await loadTests();
+      } catch (error) {
+        console.error("Error preparing test:", error);
+        setLoadError(
+          "Nie udało się przygotować testu. Spróbuj ponownie później."
         );
-        navigate("/home");
-        return;
+        setIsLoading(false);
       }
-
-      await loadTests();
     });
 
     return () => unsubscribe();
@@ -160,17 +459,31 @@ const Test = () => {
 
   const getAvailableTestLevels = () => availableTestLevels;
 
-  const getSelectedSectionQuestions = (level, section) => {
-    return selectedQuestions[level]?.[section] || [];
-  };
-
   const startTest = () => {
     const levelToStart = availableTestLevels[0];
 
     if (!levelToStart || !tests[levelToStart]) {
       alert(
-        "No hay tests disponibles. Verifica que existan documentos A1, A2, B1, B2, C1 o C2 en el panel de administración."
+        "Brak dostępnych testów. Utwórz co najmniej jeden test A1, A2, B1, B2, C1 lub C2 w panelu administracyjnym."
       );
+
+      return;
+    }
+
+    const initialSelectedQuestions = buildSelectedQuestionsForLevel(
+      levelToStart,
+      tests
+    );
+
+    const allSectionsAvailable = TEST_SECTIONS.every((section) =>
+      hasSectionQuestions(initialSelectedQuestions, section)
+    );
+
+    if (!allSectionsAvailable) {
+      alert(
+        "Wybrany test nie ma kompletu sekcji. Sprawdź pytania w panelu administracyjnym."
+      );
+
       return;
     }
 
@@ -178,7 +491,7 @@ const Test = () => {
     setCurrentSection("multipleChoice");
 
     setSelectedQuestions({
-      [levelToStart]: buildSelectedQuestionsForLevel(levelToStart, tests)
+      [levelToStart]: initialSelectedQuestions
     });
 
     setAnswers({});
@@ -206,184 +519,69 @@ const Test = () => {
     }));
   };
 
-  const calculateSectionScore = async (section, level) => {
-    try {
-      const sectionAnswers = answers[level]?.[section] || {};
-      const sectionQuestions = getSelectedSectionQuestions(level, section);
-
-      if (!sectionQuestions.length) return 0;
-
-      if (section === "multipleChoice") {
-        const total = sectionQuestions.length;
-
-        const correct = sectionQuestions.filter(
-          (question) => sectionAnswers[question.id] === question.correctAnswer
-        ).length;
-
-        return total > 0 ? (correct / total) * 100 : 0;
-      }
-
-      if (section === "writing") {
-        return await calculateWritingSectionScore(
-          sectionAnswers,
-          sectionQuestions
-        );
-      }
-
-      if (section === "reading") {
-        const total = sectionQuestions.reduce(
-          (acc, text) => acc + (text.questions?.length || 0),
-          0
-        );
-
-        const correct = sectionQuestions.reduce((acc, text) => {
-          return (
-            acc +
-            (text.questions || []).filter(
-              (question) =>
-                sectionAnswers[question.id] === question.correctAnswer
-            ).length
-          );
-        }, 0);
-
-        return total > 0 ? (correct / total) * 100 : 0;
-      }
-
-      return 0;
-    } catch (error) {
-      console.error("Error calculating section score:", error);
-      return 0;
-    }
-  };
-
-  const calculateLevelScore = async (level) => {
-    const scores = await Promise.all(
-      TEST_SECTIONS.map((section) => calculateSectionScore(section, level))
-    );
-
-    return scores.reduce((acc, score) => acc + score, 0) / TEST_SECTIONS.length;
-  };
-
-  const getQuestionsForValidation = (level, section) => {
-    const sectionQuestions = getSelectedSectionQuestions(level, section);
-
-    if (section === "reading") {
-      return sectionQuestions.flatMap((text) => text.questions || []);
-    }
-
-    return sectionQuestions;
-  };
-
-  const validateCurrentLevelAnswers = () => {
-    return TEST_SECTIONS.every((section) => {
-      const sectionQuestions = getQuestionsForValidation(currentLevel, section);
-      const sectionAnswers = answers[currentLevel]?.[section] || {};
-
-      if (!sectionQuestions.length) return false;
-
-      return sectionQuestions.every((question) => {
-        const answer = sectionAnswers[question.id];
-
-        if (typeof answer === "string") {
-          return answer.trim().length > 0;
-        }
-
-        return Boolean(answer);
-      });
-    });
-  };
-
   const handleLevelCompletion = async () => {
     const allQuestionsAnswered = validateCurrentLevelAnswers();
 
     if (!allQuestionsAnswered) {
-      alert("Por favor, responde todas las preguntas visibles antes de continuar.");
+      alert(
+        "Odpowiedz na wszystkie widoczne pytania przed przejściem dalej."
+      );
+
       return;
     }
 
     const currentScore = await calculateLevelScore(currentLevel);
+    const roundedScore = Math.round(currentScore);
 
     setLevelResults((prev) => ({
       ...prev,
-      [currentLevel]: currentScore
+      [currentLevel]: roundedScore
     }));
 
     setShowLevelResults(true);
-  };
-
-  const determineFinalLevel = (results) => {
-    if (availableTestLevels.length === 0) {
-      return "A1";
-    }
-
-    let finalLevel = availableTestLevels[0];
-
-    for (const level of availableTestLevels) {
-      if (results[level] && results[level] >= MIN_SCORE_TO_PASS) {
-        finalLevel = level;
-      } else {
-        break;
-      }
-    }
-
-    return finalLevel;
-  };
-
-  const finishTest = async (resultsToSave = levelResults) => {
-    try {
-      if (!auth.currentUser) {
-        throw new Error("Usuario no autenticado");
-      }
-
-      const calculatedFinalLevel = determineFinalLevel(resultsToSave);
-
-      const finalTestData = {
-        userId: auth.currentUser.uid,
-        levelResults: resultsToSave,
-        finalLevel: calculatedFinalLevel,
-        timeSpent: TEST_DURATION_SECONDS - (timeLeft || 0),
-        testDate: new Date().toISOString(),
-        completed: true
-      };
-
-      await saveUserTestResult(auth.currentUser.uid, finalTestData);
-
-      setFinalResults({
-        finalLevel: calculatedFinalLevel,
-        filterResults: resultsToSave,
-        levelResults: resultsToSave
-      });
-
-      setShowResults(true);
-      setShowLevelResults(false);
-      setTestStarted(false);
-    } catch (error) {
-      console.error("Error finishing test:", error);
-      alert(
-        "Hubo un error al guardar los resultados. Por favor, inténtalo de nuevo."
-      );
-    }
   };
 
   const handleLevelContinue = async () => {
     setIsLoading(true);
 
     try {
-      const currentScore = levelResults[currentLevel] || 0;
+      const currentScore = Math.round(
+        await calculateLevelScore(currentLevel)
+      );
+
+      const updatedLevelResults = {
+        ...levelResults,
+        [currentLevel]: currentScore
+      };
+
+      setLevelResults(updatedLevelResults);
+
       const currentLevelIndex = availableTestLevels.indexOf(currentLevel);
 
       if (currentScore >= MIN_SCORE_TO_PASS) {
         const nextLevel = availableTestLevels[currentLevelIndex + 1];
 
         if (nextLevel) {
+          const nextSelectedQuestions =
+            selectedQuestions[nextLevel] ||
+            buildSelectedQuestionsForLevel(nextLevel, tests);
+
+          const allSectionsAvailable = TEST_SECTIONS.every((section) =>
+            hasSectionQuestions(nextSelectedQuestions, section)
+          );
+
+          if (!allSectionsAvailable) {
+            await finishTest(updatedLevelResults);
+            return;
+          }
+
           setCurrentLevel(nextLevel);
           setCurrentSection("multipleChoice");
           setShowLevelResults(false);
 
           setSelectedQuestions((prev) => ({
             ...prev,
-            [nextLevel]:
-              prev[nextLevel] || buildSelectedQuestionsForLevel(nextLevel, tests)
+            [nextLevel]: nextSelectedQuestions
           }));
 
           window.scrollTo({ top: 0, behavior: "smooth" });
@@ -391,10 +589,10 @@ const Test = () => {
         }
       }
 
-      await finishTest(levelResults);
+      await finishTest(updatedLevelResults);
     } catch (error) {
       console.error("Error continuing level:", error);
-      alert("Ocurrió un error. Por favor, inténtalo de nuevo.");
+      alert("Wystąpił błąd. Spróbuj ponownie.");
     } finally {
       setIsLoading(false);
     }
@@ -451,7 +649,7 @@ const Test = () => {
               onClick={() => navigate("/curso")}
               className="bg-secondary-500 hover:bg-secondary-600 text-white font-semibold py-4 px-8 rounded-2xl"
             >
-              Comenzar curso
+              Rozpocznij kurs
             </button>
           </div>
         </div>
@@ -466,11 +664,11 @@ const Test = () => {
           <FaSpinner className="animate-spin text-primary-600 text-4xl mx-auto mb-4" />
 
           <h2 className="text-xl font-semibold text-gray-800">
-            Cargando preguntas del test...
+            Ładowanie pytań testowych...
           </h2>
 
           <p className="text-gray-500 mt-2">
-            Estamos preparando la evaluación.
+            Przygotowujemy test poziomujący.
           </p>
         </div>
       </div>
@@ -482,11 +680,19 @@ const Test = () => {
       <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white">
         <TestInstructions onStart={startTest} />
 
-        {!testsLoaded && !isLoading && (
+        {loadError && (
+          <div className="container mx-auto px-4 max-w-3xl pb-5">
+            <div className="bg-red-50 border border-red-200 text-red-700 rounded-2xl p-4 text-sm">
+              {loadError}
+            </div>
+          </div>
+        )}
+
+        {!testsLoaded && !isLoading && !loadError && (
           <div className="container mx-auto px-4 max-w-3xl pb-10">
             <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-2xl p-4 text-sm">
-              No hay tests disponibles todavía. Crea al menos un test desde el
-              panel de administración.
+              Brak dostępnych testów. Utwórz co najmniej jeden test w panelu
+              administracyjnym.
             </div>
           </div>
         )}
@@ -499,7 +705,10 @@ const Test = () => {
       <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white flex items-center justify-center px-4">
         <div className="text-center">
           <FaSpinner className="animate-spin text-primary-600 text-4xl mx-auto mb-4" />
-          <p className="text-gray-600">Cargando preguntas...</p>
+
+          <p className="text-gray-600">
+            Ładowanie pytań...
+          </p>
         </div>
       </div>
     );
@@ -542,15 +751,16 @@ const Test = () => {
         <main className="bg-white rounded-3xl shadow-lg border border-gray-100 p-4 md:p-8">
           <div className="mb-5 md:mb-8">
             <p className="text-xs md:text-sm font-semibold text-primary-600 uppercase tracking-wide">
-              Spanish placement test
+              Test poziomujący CEFR
             </p>
 
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mt-1">
-              Assessment section
+              Sekcja testu
             </h1>
 
             <p className="text-sm md:text-base text-gray-600 mt-2">
-              Complete every question before moving to the next stage.
+              Odpowiedz na wszystkie pytania przed przejściem do kolejnej
+              części.
             </p>
           </div>
 

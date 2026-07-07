@@ -6,8 +6,8 @@ const LessonSidebar = ({
   modules = [],
   currentLesson,
   currentSectionIndex,
-  completedSections,
-  lessonSections,
+  completedSections = [],
+  lessonSections = [],
   sectionHasRequiredWork,
   isSectionAccessible,
   handleLessonClick,
@@ -17,9 +17,7 @@ const LessonSidebar = ({
   if (!modules.length) {
     return (
       <div className="rounded-2xl bg-white border border-gray-200 p-6 text-center">
-        <p className="text-gray-500">
-          No modules available for this level.
-        </p>
+        <p className="text-gray-500">Brak modułów dla tego poziomu.</p>
       </div>
     );
   }

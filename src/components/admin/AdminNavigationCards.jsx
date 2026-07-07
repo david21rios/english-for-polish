@@ -18,37 +18,43 @@ const AdminNavigationCards = ({
   const cards = [
     {
       icon: FaBook,
-      text: "Lecciones",
+      text: "Lekcje",
       path: "/admin/lessons",
       bgColor: "bg-green-500 hover:bg-green-600"
     },
     {
+      icon: FaBook,
+      text: "Generator AI lekcji",
+      path: "/admin/ai-lessons",
+      bgColor: "bg-primary-600 hover:bg-primary-700"
+    },
+    {
       icon: FaCubes,
-      text: "Módulos",
+      text: "Moduły",
       path: "/admin/modules",
       bgColor: "bg-orange-500 hover:bg-orange-600"
     },
     {
       icon: FaClipboardList,
-      text: "Tests",
+      text: "Testy",
       path: "/admin/tests",
       bgColor: "bg-blue-500 hover:bg-blue-600"
     },
     {
       icon: FaLayerGroup,
-      text: "Temas",
+      text: "Tematy",
       path: "/admin/temas",
       bgColor: "bg-purple-500 hover:bg-purple-600"
     },
     {
       icon: FaGamepad,
-      text: "Misiones",
+      text: "Misje",
       path: "/admin/missions",
       bgColor: "bg-indigo-500 hover:bg-indigo-600"
     },
     {
       icon: FaFlag,
-      text: "Reportes Foro",
+      text: "Zgłoszenia forum",
       path: "/admin/forum-reports",
       bgColor: "bg-red-500 hover:bg-red-600"
     }
@@ -86,7 +92,7 @@ const AdminNavigationCards = ({
 
       <AdminButton
         icon={FaDatabase}
-        text={initLoading ? "Inicializando..." : "Inicializar niveles"}
+        text={initLoading ? "Inicjalizowanie..." : "Inicjalizuj poziomy"}
         onClick={onInitializeDatabase}
         bgColor="bg-gray-700 hover:bg-gray-800"
         disabled={initLoading}

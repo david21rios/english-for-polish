@@ -1,156 +1,219 @@
 // src/components/forms/components/Reading.jsx
 
-import React from "react";
-import { FaTrash, FaPlus } from "react-icons/fa";
+import PropTypes from "prop-types";
+import { FaPlus, FaTrash } from "react-icons/fa";
 
-const normalizeReading = (lectura = {}) => {
-  const preguntas = Array.isArray(lectura.preguntas)
-    ? lectura.preguntas
-    : [];
+const normalizeQuestion = (question = {}) => ({
+  question: question.question || question.pregunta || "",
+  answer: question.answer || question.respuesta || "",
+  options: Array.isArray(question.options)
+    ? question.options
+    : Array.isArray(question.opciones)
+      ? question.opciones
+      : [],
+  correctAnswer:
+    question.correctAnswer ||
+    question.respuesta_correcta ||
+    question.answer ||
+    question.respuesta ||
+    "",
+  type: question.type || question.tipo || "comprehension"
+});
 
-  return {
-    titulo: lectura.titulo || "",
-    autor: lectura.autor || "AI Tutor",
-    contenido: lectura.contenido || "",
-    preguntas: preguntas.map((item) => ({
-      pregunta: item.pregunta || item.question || "",
-      respuesta: item.respuesta || item.answer || "",
-      opciones: Array.isArray(item.opciones)
-        ? item.opciones
-        : Array.isArray(item.options)
-        ? item.options
-        : [],
-      respuesta_correcta:
-        item.respuesta_correcta ||
-        item.correctAnswer ||
-        item.respuesta ||
-        item.answer ||
-        "",
-      tipo: item.tipo || "comprension"
-    }))
-  };
-};
+const normalizeReading = (reading = {}) => ({
+  title: reading.title || reading.titulo || "",
+  author: reading.author || reading.autor || "AI Tutor",
+  content: reading.content || reading.contenido || "",
+  questions: (
+    Array.isArray(reading.questions)
+      ? reading.questions
+      : Array.isArray(reading.preguntas)
+        ? reading.preguntas
+        : []
+  ).map(normalizeQuestion)
+});
 
-const Reading = ({ formData, setFormData }) => {
-  const lectura = normalizeReading(formData.lectura || {});
+const buildLegacyReading = (reading) => ({
+  titulo: reading.title || "",
+  autor: reading.author || "",
+  contenido: reading.content || "",
+  preguntas: reading.questions.map((question) => ({
+    pregunta: question.question || "",
+    respuesta: question.answer || "",
+    opciones: question.options || [],
+    respuesta_correcta: question.correctAnswer || "",
+    tipo: question.type || "comprehension"
+  }))
+});
+
+const Reading = ({
+  formData,
+  setFormData
+}) => {
+  const reading = normalizeReading(
+    formData.reading || formData.lectura || {}
+  );
 
   const updateReading = (updatedReading) => {
+    const normalizedReading = normalizeReading(updatedReading);
+
     setFormData((prev) => ({
       ...prev,
-      lectura: {
-        titulo: updatedReading.titulo || "",
-        autor: updatedReading.autor || "",
-        contenido: updatedReading.contenido || "",
-        preguntas: updatedReading.preguntas || []
-      }
+
+      // Canonical model.
+      reading: normalizedReading,
+
+      // Legacy compatibility during migration.
+      lectura: buildLegacyReading(normalizedReading)
     }));
   };
 
   const handleChange = (field, value) => {
     updateReading({
-      ...lectura,
+      ...reading,
       [field]: value
     });
   };
 
-  const handleAddPregunta = () => {
+  const handleAddQuestion = () => {
     updateReading({
-      ...lectura,
-      preguntas: [
-        ...lectura.preguntas,
+      ...reading,
+      questions: [
+        ...reading.questions,
         {
-          pregunta: "",
-          respuesta: "",
-          opciones: [],
-          respuesta_correcta: "",
-          tipo: "comprension"
+          question: "",
+          answer: "",
+          options: [],
+          correctAnswer: "",
+          type: "comprehension"
         }
       ]
     });
   };
 
-  const handlePreguntaChange = (index, field, value) => {
-    const newPreguntas = [...lectura.preguntas];
+  const handleQuestionChange = (index, field, value) => {
+    const newQuestions = [...reading.questions];
 
-    newPreguntas[index] = {
-      ...newPreguntas[index],
+    newQuestions[index] = {
+      ...newQuestions[index],
       [field]: value
     };
 
-    if (field === "respuesta") {
-      newPreguntas[index].respuesta_correcta = value;
+    if (field === "answer") {
+      newQuestions[index].correctAnswer = value;
     }
 
     updateReading({
-      ...lectura,
-      preguntas: newPreguntas
+      ...reading,
+      questions: newQuestions
     });
   };
 
-  const handleAddOpcion = (preguntaIndex) => {
-    const newPreguntas = [...lectura.preguntas];
+  const handleAddOption = (questionIndex) => {
+    const newQuestions = [...reading.questions];
 
-    newPreguntas[preguntaIndex] = {
-      ...newPreguntas[preguntaIndex],
-      opciones: [...(newPreguntas[preguntaIndex].opciones || []), ""]
+    newQuestions[questionIndex] = {
+      ...newQuestions[questionIndex],
+      options: [
+        ...(newQuestions[questionIndex].options || []),
+        ""
+      ]
     };
 
     updateReading({
-      ...lectura,
-      preguntas: newPreguntas
+      ...reading,
+      questions: newQuestions
     });
   };
 
-  const handleOpcionChange = (preguntaIndex, opcionIndex, value) => {
-    const newPreguntas = [...lectura.preguntas];
-    const opciones = [...(newPreguntas[preguntaIndex].opciones || [])];
+  const handleOptionChange = (
+    questionIndex,
+    optionIndex,
+    value
+  ) => {
+    const newQuestions = [...reading.questions];
+    const options = [
+      ...(newQuestions[questionIndex].options || [])
+    ];
 
-    const oldValue = opciones[opcionIndex];
-    opciones[opcionIndex] = value;
+    const oldValue = options[optionIndex];
 
-    newPreguntas[preguntaIndex] = {
-      ...newPreguntas[preguntaIndex],
-      opciones
+    options[optionIndex] = value;
+
+    newQuestions[questionIndex] = {
+      ...newQuestions[questionIndex],
+      options
     };
 
-    if (newPreguntas[preguntaIndex].respuesta_correcta === oldValue) {
-      newPreguntas[preguntaIndex].respuesta_correcta = value;
-      newPreguntas[preguntaIndex].respuesta = value;
+    if (
+      newQuestions[questionIndex].correctAnswer === oldValue
+    ) {
+      newQuestions[questionIndex].correctAnswer = value;
+      newQuestions[questionIndex].answer = value;
     }
 
     updateReading({
-      ...lectura,
-      preguntas: newPreguntas
+      ...reading,
+      questions: newQuestions
     });
   };
 
-  const handleRemoveOpcion = (preguntaIndex, opcionIndex) => {
-    const newPreguntas = [...lectura.preguntas];
-    const opciones = [...(newPreguntas[preguntaIndex].opciones || [])];
-    const removedValue = opciones[opcionIndex];
+  const handleRemoveOption = (
+    questionIndex,
+    optionIndex
+  ) => {
+    const newQuestions = [...reading.questions];
+    const options = [
+      ...(newQuestions[questionIndex].options || [])
+    ];
 
-    const filteredOptions = opciones.filter((_, i) => i !== opcionIndex);
+    const removedValue = options[optionIndex];
 
-    newPreguntas[preguntaIndex] = {
-      ...newPreguntas[preguntaIndex],
-      opciones: filteredOptions
+    newQuestions[questionIndex] = {
+      ...newQuestions[questionIndex],
+      options: options.filter(
+        (_, index) => index !== optionIndex
+      )
     };
 
-    if (newPreguntas[preguntaIndex].respuesta_correcta === removedValue) {
-      newPreguntas[preguntaIndex].respuesta_correcta = "";
-      newPreguntas[preguntaIndex].respuesta = "";
+    if (
+      newQuestions[questionIndex].correctAnswer ===
+      removedValue
+    ) {
+      newQuestions[questionIndex].correctAnswer = "";
+      newQuestions[questionIndex].answer = "";
     }
 
     updateReading({
-      ...lectura,
-      preguntas: newPreguntas
+      ...reading,
+      questions: newQuestions
     });
   };
 
-  const handleRemovePregunta = (index) => {
+  const handleRemoveQuestion = (index) => {
     updateReading({
-      ...lectura,
-      preguntas: lectura.preguntas.filter((_, i) => i !== index)
+      ...reading,
+      questions: reading.questions.filter(
+        (_, questionIndex) => questionIndex !== index
+      )
+    });
+  };
+
+  const handleCorrectAnswerChange = (
+    questionIndex,
+    option
+  ) => {
+    const newQuestions = [...reading.questions];
+
+    newQuestions[questionIndex] = {
+      ...newQuestions[questionIndex],
+      correctAnswer: option,
+      answer: option
+    };
+
+    updateReading({
+      ...reading,
+      questions: newQuestions
     });
   };
 
@@ -158,14 +221,17 @@ const Reading = ({ formData, setFormData }) => {
     <div className="space-y-6">
       <div>
         <label className="block text-sm font-medium text-gray-700">
-          Título de la lectura
+          Tytuł tekstu
         </label>
+
         <input
           type="text"
-          value={lectura.titulo}
-          onChange={(e) => handleChange("titulo", e.target.value)}
-          className="mt-1 block w-full rounded-md border-gray-300"
-          placeholder="Título de la lectura"
+          value={reading.title}
+          onChange={(event) =>
+            handleChange("title", event.target.value)
+          }
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+          placeholder="Wpisz tytuł tekstu..."
         />
       </div>
 
@@ -173,52 +239,59 @@ const Reading = ({ formData, setFormData }) => {
         <label className="block text-sm font-medium text-gray-700">
           Autor
         </label>
+
         <input
           type="text"
-          value={lectura.autor}
-          onChange={(e) => handleChange("autor", e.target.value)}
-          className="mt-1 block w-full rounded-md border-gray-300"
-          placeholder="Autor"
+          value={reading.author}
+          onChange={(event) =>
+            handleChange("author", event.target.value)
+          }
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+          placeholder="Wpisz autora..."
         />
       </div>
 
       <div>
         <label className="block text-sm font-medium text-gray-700">
-          Contenido
+          Treść
         </label>
+
         <textarea
-          value={lectura.contenido}
-          onChange={(e) => handleChange("contenido", e.target.value)}
-          className="mt-1 block w-full rounded-md border-gray-300"
+          value={reading.content}
+          onChange={(event) =>
+            handleChange("content", event.target.value)
+          }
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
           rows={8}
-          placeholder="Texto de lectura"
+          placeholder="Wpisz tekst do czytania..."
         />
       </div>
 
       <div className="space-y-4">
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <label className="block text-sm font-medium text-gray-700">
-              Preguntas de comprensión
+              Pytania sprawdzające zrozumienie tekstu
             </label>
+
             <p className="text-sm text-gray-500">
-              Puedes usar preguntas abiertas o preguntas con opciones.
+              Możesz dodać pytania otwarte lub pytania z opcjami odpowiedzi.
             </p>
           </div>
 
           <button
             type="button"
-            onClick={handleAddPregunta}
-            className="inline-flex items-center text-primary-600 hover:text-primary-700 font-medium"
+            onClick={handleAddQuestion}
+            className="inline-flex items-center justify-center text-primary-600 hover:text-primary-700 font-medium"
           >
             <FaPlus className="mr-2" />
-            Añadir pregunta
+            Dodaj pytanie
           </button>
         </div>
 
-        {lectura.preguntas.length > 0 ? (
+        {reading.questions.length > 0 ? (
           <div className="space-y-4">
-            {lectura.preguntas.map((pregunta, index) => (
+            {reading.questions.map((question, index) => (
               <div
                 key={index}
                 className="border border-gray-200 rounded-xl p-4 space-y-4 bg-white"
@@ -226,23 +299,32 @@ const Reading = ({ formData, setFormData }) => {
                 <div className="flex items-start gap-2">
                   <div className="flex-1">
                     <label className="block text-sm font-medium text-gray-700">
-                      Pregunta {index + 1}
+                      Pytanie {index + 1}
                     </label>
+
                     <input
                       type="text"
-                      value={pregunta.pregunta}
-                      onChange={(e) =>
-                        handlePreguntaChange(index, "pregunta", e.target.value)
+                      value={question.question}
+                      onChange={(event) =>
+                        handleQuestionChange(
+                          index,
+                          "question",
+                          event.target.value
+                        )
                       }
-                      className="mt-1 block w-full rounded-md border-gray-300"
-                      placeholder="Escribe la pregunta..."
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                      placeholder="Wpisz pytanie..."
                     />
                   </div>
 
                   <button
                     type="button"
-                    onClick={() => handleRemovePregunta(index)}
-                    className="mt-7 text-red-600 hover:text-red-800"
+                    onClick={() =>
+                      handleRemoveQuestion(index)
+                    }
+                    className="mt-7 p-2 text-red-600 hover:text-red-800 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                    aria-label={`Usuń pytanie ${index + 1}`}
+                    title="Usuń pytanie"
                   >
                     <FaTrash />
                   </button>
@@ -250,74 +332,98 @@ const Reading = ({ formData, setFormData }) => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
-                    Respuesta esperada
+                    Oczekiwana odpowiedź
                   </label>
+
                   <input
                     type="text"
-                    value={pregunta.respuesta || ""}
-                    onChange={(e) =>
-                      handlePreguntaChange(index, "respuesta", e.target.value)
+                    value={question.answer}
+                    onChange={(event) =>
+                      handleQuestionChange(
+                        index,
+                        "answer",
+                        event.target.value
+                      )
                     }
-                    className="mt-1 block w-full rounded-md border-gray-300"
-                    placeholder="Respuesta esperada"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                    placeholder="Wpisz oczekiwaną odpowiedź..."
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <div className="flex justify-between items-center">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                     <label className="block text-sm font-medium text-gray-700">
-                      Opciones
+                      Opcje odpowiedzi
                     </label>
 
                     <button
                       type="button"
-                      onClick={() => handleAddOpcion(index)}
+                      onClick={() => handleAddOption(index)}
                       className="text-primary-600 hover:text-primary-700 text-sm font-medium"
                     >
                       <FaPlus className="inline mr-2" />
-                      Añadir opción
+                      Dodaj opcję
                     </button>
                   </div>
 
-                  {(pregunta.opciones || []).map((opcion, opcionIndex) => (
-                    <div key={opcionIndex} className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        checked={pregunta.respuesta_correcta === opcion}
-                        onChange={() => {
-                          handlePreguntaChange(
-                            index,
-                            "respuesta_correcta",
-                            opcion
-                          );
-                          handlePreguntaChange(index, "respuesta", opcion);
-                        }}
-                        className="h-4 w-4 text-primary-600 focus:ring-primary-500"
-                      />
-
-                      <input
-                        type="text"
-                        value={opcion}
-                        onChange={(e) =>
-                          handleOpcionChange(index, opcionIndex, e.target.value)
-                        }
-                        className="flex-1 rounded-md border-gray-300"
-                        placeholder={`Opción ${opcionIndex + 1}`}
-                      />
-
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveOpcion(index, opcionIndex)}
-                        className="text-red-600"
+                  {question.options.map(
+                    (option, optionIndex) => (
+                      <div
+                        key={optionIndex}
+                        className="flex items-center gap-2"
                       >
-                        <FaTrash />
-                      </button>
-                    </div>
-                  ))}
+                        <input
+                          type="radio"
+                          name={`correct-answer-${index}`}
+                          checked={
+                            question.correctAnswer === option &&
+                            option !== ""
+                          }
+                          onChange={() =>
+                            handleCorrectAnswerChange(
+                              index,
+                              option
+                            )
+                          }
+                          className="h-4 w-4 text-primary-600 focus:ring-primary-500"
+                          aria-label={`Oznacz opcję ${optionIndex + 1} jako poprawną`}
+                        />
 
-                  {(pregunta.opciones || []).length === 0 && (
+                        <input
+                          type="text"
+                          value={option}
+                          onChange={(event) =>
+                            handleOptionChange(
+                              index,
+                              optionIndex,
+                              event.target.value
+                            )
+                          }
+                          className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                          placeholder={`Opcja ${optionIndex + 1}`}
+                        />
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleRemoveOption(
+                              index,
+                              optionIndex
+                            )
+                          }
+                          className="p-2 text-red-600 hover:text-red-800 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                          aria-label={`Usuń opcję ${optionIndex + 1}`}
+                          title="Usuń opcję"
+                        >
+                          <FaTrash />
+                        </button>
+                      </div>
+                    )
+                  )}
+
+                  {question.options.length === 0 && (
                     <p className="text-sm text-gray-500 italic">
-                      Sin opciones. Esta pregunta será de respuesta abierta.
+                      Brak opcji odpowiedzi. To pytanie będzie pytaniem otwartym.
                     </p>
                   )}
                 </div>
@@ -326,12 +432,17 @@ const Reading = ({ formData, setFormData }) => {
           </div>
         ) : (
           <p className="text-gray-500 text-sm italic">
-            No hay preguntas de lectura definidas.
+            Nie zdefiniowano jeszcze pytań do tekstu.
           </p>
         )}
       </div>
     </div>
   );
+};
+
+Reading.propTypes = {
+  formData: PropTypes.object.isRequired,
+  setFormData: PropTypes.func.isRequired
 };
 
 export default Reading;

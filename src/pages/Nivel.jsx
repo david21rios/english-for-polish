@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 
-import useCourseNavigation from "../utils/useCourseNavigation";
+import useCourseNavigation from "../hooks/useCourseNavigation";
 
 import LessonProgress from "../components/nivel/LessonProgress";
 import LessonSidebar from "../components/nivel/LessonSidebar";
@@ -28,8 +28,10 @@ const Nivel = () => {
     currentSection,
     currentSectionIndex,
     completedSections,
+    activityResults,
     currentLessonIndex,
     sectionProgress,
+    lessonCompleted,
     nextLevel,
 
     loading,
@@ -45,7 +47,8 @@ const Nivel = () => {
     goToPreviousSection,
     goToNextLesson,
     goToPreviousLesson,
-    markSectionCompleted
+    markSectionCompleted,
+    registerActivityResult
   } = useCourseNavigation({
     levelId,
     locationState: location.state
@@ -71,6 +74,14 @@ const Nivel = () => {
 
   const handlePreviousLesson = async () => {
     await goToPreviousLesson();
+  };
+
+  const handleCloseMobileSidebar = () => {
+    setSidebarOpen(false);
+  };
+
+  const renderLevelSummary = () => {
+    return `${modules.length} moduł(y) · ${lessons.length} lekcja(e)`;
   };
 
   if (loading) {
@@ -99,12 +110,12 @@ const Nivel = () => {
             type="button"
             className="
               fixed top-[3.4rem] left-1 z-40 md:hidden
-              w-8 h-8 rounded-xl bg-primary-300 text-white shadow-lg
+              w-8 h-8 rounded-xl bg-primary-600 text-white shadow-lg
               flex items-center justify-center hover:bg-primary-700 transition-all
             "
             onClick={() => setSidebarOpen(true)}
-            title="Abrir menú de lecciones"
-            aria-label="Abrir menú de lecciones"
+            title="Otwórz menu lekcji"
+            aria-label="Otwórz menu lekcji"
           >
             <svg
               className="w-6 h-6"
@@ -124,7 +135,7 @@ const Nivel = () => {
           {isSidebarOpen && (
             <div
               className="fixed inset-0 z-50 md:hidden"
-              onClick={() => setSidebarOpen(false)}
+              onClick={handleCloseMobileSidebar}
             >
               <div className="absolute inset-0 bg-black/50 backdrop-blur-[1px]" />
 
@@ -133,16 +144,21 @@ const Nivel = () => {
                 onClick={(event) => event.stopPropagation()}
               >
                 <div className="p-4 border-b flex items-center justify-between">
-                  <h2 className="text-lg font-bold text-primary-600">
-                    Level {levelId}
-                  </h2>
+                  <div>
+                    <h2 className="text-lg font-bold text-primary-600">
+                      Poziom {levelId}
+                    </h2>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {renderLevelSummary()}
+                    </p>
+                  </div>
 
                   <button
                     type="button"
-                    onClick={() => setSidebarOpen(false)}
+                    onClick={handleCloseMobileSidebar}
                     className="text-gray-500 hover:text-primary-600 text-2xl font-bold"
-                    title="Cerrar menú"
-                    aria-label="Cerrar menú de lecciones"
+                    title="Zamknij menu"
+                    aria-label="Zamknij menu lekcji"
                   >
                     ×
                   </button>
@@ -171,10 +187,10 @@ const Nivel = () => {
               <div className="p-4 border-b flex items-center justify-between">
                 <div>
                   <h2 className="text-xl font-bold text-primary-600">
-                    Level {levelId}
+                    Poziom {levelId}
                   </h2>
                   <p className="text-xs text-gray-500 mt-1">
-                    {modules.length} modules · {lessons.length} lessons
+                    {renderLevelSummary()}
                   </p>
                 </div>
 
@@ -182,7 +198,8 @@ const Nivel = () => {
                   type="button"
                   onClick={() => setDesktopSidebarOpen(false)}
                   className="text-gray-500 hover:text-primary-600 text-xl font-bold"
-                  title="Cerrar menú"
+                  title="Zamknij menu"
+                  aria-label="Zamknij menu lekcji"
                 >
                   ×
                 </button>
@@ -210,7 +227,8 @@ const Nivel = () => {
               type="button"
               onClick={() => setDesktopSidebarOpen(true)}
               className="hidden md:flex fixed top-24 left-4 z-40 bg-primary-600 text-white px-4 py-3 rounded-xl shadow-lg hover:bg-primary-700"
-              title="Abrir menú"
+              title="Otwórz menu"
+              aria-label="Otwórz menu lekcji"
             >
               ☰
             </button>
@@ -230,6 +248,7 @@ const Nivel = () => {
                   totalSections={lessonSections.length}
                   currentSectionTitle={currentSection?.title}
                   sectionProgress={sectionProgress}
+                  lessonCompleted={lessonCompleted}
                 />
 
                 <LessonSectionRenderer
@@ -237,12 +256,15 @@ const Nivel = () => {
                   lessonDetails={lessonDetails}
                   levelId={levelId}
                   currentLesson={currentLesson}
+                  completedSections={completedSections}
+                  activityResults={activityResults}
                   markSectionCompleted={markSectionCompleted}
+                  registerActivityResult={registerActivityResult}
                 />
 
                 {!canAdvanceCurrentSection() && (
                   <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-lg p-3 md:p-4 text-xs sm:text-sm">
-                    Para avanzar debes completar esta actividad primero.
+                    Aby przejść dalej, musisz najpierw ukończyć tę aktywność.
                   </div>
                 )}
 
@@ -262,7 +284,7 @@ const Nivel = () => {
             ) : (
               <div className="flex justify-center items-center min-h-[60vh] px-4">
                 <p className="text-gray-500 text-base md:text-lg text-center">
-                  Selecciona una lección para ver su contenido.
+                  Wybierz lekcję, aby zobaczyć jej treść.
                 </p>
               </div>
             )}

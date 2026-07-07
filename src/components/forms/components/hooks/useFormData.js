@@ -1,47 +1,60 @@
-// hooks/useFormData.js
-import { useState, useCallback } from 'react';
-import { getEmptyLessonStructure } from '../utils/initialState';
-import { deepClone, handleError } from '../utils/helpers';
+// src/components/forms/components/hooks/useFormData.js
+
+import { useCallback, useEffect, useState } from "react";
+
+import { deepClone, handleError } from "../utils/helpers";
+import { getEmptyLessonStructure } from "../utils/initialState";
+
+const DRAFT_STORAGE_KEY = "lessonFormDraft";
+
+const buildInitialFormData = (initialData = null, isEditing = false) => {
+  if (isEditing && initialData) {
+    return {
+      ...getEmptyLessonStructure(),
+      ...initialData
+    };
+  }
+
+  return getEmptyLessonStructure();
+};
 
 const useFormData = (initialData = null, isEditing = false) => {
-  // Estado inicial del formulario
   const [formData, setFormData] = useState(() => {
     try {
-      if (isEditing && initialData) {
-        return {
-          ...getEmptyLessonStructure(),
-          ...initialData
-        };
-      }
-      return getEmptyLessonStructure();
+      return buildInitialFormData(initialData, isEditing);
     } catch (error) {
-      handleError(error, 'Error al inicializar el formulario');
+      handleError(error, "Could not initialize lesson form.");
       return getEmptyLessonStructure();
     }
   });
 
-  // Estado para trackear cambios sin guardar
   const [isDirty, setIsDirty] = useState(false);
 
-  // Función para actualizar un campo específico
+  useEffect(() => {
+    try {
+      setFormData(buildInitialFormData(initialData, isEditing));
+      setIsDirty(false);
+    } catch (error) {
+      handleError(error, "Could not sync lesson form data.");
+    }
+  }, [initialData, isEditing]);
+
   const updateField = useCallback((fieldName, value) => {
-    setFormData(prev => {
-      const newData = { ...prev, [fieldName]: value };
+    setFormData((prev) => {
       setIsDirty(true);
-      return newData;
+      return { ...prev, [fieldName]: value };
     });
   }, []);
 
-  // Función para actualizar campos anidados
   const updateNestedField = useCallback((path, value) => {
-    setFormData(prev => {
-      const newData = deepClone(prev);
+    setFormData((prev) => {
+      const newData = deepClone(prev) || {};
       let current = newData;
-      const fields = path.split('.');
+      const fields = path.split(".");
       const lastField = fields.pop();
 
-      fields.forEach(field => {
-        if (!current[field]) {
+      fields.forEach((field) => {
+        if (!current[field] || typeof current[field] !== "object") {
           current[field] = {};
         }
         current = current[field];
@@ -53,71 +66,86 @@ const useFormData = (initialData = null, isEditing = false) => {
     });
   }, []);
 
-  // Función para actualizar arrays
   const updateArray = useCallback((fieldName, index, value) => {
-    setFormData(prev => {
-      const newArray = [...prev[fieldName]];
+    setFormData((prev) => {
+      const currentArray = Array.isArray(prev[fieldName]) ? prev[fieldName] : [];
+      const newArray = [...currentArray];
+
       newArray[index] = value;
       setIsDirty(true);
+
       return { ...prev, [fieldName]: newArray };
     });
   }, []);
 
-  // Función para añadir elemento a un array
   const addToArray = useCallback((fieldName, value) => {
-    setFormData(prev => {
-      const newArray = [...(prev[fieldName] || []), value];
+    setFormData((prev) => {
+      const currentArray = Array.isArray(prev[fieldName]) ? prev[fieldName] : [];
+
       setIsDirty(true);
-      return { ...prev, [fieldName]: newArray };
+
+      return {
+        ...prev,
+        [fieldName]: [...currentArray, value]
+      };
     });
   }, []);
 
-  // Función para eliminar elemento de un array
   const removeFromArray = useCallback((fieldName, index) => {
-    setFormData(prev => {
-      const newArray = prev[fieldName].filter((_, i) => i !== index);
+    setFormData((prev) => {
+      const currentArray = Array.isArray(prev[fieldName]) ? prev[fieldName] : [];
+
       setIsDirty(true);
-      return { ...prev, [fieldName]: newArray };
+
+      return {
+        ...prev,
+        [fieldName]: currentArray.filter((_, itemIndex) => itemIndex !== index)
+      };
     });
   }, []);
 
-  // Función para resetear el formulario
   const resetForm = useCallback(() => {
     setFormData(getEmptyLessonStructure());
     setIsDirty(false);
   }, []);
 
-  // Función para guardar el estado actual como borrador
   const saveDraft = useCallback(() => {
     try {
       const draft = {
         ...formData,
+        status: "draft",
         metadata: {
-          ...formData.metadata,
+          ...(formData.metadata || {}),
           updatedAt: new Date().toISOString(),
-          status: 'draft'
+          status: "draft"
         }
       };
-      localStorage.setItem('lessonFormDraft', JSON.stringify(draft));
+
+      localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draft));
       setIsDirty(false);
+
       return true;
     } catch (error) {
-      handleError(error, 'Error al guardar el borrador');
+      handleError(error, "Could not save lesson draft.");
       return false;
     }
   }, [formData]);
 
-  // Función para cargar un borrador guardado
   const loadDraft = useCallback(() => {
     try {
-      const draft = localStorage.getItem('lessonFormDraft');
-      if (draft) {
-        setFormData(JSON.parse(draft));
-        return true;
-      }
-      return false;
+      const draft = localStorage.getItem(DRAFT_STORAGE_KEY);
+
+      if (!draft) return false;
+
+      setFormData({
+        ...getEmptyLessonStructure(),
+        ...JSON.parse(draft)
+      });
+
+      setIsDirty(false);
+      return true;
     } catch (error) {
-      handleError(error, 'Error al cargar el borrador');
+      handleError(error, "Could not load lesson draft.");
       return false;
     }
   }, []);

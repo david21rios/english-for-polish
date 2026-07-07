@@ -6,30 +6,30 @@ import { FaSave, FaTimes } from "react-icons/fa";
 import { getNextModuleOrder } from "../../services/moduleService";
 
 const STATUS_OPTIONS = [
-  { value: "published", label: "Published" },
-  { value: "draft", label: "Draft" }
+  { value: "published", label: "Opublikowany" },
+  { value: "draft", label: "Wersja robocza" }
 ];
 
 const COLOR_OPTIONS = [
-  { value: "primary", label: "Primary" },
-  { value: "green", label: "Green" },
-  { value: "blue", label: "Blue" },
-  { value: "purple", label: "Purple" },
-  { value: "yellow", label: "Yellow" },
-  { value: "red", label: "Red" }
+  { value: "primary", label: "Główny" },
+  { value: "green", label: "Zielony" },
+  { value: "blue", label: "Niebieski" },
+  { value: "purple", label: "Fioletowy" },
+  { value: "yellow", label: "Żółty" },
+  { value: "red", label: "Czerwony" }
 ];
 
 const ICON_OPTIONS = [
-  { value: "📚", label: "Books" },
-  { value: "💬", label: "Conversation" },
-  { value: "🧠", label: "Grammar" },
-  { value: "🎧", label: "Listening" },
-  { value: "✍️", label: "Writing" },
-  { value: "🗣️", label: "Speaking" },
-  { value: "🧩", label: "Practice" },
-  { value: "🌍", label: "Culture" },
-  { value: "🎯", label: "Goals" },
-  { value: "🚀", label: "Progress" }
+  { value: "📚", label: "Książki" },
+  { value: "💬", label: "Rozmowa" },
+  { value: "🧠", label: "Gramatyka" },
+  { value: "🎧", label: "Słuchanie" },
+  { value: "✍️", label: "Pisanie" },
+  { value: "🗣️", label: "Mówienie" },
+  { value: "🧩", label: "Ćwiczenia" },
+  { value: "🌍", label: "Kultura" },
+  { value: "🎯", label: "Cele" },
+  { value: "🚀", label: "Postęp" }
 ];
 
 const INITIAL_FORM = {
@@ -78,7 +78,7 @@ const ModuleForm = ({
         });
       } catch (error) {
         console.error("Error preparing module form:", error);
-        setError("Could not prepare the module form.");
+        setError("Nie udało się przygotować formularza modułu.");
       }
     };
 
@@ -95,17 +95,9 @@ const ModuleForm = ({
   };
 
   const validateForm = () => {
-    if (!levelId) {
-      return "Level is required.";
-    }
-
-    if (!formData.title.trim()) {
-      return "Module title is required.";
-    }
-
-    if (Number(formData.order) < 1) {
-      return "Order must be greater than zero.";
-    }
+    if (!levelId) return "Poziom jest wymagany.";
+    if (!formData.title.trim()) return "Tytuł modułu jest wymagany.";
+    if (Number(formData.order) < 1) return "Kolejność musi być większa niż zero.";
 
     return "";
   };
@@ -139,11 +131,11 @@ const ModuleForm = ({
       <header className="bg-primary-600 text-white px-5 md:px-6 py-5 flex items-center justify-between shrink-0">
         <div>
           <p className="text-primary-100 text-xs md:text-sm font-semibold uppercase tracking-wide">
-            Course modules · Level {levelId}
+            Moduły kursu · Poziom {levelId}
           </p>
 
           <h2 className="text-xl md:text-2xl font-bold mt-1">
-            {initialData ? "Edit module" : "Create module"}
+            {initialData ? "Edytuj moduł" : "Utwórz moduł"}
           </h2>
         </div>
 
@@ -152,15 +144,13 @@ const ModuleForm = ({
           onClick={onCancel}
           disabled={isSaving}
           className="w-10 h-10 rounded-xl bg-white/15 hover:bg-white/25 flex items-center justify-center disabled:opacity-50"
+          aria-label="Zamknij formularz"
         >
           <FaTimes />
         </button>
       </header>
 
-      <form
-        onSubmit={handleSubmit}
-        className="p-5 md:p-6 space-y-5 overflow-y-auto"
-      >
+      <form onSubmit={handleSubmit} className="p-5 md:p-6 space-y-5 overflow-y-auto">
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 rounded-2xl p-4 text-sm">
             {error}
@@ -170,7 +160,7 @@ const ModuleForm = ({
         <div className="grid md:grid-cols-2 gap-5">
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Level
+              Poziom
             </label>
 
             <input
@@ -181,13 +171,13 @@ const ModuleForm = ({
             />
 
             <p className="text-xs text-gray-500 mt-1">
-              Level is selected from the module administration screen.
+              Poziom jest wybierany w panelu zarządzania modułami.
             </p>
           </div>
 
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Order
+              Kolejność
             </label>
 
             <input
@@ -204,7 +194,7 @@ const ModuleForm = ({
 
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Module title
+            Tytuł modułu
           </label>
 
           <input
@@ -213,14 +203,14 @@ const ModuleForm = ({
             value={formData.title}
             onChange={handleChange}
             disabled={isSaving}
-            placeholder="Example: Greetings and Introductions"
+            placeholder="Np. Greetings and Introductions"
             className="w-full border border-gray-300 rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
           />
         </div>
 
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Description
+            Opis
           </label>
 
           <textarea
@@ -229,7 +219,7 @@ const ModuleForm = ({
             onChange={handleChange}
             disabled={isSaving}
             rows="4"
-            placeholder="Short description of what the student will learn in this module."
+            placeholder="Krótki opis tego, czego uczeń nauczy się w tym module."
             className="w-full border border-gray-300 rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
           />
         </div>
@@ -237,7 +227,7 @@ const ModuleForm = ({
         <div className="grid md:grid-cols-3 gap-5">
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Icon
+              Ikona
             </label>
 
             <select
@@ -257,7 +247,7 @@ const ModuleForm = ({
 
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Color
+              Kolor
             </label>
 
             <select
@@ -297,8 +287,9 @@ const ModuleForm = ({
         </div>
 
         <div className="bg-blue-50 border border-blue-100 text-blue-800 rounded-2xl p-4 text-sm">
-          This module will group lessons inside <strong>levels/{levelId}/modules</strong>.
-          Later, manual and AI lessons will be saved inside this module.
+          Ten moduł grupuje lekcje w ścieżce{" "}
+          <strong>levels/{levelId}/modules</strong>. Lekcje ręczne i lekcje AI
+          będą przypisywane do wybranego modułu.
         </div>
 
         <div className="flex flex-col sm:flex-row justify-end gap-3 pt-3 sticky bottom-0 bg-white pb-1">
@@ -308,7 +299,7 @@ const ModuleForm = ({
             disabled={isSaving}
             className="px-6 py-3 rounded-2xl border border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 disabled:opacity-50"
           >
-            Cancel
+            Anuluj
           </button>
 
           <button
@@ -318,10 +309,10 @@ const ModuleForm = ({
           >
             <FaSave />
             {isSaving
-              ? "Saving..."
+              ? "Zapisywanie..."
               : initialData
-              ? "Update module"
-              : "Create module"}
+              ? "Zaktualizuj moduł"
+              : "Utwórz moduł"}
           </button>
         </div>
       </form>

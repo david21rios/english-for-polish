@@ -31,11 +31,11 @@ const TestNavigation = ({
             }`}
           >
             <FaArrowLeft />
-            Previous section
+            Poprzednia sekcja
           </button>
 
           <div className="hidden md:block text-center text-sm text-gray-500">
-            Complete all visible questions before continuing.
+            Odpowiedz na wszystkie widoczne pytania przed przejściem dalej.
           </div>
 
           <button
@@ -50,11 +50,11 @@ const TestNavigation = ({
             {isLastSection ? (
               <>
                 <FaCheckCircle />
-                Review results
+                Sprawdź wyniki
               </>
             ) : (
               <>
-                Next section
+                Następna sekcja
                 <FaArrowRight />
               </>
             )}

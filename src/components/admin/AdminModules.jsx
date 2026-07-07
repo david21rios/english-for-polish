@@ -24,6 +24,15 @@ import {
 
 const CEFR_LEVELS = ["A1", "A2", "B1", "B2", "C1", "C2"];
 
+const STATUS_LABELS = {
+  draft: "Wersja robocza",
+  published: "Opublikowany"
+};
+
+const getStatusLabel = (status) => {
+  return STATUS_LABELS[status] || status || "Nieznany";
+};
+
 const getStatusClass = (status) => {
   return status === "published"
     ? "bg-green-100 text-green-700"
@@ -67,10 +76,14 @@ const AdminModules = () => {
         includeDrafts: true
       });
 
-      setModules(data);
+      setModules(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Error loading modules:", error);
-      setError(error.message || "Error loading modules.");
+
+      setError(
+        error.message ||
+          "Nie udało się załadować modułów."
+      );
     } finally {
       setLoading(false);
     }
@@ -78,6 +91,7 @@ const AdminModules = () => {
 
   useEffect(() => {
     loadModules();
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [levelId]);
 
@@ -88,9 +102,15 @@ const AdminModules = () => {
 
     return modules.filter((module) => {
       return (
-        String(module.title || "").toLowerCase().includes(value) ||
-        String(module.description || "").toLowerCase().includes(value) ||
-        String(module.moduleId || "").toLowerCase().includes(value)
+        String(module.title || "")
+          .toLowerCase()
+          .includes(value) ||
+        String(module.description || "")
+          .toLowerCase()
+          .includes(value) ||
+        String(module.moduleId || module.id || "")
+          .toLowerCase()
+          .includes(value)
       );
     });
   }, [modules, searchText]);
@@ -132,7 +152,11 @@ const AdminModules = () => {
       handleCloseForm();
     } catch (error) {
       console.error("Error saving module:", error);
-      setError(error.message || "Error saving module.");
+
+      setError(
+        error.message ||
+          "Nie udało się zapisać modułu."
+      );
     } finally {
       setSaving(false);
     }
@@ -142,14 +166,17 @@ const AdminModules = () => {
     const lessonCount = Number(module.lessonCount) || 0;
 
     if (lessonCount > 0) {
-      alert(
-        "This module has lessons assigned. Move or remove those lessons before deleting it."
+      window.alert(
+        "Ten moduł zawiera przypisane lekcje. Przenieś lub usuń lekcje przed usunięciem modułu."
       );
+
       return;
     }
 
+    const moduleTitle = module.title || "Bez nazwy";
+
     const confirmDelete = window.confirm(
-      `Are you sure you want to delete the module "${module.title}"?`
+      `Czy na pewno chcesz usunąć moduł „${moduleTitle}”?`
     );
 
     if (!confirmDelete) return;
@@ -157,27 +184,53 @@ const AdminModules = () => {
     try {
       setError("");
 
-      await deleteModule(levelId, module.moduleId || module.id);
+      await deleteModule(
+        levelId,
+        module.moduleId || module.id
+      );
 
       await loadModules();
     } catch (error) {
       console.error("Error deleting module:", error);
-      setError(error.message || "Error deleting module.");
+
+      setError(
+        error.message ||
+          "Nie udało się usunąć modułu."
+      );
     }
   };
 
   const handleRefreshLessonCount = async (module) => {
-    try {
-      const moduleId = module.moduleId || module.id;
+    const moduleId = module.moduleId || module.id;
 
+    if (!moduleId) {
+      setError(
+        "Nie można odświeżyć liczby lekcji: brak identyfikatora modułu."
+      );
+
+      return;
+    }
+
+    try {
+      setError("");
       setRefreshingId(moduleId);
 
-      await refreshModuleLessonCount(levelId, moduleId);
+      await refreshModuleLessonCount(
+        levelId,
+        moduleId
+      );
 
       await loadModules();
     } catch (error) {
-      console.error("Error refreshing lesson count:", error);
-      setError("Error refreshing lesson count.");
+      console.error(
+        "Error refreshing lesson count:",
+        error
+      );
+
+      setError(
+        error.message ||
+          "Nie udało się odświeżyć liczby lekcji."
+      );
     } finally {
       setRefreshingId(null);
     }
@@ -190,7 +243,8 @@ const AdminModules = () => {
   ).length;
 
   const totalLessons = modules.reduce(
-    (acc, module) => acc + (Number(module.lessonCount) || 0),
+    (accumulator, module) =>
+      accumulator + (Number(module.lessonCount) || 0),
     0
   );
 
@@ -203,22 +257,24 @@ const AdminModules = () => {
           className="mb-5 inline-flex items-center gap-2 text-gray-600 hover:text-primary-600 font-medium"
         >
           <FaArrowLeft />
-          Back to admin panel
+          Powrót do panelu administratora
         </button>
 
         <header className="bg-white rounded-3xl shadow-lg border border-gray-100 p-5 md:p-8 mb-6">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
             <div>
               <p className="text-sm font-semibold text-primary-600 uppercase tracking-wide">
-                Academic structure
+                Struktura akademicka
               </p>
 
               <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mt-2">
-                Course Modules
+                Moduły kursu
               </h1>
 
               <p className="text-gray-600 mt-3 max-w-3xl leading-relaxed">
-                Organize English lessons for Polish students by CEFR level and module.
+                Organizuj lekcje języka angielskiego dla
+                polskich uczniów według poziomu CEFR i
+                modułu.
               </p>
             </div>
 
@@ -228,33 +284,36 @@ const AdminModules = () => {
               className="inline-flex items-center justify-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-5 py-3 rounded-2xl font-semibold"
             >
               <FaPlus />
-              New module
+              Nowy moduł
             </button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-6">
             <div className="bg-primary-50 border border-primary-100 rounded-2xl p-4">
               <p className="text-xs text-primary-600 font-semibold uppercase">
-                Learning language
+                Język nauki
               </p>
+
               <p className="text-xl font-bold text-gray-900 mt-1">
-                English
+                Angielski
               </p>
             </div>
 
             <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4">
               <p className="text-xs text-blue-600 font-semibold uppercase">
-                Support language
+                Język pomocniczy
               </p>
+
               <p className="text-xl font-bold text-gray-900 mt-1">
-                Polish
+                Polski
               </p>
             </div>
 
             <div className="bg-green-50 border border-green-100 rounded-2xl p-4">
               <p className="text-xs text-green-600 font-semibold uppercase">
-                CEFR level
+                Poziom CEFR
               </p>
+
               <p className="text-xl font-bold text-gray-900 mt-1">
                 {levelId}
               </p>
@@ -264,26 +323,38 @@ const AdminModules = () => {
           <div className="grid grid-cols-3 gap-3 mt-4">
             <div className="bg-gray-50 border border-gray-100 rounded-2xl p-4 text-center">
               <FaLayerGroup className="text-primary-600 mx-auto mb-2" />
+
               <p className="text-2xl font-bold text-primary-700">
                 {totalModules}
               </p>
-              <p className="text-xs text-gray-600">Modules</p>
+
+              <p className="text-xs text-gray-600">
+                Moduły
+              </p>
             </div>
 
             <div className="bg-gray-50 border border-gray-100 rounded-2xl p-4 text-center">
               <FaBookOpen className="text-green-600 mx-auto mb-2" />
+
               <p className="text-2xl font-bold text-green-700">
                 {publishedModules}
               </p>
-              <p className="text-xs text-gray-600">Published</p>
+
+              <p className="text-xs text-gray-600">
+                Opublikowane
+              </p>
             </div>
 
             <div className="bg-gray-50 border border-gray-100 rounded-2xl p-4 text-center">
               <FaBookOpen className="text-blue-600 mx-auto mb-2" />
+
               <p className="text-2xl font-bold text-blue-700">
                 {totalLessons}
               </p>
-              <p className="text-xs text-gray-600">Lessons</p>
+
+              <p className="text-xs text-gray-600">
+                Lekcje
+              </p>
             </div>
           </div>
         </header>
@@ -292,7 +363,7 @@ const AdminModules = () => {
           <div className="grid md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Level
+                Poziom
               </label>
 
               <select
@@ -315,7 +386,7 @@ const AdminModules = () => {
 
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Search
+                Szukaj
               </label>
 
               <div className="relative">
@@ -324,8 +395,10 @@ const AdminModules = () => {
                 <input
                   type="text"
                   value={searchText}
-                  onChange={(event) => setSearchText(event.target.value)}
-                  placeholder="Search module..."
+                  onChange={(event) =>
+                    setSearchText(event.target.value)
+                  }
+                  placeholder="Szukaj modułu..."
                   className="w-full border border-gray-300 rounded-2xl pl-11 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
                 />
               </div>
@@ -341,18 +414,18 @@ const AdminModules = () => {
 
         {loading ? (
           <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 text-center text-gray-600">
-            Loading modules...
+            Ładowanie modułów...
           </div>
         ) : filteredModules.length === 0 ? (
           <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 text-center">
             <FaLayerGroup className="text-primary-600 text-4xl mx-auto mb-4" />
 
             <h2 className="text-xl font-bold text-gray-900">
-              No modules found
+              Nie znaleziono modułów
             </h2>
 
             <p className="text-gray-600 mt-2">
-              Create the first module for level {levelId}.
+              Utwórz pierwszy moduł dla poziomu {levelId}.
             </p>
 
             <button
@@ -361,13 +434,20 @@ const AdminModules = () => {
               className="mt-5 inline-flex items-center justify-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-5 py-3 rounded-2xl font-semibold"
             >
               <FaPlus />
-              Create module
+              Utwórz moduł
             </button>
           </div>
         ) : (
           <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
             {filteredModules.map((module) => {
-              const moduleId = module.moduleId || module.id;
+              const moduleId =
+                module.moduleId || module.id;
+
+              const moduleOrder =
+                Number(module.order) || 0;
+
+              const lessonCount =
+                Number(module.lessonCount) || 0;
 
               return (
                 <article
@@ -385,42 +465,51 @@ const AdminModules = () => {
 
                         <div className="min-w-0">
                           <p className="text-xs font-semibold uppercase tracking-wide opacity-80">
-                            Level {module.levelId || levelId} · Order {module.order}
+                            Poziom{" "}
+                            {module.levelId || levelId}
+                            {" · "}
+                            Kolejność {moduleOrder}
                           </p>
 
                           <h2 className="text-xl font-bold text-gray-900 break-words">
-                            {module.title}
+                            {module.title ||
+                              "Moduł bez nazwy"}
                           </h2>
                         </div>
                       </div>
                     </div>
 
                     <span
-                      className={`px-3 py-1 rounded-full text-xs font-semibold capitalize shrink-0 ${getStatusClass(
+                      className={`px-3 py-1 rounded-full text-xs font-semibold shrink-0 ${getStatusClass(
                         module.status
                       )}`}
                     >
-                      {module.status}
+                      {getStatusLabel(module.status)}
                     </span>
                   </div>
 
                   <p className="text-sm text-gray-700 mt-4 leading-relaxed break-words min-h-[48px]">
-                    {module.description || "No description available."}
+                    {module.description ||
+                      "Brak dostępnego opisu."}
                   </p>
 
                   <div className="flex flex-wrap gap-2 mt-4">
                     <span className="inline-flex items-center gap-2 bg-white/70 text-gray-700 px-3 py-2 rounded-xl text-sm font-semibold">
                       <FaBookOpen />
-                      {module.lessonCount || 0} lessons
+                      {lessonCount} lekcji
                     </span>
 
                     <button
                       type="button"
-                      onClick={() => handleRefreshLessonCount(module)}
+                      onClick={() =>
+                        handleRefreshLessonCount(module)
+                      }
                       disabled={refreshingId === moduleId}
                       className="inline-flex items-center gap-2 bg-white/70 hover:bg-white text-gray-700 px-3 py-2 rounded-xl text-sm font-semibold disabled:opacity-50"
                     >
-                      {refreshingId === moduleId ? "Refreshing..." : "Refresh count"}
+                      {refreshingId === moduleId
+                        ? "Odświeżanie..."
+                        : "Odśwież liczbę"}
                     </button>
                   </div>
 
@@ -431,7 +520,7 @@ const AdminModules = () => {
                       className="flex-1 inline-flex items-center justify-center gap-2 bg-white hover:bg-gray-50 text-blue-700 px-4 py-3 rounded-2xl font-semibold border border-white/70"
                     >
                       <FaEdit />
-                      Edit
+                      Edytuj
                     </button>
 
                     <button
@@ -440,7 +529,7 @@ const AdminModules = () => {
                       className="flex-1 inline-flex items-center justify-center gap-2 bg-white hover:bg-red-50 text-red-700 px-4 py-3 rounded-2xl font-semibold border border-white/70"
                     >
                       <FaTrash />
-                      Delete
+                      Usuń
                     </button>
                   </div>
                 </article>

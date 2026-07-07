@@ -1,24 +1,22 @@
 // src/components/test/TestSectionRenderer.jsx
 
-import React from "react";
-
 import ReadingSection from "./ReadingSection";
 import TestQuestion from "./TestQuestion";
 
 const TestSectionRenderer = ({
   currentLevel,
   currentSection,
-  selectedQuestions,
-  answers,
+  selectedQuestions = {},
+  answers = {},
   handleAnswerSelect
 }) => {
   const currentQuestions =
-    selectedQuestions[currentLevel]?.[currentSection] || [];
+    selectedQuestions?.[currentLevel]?.[currentSection] || [];
 
   if (!currentQuestions.length) {
     return (
-      <div className="text-red-600">
-        No questions were found for this section.
+      <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-red-700 text-sm">
+        Nie znaleziono pytań dla tej sekcji.
       </div>
     );
   }
@@ -27,7 +25,7 @@ const TestSectionRenderer = ({
     return (
       <ReadingSection
         questions={currentQuestions}
-        selectedAnswers={answers[currentLevel]?.reading || {}}
+        selectedAnswers={answers?.[currentLevel]?.reading || {}}
         onSelectAnswer={handleAnswerSelect}
       />
     );
@@ -37,12 +35,12 @@ const TestSectionRenderer = ({
     <>
       {currentQuestions.map((question, index) => (
         <TestQuestion
-          key={question.id}
+          key={question.id || `${currentSection}_${index}`}
           questionData={question}
           index={index}
           type={currentSection}
           selectedAnswer={
-            answers[currentLevel]?.[currentSection]?.[question.id]
+            answers?.[currentLevel]?.[currentSection]?.[question.id]
           }
           onSelectAnswer={handleAnswerSelect}
         />

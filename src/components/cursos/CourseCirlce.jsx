@@ -1,11 +1,11 @@
-// src/components/cursos/CourseCirlce.jsx
+// src/components/cursos/CourseCircle.jsx
 
 import React from "react";
 import { FaArrowRight, FaBolt, FaStar } from "react-icons/fa";
 
 const CourseCircle = React.forwardRef(({ tema, onClick }, ref) => {
   const xp = tema.xp || tema.xpReward || 20;
-  const difficulty = tema.difficulty || "Beginner";
+  const difficulty = tema.difficulty || "Początkujący";
   const missions = tema.missionsCount || tema.missions || 3;
 
   return (
@@ -26,18 +26,18 @@ const CourseCircle = React.forwardRef(({ tema, onClick }, ref) => {
         </div>
 
         <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2">
-          {tema.title || "Tema sin título"}
+          {tema.title || "Temat bez tytułu"}
         </h3>
 
         <p className="text-sm text-gray-600 leading-relaxed flex-grow line-clamp-3">
-          {tema.description || "Practica este tema con misiones interactivas."}
+          {tema.description || "Ćwicz ten temat z interaktywnymi misjami."}
         </p>
 
         <div className="w-full mt-5 space-y-3">
           <div className="flex items-center justify-between text-xs text-gray-500">
             <span className="inline-flex items-center gap-1">
               <FaBolt className="text-primary-500" />
-              {missions} missions
+              {missions} misje
             </span>
 
             <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
@@ -53,7 +53,7 @@ const CourseCircle = React.forwardRef(({ tema, onClick }, ref) => {
           </div>
 
           <div className="flex items-center justify-center gap-2 text-primary-600 font-semibold text-sm group-hover:text-primary-700">
-            Start topic
+            Rozpocznij temat
             <FaArrowRight className="transition-transform group-hover:translate-x-1" />
           </div>
         </div>

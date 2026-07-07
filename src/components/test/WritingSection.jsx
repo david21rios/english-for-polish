@@ -1,168 +1,115 @@
-import { useState } from 'react';
-import { analyzeText } from "../../services/languageToolService";
+// src/components/test/WritingSection.jsx
 
-const WritingSection = ({ questions, answers, setAnswers }) => {
-  const [validations, setValidations] = useState({});
-  const [invalidTexts, setInvalidTexts] = useState({});
-  const [errors, setErrors] = useState({});
+import { useMemo } from "react";
 
-  // Función mejorada para verificar si una palabra es válida
-  const isValidWord = (word) => {
-    // Eliminar espacios en blanco y caracteres especiales
-    word = word.trim().toLowerCase();
+const countWords = (text = "") =>
+  text.trim().split(/\s+/).filter(Boolean).length;
 
-    // Ignorar palabras vacías
-    if (!word) return true;
+const WritingSection = ({ questions = [], answers = {}, setAnswers }) => {
+  const writingAnswers = answers?.writing || {};
 
-    // Verificar si la palabra contiene caracteres no permitidos
-    if (!/^[a-záéíóúüñ]+$/i.test(word)) {
-      return false;
-    }
-
-    // Debe tener al menos una vocal
-    const hasVowel = /[aeiouáéíóúü]/i.test(word);
-    if (!hasVowel) {
-      return false;
-    }
-
-    // Verificar longitud mínima
-    if (word.length < 2) {
-      return false;
-    }
-
-    return true;
-  };
-
-  // Función mejorada para verificar la validez del texto
-  const checkTextValidity = (text) => {
-    if (!text || text.trim().length === 0) return { isValid: true, error: null };
-
-    const words = text.trim().split(/\s+/);
-    const invalidWords = words.filter(word => !isValidWord(word));
-
-    if (invalidWords.length > 0) {
-      return {
-        isValid: false,
-        error: `Palabras inválidas detectadas: ${invalidWords.join(', ')}`
-      };
-    }
-
-    // Verificar si hay demasiados espacios consecutivos
-    if (/\s{3,}/.test(text)) {
-      return {
-        isValid: false,
-        error: 'Demasiados espacios consecutivos'
-      };
-    }
-
-    return { isValid: true, error: null };
-  };
-
-  const handleAnswer = async (questionId, text) => {
-    try {
-      // Actualizar respuesta
-      setAnswers(prev => ({
-        ...prev,
-        writing: {
-          ...prev.writing,
-          [questionId]: text
-        }
-      }));
-
-      // Verificar el texto mientras se escribe
-      const { isValid, error } = checkTextValidity(text);
-
-      setInvalidTexts(prev => ({
-        ...prev,
-        [questionId]: !isValid
-      }));
-
-      setErrors(prev => ({
-        ...prev,
-        [questionId]: error
-      }));
-
-      // Solo analizar con LanguageTool si el texto es válido y tiene contenido
-      if (isValid && text.trim()) {
-        const validation = await analyzeText(text);
-        setValidations(prev => ({
-          ...prev,
-          [questionId]: validation
-        }));
-      } else {
-        setValidations(prev => ({
-          ...prev,
-          [questionId]: null
-        }));
+  const handleAnswer = (questionId, text) => {
+    setAnswers((prev) => ({
+      ...prev,
+      writing: {
+        ...prev.writing,
+        [questionId]: text
       }
-    } catch (error) {
-      console.error('Error al validar texto:', error);
-      setErrors(prev => ({
-        ...prev,
-        [questionId]: 'Error al validar el texto'
-      }));
-    }
+    }));
   };
+
+  const normalizedQuestions = useMemo(() => {
+    return Array.isArray(questions) ? questions.filter(Boolean) : [];
+  }, [questions]);
+
+  if (normalizedQuestions.length === 0) {
+    return (
+      <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 p-5 rounded-2xl">
+        Brak pytań pisemnych dla tej sekcji.
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
-      {questions.map((question, index) => {
-        const currentText = answers.writing?.[question.id] || "";
-        const validation = validations[question.id];
-        const isInvalidText = invalidTexts[question.id];
-        const error = errors[question.id];
-        const wordCount = currentText.split(/\s+/).filter(word => word.trim()).length;
+      {normalizedQuestions.map((question, index) => {
+        const questionId = question.id || `writing_${index}`;
+        const currentText = writingAnswers[questionId] || "";
+        const wordCount = countWords(currentText);
+
+        const minWords = Number(question.minWords) || 0;
+        const maxWords = Number(question.maxWords) || 0;
+
+        const isBelowMinimum =
+          currentText.trim() && minWords > 0 && wordCount < minWords;
+
+        const isAboveMaximum =
+          currentText.trim() && maxWords > 0 && wordCount > maxWords;
 
         return (
-          <div key={question.id} className="bg-white p-6 rounded-lg shadow">
-            <p className="text-lg font-medium mb-2">
-              {index + 1}. {question.question}
+          <article
+            key={questionId}
+            className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 md:p-8"
+          >
+            <p className="text-sm font-semibold text-primary-600 uppercase tracking-wide mb-2">
+              Pytanie {index + 1}
             </p>
-            {question.example && (
-              <p className="text-sm text-gray-600 mb-4">
-                <strong>Ejemplo:</strong> {question.example}
+
+            <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-4">
+              {question.question || question.prompt || "Brak treści pytania."}
+            </h3>
+
+            {question.instructions && (
+              <p className="text-gray-600 mb-4 leading-relaxed">
+                {question.instructions}
               </p>
             )}
-            <textarea
-              className={`w-full p-3 border rounded-lg min-h-[120px] ${isInvalidText
-                  ? 'border-red-500 bg-red-50'
-                  : validation?.isValid
-                    ? 'border-green-500'
-                    : 'border-gray-300'
-                }`}
-              value={currentText}
-              onChange={(e) => handleAnswer(question.id, e.target.value)}
-              placeholder="Escribe tu respuesta aquí..."
-            />
-            <div className="mt-2 space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className={`${wordCount < (question.minWords || 0) ? 'text-red-500' : 'text-gray-500'
-                  }`}>
-                  Palabras totales: {wordCount}
-                  {question.minWords && ` (mínimo: ${question.minWords})`}
-                </span>
-                {validation && (
-                  <span className="text-gray-500">
-                    Puntuación: {validation.score}%
-                  </span>
-                )}
+
+            {question.example && (
+              <div className="bg-blue-50 border border-blue-100 text-blue-800 rounded-2xl p-4 text-sm mb-5">
+                <strong>Przykład:</strong> {question.example}
               </div>
+            )}
 
-              {/* Mensajes de error mejorados */}
-              {isInvalidText && currentText.trim() && (
-                <div className="text-red-500 text-sm font-medium mt-2">
-                  {error || 'El texto contiene caracteres o palabras inválidas. Por favor, escribe palabras reales usando solo letras.'}
-                </div>
-              )}
+            <textarea
+              className="w-full p-5 border border-gray-300 rounded-2xl min-h-[180px] resize-y focus:outline-none focus:ring-2 focus:ring-primary-200"
+              value={currentText}
+              onChange={(event) => handleAnswer(questionId, event.target.value)}
+              placeholder="Napisz odpowiedź po angielsku..."
+              autoComplete="off"
+              spellCheck={false}
+            />
 
-              {/* Mensaje de longitud mínima */}
-              {currentText.trim() && wordCount < (question.minWords || 0) && (
-                <div className="text-red-500 text-sm font-medium">
-                  Se requieren al menos {question.minWords} palabras.
-                </div>
-              )}
+            <div className="mt-4 flex flex-col md:flex-row md:justify-between gap-2 text-sm">
+              <span
+                className={
+                  isBelowMinimum || isAboveMaximum
+                    ? "text-yellow-700"
+                    : "text-gray-500"
+                }
+              >
+                Liczba słów: {wordCount}
+                {minWords > 0 && ` · minimum: ${minWords}`}
+                {maxWords > 0 && ` · maksimum: ${maxWords}`}
+              </span>
+
+              <span className="text-gray-500">
+                Odpowiedź zostanie oceniona po zakończeniu testu.
+              </span>
             </div>
-          </div>
+
+            {isBelowMinimum && (
+              <div className="mt-3 bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-2xl p-4 text-sm">
+                Odpowiedź zawiera mniej słów niż wymagane minimum.
+              </div>
+            )}
+
+            {isAboveMaximum && (
+              <div className="mt-3 bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-2xl p-4 text-sm">
+                Odpowiedź przekracza zalecaną maksymalną liczbę słów.
+              </div>
+            )}
+          </article>
         );
       })}
     </div>

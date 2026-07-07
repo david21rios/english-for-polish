@@ -1,13 +1,15 @@
-import React from "react";
-import { FaTrash, FaPlus } from "react-icons/fa";
+// src/components/forms/components/OralProduction.jsx
 
-const normalizeExercise = (exercise) => {
+import PropTypes from "prop-types";
+import { FaPlus, FaTrash } from "react-icons/fa";
+
+const normalizeExercise = (exercise = {}) => {
   if (typeof exercise === "string") {
     return {
-      consigna: exercise,
-      guia: "",
-      duracion_recomendada: "",
-      criterios: []
+      prompt: exercise,
+      guide: "",
+      recommendedDuration: "",
+      criteria: []
     };
   }
 
@@ -16,175 +18,220 @@ const normalizeExercise = (exercise) => {
     : "";
 
   return {
-    consigna: exercise?.consigna || exercise?.instrucciones || "",
-    guia: exercise?.guia || "",
-    duracion_recomendada:
-      exercise?.duracion_recomendada || legacyTime || "",
-    criterios: Array.isArray(exercise?.criterios)
-      ? exercise.criterios
-      : []
+    prompt: exercise.prompt || exercise.consigna || exercise.instrucciones || "",
+    guide: exercise.guide || exercise.guia || "",
+    recommendedDuration:
+      exercise.recommendedDuration ||
+      exercise.duracion_recomendada ||
+      legacyTime ||
+      "",
+    criteria: Array.isArray(exercise.criteria)
+      ? exercise.criteria
+      : Array.isArray(exercise.criterios)
+        ? exercise.criterios
+        : []
   };
 };
 
-const OralProduction = ({ formData, setFormData }) => {
-  const produccionOral = formData.produccion_oral || {
-    titulo: "",
-    descripcion: "",
-    ejercicios: []
-  };
+const normalizeOralProduction = (oralProduction = {}) => ({
+  title: oralProduction.title || oralProduction.titulo || "",
+  description: oralProduction.description || oralProduction.descripcion || "",
+  exercises: (
+    Array.isArray(oralProduction.exercises)
+      ? oralProduction.exercises
+      : Array.isArray(oralProduction.ejercicios)
+        ? oralProduction.ejercicios
+        : []
+  ).map(normalizeExercise)
+});
 
-  const ejercicios = (produccionOral.ejercicios || []).map(normalizeExercise);
+const buildLegacyOralProduction = (oralProduction = {}) => ({
+  titulo: oralProduction.title || "",
+  descripcion: oralProduction.description || "",
+  ejercicios: (oralProduction.exercises || []).map((exercise) => ({
+    consigna: exercise.prompt || "",
+    guia: exercise.guide || "",
+    duracion_recomendada: exercise.recommendedDuration || "",
+    criterios: exercise.criteria || []
+  }))
+});
+
+const OralProduction = ({ formData, setFormData }) => {
+  const oralProduction = normalizeOralProduction(
+    formData.oralProduction || formData.produccion_oral || {}
+  );
 
   const updateOralProduction = (updatedData) => {
+    const normalizedOralProduction = normalizeOralProduction(updatedData);
+
     setFormData((prev) => ({
       ...prev,
-      produccion_oral: {
-        ...(prev.produccion_oral || {}),
-        ...updatedData
-      }
+      oralProduction: normalizedOralProduction,
+      produccion_oral: buildLegacyOralProduction(normalizedOralProduction)
     }));
   };
 
   const handleChange = (field, value) => {
-    updateOralProduction({ [field]: value });
+    updateOralProduction({
+      ...oralProduction,
+      [field]: value
+    });
   };
 
-  const handleAddEjercicio = () => {
+  const handleAddExercise = () => {
     updateOralProduction({
-      ejercicios: [
-        ...ejercicios,
+      ...oralProduction,
+      exercises: [
+        ...oralProduction.exercises,
         {
-          consigna: "",
-          guia: "",
-          duracion_recomendada: "",
-          criterios: []
+          prompt: "",
+          guide: "",
+          recommendedDuration: "",
+          criteria: []
         }
       ]
     });
   };
 
-  const handleEjercicioChange = (index, field, value) => {
-    const newEjercicios = [...ejercicios];
+  const handleExerciseChange = (index, field, value) => {
+    const newExercises = [...oralProduction.exercises];
 
-    newEjercicios[index] = {
-      ...newEjercicios[index],
+    newExercises[index] = {
+      ...newExercises[index],
       [field]: value
     };
 
-    updateOralProduction({ ejercicios: newEjercicios });
-  };
-
-  const handleRemoveEjercicio = (index) => {
     updateOralProduction({
-      ejercicios: ejercicios.filter((_, i) => i !== index)
+      ...oralProduction,
+      exercises: newExercises
     });
   };
 
-  const handleAddCriterio = (exerciseIndex) => {
-    const newEjercicios = [...ejercicios];
-
-    newEjercicios[exerciseIndex] = {
-      ...newEjercicios[exerciseIndex],
-      criterios: [
-        ...(newEjercicios[exerciseIndex].criterios || []),
-        ""
-      ]
-    };
-
-    updateOralProduction({ ejercicios: newEjercicios });
+  const handleRemoveExercise = (index) => {
+    updateOralProduction({
+      ...oralProduction,
+      exercises: oralProduction.exercises.filter(
+        (_, exerciseIndex) => exerciseIndex !== index
+      )
+    });
   };
 
-  const handleCriterioChange = (exerciseIndex, criterioIndex, value) => {
-    const newEjercicios = [...ejercicios];
-    const criterios = [...(newEjercicios[exerciseIndex].criterios || [])];
+  const handleAddCriterion = (exerciseIndex) => {
+    const newExercises = [...oralProduction.exercises];
 
-    criterios[criterioIndex] = value;
-
-    newEjercicios[exerciseIndex] = {
-      ...newEjercicios[exerciseIndex],
-      criterios
+    newExercises[exerciseIndex] = {
+      ...newExercises[exerciseIndex],
+      criteria: [...(newExercises[exerciseIndex].criteria || []), ""]
     };
 
-    updateOralProduction({ ejercicios: newEjercicios });
+    updateOralProduction({
+      ...oralProduction,
+      exercises: newExercises
+    });
   };
 
-  const handleRemoveCriterio = (exerciseIndex, criterioIndex) => {
-    const newEjercicios = [...ejercicios];
+  const handleCriterionChange = (exerciseIndex, criterionIndex, value) => {
+    const newExercises = [...oralProduction.exercises];
+    const criteria = [...(newExercises[exerciseIndex].criteria || [])];
 
-    newEjercicios[exerciseIndex] = {
-      ...newEjercicios[exerciseIndex],
-      criterios: (newEjercicios[exerciseIndex].criterios || []).filter(
-        (_, i) => i !== criterioIndex
+    criteria[criterionIndex] = value;
+
+    newExercises[exerciseIndex] = {
+      ...newExercises[exerciseIndex],
+      criteria
+    };
+
+    updateOralProduction({
+      ...oralProduction,
+      exercises: newExercises
+    });
+  };
+
+  const handleRemoveCriterion = (exerciseIndex, criterionIndex) => {
+    const newExercises = [...oralProduction.exercises];
+
+    newExercises[exerciseIndex] = {
+      ...newExercises[exerciseIndex],
+      criteria: (newExercises[exerciseIndex].criteria || []).filter(
+        (_, index) => index !== criterionIndex
       )
     };
 
-    updateOralProduction({ ejercicios: newEjercicios });
+    updateOralProduction({
+      ...oralProduction,
+      exercises: newExercises
+    });
   };
 
   return (
     <div className="space-y-5">
       <div>
         <label className="block text-sm font-medium text-gray-700">
-          Título de la Producción Oral
+          Tytuł zadania ustnego
         </label>
+
         <input
           type="text"
-          value={produccionOral.titulo || ""}
-          onChange={(e) => handleChange("titulo", e.target.value)}
-          className="mt-1 block w-full rounded-md border-gray-300"
-          placeholder="Título de la actividad oral"
+          value={oralProduction.title}
+          onChange={(event) => handleChange("title", event.target.value)}
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+          placeholder="Wpisz tytuł aktywności ustnej..."
         />
       </div>
 
       <div>
         <label className="block text-sm font-medium text-gray-700">
-          Descripción
+          Opis
         </label>
+
         <textarea
-          value={produccionOral.descripcion || ""}
-          onChange={(e) => handleChange("descripcion", e.target.value)}
-          className="mt-1 block w-full rounded-md border-gray-300"
+          value={oralProduction.description}
+          onChange={(event) => handleChange("description", event.target.value)}
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
           rows={4}
-          placeholder="Descripción de la actividad oral"
+          placeholder="Wpisz opis aktywności ustnej..."
         />
       </div>
 
       <div className="space-y-4">
-        <div className="flex justify-between items-center gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700">
-              Ejercicios orales
+              Ćwiczenia ustne
             </label>
+
             <p className="text-sm text-gray-500">
-              Define consigna, guía, duración recomendada y criterios de autoevaluación.
+              Określ polecenie, wskazówki, sugerowany czas i kryteria samooceny.
             </p>
           </div>
 
           <button
             type="button"
-            onClick={handleAddEjercicio}
-            className="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium text-white bg-primary-600 hover:bg-primary-700"
+            onClick={handleAddExercise}
+            className="inline-flex items-center justify-center px-3 py-1.5 rounded-md text-sm font-medium text-white bg-primary-600 hover:bg-primary-700"
           >
             <FaPlus className="mr-2" />
-            Añadir ejercicio
+            Dodaj ćwiczenie
           </button>
         </div>
 
-        {ejercicios.length > 0 ? (
-          ejercicios.map((ejercicio, index) => (
+        {oralProduction.exercises.length > 0 ? (
+          oralProduction.exercises.map((exercise, index) => (
             <div
               key={index}
               className="border border-gray-200 rounded-xl p-4 space-y-4 bg-white"
             >
               <div className="flex justify-between items-start gap-3">
                 <h4 className="font-semibold text-gray-900">
-                  Ejercicio oral {index + 1}
+                  Ćwiczenie ustne {index + 1}
                 </h4>
 
                 <button
                   type="button"
-                  onClick={() => handleRemoveEjercicio(index)}
-                  className="text-red-600 hover:text-red-800"
+                  onClick={() => handleRemoveExercise(index)}
+                  className="p-2 text-red-600 hover:text-red-800 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                  aria-label={`Usuń ćwiczenie ustne ${index + 1}`}
+                  title="Usuń ćwiczenie"
                 >
                   <FaTrash />
                 </button>
@@ -192,94 +239,100 @@ const OralProduction = ({ formData, setFormData }) => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700">
-                  Consigna
+                  Polecenie
                 </label>
+
                 <textarea
-                  value={ejercicio.consigna || ""}
-                  onChange={(e) =>
-                    handleEjercicioChange(index, "consigna", e.target.value)
+                  value={exercise.prompt}
+                  onChange={(event) =>
+                    handleExerciseChange(index, "prompt", event.target.value)
                   }
-                  className="mt-1 block w-full rounded-md border-gray-300"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
                   rows={3}
-                  placeholder="Ej: Graba una presentación corta sobre ti."
+                  placeholder="Np. Nagraj krótką prezentację o sobie."
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700">
-                  Guía para el estudiante
+                  Wskazówki dla ucznia
                 </label>
+
                 <textarea
-                  value={ejercicio.guia || ""}
-                  onChange={(e) =>
-                    handleEjercicioChange(index, "guia", e.target.value)
+                  value={exercise.guide}
+                  onChange={(event) =>
+                    handleExerciseChange(index, "guide", event.target.value)
                   }
-                  className="mt-1 block w-full rounded-md border-gray-300"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
                   rows={3}
-                  placeholder="Ej: Usa saludos, tu nombre y tu país."
+                  placeholder="Np. Użyj powitań, swojego imienia i kraju."
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700">
-                  Duración recomendada
+                  Sugerowany czas
                 </label>
+
                 <input
                   type="text"
-                  value={ejercicio.duracion_recomendada || ""}
-                  onChange={(e) =>
-                    handleEjercicioChange(
+                  value={exercise.recommendedDuration}
+                  onChange={(event) =>
+                    handleExerciseChange(
                       index,
-                      "duracion_recomendada",
-                      e.target.value
+                      "recommendedDuration",
+                      event.target.value
                     )
                   }
-                  className="mt-1 block w-full rounded-md border-gray-300"
-                  placeholder="Ej: 30 segundos, 1 minuto, 1 a 2 minutos"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                  placeholder="Np. 30 sekund, 1 minuta, 1–2 minuty"
                 />
+
                 <p className="mt-1 text-xs text-gray-500">
-                  Es una orientación, no una restricción obligatoria.
+                  To wskazówka, a nie obowiązkowe ograniczenie.
                 </p>
               </div>
 
               <div className="space-y-2">
-                <div className="flex justify-between items-center">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                   <label className="block text-sm font-medium text-gray-700">
-                    Criterios de autoevaluación
+                    Kryteria samooceny
                   </label>
 
                   <button
                     type="button"
-                    onClick={() => handleAddCriterio(index)}
+                    onClick={() => handleAddCriterion(index)}
                     className="text-primary-600 hover:text-primary-700 text-sm font-medium"
                   >
                     <FaPlus className="inline mr-2" />
-                    Añadir criterio
+                    Dodaj kryterium
                   </button>
                 </div>
 
-                {(ejercicio.criterios || []).map((criterio, criterioIndex) => (
-                  <div key={criterioIndex} className="flex items-center gap-2">
+                {(exercise.criteria || []).map((criterion, criterionIndex) => (
+                  <div key={criterionIndex} className="flex items-center gap-2">
                     <input
                       type="text"
-                      value={criterio}
-                      onChange={(e) =>
-                        handleCriterioChange(
+                      value={criterion}
+                      onChange={(event) =>
+                        handleCriterionChange(
                           index,
-                          criterioIndex,
-                          e.target.value
+                          criterionIndex,
+                          event.target.value
                         )
                       }
-                      className="flex-1 rounded-md border-gray-300"
-                      placeholder="Ej: Pronuncié claramente las frases."
+                      className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                      placeholder="Np. Wymówiłem zdania wyraźnie."
                     />
 
                     <button
                       type="button"
                       onClick={() =>
-                        handleRemoveCriterio(index, criterioIndex)
+                        handleRemoveCriterion(index, criterionIndex)
                       }
-                      className="text-red-600"
+                      className="p-2 text-red-600 hover:text-red-800 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                      aria-label={`Usuń kryterium ${criterionIndex + 1}`}
+                      title="Usuń kryterium"
                     >
                       <FaTrash />
                     </button>
@@ -290,12 +343,17 @@ const OralProduction = ({ formData, setFormData }) => {
           ))
         ) : (
           <p className="text-gray-500 text-sm italic">
-            No hay ejercicios orales definidos.
+            Nie zdefiniowano jeszcze ćwiczeń ustnych.
           </p>
         )}
       </div>
     </div>
   );
+};
+
+OralProduction.propTypes = {
+  formData: PropTypes.object.isRequired,
+  setFormData: PropTypes.func.isRequired
 };
 
 export default OralProduction;

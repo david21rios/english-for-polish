@@ -11,21 +11,24 @@ import {
 
 import {
   getLessonProgress,
+  getLastLessonProgress,
   saveLessonProgress,
   markLessonAsCompleted
 } from "./progressService";
 
+import { getCanonicalLessonData } from "../utils/lessonNormalizer";
+
 const LESSON_SECTIONS = [
-  { id: "intro", title: "Introducción" },
-  { id: "vocabulary", title: "Vocabulario" },
-  { id: "grammar", title: "Gramática" },
-  { id: "reading", title: "Lectura" },
-  { id: "practice", title: "Práctica Interactiva" },
-  { id: "writing", title: "Producción Escrita" },
-  { id: "speaking", title: "Producción Oral" },
-  { id: "evaluation", title: "Evaluación" },
-  { id: "resources", title: "Recursos" },
-  { id: "reflection", title: "Cierre" }
+  { id: "intro", title: "Wprowadzenie" },
+  { id: "vocabulary", title: "Słownictwo" },
+  { id: "grammar", title: "Gramatyka" },
+  { id: "reading", title: "Czytanie" },
+  { id: "practice", title: "Ćwiczenia interaktywne" },
+  { id: "writing", title: "Pisanie" },
+  { id: "speaking", title: "Mówienie" },
+  { id: "evaluation", title: "Ocena" },
+  { id: "resources", title: "Materiały" },
+  { id: "reflection", title: "Podsumowanie" }
 ];
 
 const LEVEL_ORDER = ["A1", "A2", "B1", "B2", "C1", "C2"];
@@ -34,6 +37,7 @@ export const getLessonSections = () => LESSON_SECTIONS;
 
 export const getNextLevel = (currentLevel) => {
   const currentIndex = LEVEL_ORDER.indexOf(currentLevel);
+
   return currentIndex < LEVEL_ORDER.length - 1
     ? LEVEL_ORDER[currentIndex + 1]
     : null;
@@ -41,6 +45,7 @@ export const getNextLevel = (currentLevel) => {
 
 export const getPreviousLevel = (currentLevel) => {
   const currentIndex = LEVEL_ORDER.indexOf(currentLevel);
+
   return currentIndex > 0 ? LEVEL_ORDER[currentIndex - 1] : null;
 };
 
@@ -91,7 +96,7 @@ export const getLevelNavigationData = async ({
   });
 
   if (!level) {
-    throw new Error(`Level ${levelId} not found.`);
+    throw new Error(`Nie znaleziono poziomu ${levelId}.`);
   }
 
   const flatLessons = level.modules.flatMap((module) =>
@@ -129,6 +134,7 @@ export const getLessonByIdFromLevel = async ({
 };
 
 export const getInitialLessonForLevel = async ({
+  userId = null,
   levelId,
   requestedLessonId = null,
   userAgeGroup = null,
@@ -143,6 +149,21 @@ export const getInitialLessonForLevel = async ({
     });
 
     if (requestedLesson) return requestedLesson;
+  }
+
+  if (userId) {
+    const lastProgress = await getLastLessonProgress(userId);
+
+    if (lastProgress?.levelId === levelId && lastProgress?.lessonId) {
+      const lastLesson = await getLessonByIdFromLevel({
+        levelId,
+        lessonId: lastProgress.lessonId,
+        userAgeGroup,
+        includeDrafts
+      });
+
+      if (lastLesson) return lastLesson;
+    }
   }
 
   return getFirstAvailableLesson({
@@ -179,99 +200,88 @@ export const getLessonContentFromModule = async ({
   };
 };
 
-const processExercises = (ejercicios) => {
-  if (!Array.isArray(ejercicios)) return [];
-
-  return ejercicios.filter(Boolean).map((ejercicio) => {
-    const tipo =
-      ejercicio.tipo?.toLowerCase() ||
-      ejercicio.type?.toLowerCase() ||
-      "seleccion_multiple";
-
-    return {
-      ...ejercicio,
-      tipo,
-      pregunta: ejercicio.pregunta || ejercicio.question || "",
-      instrucciones: ejercicio.instrucciones || "",
-      opciones: ejercicio.opciones || ejercicio.options || [],
-      respuesta_correcta:
-        ejercicio.respuesta_correcta ||
-        ejercicio.answer ||
-        ejercicio.correctAnswer ||
-        "",
-      respuestas: ejercicio.respuestas || ejercicio.respuestas_correctas || {},
-      respuestas_correctas:
-        ejercicio.respuestas_correctas || ejercicio.respuestas || {},
-      respuestas_aceptadas: ejercicio.respuestas_aceptadas || {},
-      elementos: ejercicio.elementos || ejercicio.items || [],
-      orden_correcto: ejercicio.orden_correcto || ejercicio.correctOrder || [],
-      pares_izquierda:
-        ejercicio.pares_izquierda ||
-        ejercicio.elementos_izquierda ||
-        ejercicio.leftItems ||
-        [],
-      pares_derecha:
-        ejercicio.pares_derecha ||
-        ejercicio.elementos_derecha ||
-        ejercicio.rightItems ||
-        [],
-      pares_correctos: ejercicio.pares_correctos || {}
-    };
-  });
-};
-
-export const buildLessonDetails = (baseLesson, lessonContent) => {
-  if (!lessonContent) return baseLesson;
-
-  const practiceExercises = processExercises(
-    lessonContent.practica_interactiva?.ejercicios
-  );
-
+const buildLegacyCompatibilityLayer = (canonicalLesson = {}) => {
   return {
-    ...baseLesson,
-    ...lessonContent,
+    titulo: canonicalLesson.title || "",
+    descripcion: canonicalLesson.description || "",
+    objetivos: canonicalLesson.objectives || [],
 
     contenidos: {
-      vocabulario: lessonContent.contenidos?.vocabulario || {},
-      gramatica: lessonContent.contenidos?.gramatica || {
-        temas: [],
-        reglas: []
+      vocabulario: {
+        titulo: canonicalLesson.vocabulary?.title || "",
+        palabras: canonicalLesson.vocabulary?.items || [],
+        items: canonicalLesson.vocabulary?.items || []
+      },
+      gramatica: {
+        titulo: canonicalLesson.grammar?.title || "",
+        explicacion: canonicalLesson.grammar?.explanation || "",
+        reglas: canonicalLesson.grammar?.rules || [],
+        examples: canonicalLesson.grammar?.examples || [],
+        temas: canonicalLesson.grammar?.rules || []
       }
     },
 
-    lectura: lessonContent.lectura || {
-      titulo: "",
-      autor: "",
-      contenido: "",
-      preguntas: []
+    lectura: {
+      titulo: canonicalLesson.reading?.title || "",
+      autor: canonicalLesson.reading?.author || "",
+      contenido: canonicalLesson.reading?.text || "",
+      preguntas: canonicalLesson.reading?.questions || []
     },
 
     practica_interactiva: {
-      titulo:
-        lessonContent.practica_interactiva?.titulo || "Práctica Interactiva",
-      descripcion: lessonContent.practica_interactiva?.descripcion || "",
-      ejercicios: practiceExercises
+      titulo: canonicalLesson.practice?.title || "",
+      descripcion: canonicalLesson.practice?.description || "",
+      ejercicios: canonicalLesson.practice?.exercises || []
     },
 
     produccion_escrita: {
-      titulo: lessonContent.produccion_escrita?.titulo || "",
-      descripcion: lessonContent.produccion_escrita?.descripcion || "",
-      ejercicios: lessonContent.produccion_escrita?.ejercicios || []
+      titulo: canonicalLesson.writing?.title || "",
+      descripcion: canonicalLesson.writing?.description || "",
+      ejercicios: canonicalLesson.writing?.activities || []
     },
 
     produccion_oral: {
-      titulo: lessonContent.produccion_oral?.titulo || "",
-      descripcion: lessonContent.produccion_oral?.descripcion || "",
-      ejercicios: lessonContent.produccion_oral?.ejercicios || []
+      titulo: canonicalLesson.speaking?.title || "",
+      descripcion: canonicalLesson.speaking?.description || "",
+      ejercicios: canonicalLesson.speaking?.activities || []
     },
 
     evaluacion: {
-      autoevaluacion: lessonContent.evaluacion?.autoevaluacion || "",
-      cuestionario: lessonContent.evaluacion?.cuestionario || []
+      titulo: canonicalLesson.evaluation?.title || "",
+      autoevaluacion: canonicalLesson.evaluation?.selfAssessment || "",
+      cuestionario: canonicalLesson.evaluation?.questions || []
     },
 
-    recursos_adicionales: lessonContent.recursos_adicionales || [],
-    reflexion_final: lessonContent.reflexion_final || ""
+    recursos_adicionales: canonicalLesson.resources || [],
+    reflexion_final: canonicalLesson.reflection || ""
+  };
+};
+
+export const buildLessonDetails = (baseLesson, lessonContent) => {
+  const mergedLesson = {
+    ...(baseLesson || {}),
+    ...(lessonContent || {})
+  };
+
+  const canonicalLesson = getCanonicalLessonData(mergedLesson);
+  const legacyCompatibility = buildLegacyCompatibilityLayer(canonicalLesson);
+
+  return {
+    ...mergedLesson,
+    ...legacyCompatibility,
+    ...canonicalLesson,
+
+    id: canonicalLesson.id || mergedLesson.id || mergedLesson.lessonId || "",
+    lessonId:
+      canonicalLesson.lessonId || mergedLesson.lessonId || mergedLesson.id || "",
+    level: canonicalLesson.level || mergedLesson.level || mergedLesson.nivel || "",
+    nivel: canonicalLesson.level || mergedLesson.level || mergedLesson.nivel || "",
+    moduleId: canonicalLesson.moduleId || mergedLesson.moduleId || "",
+    moduleTitle: canonicalLesson.moduleTitle || mergedLesson.moduleTitle || "",
+    orderInModule:
+      canonicalLesson.orderInModule || mergedLesson.orderInModule || 1,
+    status: canonicalLesson.status || mergedLesson.status || "draft",
+    ageGroup: canonicalLesson.ageGroup || mergedLesson.ageGroup || "all"
   };
 };
 
@@ -281,7 +291,7 @@ export const loadLessonDetails = async ({ levelId, lesson }) => {
   const moduleId = lesson.moduleId;
 
   if (!moduleId) {
-    throw new Error("Lesson does not have moduleId.");
+    throw new Error("Lekcja nie ma przypisanego modułu.");
   }
 
   const lessonContent = await getLessonContentFromModule({
@@ -329,9 +339,15 @@ export const loadLessonProgressState = async ({
     ? progress.completedSections
     : [];
 
+  const safeActivityResults =
+    progress?.activityResults && typeof progress.activityResults === "object"
+      ? progress.activityResults
+      : {};
+
   return {
     currentSectionIndex: requestedSectionIndex ?? safeSectionIndex,
-    completedSections: safeCompletedSections
+    completedSections: safeCompletedSections,
+    activityResults: safeActivityResults
   };
 };
 
@@ -339,8 +355,10 @@ export const saveLessonProgressState = async ({
   userId,
   levelId,
   lessonId,
+  moduleId = null,
   currentSectionIndex,
   completedSections = [],
+  activityResults = {},
   completed = false
 }) => {
   if (!userId || !levelId || !lessonId) return false;
@@ -349,8 +367,10 @@ export const saveLessonProgressState = async ({
     userId,
     levelId,
     lessonId,
+    moduleId,
     currentSectionIndex,
     completedSections,
+    activityResults,
     totalSections: LESSON_SECTIONS.length,
     completed
   });
@@ -362,7 +382,9 @@ export const completeLessonForUser = async ({
   userId,
   levelId,
   lessonId,
-  completedSections = LESSON_SECTIONS.map((section) => section.id)
+  moduleId = null,
+  completedSections = LESSON_SECTIONS.map((section) => section.id),
+  activityResults = {}
 }) => {
   if (!userId || !levelId || !lessonId) return false;
 
@@ -370,7 +392,9 @@ export const completeLessonForUser = async ({
     userId,
     levelId,
     lessonId,
+    moduleId,
     completedSections,
+    activityResults,
     totalSections: LESSON_SECTIONS.length
   });
 

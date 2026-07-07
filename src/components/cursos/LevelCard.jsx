@@ -36,6 +36,10 @@ const getIconStyle = ({ isCompleted, isCurrentLevel, isLocked, levelId }) => {
   return "bg-purple-100 text-purple-700";
 };
 
+const getPolishPlural = (count, singular, plural) => {
+  return count === 1 ? singular : plural;
+};
+
 const LevelCard = ({ level, onOpenLevel }) => {
   const Icon = getLevelIcon(level.id);
 
@@ -81,47 +85,47 @@ const LevelCard = ({ level, onOpenLevel }) => {
         <div className="flex flex-col items-end gap-2">
           {level.isCompleted && (
             <span className="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full font-semibold">
-              Completed
+              Ukończony
             </span>
           )}
 
           {level.isCurrentLevel && !level.isCompleted && (
             <span className="text-xs bg-primary-100 text-primary-700 px-3 py-1 rounded-full font-semibold">
-              Current
+              Aktualny
             </span>
           )}
 
           {level.isLocked && (
             <span className="text-xs bg-gray-200 text-gray-600 px-3 py-1 rounded-full font-semibold">
-              Locked
+              Zablokowany
             </span>
           )}
         </div>
       </div>
 
       <h2 className="text-xl md:text-2xl font-heading font-bold text-gray-900 mb-2 md:mb-3">
-        Level {level.title || level.id}
+        Poziom {level.title || level.id}
       </h2>
 
       <p className="text-gray-600 leading-relaxed flex-grow">
         {level.description ||
-          "Practice lessons, examples and exercises for this level."}
+          "Lekcje, przykłady i ćwiczenia przygotowane dla tego poziomu."}
       </p>
 
       <div className="mt-5 flex flex-wrap gap-2">
         <span className="inline-flex items-center gap-2 text-sm bg-gray-100 text-gray-700 px-3 py-2 rounded-full">
           <FaLayerGroup />
-          {moduleCount} module{moduleCount === 1 ? "" : "s"}
+          {moduleCount} {getPolishPlural(moduleCount, "moduł", "moduły")}
         </span>
 
         <span className="inline-flex items-center gap-2 text-sm bg-gray-100 text-gray-700 px-3 py-2 rounded-full">
           <FaBook />
-          {lessonCount} lesson{lessonCount === 1 ? "" : "s"}
+          {lessonCount} {getPolishPlural(lessonCount, "lekcja", "lekcje")}
         </span>
 
         {!level.isLocked && totalLessons > 0 && (
           <span className="inline-flex items-center gap-2 text-sm bg-blue-50 text-blue-700 px-3 py-2 rounded-full">
-            {completedLessons}/{totalLessons} completed
+            {completedLessons}/{totalLessons} ukończono
           </span>
         )}
       </div>
@@ -129,7 +133,7 @@ const LevelCard = ({ level, onOpenLevel }) => {
       {!level.isLocked && totalLessons > 0 && (
         <div className="mt-5">
           <div className="flex justify-between text-xs text-gray-500 mb-1">
-            <span>Progress</span>
+            <span>Postęp</span>
             <span>{progressPercent}%</span>
           </div>
 
@@ -161,29 +165,29 @@ const LevelCard = ({ level, onOpenLevel }) => {
         {level.isLocked ? (
           <>
             <FaLock />
-            Locked
+            Zablokowany
           </>
         ) : !level.hasLessons ? (
           <>
             <FaLock />
-            No lessons yet
+            Brak lekcji
           </>
         ) : level.isCompleted ? (
           <>
             <FaCheckCircle />
-            Review level
+            Powtórz poziom
             <FaArrowRight />
           </>
         ) : level.isCurrentLevel ? (
           <>
             <FaPlay />
-            Continue level
+            Kontynuuj poziom
             <FaArrowRight />
           </>
         ) : (
           <>
             <FaPlay />
-            Go to course
+            Przejdź do kursu
             <FaArrowRight />
           </>
         )}

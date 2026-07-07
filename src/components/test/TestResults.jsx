@@ -28,23 +28,19 @@ ChartJS.register(
   Legend
 );
 
-const getRecommendationMessage = (finalLevel) => {
+const getRecommendationMessage = (level = "A1") => {
   const messages = {
-    "A1-A2":
-      "Te recomendamos iniciar desde las bases del idioma para fortalecer vocabulario, frases simples y comprensión inicial.",
-    "A2-B1":
-      "Tienes una base inicial. Puedes avanzar hacia conversaciones cotidianas, lectura sencilla y escritura guiada.",
-    "B1-B2":
-      "Tienes un nivel intermedio. Puedes trabajar más fluidez, comprensión de textos y producción escrita con más detalle.",
-    "B2-C1":
-      "Tienes un nivel intermedio alto. Puedes enfocarte en precisión, naturalidad y comunicación profesional.",
-    "C1-C2":
-      "Tienes un nivel avanzado. Puedes trabajar matices, argumentación, escritura compleja y conversación natural."
+    A1: "Zalecamy rozpoczęcie od podstaw: proste słownictwo, podstawowe zdania i codzienna komunikacja.",
+    A2: "Masz podstawy języka angielskiego. Możesz rozwijać proste rozmowy, krótkie teksty i praktyczne słownictwo.",
+    B1: "Masz poziom średniozaawansowany. Warto rozwijać płynność, czytanie ze zrozumieniem i dłuższe wypowiedzi.",
+    B2: "Masz poziom średniozaawansowany wyższy. Możesz pracować nad precyzją, naturalnością i komunikacją akademicką lub zawodową.",
+    C1: "Masz poziom zaawansowany. Skup się na argumentacji, stylu, idiomach i złożonych strukturach.",
+    C2: "Masz bardzo wysoki poziom. Możesz doskonalić niuanse językowe, styl akademicki i naturalną komunikację."
   };
 
   return (
-    messages[finalLevel] ||
-    "Usa este resultado como orientación inicial para elegir tu ruta de aprendizaje."
+    messages[level] ||
+    "Użyj tego wyniku jako wskazówki do wyboru odpowiedniej ścieżki nauki."
   );
 };
 
@@ -53,30 +49,44 @@ const TestResults = ({ results }) => {
     return (
       <div className="bg-white rounded-3xl p-8 shadow-lg border border-red-100">
         <h3 className="text-xl font-semibold text-red-600">
-          No hay resultados disponibles
+          Brak dostępnych wyników
         </h3>
+
         <p className="text-gray-600 mt-2">
-          No se pudo cargar el resultado del test.
+          Nie udało się załadować wyniku testu.
         </p>
       </div>
     );
   }
 
-  const filterScores = results.filterResults || {};
-  const scoreEntries = Object.entries(filterScores);
-  const finalLevel = results.finalLevel || "No definido";
+  const canonicalResults = results.results || results;
+
+  const levelScores =
+    canonicalResults.levelResults ||
+    canonicalResults.filterResults ||
+    {};
+
+  const scoreEntries = Object.entries(levelScores);
+
+  const finalLevel =
+    canonicalResults.placementLevel ||
+    canonicalResults.finalLevel ||
+    "A1";
+
+  const overallScore =
+    Number(canonicalResults.overallScore) ||
+    (scoreEntries.length > 0
+      ? Math.round(
+          scoreEntries.reduce(
+            (sum, [, score]) => sum + (Number(score) || 0),
+            0
+          ) / scoreEntries.length
+        )
+      : 0);
 
   const passedLevels = scoreEntries.filter(
     ([, score]) => Number(score) >= 70
   ).length;
-
-  const averageScore =
-    scoreEntries.length > 0
-      ? Math.round(
-          scoreEntries.reduce((sum, [, score]) => sum + (Number(score) || 0), 0) /
-            scoreEntries.length
-        )
-      : 0;
 
   return (
     <div className="space-y-8">
@@ -86,15 +96,15 @@ const TestResults = ({ results }) => {
         </div>
 
         <p className="text-sm font-semibold uppercase tracking-wide text-primary-100">
-          Resultado final del test
+          Końcowy wynik testu
         </p>
 
         <h2 className="text-4xl md:text-5xl font-bold mt-3">
-          Nivel recomendado: {finalLevel}
+          Zalecany poziom: {finalLevel}
         </h2>
 
         <p className="text-primary-50 mt-5 max-w-2xl mx-auto leading-relaxed">
-          {getRecommendationMessage(results.finalLevel)}
+          {getRecommendationMessage(finalLevel)}
         </p>
       </section>
 
@@ -102,13 +112,15 @@ const TestResults = ({ results }) => {
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 text-center">
           <FaGraduationCap className="mx-auto text-primary-600 text-3xl mb-3" />
           <p className="text-3xl font-bold text-primary-700">{finalLevel}</p>
-          <p className="text-sm text-gray-600 mt-1">Nivel sugerido</p>
+          <p className="text-sm text-gray-600 mt-1">Zalecany poziom</p>
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 text-center">
           <FaChartBar className="mx-auto text-green-600 text-3xl mb-3" />
-          <p className="text-3xl font-bold text-green-700">{averageScore}%</p>
-          <p className="text-sm text-gray-600 mt-1">Promedio general</p>
+          <p className="text-3xl font-bold text-green-700">
+            {overallScore}%
+          </p>
+          <p className="text-sm text-gray-600 mt-1">Średni wynik</p>
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 text-center">
@@ -116,7 +128,7 @@ const TestResults = ({ results }) => {
           <p className="text-3xl font-bold text-yellow-700">
             {passedLevels}/{scoreEntries.length}
           </p>
-          <p className="text-sm text-gray-600 mt-1">Niveles superados</p>
+          <p className="text-sm text-gray-600 mt-1">Zaliczone poziomy</p>
         </div>
       </section>
 
@@ -128,10 +140,11 @@ const TestResults = ({ results }) => {
 
           <div>
             <h3 className="text-2xl font-bold text-gray-900">
-              Resumen por nivel
+              Podsumowanie według poziomu
             </h3>
+
             <p className="text-gray-600 text-sm">
-              Revisa tu desempeño en cada bloque evaluado.
+              Sprawdź swój wynik na każdym ocenianym poziomie CEFR.
             </p>
           </div>
         </div>
@@ -139,18 +152,18 @@ const TestResults = ({ results }) => {
         {scoreEntries.length === 0 ? (
           <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 p-4 rounded-xl flex gap-3">
             <FaExclamationTriangle className="mt-1" />
-            <span>No hay puntuaciones por nivel disponibles.</span>
+            <span>Brak wyników według poziomu.</span>
           </div>
         ) : (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {scoreEntries.map(([filter, score]) => {
+              {scoreEntries.map(([level, score]) => {
                 const safeScore = Number(score) || 0;
                 const passed = safeScore >= 70;
 
                 return (
                   <div
-                    key={filter}
+                    key={level}
                     className={`p-5 rounded-2xl border ${
                       passed
                         ? "bg-green-50 border-green-100"
@@ -159,7 +172,7 @@ const TestResults = ({ results }) => {
                   >
                     <div className="flex justify-between items-start gap-3">
                       <div>
-                        <h4 className="font-bold text-gray-900">{filter}</h4>
+                        <h4 className="font-bold text-gray-900">{level}</h4>
 
                         <p
                           className={`text-3xl font-bold mt-2 ${
@@ -183,8 +196,8 @@ const TestResults = ({ results }) => {
 
                     <p className="text-sm text-gray-600 mt-3">
                       {passed
-                        ? "Nivel superado. Puedes avanzar con confianza."
-                        : "Nivel recomendado para reforzar antes de avanzar."}
+                        ? "Poziom zaliczony. Możesz kontynuować naukę na wyższym poziomie."
+                        : "Ten poziom warto wzmocnić przed przejściem dalej."}
                     </p>
                   </div>
                 );
@@ -194,10 +207,10 @@ const TestResults = ({ results }) => {
             <div className="mt-8 bg-gray-50 rounded-2xl p-4 border border-gray-100">
               <Bar
                 data={{
-                  labels: scoreEntries.map(([filter]) => filter),
+                  labels: scoreEntries.map(([level]) => level),
                   datasets: [
                     {
-                      label: "Puntuación por nivel",
+                      label: "Wynik według poziomu",
                       data: scoreEntries.map(([, score]) => Number(score) || 0),
                       backgroundColor: "rgba(59, 130, 246, 0.5)",
                       borderColor: "rgb(59, 130, 246)",
@@ -213,7 +226,7 @@ const TestResults = ({ results }) => {
                     },
                     title: {
                       display: true,
-                      text: "Resultados por nivel"
+                      text: "Wyniki według poziomu CEFR"
                     },
                     tooltip: {
                       callbacks: {

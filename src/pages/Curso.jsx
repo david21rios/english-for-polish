@@ -69,7 +69,7 @@ const Curso = () => {
         setLevels(courseLevels);
       } catch (error) {
         console.error("Error loading course levels:", error);
-        setError("Error loading courses. Please try again later.");
+        setError("Nie udało się załadować kursów. Spróbuj ponownie później.");
       } finally {
         setLoading(false);
       }
@@ -90,7 +90,7 @@ const Curso = () => {
       <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary-600 mx-auto mb-4" />
-          <p className="text-gray-600">Loading your course path...</p>
+          <p className="text-gray-600">Ładowanie ścieżki kursu...</p>
         </div>
       </div>
     );
@@ -111,10 +111,7 @@ const Curso = () => {
           </div>
         )}
 
-        <CourseLevelsGrid
-          levels={levels}
-          onOpenLevel={handleOpenLevel}
-        />
+        <CourseLevelsGrid levels={levels} onOpenLevel={handleOpenLevel} />
       </div>
     </div>
   );

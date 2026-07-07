@@ -8,24 +8,27 @@ const ModuleAccordion = ({
   module,
   currentLesson,
   currentSectionIndex,
-  completedSections,
-  lessonSections,
+  completedSections = [],
+  lessonSections = [],
   sectionHasRequiredWork,
   isSectionAccessible,
   handleLessonClick,
   handleSectionClick,
   setSidebarOpen
 }) => {
-  const lessons = module?.lessons || [];
+  const lessons = Array.isArray(module?.lessons) ? module.lessons : [];
   const moduleId = module?.moduleId || module?.id || "";
-  const moduleTitle = module?.title || "Untitled module";
-  const moduleIcon = module?.icon || "📚";
+  const moduleTitle = module?.title || "Moduł bez tytułu";
+  const moduleIcon = module?.icon || null;
 
   const hasCurrentLesson = lessons.some(
     (lesson) => lesson.id === currentLesson?.id
   );
 
   const [isOpen, setIsOpen] = useState(hasCurrentLesson || true);
+
+  const lessonLabel =
+    lessons.length === 1 ? "1 lekcja" : `${lessons.length} lekcje`;
 
   return (
     <section className="mb-3 border border-gray-100 rounded-2xl overflow-hidden bg-white">
@@ -41,16 +44,14 @@ const ModuleAccordion = ({
 
           <div className="text-left min-w-0">
             <p className="text-xs text-primary-600 font-semibold uppercase">
-              Module
+              Moduł
             </p>
 
             <h3 className="font-semibold text-gray-900 truncate">
               {moduleTitle}
             </h3>
 
-            <p className="text-xs text-gray-500">
-              {lessons.length} lesson{lessons.length === 1 ? "" : "s"}
-            </p>
+            <p className="text-xs text-gray-500">{lessonLabel}</p>
           </div>
         </div>
 
@@ -63,12 +64,12 @@ const ModuleAccordion = ({
         <div className="p-2 space-y-2">
           {lessons.length === 0 ? (
             <div className="text-sm text-gray-500 px-3 py-3 bg-gray-50 rounded-xl">
-              This module has no available lessons.
+              Ten moduł nie ma dostępnych lekcji.
             </div>
           ) : (
             lessons.map((lesson) => (
               <LessonSidebarItem
-                key={lesson.id}
+                key={lesson.id || lesson.lessonId}
                 lesson={lesson}
                 moduleId={moduleId}
                 currentLesson={currentLesson}

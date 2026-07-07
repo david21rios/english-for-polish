@@ -1,86 +1,94 @@
-// utils/validation.js
-import { ERROR_MESSAGES } from './constants';
+// src/components/forms/components/utils/validation.js
 
-// Validación de información básica
-export const validateBasicInfo = (data) => {
+import { ERROR_MESSAGES } from "./constants";
+
+const getTitle = (data = {}) => data.title || data.titulo || "";
+const getExerciseType = (exercise = {}) => exercise.type || exercise.tipo || "";
+const getInstructions = (exercise = {}) =>
+  exercise.instructions || exercise.instrucciones || "";
+
+// Basic lesson information validation.
+export const validateBasicInfo = (data = {}) => {
   const errors = {};
 
-  // Validación del ID
   if (!data.id?.trim()) {
     errors.id = ERROR_MESSAGES.REQUIRED;
   }
 
-  // Validación del título
-  if (!data.titulo?.trim()) {
+  if (!getTitle(data).trim()) {
+    errors.title = ERROR_MESSAGES.REQUIRED;
+
+    // Legacy compatibility during migration.
     errors.titulo = ERROR_MESSAGES.REQUIRED;
   }
 
   return errors;
 };
 
-// Validación de ejercicios (opcional)
-export const validateExercise = (exercise) => {
+// Exercise validation.
+export const validateExercise = (exercise = {}) => {
   const errors = {};
+  const type = getExerciseType(exercise);
 
-  if (!exercise.tipo) {
+  if (!type) {
+    errors.type = ERROR_MESSAGES.REQUIRED;
     errors.tipo = ERROR_MESSAGES.REQUIRED;
   }
 
-  if (!exercise.instrucciones?.trim()) {
+  if (!getInstructions(exercise).trim()) {
+    errors.instructions = ERROR_MESSAGES.REQUIRED;
     errors.instrucciones = ERROR_MESSAGES.REQUIRED;
   }
 
-  switch (exercise.tipo) {
-    case 'multiple_choice':
-      if (!exercise.pregunta?.trim()) {
+  switch (type) {
+    case "multiple_choice":
+      if (!(exercise.question || exercise.pregunta || "").trim()) {
+        errors.question = ERROR_MESSAGES.REQUIRED;
         errors.pregunta = ERROR_MESSAGES.REQUIRED;
       }
       break;
 
-    case 'fill_blank':
-      if (!exercise.texto?.trim()) {
+    case "fill_blank":
+      if (!(exercise.text || exercise.texto || "").trim()) {
+        errors.text = ERROR_MESSAGES.REQUIRED;
         errors.texto = ERROR_MESSAGES.REQUIRED;
       }
       break;
 
-    case 'matching':
-      // Validación opcional para ejercicios de relacionar
-      break;
-
-    case 'ordering':
-      // Validación opcional para ejercicios de ordenar
+    case "matching":
+    case "ordering":
+    default:
       break;
   }
 
   return errors;
 };
 
-// Función principal de validación
-export const validateForm = (formData) => {
-  // Solo validamos la información básica
+export const validateForm = (formData = {}) => {
   const basicInfoErrors = validateBasicInfo(formData);
 
-  // Retornamos un objeto con los errores y el estado de validación
   return {
     errors: basicInfoErrors,
     isValid: Object.keys(basicInfoErrors).length === 0
   };
 };
 
-// Función auxiliar para validar campos específicos (opcional)
 export const validateField = (fieldName, value) => {
   switch (fieldName) {
-    case 'id':
-      return value?.trim() ? '' : ERROR_MESSAGES.REQUIRED;
-    case 'titulo':
-      return value?.trim() ? '' : ERROR_MESSAGES.REQUIRED;
+    case "id":
+      return value?.trim() ? "" : ERROR_MESSAGES.REQUIRED;
+
+    case "title":
+    case "titulo":
+      return value?.trim() ? "" : ERROR_MESSAGES.REQUIRED;
+
     default:
-      return '';
+      return "";
   }
 };
 
-// Función para validar si la información básica está completa
-export const isBasicInfoComplete = (formData) => {
+export const isBasicInfoComplete = (formData = {}) => {
   const errors = validateBasicInfo(formData);
+
   return Object.keys(errors).length === 0;
 };

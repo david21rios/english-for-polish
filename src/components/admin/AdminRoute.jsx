@@ -1,11 +1,12 @@
-// src/components/AdminRoute.jsx
+// src/components/admin/AdminRoute.jsx
+
 import { useEffect, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuthState } from "react-firebase-hooks/auth";
-import { doc, getDoc } from "firebase/firestore";
 
-import { auth, db } from "../../firebase";
+import { auth } from "../../firebase";
 import LoadingSpinner from "../shared/LoadingSpinner";
+import { isUserAdmin } from "../../services/firestoreService";
 
 function AdminRoute({ children }) {
   const [user, loading] = useAuthState(auth);
@@ -15,34 +16,43 @@ function AdminRoute({ children }) {
   const location = useLocation();
 
   useEffect(() => {
+    let isMounted = true;
+
     const checkAdminRole = async () => {
-      if (!user) {
-        setIsAdmin(false);
-        setCheckingRole(false);
-        return;
-      }
-
-      if (!user.emailVerified) {
-        setIsAdmin(false);
-        setCheckingRole(false);
-        return;
-      }
-
       try {
-        const userRef = doc(db, "users", user.uid);
-        const userSnap = await getDoc(userRef);
+        setCheckingRole(true);
 
-        setIsAdmin(userSnap.exists() && userSnap.data().role === "admin");
+        if (!user || !user.emailVerified) {
+          if (isMounted) {
+            setIsAdmin(false);
+          }
+
+          return;
+        }
+
+        const adminStatus = await isUserAdmin(user.uid);
+
+        if (isMounted) {
+          setIsAdmin(adminStatus);
+        }
       } catch (error) {
         console.error("Error checking admin role:", error);
-        setIsAdmin(false);
+
+        if (isMounted) {
+          setIsAdmin(false);
+        }
       } finally {
-        setCheckingRole(false);
+        if (isMounted) {
+          setCheckingRole(false);
+        }
       }
     };
 
-    setCheckingRole(true);
     checkAdminRole();
+
+    return () => {
+      isMounted = false;
+    };
   }, [user]);
 
   if (loading || checkingRole) {

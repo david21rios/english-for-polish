@@ -50,9 +50,7 @@ const formatReadingText = (text = "") => {
     .map((item) => item.trim())
     .filter(Boolean);
 
-  if (sentences.length <= 3) {
-    return [cleanText];
-  }
+  if (sentences.length <= 3) return [cleanText];
 
   const groupedParagraphs = [];
 
@@ -63,44 +61,146 @@ const formatReadingText = (text = "") => {
   return groupedParagraphs;
 };
 
-const normalizeQuizQuestion = (item) => ({
-  pregunta: item.pregunta || item.question || "",
+const normalizeQuizQuestion = (item = {}) => ({
+  id: item.id || "",
+
+  type:
+    item.type ||
+    item.tipo ||
+    "multiple_choice",
+
+  pregunta:
+    item.pregunta ||
+    item.question ||
+    "",
+
   respuesta_correcta:
-    item.respuesta_correcta || item.respuesta || item.answer || "",
-  respuestas_aceptadas: item.respuestas_aceptadas || [],
-  opciones: item.opciones || item.options || [],
-  pista: item.pista || ""
+    item.respuesta_correcta ??
+    item.correctAnswer ??
+    item.correct_answer ??
+    item.respuesta ??
+    item.answer ??
+    "",
+
+  respuestas_aceptadas:
+    item.respuestas_aceptadas ||
+    item.acceptedAnswers ||
+    item.accepted_answers ||
+    [],
+
+  opciones:
+    item.opciones ||
+    item.options ||
+    [],
+
+  pista:
+    item.pista ||
+    item.hint ||
+    "",
+
+  feedback:
+    item.feedback ||
+    item.retroalimentacion ||
+    ""
 });
+
+const normalizeCompletionResult = ({
+  completed = true,
+  score = null,
+  totalQuestions = null,
+  correctAnswers = null,
+  totalExercises = null,
+  completedExercises = null,
+  extra = {}
+} = {}) => ({
+  completed,
+  score,
+  totalQuestions,
+  correctAnswers,
+  totalExercises,
+  completedExercises,
+  ...extra
+});
+
+const playWord = (word = "") => {
+  if (!word || !window.speechSynthesis) return;
+
+  window.speechSynthesis.cancel();
+
+  const utterance = new SpeechSynthesisUtterance(word);
+  utterance.lang = "en-GB";
+  utterance.rate = 0.9;
+  utterance.pitch = 1;
+  utterance.volume = 1;
+
+  window.speechSynthesis.speak(utterance);
+};
 
 const LessonSectionRenderer = ({
   currentSection,
   lessonDetails,
   levelId,
-  markSectionCompleted
+  currentLesson,
+  completedSections = [],
+  activityResults = {},
+  markSectionCompleted,
+  registerActivityResult
 }) => {
   if (!currentSection || !lessonDetails) return null;
 
   const beginner = isBeginnerLevel(levelId);
 
+  const completeSection = async (sectionId, result = {}) => {
+    const payload = normalizeCompletionResult({
+      completed: true,
+      ...result
+    });
+
+    if (registerActivityResult) {
+      await registerActivityResult(sectionId, payload);
+      return;
+    }
+
+    await markSectionCompleted?.(sectionId, payload);
+  };
+
+  const isCompleted = completedSections.includes(currentSection.id);
+  const currentResult = activityResults[currentSection.id] || null;
+
+  const CompletionBadge = () => {
+    if (!isCompleted && !currentResult?.completed) return null;
+
+    return (
+      <div className="mb-4 rounded-xl border border-green-100 bg-green-50 px-4 py-3 text-sm font-semibold text-green-700">
+        Ukończono tę sekcję.
+        {currentResult?.score !== null && currentResult?.score !== undefined
+          ? ` Wynik: ${currentResult.score}%`
+          : ""}
+      </div>
+    );
+  };
+
   switch (currentSection.id) {
     case "intro":
       return (
         <section className={cardClass}>
+          <CompletionBadge />
+
           <div className="text-center mb-6 md:mb-8">
             <p className="text-xs md:text-sm font-semibold text-primary-600 uppercase tracking-wide mb-2">
-              {beginner ? "Lesson overview / Vista general" : "Vista general"}
+              {beginner ? "Lesson overview / Podsumowanie lekcji" : "Podsumowanie lekcji"}
             </p>
 
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3 md:mb-4 leading-tight break-words">
-              {lessonDetails.titulo || "Lección sin título"}
+              {lessonDetails.titulo || "Untitled lesson"}
             </h1>
 
             <p className="text-gray-600 text-base md:text-lg mb-4 leading-relaxed break-words">
-              {lessonDetails.descripcion || "Sin descripción."}
+              {lessonDetails.descripcion || "Brak opisu."}
             </p>
 
             <div className="inline-flex px-4 py-2 rounded-full bg-primary-100 text-primary-700 font-medium text-sm md:text-base">
-              Nivel {levelId}
+              Level {levelId}
             </div>
           </div>
 
@@ -108,8 +208,8 @@ const LessonSectionRenderer = ({
             <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-4">
               {labelByLevel(
                 levelId,
-                "Learning objectives / Objetivos de aprendizaje",
-                "Objetivos de aprendizaje"
+                "Learning objectives / Cele lekcji",
+                "Cele lekcji"
               )}
             </h2>
 
@@ -123,9 +223,17 @@ const LessonSectionRenderer = ({
                 ))}
               </ul>
             ) : (
-              <p className="text-gray-500">Objetivos no disponibles.</p>
+              <p className="text-gray-500">Brak celów lekcji.</p>
             )}
           </div>
+
+          <button
+            type="button"
+            onClick={() => completeSection("intro", { score: null })}
+            className="mt-6 px-4 py-2 rounded-xl bg-primary-600 text-white font-semibold hover:bg-primary-700"
+          >
+            Oznacz jako przeczytane
+          </button>
         </section>
       );
 
@@ -135,9 +243,11 @@ const LessonSectionRenderer = ({
 
       return (
         <section className={cardClass}>
+          <CompletionBadge />
+
           <h2 className={sectionTitleClass}>
             <FaBook className="text-primary-600 shrink-0 mt-1 md:mt-0" />
-            <span>{labelByLevel(levelId, "Vocabulary / Vocabulario", "Vocabulario")}</span>
+            <span>{labelByLevel(levelId, "Vocabulary / Słownictwo", "Słownictwo")}</span>
           </h2>
 
           {vocabulario.titulo && (
@@ -170,21 +280,16 @@ const LessonSectionRenderer = ({
 
                         {translation && (
                           <p className="text-sm text-primary-700 font-semibold mt-1 break-words">
-                            {beginner ? "Translation: " : "Traducción: "}
-                            {translation}
+                            Tłumaczenie: {translation}
                           </p>
                         )}
                       </div>
 
                       <button
                         type="button"
-                        onClick={() => {
-                          const utterance = new SpeechSynthesisUtterance(mainWord);
-                          utterance.lang = "es-ES";
-                          window.speechSynthesis.speak(utterance);
-                        }}
+                        onClick={() => playWord(mainWord)}
                         className="h-10 w-10 shrink-0 rounded-full bg-white text-primary-600 hover:text-primary-700 border border-gray-200"
-                        title="Escuchar pronunciación"
+                        title="Posłuchaj wymowy"
                       >
                         🔊
                       </button>
@@ -192,15 +297,13 @@ const LessonSectionRenderer = ({
 
                     {definition && (
                       <p className="text-sm text-gray-600 mt-3 break-words">
-                        {beginner ? "Meaning: " : "Significado: "}
-                        {definition}
+                        Znaczenie: {definition}
                       </p>
                     )}
 
                     {example && (
                       <p className="text-sm text-gray-500 italic mt-3 break-words">
-                        {beginner ? "Example: " : "Ejemplo: "}
-                        {example}
+                        Example: {example}
                       </p>
                     )}
                   </article>
@@ -208,8 +311,22 @@ const LessonSectionRenderer = ({
               })}
             </div>
           ) : (
-            <p className="text-gray-500">Vocabulario no disponible.</p>
+            <p className="text-gray-500">Brak słownictwa dla tej lekcji.</p>
           )}
+
+          <button
+            type="button"
+            onClick={() =>
+              completeSection("vocabulary", {
+                score: null,
+                totalExercises: palabras.length,
+                completedExercises: palabras.length
+              })
+            }
+            className="mt-6 px-4 py-2 rounded-xl bg-primary-600 text-white font-semibold hover:bg-primary-700"
+          >
+            Znam słownictwo
+          </button>
         </section>
       );
     }
@@ -217,7 +334,6 @@ const LessonSectionRenderer = ({
     case "grammar": {
       const gramatica = lessonDetails.contenidos?.gramatica || {};
       const temas = gramatica.temas || [];
-
       const reglas = (gramatica.reglas || []).filter((regla) => {
         return (
           regla?.titulo &&
@@ -229,15 +345,17 @@ const LessonSectionRenderer = ({
 
       return (
         <section className={cardClass}>
+          <CompletionBadge />
+
           <h2 className={sectionTitleClass}>
             <FaBook className="text-primary-600 shrink-0 mt-1 md:mt-0" />
-            <span>{labelByLevel(levelId, "Grammar / Gramática", "Gramática")}</span>
+            <span>{labelByLevel(levelId, "Grammar / Gramatyka", "Gramatyka")}</span>
           </h2>
 
           {temas.length > 0 && (
             <div className="mb-6 md:mb-8">
               <h3 className="text-primary-600 font-semibold mb-3">
-                {labelByLevel(levelId, "Topics / Temas", "Temas")}
+                {labelByLevel(levelId, "Topics / Tematy", "Tematy")}
               </h3>
 
               <ul className="list-disc pl-5 md:pl-6 space-y-1 text-gray-700">
@@ -270,11 +388,7 @@ const LessonSectionRenderer = ({
                   <div className="p-4 md:p-5 space-y-4">
                     <div>
                       <p className="text-sm font-semibold text-primary-600 mb-1">
-                        {labelByLevel(
-                          levelId,
-                          "Explanation / Explicación",
-                          "Explicación"
-                        )}
+                        Wyjaśnienie
                       </p>
 
                       <p className="text-gray-700 leading-relaxed break-words">
@@ -284,7 +398,7 @@ const LessonSectionRenderer = ({
 
                     <div className={softBoxClass}>
                       <h5 className="font-semibold text-gray-900 mb-3">
-                        {labelByLevel(levelId, "Examples / Ejemplos", "Ejemplos")}
+                        Examples / Przykłady
                       </h5>
 
                       <ul className="space-y-3">
@@ -314,8 +428,16 @@ const LessonSectionRenderer = ({
               ))}
             </div>
           ) : (
-            <p className="text-gray-500">Gramática no disponible.</p>
+            <p className="text-gray-500">Brak gramatyki dla tej lekcji.</p>
           )}
+
+          <button
+            type="button"
+            onClick={() => completeSection("grammar", { score: null })}
+            className="mt-6 px-4 py-2 rounded-xl bg-primary-600 text-white font-semibold hover:bg-primary-700"
+          >
+            Rozumiem gramatykę
+          </button>
         </section>
       );
     }
@@ -327,9 +449,11 @@ const LessonSectionRenderer = ({
 
       return (
         <section className={cardClass}>
+          <CompletionBadge />
+
           <h2 className={sectionTitleClass}>
             <FaBookReader className="text-primary-600 shrink-0 mt-1 md:mt-0" />
-            <span>{labelByLevel(levelId, "Reading / Lectura", "Lectura")}</span>
+            <span>{labelByLevel(levelId, "Reading / Czytanie", "Czytanie")}</span>
           </h2>
 
           <div className="space-y-5 md:space-y-6 w-full overflow-hidden">
@@ -341,8 +465,7 @@ const LessonSectionRenderer = ({
 
                 {lectura.autor && (
                   <p className="text-gray-500 italic mt-2 break-words">
-                    {beginner ? "By: " : "Por: "}
-                    {lectura.autor}
+                    By: {lectura.autor}
                   </p>
                 )}
               </div>
@@ -357,75 +480,64 @@ const LessonSectionRenderer = ({
                     </p>
                   ))
                 ) : (
-                  <p>Contenido de lectura no disponible.</p>
+                  <p>Brak tekstu do czytania.</p>
                 )}
               </div>
 
               {lectura.contenido && (
                 <div className="mt-6 flex justify-center overflow-hidden">
-                  <AudioPlayer
-                    text={lectura.contenido}
-                    label={beginner ? "Listen to reading" : "Escuchar lectura"}
-                  />
+                  <AudioPlayer text={lectura.contenido} label="Posłuchaj tekstu" />
                 </div>
               )}
             </div>
 
-            {preguntas.length > 0 && (
+            {preguntas.length > 0 ? (
               <div className="w-full overflow-hidden border border-gray-100 rounded-2xl p-4 md:p-5 bg-white">
                 <h4 className="font-semibold text-gray-900 mb-4 break-words">
-                  {labelByLevel(
-                    levelId,
-                    "Reading questions / Preguntas de lectura",
-                    "Preguntas de lectura"
-                  )}
+                  Reading questions / Pytania do tekstu
                 </h4>
 
                 <div className="w-full overflow-hidden">
                   <InteractiveQuiz
                     questions={preguntas}
                     normalizeQuestion={normalizeQuizQuestion}
-                    onComplete={() => markSectionCompleted("reading")}
+                    onComplete={(result) =>
+                      completeSection("reading", {
+                        score: result?.score ?? 100,
+                        totalQuestions: result?.totalQuestions ?? preguntas.length,
+                        correctAnswers: result?.correctAnswers ?? preguntas.length
+                      })
+                    }
                   />
                 </div>
               </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => completeSection("reading", { score: null })}
+                className="px-4 py-2 rounded-xl bg-primary-600 text-white font-semibold hover:bg-primary-700"
+              >
+                Oznacz czytanie jako ukończone
+              </button>
             )}
-
-            <div className="w-full overflow-hidden">
-              <h4 className="font-semibold text-gray-900 mb-3 break-words">
-                {labelByLevel(
-                  levelId,
-                  "Practice your reading aloud:",
-                  "Practica tu lectura en voz alta:"
-                )}
-              </h4>
-
-              <AudioRecorder
-                onRecordingComplete={(blob) => {
-                  console.log("Grabación de lectura completada:", blob);
-                }}
-              />
-            </div>
           </div>
         </section>
       );
     }
 
-    case "practice":
+    case "practice": {
+      const exercises = lessonDetails.practica_interactiva?.ejercicios || [];
+
       return (
         <section className={cardClass}>
+          <CompletionBadge />
+
           <h2 className={sectionTitleClass}>
             <FaGraduationCap className="text-primary-600 shrink-0 mt-1 md:mt-0" />
-            <span>
-              {labelByLevel(
-                levelId,
-                "Interactive practice / Práctica interactiva",
-                "Práctica interactiva"
-              )}
-            </span>
+            <span>Interactive practice / Ćwiczenia interaktywne</span>
           </h2>
 
-          {lessonDetails.practica_interactiva?.ejercicios?.length > 0 ? (
+          {exercises.length > 0 ? (
             <div className="space-y-5 md:space-y-6 w-full overflow-hidden">
               {lessonDetails.practica_interactiva.titulo && (
                 <h3 className="text-base md:text-lg font-semibold text-primary-600 break-words">
@@ -439,34 +551,38 @@ const LessonSectionRenderer = ({
                 </p>
               )}
 
-              <div className="w-full overflow-hidden">
-                <InteractivePractice
-                  exercises={lessonDetails.practica_interactiva.ejercicios}
-                  onComplete={() => markSectionCompleted("practice")}
-                />
-              </div>
+              <InteractivePractice
+                exercises={exercises}
+                onComplete={(result) =>
+                  completeSection("practice", {
+                    score: result?.score ?? 100,
+                    totalExercises: result?.totalExercises ?? exercises.length,
+                    completedExercises:
+                      result?.completedExercises ?? exercises.length
+                  })
+                }
+              />
             </div>
           ) : (
-            <p className="text-gray-500">Práctica interactiva no disponible.</p>
+            <p className="text-gray-500">Brak ćwiczeń interaktywnych.</p>
           )}
         </section>
       );
+    }
 
-    case "writing":
+    case "writing": {
+      const writingExercises = lessonDetails.produccion_escrita?.ejercicios || [];
+
       return (
         <section className={cardClass}>
+          <CompletionBadge />
+
           <h2 className={sectionTitleClass}>
             <FaGraduationCap className="text-primary-600 shrink-0 mt-1 md:mt-0" />
-            <span>
-              {labelByLevel(
-                levelId,
-                "Writing practice / Producción escrita",
-                "Producción escrita"
-              )}
-            </span>
+            <span>Writing practice / Pisanie</span>
           </h2>
 
-          {lessonDetails.produccion_escrita?.ejercicios?.length > 0 ? (
+          {writingExercises.length > 0 ? (
             <div className="space-y-5 md:space-y-6 w-full overflow-hidden">
               <div className={softBoxClass}>
                 {lessonDetails.produccion_escrita.titulo && (
@@ -482,31 +598,37 @@ const LessonSectionRenderer = ({
                 )}
 
                 <WritingExercises
-                  ejercicios={lessonDetails.produccion_escrita.ejercicios || []}
-                  onComplete={() => markSectionCompleted("writing")}
+                  ejercicios={writingExercises}
+                  onComplete={(result) =>
+                    completeSection("writing", {
+                      score: result?.score ?? null,
+                      totalExercises:
+                        result?.totalExercises ?? writingExercises.length,
+                      completedExercises:
+                        result?.completedExercises ?? writingExercises.length,
+                      submitted: true
+                    })
+                  }
                 />
               </div>
             </div>
           ) : (
-            <p className="text-gray-500">Producción escrita no disponible.</p>
+            <p className="text-gray-500">Brak ćwiczeń pisemnych.</p>
           )}
         </section>
       );
+    }
 
     case "speaking": {
       const oralExercises = lessonDetails.produccion_oral?.ejercicios || [];
 
       return (
         <section className={cardClass}>
+          <CompletionBadge />
+
           <h2 className={sectionTitleClass}>
             <FaMicrophone className="text-primary-600 shrink-0 mt-1 md:mt-0" />
-            <span>
-              {labelByLevel(
-                levelId,
-                "Speaking practice / Producción oral",
-                "Producción oral"
-              )}
-            </span>
+            <span>Speaking practice / Mówienie</span>
           </h2>
 
           {oralExercises.length > 0 ? (
@@ -530,62 +652,21 @@ const LessonSectionRenderer = ({
                     className="w-full overflow-hidden bg-gray-50 border border-gray-100 rounded-2xl p-4 md:p-5"
                   >
                     <h4 className="font-bold text-gray-900 mb-2 break-words">
-                      {beginner ? "Speaking task" : "Actividad oral"} {index + 1}
+                      Speaking task {index + 1}
                     </h4>
 
                     <p className="text-gray-700 break-words">
-                      {exercise.consigna ||
-                        exercise.prompt ||
-                        "Actividad oral sin consigna."}
+                      {exercise.consigna || exercise.prompt || "Brak instrukcji."}
                     </p>
 
                     {(exercise.guia || exercise.guidance) && (
                       <div className="mt-3 bg-white border border-gray-100 rounded-xl p-4 overflow-hidden">
                         <p className="text-sm font-semibold text-primary-600 mb-1">
-                          {beginner ? "Guide / Guía" : "Guía"}
+                          Wskazówki
                         </p>
-
                         <p className="text-sm text-gray-600 break-words">
                           {exercise.guia || exercise.guidance}
                         </p>
-                      </div>
-                    )}
-
-                    {(exercise.duracion_recomendada ||
-                      exercise.tiempo_sugerido) && (
-                      <div className="mt-3">
-                        <span className="inline-flex max-w-full items-center gap-2 px-3 py-2 rounded-xl bg-blue-50 text-blue-700 text-sm font-medium break-words">
-                          <span className="shrink-0">⏱</span>
-                          <span className="break-words">
-                            {beginner
-                              ? "Suggested duration: "
-                              : "Duración sugerida: "}
-                            {exercise.duracion_recomendada ||
-                              `${exercise.tiempo_sugerido} minuto(s)`}
-                          </span>
-                        </span>
-                      </div>
-                    )}
-
-                    {exercise.criterios?.length > 0 && (
-                      <div className="mt-4 bg-green-50 border border-green-100 rounded-xl p-4 overflow-hidden">
-                        <h5 className="font-semibold text-green-700 mb-3 break-words">
-                          {beginner
-                            ? "Before recording, check / Antes de grabar, verifica:"
-                            : "Antes de grabar, verifica:"}
-                        </h5>
-
-                        <ul className="space-y-2">
-                          {exercise.criterios.map((criterio, i) => (
-                            <li
-                              key={i}
-                              className="flex items-start gap-2 text-sm text-gray-700"
-                            >
-                              <span className="text-green-600 shrink-0">☐</span>
-                              <span className="break-words">{criterio}</span>
-                            </li>
-                          ))}
-                        </ul>
                       </div>
                     )}
                   </article>
@@ -594,91 +675,127 @@ const LessonSectionRenderer = ({
 
               <AudioRecorder
                 exercises={oralExercises}
-                onComplete={() => {
-                  markSectionCompleted("speaking");
-                }}
+                onComplete={(result) =>
+                  completeSection("speaking", {
+                    score: result?.score ?? null,
+                    totalExercises: oralExercises.length,
+                    completedExercises: oralExercises.length,
+                    recorded: true
+                  })
+                }
+                onRecordingComplete={() =>
+                  completeSection("speaking", {
+                    score: null,
+                    totalExercises: oralExercises.length,
+                    completedExercises: oralExercises.length,
+                    recorded: true
+                  })
+                }
               />
             </div>
           ) : (
-            <p className="text-gray-500">Producción oral no disponible.</p>
+            <p className="text-gray-500">Brak ćwiczeń ustnych.</p>
           )}
         </section>
       );
     }
 
-    case "evaluation":
+    case "evaluation": {
+      const evaluation =
+        lessonDetails.evaluacion ||
+        lessonDetails.evaluation ||
+        {};
+
+      const questions =
+        evaluation.cuestionario ||
+        evaluation.questions ||
+        evaluation.quiz ||
+        [];
+
+      const selfAssessment =
+        evaluation.autoevaluacion ||
+        evaluation.selfAssessment ||
+        evaluation.self_assessment ||
+        "";
+
       return (
         <section className={cardClass}>
+          <CompletionBadge />
+
           <h2 className={sectionTitleClass}>
             <FaListAlt className="text-primary-600 shrink-0 mt-1 md:mt-0" />
-            <span>{labelByLevel(levelId, "Evaluation / Evaluación", "Evaluación")}</span>
+            <span>Evaluation / Ocena</span>
           </h2>
 
-          {lessonDetails.evaluacion ? (
+          {Object.keys(evaluation).length > 0 ? (
             <div className="space-y-5 md:space-y-6 w-full overflow-hidden">
-              {lessonDetails.evaluacion.autoevaluacion && (
+              {selfAssessment && (
                 <div className={softBoxClass}>
                   <h3 className="text-base md:text-lg font-semibold text-primary-600 mb-2">
-                    {labelByLevel(
-                      levelId,
-                      "Self-assessment / Autoevaluación",
-                      "Autoevaluación"
-                    )}
+                    Self-assessment / Samoocena
                   </h3>
 
                   <p className="text-gray-600 break-words">
-                    {lessonDetails.evaluacion.autoevaluacion}
+                    {selfAssessment}
                   </p>
                 </div>
               )}
 
-              {lessonDetails.evaluacion.cuestionario?.length > 0 && (
+              {questions.length > 0 ? (
                 <div className={softBoxClass}>
                   <h3 className="text-base md:text-lg font-semibold text-primary-600 mb-3">
-                    {labelByLevel(levelId, "Quiz / Cuestionario", "Cuestionario")}
+                    Quiz / Test
                   </h3>
 
-                  <div className="w-full overflow-hidden">
-                    <InteractiveQuiz
-                      questions={lessonDetails.evaluacion.cuestionario}
-                      onComplete={() => markSectionCompleted("evaluation")}
-                    />
-                  </div>
+                  <InteractiveQuiz
+                    questions={questions}
+                    normalizeQuestion={normalizeQuizQuestion}
+                    onComplete={(result) =>
+                      completeSection("evaluation", {
+                        score: result?.score ?? 100,
+                        totalQuestions: result?.totalQuestions ?? questions.length,
+                        correctAnswers: result?.correctAnswers ?? questions.length
+                      })
+                    }
+                  />
                 </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => completeSection("evaluation", { score: null })}
+                  className="px-4 py-2 rounded-xl bg-primary-600 text-white font-semibold hover:bg-primary-700"
+                >
+                  Oznacz ocenę jako ukończoną
+                </button>
               )}
             </div>
           ) : (
-            <p className="text-gray-500">Evaluación no disponible.</p>
+            <p className="text-gray-500">Brak ewaluacji.</p>
           )}
         </section>
       );
+    }
 
     case "resources": {
       const recursos = lessonDetails.recursos_adicionales || [];
 
       return (
         <section className={cardClass}>
+          <CompletionBadge />
+
           <h2 className={sectionTitleClass}>
             <FaLink className="text-primary-600 shrink-0 mt-1 md:mt-0" />
-            <span>
-              {labelByLevel(
-                levelId,
-                "Additional resources / Recursos adicionales",
-                "Recursos adicionales"
-              )}
-            </span>
+            <span>Additional resources / Dodatkowe materiały</span>
           </h2>
 
           <p className="text-gray-600 mb-5 break-words">
-            {beginner
-              ? "These resources can help you practice and understand the lesson better."
-              : "Estos recursos te ayudarán a practicar y profundizar en la lección."}
+            These resources can help you practice and understand the lesson better.
           </p>
 
           {recursos.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {recursos.map((recurso, index) => {
-                const title = recurso.titulo || recurso.title || "Recurso";
+                const title = recurso.titulo || recurso.title || "Resource";
                 const description =
                   recurso.descripcion || recurso.description || "";
                 const type = recurso.tipo || recurso.type || "";
@@ -703,15 +820,13 @@ const LessonSectionRenderer = ({
                     <div className="flex flex-wrap gap-2 mt-4">
                       {type && (
                         <span className="text-xs px-2 py-1 rounded-full bg-primary-50 text-primary-700 font-semibold break-words">
-                          {beginner ? "Type: " : "Tipo: "}
-                          {type}
+                          Type: {type}
                         </span>
                       )}
 
                       {audience && (
                         <span className="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-700 font-semibold break-words">
-                          {beginner ? "Audience: " : "Audiencia: "}
-                          {audience}
+                          Audience: {audience}
                         </span>
                       )}
                     </div>
@@ -723,13 +838,11 @@ const LessonSectionRenderer = ({
                         rel="noreferrer"
                         className="inline-flex mt-4 text-primary-600 font-semibold hover:text-primary-700 break-all"
                       >
-                        {beginner ? "Open resource ↗" : "Abrir recurso ↗"}
+                        Open resource ↗
                       </a>
                     ) : (
                       <p className="mt-4 text-sm text-gray-500">
-                        {beginner
-                          ? "Offline or teacher-guided resource."
-                          : "Recurso offline o guiado por el docente."}
+                        Offline or teacher-guided resource.
                       </p>
                     )}
                   </article>
@@ -738,9 +851,17 @@ const LessonSectionRenderer = ({
             </div>
           ) : (
             <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 text-blue-700 break-words">
-              Recursos adicionales no disponibles para esta lección.
+              Brak dodatkowych materiałów dla tej lekcji.
             </div>
           )}
+
+          <button
+            type="button"
+            onClick={() => completeSection("resources", { score: null })}
+            className="mt-6 px-4 py-2 rounded-xl bg-primary-600 text-white font-semibold hover:bg-primary-700"
+          >
+            Oznacz materiały jako przejrzane
+          </button>
         </section>
       );
     }
@@ -748,9 +869,11 @@ const LessonSectionRenderer = ({
     case "reflection":
       return (
         <section className={cardClass}>
+          <CompletionBadge />
+
           <h2 className={sectionTitleClass}>
             <FaLightbulb className="text-primary-600 shrink-0 mt-1 md:mt-0" />
-            <span>{labelByLevel(levelId, "Final reflection / Cierre", "Cierre")}</span>
+            <span>Final reflection / Podsumowanie</span>
           </h2>
 
           {lessonDetails.reflexion_final ? (
@@ -758,8 +881,16 @@ const LessonSectionRenderer = ({
               {lessonDetails.reflexion_final}
             </p>
           ) : (
-            <p className="text-gray-500">Reflexión final no disponible.</p>
+            <p className="text-gray-500">Brak podsumowania.</p>
           )}
+
+          <button
+            type="button"
+            onClick={() => completeSection("reflection", { score: null })}
+            className="mt-6 px-4 py-2 rounded-xl bg-primary-600 text-white font-semibold hover:bg-primary-700"
+          >
+            Zakończ lekcję
+          </button>
         </section>
       );
 

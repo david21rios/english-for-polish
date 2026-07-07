@@ -6,30 +6,55 @@ import {
   FaExclamationTriangle
 } from "react-icons/fa";
 
+const toArray = (value) => {
+  if (Array.isArray(value)) return value.filter(Boolean);
+  if (value) return [value];
+  return [];
+};
+
+const normalizeReadingQuestion = (question = {}) => ({
+  id: question.id || "",
+  question: question.question || "",
+  options: toArray(question.options),
+  correctAnswer:
+    question.correctAnswer ||
+    question.correct_answer ||
+    question.answer ||
+    ""
+});
+
+const normalizeReading = (reading = {}) => ({
+  id: reading.id || "",
+  title: reading.title || "",
+  author: reading.author || "",
+  text: reading.text || "",
+  questions: toArray(reading.questions).map(normalizeReadingQuestion)
+});
+
 const ReadingSection = ({
   questions = [],
   selectedAnswers = {},
   onSelectAnswer
 }) => {
-  if (!Array.isArray(questions) || questions.length === 0) {
+  const readings = toArray(questions).map(normalizeReading);
+
+  if (readings.length === 0) {
     return (
       <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 p-5 rounded-2xl flex items-center gap-3">
         <FaExclamationTriangle />
-        No hay textos de lectura disponibles para esta sección.
+        Brak tekstów do czytania dla tej sekcji.
       </div>
     );
   }
 
   return (
     <div className="space-y-8">
-      {questions.map((readingText, textIndex) => {
-        const readingQuestions = Array.isArray(readingText?.questions)
-          ? readingText.questions
-          : [];
+      {readings.map((readingText, textIndex) => {
+        const readingQuestions = readingText.questions;
 
         return (
           <article
-            key={readingText?.id || `reading_${textIndex}`}
+            key={readingText.id || `reading_${textIndex}`}
             className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 md:p-8"
           >
             <div className="flex items-center gap-3 mb-6">
@@ -39,35 +64,39 @@ const ReadingSection = ({
 
               <div>
                 <p className="text-sm font-semibold text-primary-600 uppercase tracking-wide">
-                  Reading text {textIndex + 1}
+                  Tekst {textIndex + 1}
                 </p>
 
                 <h3 className="text-2xl font-bold text-gray-900">
-                  Read carefully
+                  Przeczytaj uważnie
                 </h3>
               </div>
             </div>
 
+            {readingText.title && (
+              <h4 className="text-xl font-bold text-gray-900 mb-4">
+                {readingText.title}
+              </h4>
+            )}
+
             <div className="mb-8 p-6 bg-gray-50 border border-gray-100 rounded-2xl">
               <p className="text-lg leading-relaxed text-gray-800 whitespace-pre-line">
-                {readingText?.text || "Texto de lectura no disponible."}
+                {readingText.text || "Tekst do czytania jest niedostępny."}
               </p>
             </div>
 
             {readingQuestions.length === 0 ? (
               <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-2xl flex items-center gap-3">
                 <FaExclamationTriangle />
-                Este texto no tiene preguntas configuradas.
+                Ten tekst nie zawiera pytań.
               </div>
             ) : (
               <div className="space-y-6">
                 {readingQuestions.map((question, qIndex) => {
-                  const questionOptions = Array.isArray(question?.options)
-                    ? question.options
-                    : [];
+                  const questionOptions = question.options;
 
                   const questionId =
-                    question?.id || `reading_question_${textIndex}_${qIndex}`;
+                    question.id || `reading_question_${textIndex}_${qIndex}`;
 
                   return (
                     <div
@@ -76,12 +105,12 @@ const ReadingSection = ({
                     >
                       <p className="font-bold text-gray-900 mb-4">
                         {textIndex + 1}.{qIndex + 1}{" "}
-                        {question?.question || "Pregunta sin texto"}
+                        {question.question || "Pytanie jest niedostępne."}
                       </p>
 
                       {questionOptions.length === 0 ? (
                         <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-2xl text-sm">
-                          Esta pregunta no tiene opciones configuradas.
+                          To pytanie nie ma dostępnych odpowiedzi.
                         </div>
                       ) : (
                         <div className="space-y-3">
@@ -116,8 +145,8 @@ const ReadingSection = ({
                                   {optionLetter}
                                 </span>
 
-                                <span className="leading-relaxed">
-                                  {option || "Opción sin texto"}
+                                <span className="leading-relaxed break-words min-w-0">
+                                  {option || "Odpowiedź jest niedostępna."}
                                 </span>
 
                                 {isSelected && (

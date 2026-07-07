@@ -25,55 +25,31 @@ const INITIAL_STATE = {
 };
 
 const LEVELS = [
-  {
-    id: "A1",
-    title: "A1",
-    description: "Beginner"
-  },
-  {
-    id: "A2",
-    title: "A2",
-    description: "Elementary"
-  },
-  {
-    id: "B1",
-    title: "B1",
-    description: "Intermediate"
-  },
-  {
-    id: "B2",
-    title: "B2",
-    description: "Upper Intermediate"
-  },
-  {
-    id: "C1",
-    title: "C1",
-    description: "Advanced"
-  },
-  {
-    id: "C2",
-    title: "C2",
-    description: "Proficiency"
-  }
+  { id: "A1", title: "A1", description: "Początkujący" },
+  { id: "A2", title: "A2", description: "Podstawowy" },
+  { id: "B1", title: "B1", description: "Średni" },
+  { id: "B2", title: "B2", description: "Wyższy średni" },
+  { id: "C1", title: "C1", description: "Zaawansowany" },
+  { id: "C2", title: "C2", description: "Biegły" }
 ];
 
 const SECTIONS = [
   {
     id: "multipleChoice",
-    label: "Selección múltiple",
-    shortLabel: "Opciones",
+    label: "Wielokrotny wybór",
+    shortLabel: "Wybór",
     icon: <FaClipboardList />
   },
   {
     id: "writing",
-    label: "Escritura",
-    shortLabel: "Escritura",
+    label: "Pisanie",
+    shortLabel: "Pisanie",
     icon: <FaEdit />
   },
   {
     id: "reading",
-    label: "Lectura",
-    shortLabel: "Lectura",
+    label: "Czytanie",
+    shortLabel: "Czytanie",
     icon: <FaBookOpen />
   }
 ];
@@ -123,32 +99,34 @@ const TestForm = ({ initialData = null, onSubmit, onCancel, isSaving }) => {
 
   const validateTestData = () => {
     if (!testData.level) {
-      return "Debes seleccionar un nivel para el test.";
+      return "Musisz wybrać poziom testu.";
     }
 
     const validLevels = LEVELS.map((level) => level.id);
 
     if (!validLevels.includes(testData.level)) {
-      return "El nivel seleccionado no es válido.";
+      return "Wybrany poziom nie jest prawidłowy.";
     }
 
     const multipleChoiceQuestions =
       testData.sections?.multipleChoice?.questions || [];
 
-    const writingQuestions = testData.sections?.writing?.questions || [];
+    const writingQuestions =
+      testData.sections?.writing?.questions || [];
 
-    const readingTexts = testData.sections?.reading?.texts || [];
+    const readingTexts =
+      testData.sections?.reading?.texts || [];
 
     if (multipleChoiceQuestions.length === 0) {
-      return "Debes añadir al menos una pregunta de selección múltiple.";
+      return "Dodaj co najmniej jedno pytanie wielokrotnego wyboru.";
     }
 
     if (writingQuestions.length === 0) {
-      return "Debes añadir al menos una pregunta de escritura.";
+      return "Dodaj co najmniej jedno zadanie pisemne.";
     }
 
     if (readingTexts.length === 0) {
-      return "Debes añadir al menos un texto de lectura.";
+      return "Dodaj co najmniej jeden tekst do czytania.";
     }
 
     return "";
@@ -186,8 +164,8 @@ const TestForm = ({ initialData = null, onSubmit, onCancel, isSaving }) => {
         setActiveSection("multipleChoice");
       }
     } catch (error) {
-      console.error("Error al guardar el test:", error);
-      setError(error.message || "Error al guardar el test.");
+      console.error("Error saving test:", error);
+      setError(error.message || "Nie udało się zapisać testu.");
     } finally {
       setHasSubmitted(false);
     }
@@ -225,22 +203,22 @@ const TestForm = ({ initialData = null, onSubmit, onCancel, isSaving }) => {
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
           <div>
             <p className="text-xs md:text-sm font-semibold text-primary-600 uppercase tracking-wide">
-              Admin test builder
+              Kreator testów administratora
             </p>
 
             <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mt-1">
-              {initialData ? "Editar test" : "Crear nuevo test"}
+              {initialData ? "Edytuj test" : "Utwórz nowy test"}
             </h2>
 
             <p className="text-sm md:text-base text-gray-600 mt-2 leading-relaxed">
-              Construye evaluaciones por nivel CEFR con preguntas de selección
-              múltiple, escritura y lectura.
+              Twórz testy według poziomów CEFR z pytaniami
+              wielokrotnego wyboru, pisaniem i czytaniem.
             </p>
           </div>
 
           <div className="bg-primary-50 border border-primary-100 rounded-2xl px-4 py-3 min-w-[150px]">
             <p className="text-xs text-primary-700 font-semibold uppercase">
-              Progreso
+              Postęp
             </p>
 
             <p className="text-2xl font-bold text-primary-700 mt-1">
@@ -248,7 +226,7 @@ const TestForm = ({ initialData = null, onSubmit, onCancel, isSaving }) => {
             </p>
 
             <p className="text-xs text-gray-600">
-              secciones con contenido
+              sekcje z treścią
             </p>
           </div>
         </div>
@@ -269,11 +247,11 @@ const TestForm = ({ initialData = null, onSubmit, onCancel, isSaving }) => {
 
             <div>
               <h3 className="font-bold text-gray-900 text-lg md:text-xl">
-                Nivel del test
+                Poziom testu
               </h3>
 
               <p className="text-sm text-gray-600 mt-1">
-                Selecciona el nivel CEFR exacto que evaluará este test.
+                Wybierz dokładny poziom CEFR, który będzie oceniany przez ten test.
               </p>
             </div>
           </div>
@@ -322,14 +300,14 @@ const TestForm = ({ initialData = null, onSubmit, onCancel, isSaving }) => {
           {selectedLevel && (
             <div className="mt-4 bg-green-50 border border-green-100 text-green-800 rounded-2xl p-3 text-sm flex items-center gap-2">
               <FaCheckCircle />
-              Nivel seleccionado: {selectedLevel.title} ·{" "}
+              Wybrany poziom: {selectedLevel.title} ·{" "}
               {selectedLevel.description}
             </div>
           )}
 
           {initialData && (
             <p className="text-xs text-gray-500 mt-3">
-              El nivel no se puede cambiar al editar un test existente.
+              Poziomu nie można zmienić podczas edycji istniejącego testu.
             </p>
           )}
         </section>
@@ -337,11 +315,11 @@ const TestForm = ({ initialData = null, onSubmit, onCancel, isSaving }) => {
         <section className="bg-white border border-gray-100 rounded-3xl p-4 md:p-6 shadow-sm">
           <div className="mb-4">
             <h3 className="font-bold text-gray-900 text-lg md:text-xl">
-              Secciones del test
+              Sekcje testu
             </h3>
 
             <p className="text-sm text-gray-600 mt-1">
-              Organiza el contenido del test por tipo de habilidad evaluada.
+              Organizuj treść testu według ocenianych umiejętności.
             </p>
           </div>
 
@@ -380,7 +358,7 @@ const TestForm = ({ initialData = null, onSubmit, onCancel, isSaving }) => {
                       isActive ? "text-primary-100" : "text-gray-500"
                     }`}
                   >
-                    {itemCount} item{itemCount === 1 ? "" : "s"}
+                    {itemCount} {itemCount === 1 ? "element" : "elementy"}
                   </p>
                 </button>
               );
@@ -432,7 +410,7 @@ const TestForm = ({ initialData = null, onSubmit, onCancel, isSaving }) => {
               disabled={disabled}
             >
               <FaTimes />
-              Cancelar
+              Anuluj
             </button>
 
             <button
@@ -442,10 +420,10 @@ const TestForm = ({ initialData = null, onSubmit, onCancel, isSaving }) => {
             >
               <FaSave />
               {isSaving
-                ? "Guardando..."
+                ? "Zapisywanie..."
                 : initialData
-                ? "Actualizar test"
-                : "Guardar test"}
+                ? "Zaktualizuj test"
+                : "Zapisz test"}
             </button>
           </div>
         </footer>

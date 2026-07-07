@@ -7,8 +7,8 @@ import {
 } from "react-icons/fa";
 
 const formatDate = (timestamp) => {
-  if (!timestamp?.toDate) return "No disponible";
-  return timestamp.toDate().toLocaleDateString();
+  if (!timestamp?.toDate) return "Brak danych";
+  return timestamp.toDate().toLocaleDateString("pl-PL");
 };
 
 const ProfileTestHistory = ({ testHistory = [] }) => {
@@ -21,18 +21,18 @@ const ProfileTestHistory = ({ testHistory = [] }) => {
 
         <div className="min-w-0">
           <h2 className="text-xl md:text-2xl font-bold text-gray-900">
-            Historial de Tests
+            Historia testów
           </h2>
 
           <p className="text-xs md:text-sm text-gray-500">
-            Resultados de tus evaluaciones anteriores.
+            Wyniki Twoich wcześniejszych testów.
           </p>
         </div>
       </div>
 
       {testHistory.length === 0 ? (
         <div className="bg-gray-50 border border-gray-100 rounded-2xl p-5 md:p-8 text-center text-gray-600 text-sm md:text-base">
-          No hay historial de tests disponible.
+          Brak dostępnej historii testów.
         </div>
       ) : (
         <>
@@ -48,27 +48,25 @@ const ProfileTestHistory = ({ testHistory = [] }) => {
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="text-xs text-gray-500">Fecha</p>
+                      <p className="text-xs text-gray-500">Data</p>
                       <p className="font-semibold text-gray-900">
                         {formatDate(test.testDate)}
                       </p>
                     </div>
 
                     <span className="bg-primary-50 text-primary-700 px-3 py-1 rounded-full text-xs font-semibold">
-                      {test.results?.finalLevel || "No definido"}
+                      {test.results?.finalLevel || "Nie określono"}
                     </span>
                   </div>
 
                   <div className="mt-4 grid grid-cols-2 gap-3">
                     <div className="bg-white rounded-xl border border-gray-100 p-3">
-                      <p className="text-xs text-gray-500">Puntuación</p>
-                      <p className="font-bold text-gray-900">
-                        {score}%
-                      </p>
+                      <p className="text-xs text-gray-500">Wynik</p>
+                      <p className="font-bold text-gray-900">{score}%</p>
                     </div>
 
                     <div className="bg-white rounded-xl border border-gray-100 p-3">
-                      <p className="text-xs text-gray-500">Resultado</p>
+                      <p className="text-xs text-gray-500">Rezultat</p>
 
                       <span
                         className={`inline-flex items-center gap-1 mt-1 text-xs font-semibold ${
@@ -76,7 +74,7 @@ const ProfileTestHistory = ({ testHistory = [] }) => {
                         }`}
                       >
                         {passed ? <FaCheckCircle /> : <FaTimesCircle />}
-                        {passed ? "Aprobado" : "No aprobado"}
+                        {passed ? "Zaliczony" : "Niezaliczony"}
                       </span>
                     </div>
                   </div>
@@ -90,19 +88,19 @@ const ProfileTestHistory = ({ testHistory = [] }) => {
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-100">
                   <th className="px-5 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                    Fecha
+                    Data
                   </th>
 
                   <th className="px-5 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                    Nivel
+                    Poziom
                   </th>
 
                   <th className="px-5 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                    Puntuación
+                    Wynik
                   </th>
 
                   <th className="px-5 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                    Resultado
+                    Rezultat
                   </th>
                 </tr>
               </thead>
@@ -123,7 +121,7 @@ const ProfileTestHistory = ({ testHistory = [] }) => {
 
                       <td className="px-5 py-4 whitespace-nowrap">
                         <span className="bg-primary-50 text-primary-700 px-3 py-1 rounded-full text-sm font-semibold">
-                          {test.results?.finalLevel || "No definido"}
+                          {test.results?.finalLevel || "Nie określono"}
                         </span>
                       </td>
 
@@ -142,7 +140,7 @@ const ProfileTestHistory = ({ testHistory = [] }) => {
                           }`}
                         >
                           {passed ? <FaCheckCircle /> : <FaTimesCircle />}
-                          {passed ? "Aprobado" : "No aprobado"}
+                          {passed ? "Zaliczony" : "Niezaliczony"}
                         </span>
                       </td>
                     </tr>

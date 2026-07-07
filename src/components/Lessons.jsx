@@ -1,24 +1,21 @@
 // src/components/Lessons.jsx
 
-import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FaArrowLeft, FaPlus } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
-import LessonForm from "../components/forms/LessonsForm";
-import { createNewLesson, cleanLessonData } from "../utils/lessonStructure";
-import AIGeneratedLessonsReview from "./admin/AIGeneratedLessonsReview";
-
+import LessonForm from "./forms/LessonsForm";
 import LessonFiltersPanel from "./lessons/LessonFiltersPanel";
 import ModuleLessonsGroup from "./lessons/ModuleLessonsGroup";
 
 import {
   createLesson,
-  getLessonContent,
   deleteLesson,
-  updateLesson,
+  getLessonContent,
   getLessonsByLevel,
   getNextLessonNumber,
-  getNextLessonOrderInModule
+  getNextLessonOrderInModule,
+  updateLesson
 } from "../services/lessonManager";
 
 import {
@@ -26,20 +23,25 @@ import {
   refreshModuleLessonCount
 } from "../services/moduleService";
 
+import {
+  cleanLessonData,
+  createNewLesson
+} from "../utils/lessonStructure";
+
 const LEVELS = ["A1", "A2", "B1", "B2", "C1", "C2"];
 
 const AGE_GROUPS = [
-  { value: "all", label: "Todos" },
-  { value: "kids_early", label: "Niños 5–7" },
-  { value: "kids", label: "Niños 8–12" },
-  { value: "teens", label: "Jóvenes 13–17" },
-  { value: "adults", label: "Adultos 18+" }
+  { value: "all", label: "Wszystkie" },
+  { value: "kids_early", label: "Dzieci 5–7 lat" },
+  { value: "kids", label: "Dzieci 8–12 lat" },
+  { value: "teens", label: "Młodzież 13–17 lat" },
+  { value: "adults", label: "Dorośli 18+" }
 ];
 
 const STATUS_OPTIONS = [
-  { value: "all", label: "Todos" },
-  { value: "published", label: "Publicadas" },
-  { value: "draft", label: "Borradores" }
+  { value: "all", label: "Wszystkie" },
+  { value: "published", label: "Opublikowane" },
+  { value: "draft", label: "Wersje robocze" }
 ];
 
 const Lessons = () => {
@@ -63,28 +65,41 @@ const Lessons = () => {
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterModule, setFilterModule] = useState("all");
 
+  const getLessonTitle = (lesson) =>
+    lesson?.title || lesson?.titulo || lesson?.lessonId || lesson?.id || "";
+
+  const getLessonDescription = (lesson) =>
+    lesson?.description || lesson?.descripcion || "";
+
+  const getLessonLevel = (lesson) =>
+    lesson?.level || lesson?.nivel || activeLevel;
+
   const getAgeGroupLabel = (value) =>
-    AGE_GROUPS.find((group) => group.value === value)?.label || "Todos";
+    AGE_GROUPS.find((group) => group.value === value)?.label || "Wszystkie";
 
   const getStatusLabel = (value) => {
     const labels = {
-      published: "Publicada",
-      draft: "Borrador",
-      all: "Todos"
+      published: "Opublikowana",
+      draft: "Wersja robocza",
+      all: "Wszystkie"
     };
 
-    return labels[value] || "Borrador";
+    return labels[value] || "Wersja robocza";
   };
 
-  const getModuleTitle = (moduleId) => {
-    if (!moduleId) return "Sin módulo";
+  const getModuleTitle = useCallback(
+    (moduleId) => {
+      if (!moduleId) return "Bez modułu";
 
-    return (
-      modules.find(
-        (module) => module.moduleId === moduleId || module.id === moduleId
-      )?.title || moduleId
-    );
-  };
+      return (
+        modules.find(
+          (module) =>
+            module.moduleId === moduleId || module.id === moduleId
+        )?.title || moduleId
+      );
+    },
+    [modules]
+  );
 
   const fetchModules = useCallback(async () => {
     try {
@@ -92,14 +107,18 @@ const Lessons = () => {
         includeDrafts: true
       });
 
-      setModules(modulesData || []);
+      const safeModules = modulesData || [];
 
-      if (!activeModuleId && modulesData?.length > 0) {
-        setActiveModuleId(modulesData[0].moduleId || modulesData[0].id);
+      setModules(safeModules);
+
+      if (!activeModuleId && safeModules.length > 0) {
+        setActiveModuleId(
+          safeModules[0].moduleId || safeModules[0].id || ""
+        );
       }
     } catch (error) {
       console.error("Error fetching modules:", error);
-      setError("Error al cargar los módulos.");
+      setError("Nie udało się załadować modułów.");
     }
   }, [activeLevel, activeModuleId]);
 
@@ -113,7 +132,9 @@ const Lessons = () => {
       setLessons(lessonsData || []);
     } catch (error) {
       console.error("Error fetching lessons:", error);
-      setError("Error al cargar las lecciones. Por favor, intenta nuevamente.");
+      setError(
+        "Nie udało się załadować lekcji. Spróbuj ponownie."
+      );
     } finally {
       setLoading(false);
     }
@@ -131,23 +152,32 @@ const Lessons = () => {
       const lessonModuleId = lesson.moduleId || "";
 
       const matchesAgeGroup =
-        filterAgeGroup === "all" || lessonAgeGroup === filterAgeGroup;
+        filterAgeGroup === "all" ||
+        lessonAgeGroup === filterAgeGroup;
 
       const matchesStatus =
-        filterStatus === "all" || lessonStatus === filterStatus;
+        filterStatus === "all" ||
+        lessonStatus === filterStatus;
 
       const matchesModule =
-        filterModule === "all" || lessonModuleId === filterModule;
+        filterModule === "all" ||
+        lessonModuleId === filterModule;
 
       return matchesAgeGroup && matchesStatus && matchesModule;
     });
-  }, [lessons, filterAgeGroup, filterStatus, filterModule]);
+  }, [
+    lessons,
+    filterAgeGroup,
+    filterStatus,
+    filterModule
+  ]);
 
   const lessonsByModule = useMemo(() => {
     const grouped = new Map();
 
     modules.forEach((module) => {
       const moduleId = module.moduleId || module.id;
+
       grouped.set(moduleId, {
         module,
         lessons: []
@@ -162,7 +192,10 @@ const Lessons = () => {
           module: {
             id: moduleId,
             moduleId,
-            title: moduleId === "without_module" ? "Sin módulo" : getModuleTitle(moduleId),
+            title:
+              moduleId === "without_module"
+                ? "Bez modułu"
+                : getModuleTitle(moduleId),
             icon: "📚"
           },
           lessons: []
@@ -179,16 +212,29 @@ const Lessons = () => {
           const orderA = Number(a.orderInModule) || 999;
           const orderB = Number(b.orderInModule) || 999;
 
-          if (orderA !== orderB) return orderA - orderB;
+          if (orderA !== orderB) {
+            return orderA - orderB;
+          }
 
-          const numA = parseInt((a.id || "").split("_").pop()) || 0;
-          const numB = parseInt((b.id || "").split("_").pop()) || 0;
+          const numA =
+            parseInt((a.id || "").split("_").pop(), 10) || 0;
+
+          const numB =
+            parseInt((b.id || "").split("_").pop(), 10) || 0;
 
           return numA - numB;
         })
       }))
-      .filter((group) => filterModule === "all" || group.lessons.length > 0);
-  }, [modules, filteredLessons, filterModule]);
+      .filter(
+        (group) =>
+          filterModule === "all" || group.lessons.length > 0
+      );
+  }, [
+    modules,
+    filteredLessons,
+    filterModule,
+    getModuleTitle
+  ]);
 
   const resetFormState = () => {
     setIsCreating(false);
@@ -204,33 +250,49 @@ const Lessons = () => {
       setLoading(true);
 
       if (!LEVELS.includes(activeLevel)) {
-        throw new Error("Nivel no válido.");
+        throw new Error("Invalid level.");
       }
 
       if (!lessonData.moduleId) {
-        throw new Error("Debes seleccionar un módulo para la lección.");
+        throw new Error("Wybierz moduł dla lekcji.");
       }
 
       const nextNumber = await getNextLessonNumber(activeLevel);
-      const nextOrderInModule = await getNextLessonOrderInModule(
-        activeLevel,
-        lessonData.moduleId
-      );
+
+      const nextOrderInModule =
+        await getNextLessonOrderInModule(
+          activeLevel,
+          lessonData.moduleId
+        );
+
+      const lessonId =
+        lessonData.lessonId ||
+        lessonData.id ||
+        `${activeLevel}_${nextNumber}`;
 
       const newLessonData = {
         ...lessonData,
-        id: lessonData.id || `${activeLevel}_${nextNumber}`,
-        lessonId: lessonData.lessonId || lessonData.id || `${activeLevel}_${nextNumber}`,
-        nivel: activeLevel,
+        id: lessonId,
+        lessonId,
         level: activeLevel,
+
+        // Legacy compatibility during migration.
+        nivel: activeLevel,
+
         moduleId: lessonData.moduleId,
-        orderInModule: lessonData.orderInModule || nextOrderInModule,
+        orderInModule:
+          Number(lessonData.orderInModule) ||
+          nextOrderInModule,
         ageGroup: lessonData.ageGroup || "all",
         status: lessonData.status || "draft"
       };
 
       await createLesson(newLessonData);
-      await refreshModuleLessonCount(activeLevel, lessonData.moduleId);
+
+      await refreshModuleLessonCount(
+        activeLevel,
+        lessonData.moduleId
+      );
 
       await fetchLessons();
       await fetchModules();
@@ -239,15 +301,17 @@ const Lessons = () => {
       setFormData(createNewLesson());
     } catch (error) {
       console.error("Error creating lesson:", error);
-      setError(error.message || "Error al crear la lección.");
+      setError(error.message || "Nie udało się utworzyć lekcji.");
     } finally {
       setLoading(false);
     }
   };
 
   const handleDeleteLesson = async (lesson) => {
+    const lessonTitle = getLessonTitle(lesson);
+
     const confirmDelete = window.confirm(
-      `¿Seguro que deseas eliminar la lección "${lesson.titulo || lesson.id}"?`
+      `Czy na pewno chcesz usunąć lekcję „${lessonTitle}”?`
     );
 
     if (!confirmDelete) return;
@@ -256,13 +320,20 @@ const Lessons = () => {
       setError(null);
       setLoading(true);
 
-      const lessonLevel = lesson.nivel || lesson.level || activeLevel;
+      const lessonLevel = getLessonLevel(lesson);
       const moduleId = lesson.moduleId || "";
 
-      await deleteLesson(lessonLevel, lesson.id, moduleId);
+      await deleteLesson(
+        lessonLevel,
+        lesson.id || lesson.lessonId,
+        moduleId
+      );
 
       if (moduleId) {
-        await refreshModuleLessonCount(lessonLevel, moduleId);
+        await refreshModuleLessonCount(
+          lessonLevel,
+          moduleId
+        );
       }
 
       setSelectedLesson(null);
@@ -271,7 +342,9 @@ const Lessons = () => {
       await fetchModules();
     } catch (error) {
       console.error("Error deleting lesson:", error);
-      setError("Error al eliminar la lección. Por favor, intenta nuevamente.");
+      setError(
+        "Nie udało się usunąć lekcji. Spróbuj ponownie."
+      );
     } finally {
       setLoading(false);
     }
@@ -281,37 +354,76 @@ const Lessons = () => {
     try {
       setError(null);
 
-      const lessonLevel = lesson.nivel || lesson.level || activeLevel;
+      const lessonLevel = getLessonLevel(lesson);
+      const lessonId = lesson.lessonId || lesson.id;
       const moduleId = lesson.moduleId || "";
 
       const fullContent = await getLessonContent(
         lessonLevel,
-        lesson.id,
+        lessonId,
         moduleId
       );
-
+      
       if (!fullContent) {
-        setError("No se encontró el contenido completo de la lección.");
+        setError("Nie znaleziono pełnej zawartości lekcji.");
         return;
       }
 
       setEditingLesson(lesson);
       setIsCreating(false);
 
-      setFormData({
-        ...createNewLesson(),
+      const dataForForm = {
         ...fullContent,
-        id: lesson.id,
-        lessonId: lesson.id,
-        titulo: fullContent.titulo || lesson.titulo || "",
-        descripcion: fullContent.descripcion || lesson.descripcion || "",
-        nivel: lessonLevel,
+
+        id: lessonId,
+        lessonId,
+
+        title:
+          fullContent.title ||
+          fullContent.titulo ||
+          getLessonTitle(lesson),
+
+        description:
+          fullContent.description ||
+          fullContent.descripcion ||
+          getLessonDescription(lesson),
+
         level: lessonLevel,
-        moduleId: fullContent.moduleId || lesson.moduleId || "",
-        orderInModule: fullContent.orderInModule || lesson.orderInModule || 1,
-        ageGroup: fullContent.ageGroup || lesson.ageGroup || "all",
-        status: fullContent.status || lesson.status || "draft"
-      });
+        moduleId:
+          fullContent.moduleId ||
+          lesson.moduleId ||
+          "",
+
+        orderInModule:
+          Number(fullContent.orderInModule) ||
+          Number(lesson.orderInModule) ||
+          1,
+
+        ageGroup:
+          fullContent.ageGroup ||
+          lesson.ageGroup ||
+          "all",
+
+        status:
+          fullContent.status ||
+          lesson.status ||
+          "draft",
+
+        titulo:
+          fullContent.titulo ||
+          fullContent.title ||
+          getLessonTitle(lesson),
+
+        descripcion:
+          fullContent.descripcion ||
+          fullContent.description ||
+          getLessonDescription(lesson),
+
+        nivel: lessonLevel
+      };
+
+
+setFormData(dataForForm);
 
       requestAnimationFrame(() => {
         setTimeout(() => {
@@ -323,7 +435,7 @@ const Lessons = () => {
       });
     } catch (error) {
       console.error("Error loading lesson content:", error);
-      setError("Error al cargar el contenido de la lección.");
+      setError("Nie udało się załadować zawartości lekcji.");
     }
   };
 
@@ -333,23 +445,46 @@ const Lessons = () => {
       setLoading(true);
 
       if (!updatedData.moduleId) {
-        throw new Error("Debes seleccionar un módulo para la lección.");
+        throw new Error("Wybierz moduł dla lekcji.");
       }
+
+      const lessonId =
+        updatedData.lessonId || updatedData.id;
+
+      const lessonLevel =
+        updatedData.level ||
+        updatedData.nivel ||
+        activeLevel;
 
       const cleanedData = cleanLessonData({
         ...updatedData,
-        id: updatedData.id || updatedData.lessonId,
-        lessonId: updatedData.lessonId || updatedData.id,
-        nivel: updatedData.nivel || activeLevel,
-        level: updatedData.level || updatedData.nivel || activeLevel,
+
+        id: lessonId,
+        lessonId,
+
+        level: lessonLevel,
+
+        // Legacy compatibility during migration.
+        nivel: lessonLevel,
+
         moduleId: updatedData.moduleId,
-        orderInModule: Number(updatedData.orderInModule) || 1,
-        ageGroup: updatedData.ageGroup || "all",
-        status: updatedData.status || "draft"
+
+        orderInModule:
+          Number(updatedData.orderInModule) || 1,
+
+        ageGroup:
+          updatedData.ageGroup || "all",
+
+        status:
+          updatedData.status || "draft"
       });
 
       await updateLesson(cleanedData);
-      await refreshModuleLessonCount(cleanedData.nivel, cleanedData.moduleId);
+
+      await refreshModuleLessonCount(
+        lessonLevel,
+        cleanedData.moduleId
+      );
 
       setEditingLesson(null);
       setFormData(createNewLesson());
@@ -358,7 +493,9 @@ const Lessons = () => {
       await fetchModules();
     } catch (error) {
       console.error("Error updating lesson:", error);
-      setError(error.message || "Error al actualizar la lección.");
+      setError(
+        error.message || "Nie udało się zaktualizować lekcji."
+      );
     } finally {
       setLoading(false);
     }
@@ -370,100 +507,150 @@ const Lessons = () => {
       setLoading(true);
 
       const currentStatus = lesson.status || "draft";
-      const newStatus = currentStatus === "published" ? "draft" : "published";
+
+      const newStatus =
+        currentStatus === "published"
+          ? "draft"
+          : "published";
 
       if (newStatus === "published") {
         const confirmPublish = window.confirm(
-          `¿Seguro que deseas publicar la lección "${lesson.titulo || lesson.id}"?\n\n` +
-            "Antes de publicar verifica:\n" +
-            "- Que el contenido sea correcto.\n" +
-            "- Que los recursos y enlaces funcionen.\n" +
-            "- Que la lectura, ejercicios y evaluación estén revisados."
+          `Czy na pewno chcesz opublikować lekcję „${getLessonTitle(
+            lesson
+          )}”?\n\n` +
+            "Przed publikacją sprawdź:\n" +
+            "• czy treść jest poprawna,\n" +
+            "• czy zasoby i linki działają,\n" +
+            "• czy teksty, ćwiczenia i test zostały sprawdzone."
         );
 
         if (!confirmPublish) return;
       }
 
-      const lessonLevel = lesson.nivel || lesson.level || activeLevel;
+      const lessonLevel = getLessonLevel(lesson);
+      const lessonId = lesson.lessonId || lesson.id;
       const moduleId = lesson.moduleId || "";
 
       const fullContent = await getLessonContent(
         lessonLevel,
-        lesson.id,
+        lessonId,
         moduleId
       );
-
+      
       if (!fullContent) {
-        setError("No se encontró el contenido completo de la lección.");
+        setError("Nie znaleziono pełnej zawartości lekcji.");
         return;
       }
 
       await updateLesson({
         ...fullContent,
-        id: lesson.id,
-        lessonId: lesson.id,
-        nivel: lessonLevel,
+
+        id: lessonId,
+        lessonId,
+
         level: lessonLevel,
+
+        // Legacy compatibility during migration.
+        nivel: lessonLevel,
+
         moduleId,
-        titulo: fullContent.titulo || lesson.titulo || "",
-        descripcion: fullContent.descripcion || lesson.descripcion || "",
-        ageGroup: fullContent.ageGroup || lesson.ageGroup || "all",
+
+        title:
+          fullContent.title ||
+          fullContent.titulo ||
+          getLessonTitle(lesson),
+
+        description:
+          fullContent.description ||
+          fullContent.descripcion ||
+          getLessonDescription(lesson),
+
+        ageGroup:
+          fullContent.ageGroup ||
+          lesson.ageGroup ||
+          "all",
+
         status: newStatus
       });
 
       if (moduleId) {
-        await refreshModuleLessonCount(lessonLevel, moduleId);
+        await refreshModuleLessonCount(
+          lessonLevel,
+          moduleId
+        );
       }
 
       await fetchLessons();
       await fetchModules();
     } catch (error) {
       console.error("Error changing lesson status:", error);
-      setError("Error al cambiar el estado de la lección.");
+      setError("Nie udało się zmienić statusu lekcji.");
     } finally {
       setLoading(false);
     }
   };
 
   const handleNewLessonClick = async () => {
-    setEditingLesson(null);
-    setSelectedLesson(null);
-    setError(null);
+    try {
+      setEditingLesson(null);
+      setSelectedLesson(null);
+      setError(null);
 
-    if (!modules.length) {
+      if (!modules.length) {
+        setError(
+          "Najpierw utwórz co najmniej jeden moduł dla tego poziomu."
+        );
+        return;
+      }
+
+      const selectedModuleId =
+        activeModuleId ||
+        modules[0]?.moduleId ||
+        modules[0]?.id ||
+        "";
+
+      const nextNumber =
+        await getNextLessonNumber(activeLevel);
+
+      const nextOrderInModule =
+        await getNextLessonOrderInModule(
+          activeLevel,
+          selectedModuleId
+        );
+
+      const lessonId = `${activeLevel}_${nextNumber}`;
+
+      setFormData({
+        ...createNewLesson(),
+
+        id: lessonId,
+        lessonId,
+
+        level: activeLevel,
+
+        // Legacy compatibility during migration.
+        nivel: activeLevel,
+
+        moduleId: selectedModuleId,
+        orderInModule: nextOrderInModule,
+        ageGroup: "all",
+        status: "draft"
+      });
+
+      setIsCreating(true);
+
+      setTimeout(() => {
+        formRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start"
+        });
+      }, 0);
+    } catch (error) {
+      console.error("Error preparing new lesson:", error);
       setError(
-        "Primero debes crear al menos un módulo para este nivel antes de crear lecciones."
+        "Nie udało się przygotować formularza nowej lekcji."
       );
-      return;
     }
-
-    const selectedModuleId =
-      activeModuleId || modules[0]?.moduleId || modules[0]?.id || "";
-
-    const nextNumber = await getNextLessonNumber(activeLevel);
-
-    const nextOrderInModule = await getNextLessonOrderInModule(
-      activeLevel,
-      selectedModuleId
-    );
-
-    setFormData({
-      ...createNewLesson(),
-      id: `${activeLevel}_${nextNumber}`,
-      lessonId: `${activeLevel}_${nextNumber}`,
-      nivel: activeLevel,
-      level: activeLevel,
-      moduleId: selectedModuleId,
-      orderInModule: nextOrderInModule,
-      ageGroup: "all",
-      status: "draft"
-    });
-
-    setIsCreating(true);
-
-    setTimeout(() => {
-      formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 0);
   };
 
   const handleLevelChange = (level) => {
@@ -484,7 +671,11 @@ const Lessons = () => {
   };
 
   const handleToggleDetails = (lessonId) => {
-    setSelectedLesson((prev) => (prev === lessonId ? null : lessonId));
+    setSelectedLesson((previousLessonId) =>
+      previousLessonId === lessonId
+        ? null
+        : lessonId
+    );
   };
 
   return (
@@ -495,14 +686,18 @@ const Lessons = () => {
         className="mb-6 inline-flex items-center gap-2 text-gray-600 hover:text-primary-600 font-medium"
       >
         <FaArrowLeft />
-        Volver al panel admin
+        Wróć do panelu administratora
       </button>
 
       <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold">Gestión de Lecciones</h1>
+          <h1 className="text-2xl font-bold">
+            Zarządzanie lekcjami
+          </h1>
+
           <p className="text-gray-600 text-sm mt-1">
-            Administra las lecciones por nivel, módulo, edad y estado.
+            Zarządzaj lekcjami według poziomu, modułu,
+            grupy wiekowej i statusu.
           </p>
         </div>
 
@@ -513,7 +708,7 @@ const Lessons = () => {
             className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-3 bg-primary-600 text-white rounded-xl hover:bg-primary-700"
           >
             <FaPlus />
-            <span>Nueva Lección Manual</span>
+            <span>Nowa lekcja ręczna</span>
           </button>
 
           <button
@@ -522,7 +717,7 @@ const Lessons = () => {
             className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700"
           >
             <FaPlus />
-            <span>Nueva Lección con IA</span>
+            <span>Nowa lekcja z AI</span>
           </button>
         </div>
       </div>
@@ -551,20 +746,27 @@ const Lessons = () => {
       )}
 
       {(isCreating || editingLesson) && (
-        <div ref={formRef} className="mb-8 p-4 bg-white rounded-2xl shadow">
+        <div
+          ref={formRef}
+          className="mb-8 p-4 bg-white rounded-2xl shadow"
+        >
           <h2 className="text-xl font-semibold mb-4">
             {editingLesson
-              ? "Editar Lección"
-              : `Crear Nueva Lección - Nivel ${activeLevel}`}
+              ? "Edytuj lekcję"
+              : `Utwórz nową lekcję — poziom ${activeLevel}`}
           </h2>
 
           <LessonForm
             key={formData.id || "new-lesson"}
-            isEditing={!!editingLesson}
+            isEditing={Boolean(editingLesson)}
             initialData={formData}
             activeLevel={activeLevel}
             modules={modules}
-            onSubmit={editingLesson ? handleUpdateLesson : handleCreateLesson}
+            onSubmit={
+              editingLesson
+                ? handleUpdateLesson
+                : handleCreateLesson
+            }
             onCancel={resetFormState}
           />
         </div>
@@ -576,7 +778,7 @@ const Lessons = () => {
         </div>
       ) : filteredLessons.length === 0 ? (
         <div className="text-center py-8 text-gray-500 bg-white rounded-2xl shadow">
-          No hay lecciones disponibles para este filtro.
+          Brak lekcji spełniających wybrane kryteria.
         </div>
       ) : (
         <div className="space-y-6">
@@ -597,8 +799,6 @@ const Lessons = () => {
           ))}
         </div>
       )}
-
-      <AIGeneratedLessonsReview onPublished={fetchLessons} />
     </div>
   );
 };

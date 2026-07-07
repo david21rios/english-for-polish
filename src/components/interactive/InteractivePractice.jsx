@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from "react";
+//src/components/interactive/InteractivePractice.jsx
+import React, { useEffect, useMemo, useState } from "react";
 
-const normalizeAnswer = (text = "") => {
-  return text
+const normalizeAnswer = (text = "") =>
+  text
     .toString()
     .toLowerCase()
     .normalize("NFD")
@@ -9,87 +10,298 @@ const normalizeAnswer = (text = "") => {
     .replace(/[¿?¡!.,;:]/g, "")
     .replace(/\s+/g, " ")
     .trim();
+
+const normalizeExerciseType = (type = "") => {
+  const normalized = type.toString().toLowerCase().trim();
+
+  const map = {
+    multiple_choice: "multiple_choice",
+    seleccion_multiple: "multiple_choice",
+    fill_blank: "fill_blank",
+    completar: "fill_blank",
+    matching: "matching",
+    relacionar: "matching",
+    ordering: "ordering",
+    ordenar: "ordering"
+  };
+
+  return map[normalized] || normalized;
+};
+
+const toArray = (value) => {
+  if (Array.isArray(value)) {
+    return value.filter((item) => item !== null && item !== undefined && item !== "");
+  }
+
+  if (value !== null && value !== undefined && value !== "") {
+    return [value];
+  }
+
+  return [];
 };
 
 const shuffleArray = (items = []) => {
-  if (!Array.isArray(items)) return [];
+  const original = Array.isArray(items) ? [...items].filter(Boolean) : [];
+  if (original.length <= 1) return original;
 
-  const original = [...items];
   let shuffled = [...original];
 
-  if (shuffled.length <= 1) return shuffled;
-
-  let attempts = 0;
-
-  do {
+  for (let attempt = 0; attempt < 10; attempt += 1) {
     shuffled = [...original];
 
-    for (let i = shuffled.length - 1; i > 0; i--) {
+    for (let i = shuffled.length - 1; i > 0; i -= 1) {
       const j = Math.floor(Math.random() * (i + 1));
       [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
 
-    attempts++;
-  } while (
-    JSON.stringify(shuffled) === JSON.stringify(original) &&
-    attempts < 10
-  );
+    if (JSON.stringify(shuffled) !== JSON.stringify(original)) break;
+  }
 
   return shuffled;
 };
 
-const getCorrectOrder = (exercise = {}) => {
-  if (!Array.isArray(exercise.orden_correcto)) return [];
+const normalizeCorrectPairs = (exercise = {}) => {
+  const source =
+    exercise.correctPairs ||
+    exercise.correct_pairs ||
+    exercise.pares_correctos ||
+    exercise.correctMatches ||
+    exercise.respuestas_correctas ||
+    {};
 
-  if (exercise.orden_correcto.every((item) => typeof item === "number")) {
-    return exercise.orden_correcto.map((index) => exercise.elementos?.[index]);
-  }
+  const leftItems = toArray(
+    exercise.leftItems ||
+      exercise.left_items ||
+      exercise.pares_izquierda ||
+      exercise.elementos_izquierda
+  );
 
-  return exercise.orden_correcto;
+  if (!source || typeof source !== "object") return {};
+
+  return Object.entries(source).reduce((acc, [key, value]) => {
+    if (key.startsWith("pair") || key.startsWith("par")) {
+      const index = Number(key.replace(/\D/g, ""));
+      const leftValue = leftItems[index];
+
+      if (leftValue) {
+        acc[leftValue] = value;
+      }
+
+      return acc;
+    }
+
+    acc[key] = value;
+    return acc;
+  }, {});
 };
 
-const InteractivePractice = ({ exercises, onComplete }) => {
-  const exercisesArray = Array.isArray(exercises)
-    ? exercises.filter(Boolean)
-    : exercises
-    ? [exercises]
-    : [];
+const normalizeExercise = (exercise = {}) => {
+  const type = normalizeExerciseType(exercise.type || exercise.tipo);
 
-  const [correctMap, setCorrectMap] = useState({});
+  return {
+    ...exercise,
+    type,
+    question: exercise.question || exercise.pregunta || "",
+    instruction:
+      exercise.instruction ||
+      exercise.instructions ||
+      exercise.instrucciones ||
+      "",
+    options: toArray(exercise.options || exercise.opciones),
+    correctAnswer:
+      exercise.correctAnswer ||
+      exercise.correct_answer ||
+      exercise.respuesta_correcta ||
+      exercise.answer ||
+      "",
+    text: exercise.text || exercise.texto || "",
+    words: toArray(exercise.words || exercise.palabras),
+    correctAnswers: (() => {
+      const candidates = [
+        exercise.correctAnswers,
+        exercise.correct_answers,
+        exercise.respuestas,
+        exercise.answers,
+        exercise.respuestas_correctas
+      ];
+    
+      return (
+        candidates.find(
+          (item) =>
+            item &&
+            typeof item === "object" &&
+            !Array.isArray(item) &&
+            Object.keys(item).length > 0
+        ) || {}
+      );
+    })(),
+    acceptedAnswers:
+      exercise.acceptedAnswers ||
+      exercise.accepted_answers ||
+      exercise.respuestas_aceptadas ||
+      {},
+    leftItems: toArray(
+      exercise.leftItems ||
+        exercise.left_items ||
+        exercise.pares_izquierda ||
+        exercise.elementos_izquierda
+    ),
+    rightItems: toArray(
+      exercise.rightItems ||
+        exercise.right_items ||
+        exercise.pares_derecha ||
+        exercise.elementos_derecha
+    ),
+    correctPairs: normalizeCorrectPairs(exercise),
+    items: toArray(exercise.items || exercise.elementos),
+    correctOrder: toArray(
+      exercise.correctOrder ||
+        exercise.correct_order ||
+        exercise.orden_correcto
+    ),
+    correctOrderValues: toArray(
+      exercise.correctOrderValues || exercise.correct_order_values
+    ),
+    correct_order_values: toArray(
+      exercise.correct_order_values || exercise.correctOrderValues
+    )
+  };
+};
+
+const sameItemsSet = (a = [], b = []) => {
+  const normalizeList = (list) =>
+    list.map(normalizeAnswer).sort().join("|");
+
+  return normalizeList(a) === normalizeList(b);
+};
+
+const getCorrectOrder = (exercise = {}) => {
+  const items = toArray(exercise.items || exercise.elementos);
+
+  const explicitOrder = toArray(
+    exercise.correctOrderValues ||
+      exercise.correct_order_values ||
+      exercise.correctOrderText ||
+      exercise.correct_order_text
+  );
+
+  if (
+    explicitOrder.length > 0 &&
+    explicitOrder.length === items.length &&
+    sameItemsSet(explicitOrder, items)
+  ) {
+    return explicitOrder.map(String);
+  }
+
+  const correctOrder = toArray(
+    exercise.correctOrder ||
+      exercise.correct_order ||
+      exercise.orden_correcto
+  );
+
+  const isNumericIndex = (item) =>
+    typeof item === "number" ||
+    (typeof item === "string" && /^\d+$/.test(item.trim()));
+
+  if (correctOrder.length > 0 && correctOrder.every(isNumericIndex)) {
+    const ordered = correctOrder
+      .map((index) => items[Number(index)])
+      .filter((item) => item !== null && item !== undefined && item !== "");
+
+    if (ordered.length === items.length) {
+      return ordered;
+    }
+  }
+
+  if (
+    correctOrder.length > 0 &&
+    correctOrder.length === items.length &&
+    sameItemsSet(correctOrder.map(String), items)
+  ) {
+    return correctOrder.map(String);
+  }
+
+  console.warn("Ordering exercise has no valid correct order:", exercise);
+  return [];
+};
+
+const calculatePracticeProgress = ({ exercisesArray = [], resultMap = {} }) => {
+  const totalExercises = exercisesArray.length;
+
+  const completedExercises = Object.values(resultMap).filter(
+    (item) => item?.isCorrect === true
+  ).length;
+
+  const attempts = Object.values(resultMap).reduce(
+    (total, item) => total + (Number(item?.attempts) || 0),
+    0
+  );
+
+  const score =
+    totalExercises > 0
+      ? Math.round((completedExercises / totalExercises) * 100)
+      : null;
+
+  return {
+    completed: totalExercises > 0 && completedExercises === totalExercises,
+    score,
+    attempts,
+    completedExercises,
+    totalExercises,
+    correctAnswers: completedExercises,
+    totalQuestions: null,
+    skill: "practice",
+    updatedAt: new Date().toISOString()
+  };
+};
+
+const InteractivePractice = ({ exercises = [], onComplete }) => {
+  const exercisesArray = useMemo(() => {
+    const rawExercises = Array.isArray(exercises)
+      ? exercises.filter(Boolean)
+      : exercises
+      ? [exercises]
+      : [];
+
+    return rawExercises.map(normalizeExercise);
+  }, [exercises]);
+
+  const [resultMap, setResultMap] = useState({});
   const [completed, setCompleted] = useState(false);
 
   useEffect(() => {
-    setCorrectMap({});
+    setResultMap({});
     setCompleted(false);
   }, [exercises]);
 
   useEffect(() => {
     if (completed) return;
 
-    const allCorrect =
-      exercisesArray.length > 0 &&
-      exercisesArray.every((_, index) => correctMap[index] === true);
+    const progress = calculatePracticeProgress({
+      exercisesArray,
+      resultMap
+    });
 
-    if (allCorrect) {
+    if (progress.completed) {
       setCompleted(true);
-      onComplete?.();
+      onComplete?.(progress);
     }
-  }, [correctMap, exercisesArray.length, onComplete, completed]);
+  }, [resultMap, exercisesArray, completed, onComplete]);
 
   if (!exercisesArray.length) {
-    return <p className="text-gray-500">No hay ejercicios disponibles.</p>;
+    return <p className="text-gray-500">Brak dostępnych ćwiczeń.</p>;
   }
 
   return (
     <div className="space-y-6">
       {exercisesArray.map((exercise, index) => (
         <SingleExercise
-          key={`${exercise.tipo || "exercise"}-${index}`}
+          key={`${exercise.type || "exercise"}-${index}`}
           exercise={exercise}
-          onCorrectChange={(isCorrect) => {
-            setCorrectMap((prev) => ({
+          onResultChange={(result) => {
+            setResultMap((prev) => ({
               ...prev,
-              [index]: isCorrect
+              [index]: result
             }));
           }}
         />
@@ -98,19 +310,16 @@ const InteractivePractice = ({ exercises, onComplete }) => {
   );
 };
 
-const SingleExercise = ({ exercise, onCorrectChange }) => {
+const SingleExercise = ({ exercise, onResultChange }) => {
   const initializeUserResponse = () => {
     if (!exercise) return "";
 
-    switch (exercise.tipo?.toLowerCase()) {
+    switch (exercise.type) {
       case "ordering":
-      case "ordenar":
-        return shuffleArray(exercise.elementos || []);
+        return shuffleArray(exercise.items || []);
 
       case "fill_blank":
-      case "completar":
       case "matching":
-      case "relacionar":
         return {};
 
       default:
@@ -118,7 +327,7 @@ const SingleExercise = ({ exercise, onCorrectChange }) => {
     }
   };
 
-  const [userResponse, setUserResponse] = useState(initializeUserResponse());
+  const [userResponse, setUserResponse] = useState(initializeUserResponse);
   const [feedback, setFeedback] = useState(null);
   const [fieldFeedback, setFieldFeedback] = useState({});
   const [matchingFeedback, setMatchingFeedback] = useState({});
@@ -127,15 +336,11 @@ const SingleExercise = ({ exercise, onCorrectChange }) => {
   const [selectedLeft, setSelectedLeft] = useState(null);
   const [draggedIndex, setDraggedIndex] = useState(null);
   const [displayRightItems, setDisplayRightItems] = useState([]);
+  const [attempts, setAttempts] = useState(0);
 
   useEffect(() => {
-    const rightItems =
-      exercise?.pares_derecha ||
-      exercise?.elementos_derecha ||
-      [];
-
     setUserResponse(initializeUserResponse());
-    setDisplayRightItems(shuffleArray(rightItems));
+    setDisplayRightItems(shuffleArray(exercise?.rightItems || []));
     setFeedback(null);
     setFieldFeedback({});
     setMatchingFeedback({});
@@ -143,16 +348,19 @@ const SingleExercise = ({ exercise, onCorrectChange }) => {
     setMatchedPairs({});
     setSelectedLeft(null);
     setDraggedIndex(null);
-    onCorrectChange?.(false);
+    setAttempts(0);
+
+    onResultChange?.({
+      isCorrect: false,
+      attempts: 0,
+      updatedAt: new Date().toISOString()
+    });
   }, [exercise]);
 
-  if (!exercise || !exercise.tipo) {
-    console.error("Ejercicio inválido:", exercise);
-    return null;
-  }
+  if (!exercise || !exercise.type) return null;
 
   const getAcceptedAnswers = (key, correctValue) => {
-    const accepted = exercise.respuestas_aceptadas?.[key];
+    const accepted = exercise.acceptedAnswers?.[key];
 
     if (Array.isArray(accepted)) {
       return [correctValue, ...accepted].map(normalizeAnswer);
@@ -163,75 +371,93 @@ const SingleExercise = ({ exercise, onCorrectChange }) => {
 
   const resetGeneralFeedback = () => {
     setFeedback(null);
-    onCorrectChange?.(false);
+
+    onResultChange?.({
+      isCorrect: false,
+      attempts,
+      updatedAt: new Date().toISOString()
+    });
+  };
+
+  const notifyResult = ({ isCorrect, nextAttempts }) => {
+    onResultChange?.({
+      isCorrect,
+      attempts: nextAttempts,
+      updatedAt: new Date().toISOString()
+    });
   };
 
   const checkAnswer = () => {
     let isCorrect = false;
     let customMessage = "";
 
-    switch (exercise.tipo.toLowerCase()) {
-      case "multiple_choice":
-      case "seleccion_multiple": {
-        let correctAnswer = exercise.respuesta_correcta;
+    const nextAttempts = attempts + 1;
+    setAttempts(nextAttempts);
+
+    switch (exercise.type) {
+      case "multiple_choice": {
+        let correctAnswer = exercise.correctAnswer;
 
         if (typeof correctAnswer === "number") {
-          correctAnswer = exercise.opciones?.[correctAnswer];
+          correctAnswer = exercise.options?.[correctAnswer];
         }
 
         isCorrect =
           normalizeAnswer(userResponse) === normalizeAnswer(correctAnswer);
 
         customMessage = isCorrect
-          ? "¡Correcto! Muy bien."
-          : `Revisa tu respuesta. La opción correcta es: ${correctAnswer}`;
+          ? "Dobrze! Poprawna odpowiedź."
+          : `Sprawdź odpowiedź. Poprawna odpowiedź: ${correctAnswer}`;
 
         break;
       }
 
-      case "fill_blank":
-      case "completar": {
+      case "fill_blank": {
         const results = {};
-
-        Object.entries(
-          exercise.respuestas ||
-            exercise.respuestas_correctas ||
-            {}
-        ).forEach(([key, value]) => {
-          const user = normalizeAnswer(userResponse[key] || "");
-          const acceptedAnswers = getAcceptedAnswers(key, value);
-
-          results[key] = acceptedAnswers.includes(user);
-        });
-
+        const textParts = exercise.text.split(/_{2,}/g);
+        const blankCount = Math.max(textParts.length - 1, 0);
+            
+        for (let index = 0; index < blankCount; index += 1) {
+          const blankKey = `blank${index}`;
+          const alternativeKey = String(index);
+        
+          const expected =
+            exercise.correctAnswers?.[blankKey] ??
+            exercise.correctAnswers?.[alternativeKey] ??
+            exercise.words?.[index] ??
+            "";
+        
+          const user =
+            userResponse[blankKey] ??
+            userResponse[alternativeKey] ??
+            "";
+        
+          const acceptedAnswers = getAcceptedAnswers(
+            exercise.correctAnswers?.[blankKey] !== undefined ? blankKey : alternativeKey,
+            expected
+          );
+        
+          results[blankKey] = acceptedAnswers.includes(normalizeAnswer(user));
+        }
+      
         setFieldFeedback(results);
-
+      
         isCorrect =
           Object.keys(results).length > 0 &&
           Object.values(results).every(Boolean);
-
+      
         customMessage = isCorrect
-          ? "¡Correcto! Completaste todos los espacios."
-          : "Revisa los espacios marcados en rojo y vuelve a intentarlo.";
-
+          ? "Dobrze! Wszystkie luki są uzupełnione poprawnie."
+          : "Sprawdź pola oznaczone na czerwono i spróbuj ponownie.";
+      
         break;
       }
 
-      case "matching":
-      case "relacionar": {
+      case "matching": {
         const results = {};
-        const leftItems =
-          exercise.pares_izquierda ||
-          exercise.elementos_izquierda ||
-          [];
 
-        leftItems.forEach((_, index) => {
-          let expected = exercise.respuestas_correctas?.[`par${index}`];
-
-          if (!expected && exercise.pares_correctos) {
-            expected = exercise.pares_correctos[leftItems[index]];
-          }
-
+        exercise.leftItems.forEach((item, index) => {
+          const expected = exercise.correctPairs?.[item];
           const selected = matchedPairs[`item-${index}`];
 
           results[index] =
@@ -245,22 +471,17 @@ const SingleExercise = ({ exercise, onCorrectChange }) => {
           Object.values(results).every(Boolean);
 
         customMessage = isCorrect
-          ? "¡Correcto! Todas las relaciones están bien."
-          : "Revisa las relaciones marcadas en rojo y vuelve a intentarlo.";
+          ? "Dobrze! Wszystkie pary są poprawne."
+          : "Sprawdź relacje oznaczone na czerwono i spróbuj ponownie.";
 
         break;
       }
 
-      case "ordering":
-      case "ordenar": {
+      case "ordering": {
         const results = {};
         const correctOrder = getCorrectOrder(exercise);
 
-        if (
-          Array.isArray(userResponse) &&
-          Array.isArray(correctOrder) &&
-          correctOrder.length > 0
-        ) {
+        if (Array.isArray(userResponse) && correctOrder.length > 0) {
           userResponse.forEach((item, index) => {
             results[index] =
               normalizeAnswer(item) === normalizeAnswer(correctOrder[index]);
@@ -274,14 +495,13 @@ const SingleExercise = ({ exercise, onCorrectChange }) => {
         }
 
         customMessage = isCorrect
-          ? "¡Correcto! El orden está bien."
-          : "Revisa el orden. Los elementos en rojo están en una posición incorrecta.";
+          ? "Dobrze! Kolejność jest poprawna."
+          : "Sprawdź kolejność. Elementy na czerwono są w złej pozycji.";
 
         break;
       }
 
       default:
-        console.error("Tipo de ejercicio no soportado:", exercise.tipo);
         return;
     }
 
@@ -290,23 +510,26 @@ const SingleExercise = ({ exercise, onCorrectChange }) => {
       message: customMessage
     });
 
-    onCorrectChange?.(isCorrect);
+    notifyResult({
+      isCorrect,
+      nextAttempts
+    });
   };
 
   const renderMultipleChoice = () => (
     <div className="space-y-3">
-      <p className="font-medium mb-4">{exercise.pregunta}</p>
+      <p className="font-medium mb-4">{exercise.question}</p>
 
-      {(exercise.opciones || []).map((opcion, index) => {
-        const isSelected = userResponse === opcion;
-        let correctAnswer = exercise.respuesta_correcta;
+      {(exercise.options || []).map((option, index) => {
+        const isSelected = userResponse === option;
+        let correctAnswer = exercise.correctAnswer;
 
         if (typeof correctAnswer === "number") {
-          correctAnswer = exercise.opciones?.[correctAnswer];
+          correctAnswer = exercise.options?.[correctAnswer];
         }
 
         const isCorrectOption =
-          normalizeAnswer(opcion) === normalizeAnswer(correctAnswer);
+          normalizeAnswer(option) === normalizeAnswer(correctAnswer);
 
         const optionClass = feedback
           ? isCorrectOption
@@ -324,11 +547,11 @@ const SingleExercise = ({ exercise, onCorrectChange }) => {
             type="button"
             className={`w-full text-left p-4 rounded-lg border-2 transition-all ${optionClass}`}
             onClick={() => {
-              setUserResponse(opcion);
+              setUserResponse(option);
               resetGeneralFeedback();
             }}
           >
-            {opcion}
+            {option}
           </button>
         );
       })}
@@ -336,38 +559,36 @@ const SingleExercise = ({ exercise, onCorrectChange }) => {
   );
 
   const renderFillInBlank = () => {
-    if (!exercise.texto) return null;
+    if (!exercise.text) return null;
 
-    const textParts = exercise.texto.split(/_{2,}/g);
+    const textParts = exercise.text.split(/_{2,}/g);
 
     return (
       <div className="space-y-4">
-        {exercise.pregunta && (
+        {exercise.question && (
           <h3 className="font-medium text-lg text-gray-900 mb-2">
-            {exercise.pregunta}
+            {exercise.question}
           </h3>
         )}
 
         <div className="bg-gray-50 p-4 rounded-lg">
-          {exercise.instrucciones && (
+          {exercise.instruction && (
             <p className="font-medium mb-4 text-gray-700">
-              {exercise.instrucciones}
+              {exercise.instruction}
             </p>
           )}
 
-          {Array.isArray(exercise.palabras) && exercise.palabras.length > 0 && (
+          {exercise.words.length > 0 && (
             <div className="mb-4">
-              <p className="text-sm text-gray-600 mb-2">
-                Palabras de ayuda:
-              </p>
+              <p className="text-sm text-gray-600 mb-2">Słowa pomocnicze:</p>
 
               <div className="flex flex-wrap gap-2">
-                {exercise.palabras.map((palabra, index) => (
+                {exercise.words.map((word, index) => (
                   <span
                     key={index}
                     className="px-3 py-1.5 bg-blue-100 text-blue-800 rounded-full font-medium text-sm"
                   >
-                    {palabra}
+                    {word}
                   </span>
                 ))}
               </div>
@@ -377,7 +598,14 @@ const SingleExercise = ({ exercise, onCorrectChange }) => {
           <div className="mt-6 flex flex-wrap items-center gap-2 leading-10">
             {textParts.map((part, index) => {
               const blankKey = `blank${index}`;
-              const state = fieldFeedback[blankKey];
+              const alternativeKey = String(index);
+              const answerKey =
+                exercise.correctAnswers?.[blankKey] !== undefined
+                  ? blankKey
+                  : exercise.correctAnswers?.[alternativeKey] !== undefined
+                  ? alternativeKey
+                  : blankKey;
+              const state = fieldFeedback[answerKey];
 
               return (
                 <React.Fragment key={index}>
@@ -387,16 +615,16 @@ const SingleExercise = ({ exercise, onCorrectChange }) => {
                     <span className="inline-block min-w-[140px]">
                       <input
                         type="text"
-                        value={userResponse[blankKey] || ""}
-                        onChange={(e) => {
+                        value={userResponse[answerKey] || ""}
+                        onChange={(event) => {
                           setUserResponse((prev) => ({
                             ...prev,
-                            [blankKey]: e.target.value
+                            [answerKey]: event.target.value
                           }));
 
                           setFieldFeedback((prev) => ({
                             ...prev,
-                            [blankKey]: undefined
+                            [answerKey]: undefined
                           }));
 
                           resetGeneralFeedback();
@@ -408,7 +636,7 @@ const SingleExercise = ({ exercise, onCorrectChange }) => {
                             ? "border-red-500 bg-red-50 text-red-800"
                             : "border-gray-300 focus:border-primary-500"
                         }`}
-                        placeholder="Escribe aquí"
+                        placeholder="Wpisz tutaj"
                       />
                     </span>
                   )}
@@ -422,29 +650,19 @@ const SingleExercise = ({ exercise, onCorrectChange }) => {
   };
 
   const renderMatching = () => {
-    const leftItems =
-      exercise.pares_izquierda ||
-      exercise.elementos_izquierda ||
-      [];
-
+    const leftItems = exercise.leftItems || [];
     const rightItems = displayRightItems;
 
     if (!leftItems.length || !rightItems.length) {
-      return (
-        <p className="text-gray-500">
-          Este ejercicio de relacionar no tiene pares disponibles.
-        </p>
-      );
+      return <p className="text-gray-500">To ćwiczenie nie ma dostępnych par.</p>;
     }
 
     return (
       <div className="space-y-4">
-        {exercise.pregunta && (
-          <p className="font-medium">{exercise.pregunta}</p>
-        )}
+        {exercise.question && <p className="font-medium">{exercise.question}</p>}
 
-        {exercise.instrucciones && (
-          <p className="text-gray-700">{exercise.instrucciones}</p>
+        {exercise.instruction && (
+          <p className="text-gray-700">{exercise.instruction}</p>
         )}
 
         <div className="grid md:grid-cols-2 gap-4">
@@ -477,9 +695,7 @@ const SingleExercise = ({ exercise, onCorrectChange }) => {
                   <div className="font-semibold">{item}</div>
 
                   {selected && (
-                    <div className="text-sm mt-1 opacity-80">
-                      🔗 {selected}
-                    </div>
+                    <div className="text-sm mt-1 opacity-80">🔗 {selected}</div>
                   )}
                 </button>
               );
@@ -488,8 +704,11 @@ const SingleExercise = ({ exercise, onCorrectChange }) => {
 
           <div className="space-y-2">
             {rightItems.map((item, index) => {
-              const alreadySelectedByAnother = Object.entries(matchedPairs).some(
-                ([key, value]) => key !== `item-${selectedLeft}` && value === item
+              const alreadySelectedByAnother = Object.entries(
+                matchedPairs
+              ).some(
+                ([key, value]) =>
+                  key !== `item-${selectedLeft}` && value === item
               );
 
               return (
@@ -504,9 +723,7 @@ const SingleExercise = ({ exercise, onCorrectChange }) => {
                       : "bg-white border-gray-200 hover:bg-gray-50"
                   }`}
                   onClick={() => {
-                    if (selectedLeft === null || alreadySelectedByAnother) {
-                      return;
-                    }
+                    if (selectedLeft === null || alreadySelectedByAnother) return;
 
                     setMatchedPairs((prev) => ({
                       ...prev,
@@ -529,20 +746,25 @@ const SingleExercise = ({ exercise, onCorrectChange }) => {
           </div>
         </div>
 
-        {Object.keys(matchedPairs).length > 0 && (
           <button
             type="button"
-            className="text-sm text-red-600 hover:text-red-700 font-medium"
+            disabled={Object.keys(matchedPairs).length === 0}
+            className={`text-sm font-medium ${
+              Object.keys(matchedPairs).length === 0
+                ? "text-gray-400 cursor-not-allowed"
+                : "text-red-600 hover:text-red-700"
+            }`}
             onClick={() => {
+              if (Object.keys(matchedPairs).length === 0) return;
+            
               setMatchedPairs({});
               setMatchingFeedback({});
               setSelectedLeft(null);
               resetGeneralFeedback();
             }}
           >
-            Reiniciar relaciones
+            Wyczyść połączenia
           </button>
-        )}
       </div>
     );
   };
@@ -552,12 +774,10 @@ const SingleExercise = ({ exercise, onCorrectChange }) => {
 
     return (
       <div className="space-y-4">
-        {exercise.pregunta && (
-          <p className="font-medium">{exercise.pregunta}</p>
-        )}
+        {exercise.question && <p className="font-medium">{exercise.question}</p>}
 
-        {exercise.instrucciones && (
-          <p className="text-gray-700">{exercise.instrucciones}</p>
+        {exercise.instruction && (
+          <p className="text-gray-700">{exercise.instruction}</p>
         )}
 
         <div className="space-y-3">
@@ -578,17 +798,17 @@ const SingleExercise = ({ exercise, onCorrectChange }) => {
                 key={`${item}-${index}`}
                 draggable
                 className={`p-4 rounded-lg shadow-sm cursor-move border-2 hover:shadow-md transition-all ${itemClass}`}
-                onDragStart={(e) => {
+                onDragStart={(event) => {
                   setDraggedIndex(index);
-                  e.dataTransfer.setData("text/plain", index.toString());
+                  event.dataTransfer.setData("text/plain", index.toString());
                 }}
                 onDragEnd={() => setDraggedIndex(null)}
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={(e) => {
-                  e.preventDefault();
+                onDragOver={(event) => event.preventDefault()}
+                onDrop={(event) => {
+                  event.preventDefault();
 
                   const fromIndex = parseInt(
-                    e.dataTransfer.getData("text/plain"),
+                    event.dataTransfer.getData("text/plain"),
                     10
                   );
 
@@ -609,6 +829,8 @@ const SingleExercise = ({ exercise, onCorrectChange }) => {
                   <div className="flex gap-2">
                     <button
                       type="button"
+                      disabled={index === 0}
+                      className="text-gray-400 hover:text-gray-700"
                       onClick={() => {
                         if (index <= 0) return;
 
@@ -623,14 +845,14 @@ const SingleExercise = ({ exercise, onCorrectChange }) => {
                         setOrderingFeedback({});
                         resetGeneralFeedback();
                       }}
-                      className="text-gray-400 hover:text-gray-700"
-                      disabled={index === 0}
                     >
                       ↑
                     </button>
 
                     <button
                       type="button"
+                      disabled={index === userResponse.length - 1}
+                      className="text-gray-400 hover:text-gray-700"
                       onClick={() => {
                         if (index >= userResponse.length - 1) return;
 
@@ -645,8 +867,6 @@ const SingleExercise = ({ exercise, onCorrectChange }) => {
                         setOrderingFeedback({});
                         resetGeneralFeedback();
                       }}
-                      className="text-gray-400 hover:text-gray-700"
-                      disabled={index === userResponse.length - 1}
                     >
                       ↓
                     </button>
@@ -661,26 +881,28 @@ const SingleExercise = ({ exercise, onCorrectChange }) => {
   };
 
   const renderExerciseContent = () => {
-    switch (exercise.tipo.toLowerCase()) {
+    switch (exercise.type) {
       case "multiple_choice":
-      case "seleccion_multiple":
         return renderMultipleChoice();
 
       case "fill_blank":
-      case "completar":
         return renderFillInBlank();
 
       case "matching":
-      case "relacionar":
         return renderMatching();
 
       case "ordering":
-      case "ordenar":
         return renderOrdering();
 
       default:
-        console.error("Tipo de ejercicio no soportado:", exercise.tipo);
-        return null;
+        return (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <p className="text-red-700 font-medium">
+              Nieobsługiwany typ ćwiczenia:
+            </p>
+            <p className="text-red-600">{exercise.type}</p>
+          </div>
+        );
     }
   };
 
@@ -693,18 +915,20 @@ const SingleExercise = ({ exercise, onCorrectChange }) => {
         onClick={checkAnswer}
         className="mt-6 px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
       >
-        Verificar respuesta
+        Sprawdź odpowiedź
       </button>
 
       {feedback && (
         <div
           className={`mt-4 p-4 rounded-lg ${
             feedback.isCorrect
-              ? "bg-green-100 text-green-800"
-              : "bg-red-100 text-red-800"
+              ? "bg-green-100 text-green-800 border border-green-300"
+              : "bg-red-100 text-red-800 border border-red-300"
           }`}
         >
-          {feedback.message}
+          <p className="font-medium">{feedback.message}</p>
+
+          <div className="mt-2 text-sm opacity-80">Próby: {attempts}</div>
         </div>
       )}
     </div>

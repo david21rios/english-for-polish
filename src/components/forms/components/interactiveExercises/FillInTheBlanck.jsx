@@ -1,54 +1,110 @@
-// components/InteractiveExercises/FillInTheBlank.jsx
-import React from 'react';
-import { FaTrash, FaPlus } from 'react-icons/fa';
+// src/components/forms/components/interactiveExercises/FillInTheBlanck.jsx
 
-const FillInTheBlank = ({ ejercicio, onChange }) => {
-  const handleChange = (field, value) => {
+import PropTypes from "prop-types";
+import { FaPlus, FaTrash } from "react-icons/fa";
+
+const normalizeExercise = (exercise = {}) => ({
+  ...exercise,
+
+  instructions:
+    exercise.instructions ||
+    exercise.instrucciones ||
+    "",
+
+  text:
+    exercise.text ||
+    exercise.texto ||
+    "",
+
+  words: Array.isArray(exercise.words)
+    ? exercise.words
+    : Array.isArray(exercise.palabras)
+      ? exercise.palabras
+      : [],
+
+  answers:
+    exercise.answers ||
+    exercise.respuestas ||
+    {}
+});
+
+const buildLegacyExercise = (exercise = {}) => ({
+  ...exercise,
+  instrucciones: exercise.instructions || "",
+  texto: exercise.text || "",
+  palabras: exercise.words || [],
+  respuestas: exercise.answers || {}
+});
+
+const FillInTheBlank = ({ exercise, ejercicio, onChange }) => {
+  const sourceExercise = exercise || ejercicio || {};
+  const normalizedExercise = normalizeExercise(sourceExercise);
+
+  const updateExercise = (updatedExercise) => {
+    const canonicalExercise = normalizeExercise(updatedExercise);
+
     onChange({
-      ...ejercicio,
+      ...canonicalExercise,
+
+      // Legacy compatibility during migration.
+      ...buildLegacyExercise(canonicalExercise)
+    });
+  };
+
+  const handleChange = (field, value) => {
+    updateExercise({
+      ...normalizedExercise,
       [field]: value
     });
   };
 
-  const handleAddPalabra = () => {
-    onChange({
-      ...ejercicio,
-      palabras: [...(ejercicio.palabras || []), ''],
-      respuestas: {
-        ...ejercicio.respuestas,
-        [`blank${ejercicio.palabras?.length || 0}`]: ''
+  const handleAddWord = () => {
+    const nextIndex = normalizedExercise.words.length;
+
+    updateExercise({
+      ...normalizedExercise,
+      words: [...normalizedExercise.words, ""],
+      answers: {
+        ...normalizedExercise.answers,
+        [`blank${nextIndex}`]: ""
       }
     });
   };
 
-  const handlePalabraChange = (index, value) => {
-    const newPalabras = [...ejercicio.palabras];
-    newPalabras[index] = value;
-    onChange({
-      ...ejercicio,
-      palabras: newPalabras
+  const handleWordChange = (index, value) => {
+    const newWords = [...normalizedExercise.words];
+
+    newWords[index] = value;
+
+    updateExercise({
+      ...normalizedExercise,
+      words: newWords
     });
   };
 
-  const handleRespuestaChange = (blankId, value) => {
-    onChange({
-      ...ejercicio,
-      respuestas: {
-        ...ejercicio.respuestas,
+  const handleAnswerChange = (blankId, value) => {
+    updateExercise({
+      ...normalizedExercise,
+      answers: {
+        ...normalizedExercise.answers,
         [blankId]: value
       }
     });
   };
 
-  const handleRemovePalabra = (index) => {
-    const newPalabras = ejercicio.palabras.filter((_, i) => i !== index);
-    const newRespuestas = { ...ejercicio.respuestas };
-    delete newRespuestas[`blank${index}`];
+  const handleRemoveWord = (index) => {
+    const newWords = normalizedExercise.words.filter(
+      (_, wordIndex) => wordIndex !== index
+    );
 
-    onChange({
-      ...ejercicio,
-      palabras: newPalabras,
-      respuestas: newRespuestas
+    const newAnswers = { ...normalizedExercise.answers };
+
+    delete newAnswers[`blank${index}`];
+
+    updateExercise({
+      ...normalizedExercise,
+      words: newWords,
+      answers: newAnswers
     });
   };
 
@@ -56,74 +112,114 @@ const FillInTheBlank = ({ ejercicio, onChange }) => {
     <div className="space-y-4">
       <div>
         <label className="block text-sm font-medium text-gray-700">
-          Instrucciones
+          Instrukcja
         </label>
+
         <textarea
-          value={ejercicio.instrucciones || ''}
-          onChange={(e) => handleChange('instrucciones', e.target.value)}
-          className="mt-1 block w-full rounded-md border-gray-300"
+          value={normalizedExercise.instructions}
+          onChange={(event) =>
+            handleChange("instructions", event.target.value)
+          }
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
           rows={2}
-          placeholder="Instrucciones para completar el ejercicio..."
+          placeholder="Wpisz instrukcję do ćwiczenia..."
         />
       </div>
 
       <div>
         <label className="block text-sm font-medium text-gray-700">
-          Texto con espacios en blanco
+          Tekst z lukami
         </label>
+
         <textarea
-          value={ejercicio.texto || ''}
-          onChange={(e) => handleChange('texto', e.target.value)}
-          className="mt-1 block w-full rounded-md border-gray-300"
+          value={normalizedExercise.text}
+          onChange={(event) =>
+            handleChange("text", event.target.value)
+          }
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
           rows={4}
-          placeholder="Escribe el texto usando ___ para los espacios en blanco..."
+          placeholder="Wpisz tekst, używając ___ w miejscach luk..."
         />
       </div>
 
       <div className="space-y-2">
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <label className="block text-sm font-medium text-gray-700">
-            Palabras y Respuestas
+            Słowa i poprawne odpowiedzi
           </label>
+
           <button
             type="button"
-            onClick={handleAddPalabra}
-            className="text-primary-600 hover:text-primary-700"
+            onClick={handleAddWord}
+            className="text-primary-600 hover:text-primary-700 text-sm font-medium"
           >
-            <FaPlus className="inline mr-2" /> Añadir palabra
+            <FaPlus className="inline mr-2" />
+            Dodaj słowo
           </button>
         </div>
 
-        {(ejercicio.palabras || []).map((palabra, index) => (
-          <div key={index} className="grid grid-cols-2 gap-4 items-center">
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                value={palabra}
-                onChange={(e) => handlePalabraChange(index, e.target.value)}
-                className="flex-1 rounded-md border-gray-300"
-                placeholder="Palabra visible"
-              />
-              <button
-                type="button"
-                onClick={() => handleRemovePalabra(index)}
-                className="text-red-600"
+        {normalizedExercise.words.length > 0 ? (
+          normalizedExercise.words.map((word, index) => {
+            const blankId = `blank${index}`;
+
+            return (
+              <div
+                key={blankId}
+                className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center"
               >
-                <FaTrash />
-              </button>
-            </div>
-            <input
-              type="text"
-              value={ejercicio.respuestas[`blank${index}`] || ''}
-              onChange={(e) => handleRespuestaChange(`blank${index}`, e.target.value)}
-              className="rounded-md border-gray-300"
-              placeholder="Respuesta correcta"
-            />
-          </div>
-        ))}
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={word}
+                    onChange={(event) =>
+                      handleWordChange(index, event.target.value)
+                    }
+                    className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                    placeholder="Słowo widoczne"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveWord(index)}
+                    className="p-2 text-red-600 hover:text-red-800 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                    aria-label={`Usuń słowo ${index + 1}`}
+                    title="Usuń słowo"
+                  >
+                    <FaTrash />
+                  </button>
+                </div>
+
+                <input
+                  type="text"
+                  value={normalizedExercise.answers?.[blankId] || ""}
+                  onChange={(event) =>
+                    handleAnswerChange(blankId, event.target.value)
+                  }
+                  className="rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                  placeholder="Poprawna odpowiedź"
+                />
+              </div>
+            );
+          })
+        ) : (
+          <p className="text-sm text-gray-500 italic">
+            Nie dodano jeszcze słów ani odpowiedzi.
+          </p>
+        )}
       </div>
     </div>
   );
+};
+
+FillInTheBlank.propTypes = {
+  exercise: PropTypes.object,
+  ejercicio: PropTypes.object,
+  onChange: PropTypes.func.isRequired
+};
+
+FillInTheBlank.defaultProps = {
+  exercise: null,
+  ejercicio: null
 };
 
 export default FillInTheBlank;

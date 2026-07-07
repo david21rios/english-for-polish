@@ -1,11 +1,8 @@
+// src/pages/Profile.jsx
+
 import { useState, useEffect } from "react";
 import { auth, db } from "../firebase";
-import {
-  collection,
-  doc,
-  getDoc,
-  getDocs
-} from "firebase/firestore";
+import { collection, doc, getDoc, getDocs } from "firebase/firestore";
 
 import LoadingSpinner from "../components/shared/LoadingSpinner";
 
@@ -50,17 +47,13 @@ const buildMissionHistory = async (userId) => {
           attempt.feedback?.missionTitle ||
           attempt.userContext?.missionTitle ||
           attempt.missionTitle ||
-          "Mission completed",
+          "Ukończona misja",
         topicTitle:
-          attempt.userContext?.topicTitle ||
-          progress.topicTitle ||
-          topicId,
+          attempt.userContext?.topicTitle || progress.topicTitle || topicId,
         score: Number(attempt.score || attempt.feedback?.score || 0),
         stars: Number(attempt.stars || attempt.feedback?.stars || 0),
         xpEarned: Number(attempt.xpEarned || 0),
-        passed:
-          attempt.passed === true ||
-          attempt.feedback?.passed === true,
+        passed: attempt.passed === true || attempt.feedback?.passed === true,
         isCustomMission: attempt.isCustomMission === true,
         completedAt: attempt.completedAt || null
       });
@@ -96,7 +89,7 @@ const Profile = () => {
         const currentUser = auth.currentUser;
 
         if (!currentUser) {
-          setError("No hay usuario autenticado.");
+          setError("Brak zalogowanego użytkownika.");
           return;
         }
 
@@ -104,7 +97,7 @@ const Profile = () => {
         const userDoc = await getDoc(userRef);
 
         if (!userDoc.exists()) {
-          setError("No se encontró el perfil del usuario.");
+          setError("Nie znaleziono profilu użytkownika.");
           return;
         }
 
@@ -132,7 +125,7 @@ const Profile = () => {
         setMissionHistory(missions);
       } catch (err) {
         console.error(err);
-        setError("Error al cargar el perfil.");
+        setError("Nie udało się załadować profilu.");
       } finally {
         setLoading(false);
       }
@@ -144,15 +137,13 @@ const Profile = () => {
   const getCountryInfo = (countryCode) => {
     return (
       countries.find((country) => country.code === countryCode) || {
-        name: "No especificado",
+        name: "Nie określono",
         flag: "🌎"
       }
     );
   };
 
-  if (loading) {
-    return <LoadingSpinner />;
-  }
+  if (loading) return <LoadingSpinner />;
 
   if (error) {
     return (
@@ -171,15 +162,9 @@ const Profile = () => {
     <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white py-5 md:py-10 overflow-x-hidden">
       <div className="container mx-auto px-3 sm:px-4 max-w-7xl">
         <div className="space-y-5 md:space-y-8">
-          <ProfileHeader
-            userData={userData}
-            userCountry={userCountry}
-          />
+          <ProfileHeader userData={userData} userCountry={userCountry} />
 
-          <ProfileStats
-            userData={userData}
-            testHistory={testHistory}
-          />
+          <ProfileStats userData={userData} testHistory={testHistory} />
 
           <ProfileTestHistory testHistory={testHistory} />
 
@@ -197,7 +182,6 @@ const Profile = () => {
             onEditProfile={() => setShowEditModal(true)}
             onChangePassword={() => setShowPasswordModal(true)}
           />
-
         </div>
 
         {showEditModal && currentUserId && (
@@ -215,9 +199,7 @@ const Profile = () => {
         )}
 
         {showPasswordModal && (
-          <ChangePasswordModal
-            onClose={() => setShowPasswordModal(false)}
-          />
+          <ChangePasswordModal onClose={() => setShowPasswordModal(false)} />
         )}
       </div>
     </div>

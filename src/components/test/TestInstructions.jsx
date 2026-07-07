@@ -15,45 +15,54 @@ import {
 const TestInstructions = ({ onStart }) => {
   const testAreas = [
     {
+      id: "multipleChoice",
       icon: <FaRegCheckCircle />,
-      title: "Multiple Choice",
-      description: "Grammar, vocabulary and sentence structure."
+      title: "Wybór wielokrotny",
+      description: "Gramatyka, słownictwo i struktura zdań."
     },
     {
+      id: "writing",
       icon: <FaEdit />,
-      title: "Writing",
-      description: "Short written answers. AI evaluation will be connected later."
+      title: "Pisanie",
+      description: "Krótkie odpowiedzi pisemne oceniane przez system."
     },
     {
+      id: "reading",
       icon: <FaBookOpen />,
-      title: "Reading",
-      description: "Reading texts with comprehension questions."
+      title: "Czytanie",
+      description: "Teksty w języku angielskim z pytaniami sprawdzającymi zrozumienie."
     },
     {
+      id: "listening",
       icon: <FaHeadphones />,
-      title: "Listening",
-      description: "Coming soon. The test architecture is prepared for it.",
+      title: "Słuchanie",
+      description: "Ta część zostanie dodana w kolejnej wersji testu.",
       disabled: true
     }
   ];
 
   const summaryCards = [
     {
+      id: "duration",
       icon: <FaClock />,
-      title: "2 hours",
-      description: "You have a maximum of 2 hours to complete the test.",
+      title: "2 godziny",
+      description: "Masz maksymalnie 2 godziny na ukończenie testu.",
       className: "bg-blue-50 border-blue-100 text-blue-700"
     },
     {
+      id: "secureMode",
       icon: <FaShieldAlt />,
-      title: "Secure mode",
-      description: "Copy, cut, right click and text selection are restricted.",
+      title: "Tryb bezpieczny",
+      description:
+        "Kopiowanie, wycinanie, zaznaczanie tekstu i menu kontekstowe są ograniczone.",
       className: "bg-yellow-50 border-yellow-100 text-yellow-700"
     },
     {
+      id: "cefrResult",
       icon: <FaGraduationCap />,
-      title: "CEFR result",
-      description: "Your final result will be shown as A1, A2, B1, B2, C1 or C2.",
+      title: "Wynik CEFR",
+      description:
+        "Końcowy wynik zostanie przedstawiony jako poziom A1, A2, B1, B2, C1 lub C2.",
       className: "bg-green-50 border-green-100 text-green-700"
     }
   ];
@@ -68,16 +77,16 @@ const TestInstructions = ({ onStart }) => {
             </div>
 
             <p className="text-xs md:text-sm uppercase tracking-[0.25em] font-semibold text-white/80">
-              Spanish placement test
+              Test poziomujący z języka angielskiego
             </p>
 
             <h1 className="text-3xl md:text-6xl font-bold mt-3 md:mt-4 leading-tight">
-              Test Instructions
+              Instrukcja testu
             </h1>
 
             <p className="mt-4 md:mt-5 text-base md:text-xl text-white/90 max-w-3xl mx-auto leading-relaxed">
-              This test estimates your Spanish level and recommends the best
-              starting point for your learning path.
+              Test oceni Twój poziom języka angielskiego i pomoże wybrać
+              najlepszy punkt rozpoczęcia nauki.
             </p>
           </div>
 
@@ -85,7 +94,7 @@ const TestInstructions = ({ onStart }) => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-6 mb-6 md:mb-8">
               {summaryCards.map((card) => (
                 <div
-                  key={card.title}
+                  key={card.id}
                   className={`border rounded-2xl p-4 md:p-6 ${card.className}`}
                 >
                   <div className="text-2xl md:text-3xl mb-3">
@@ -106,23 +115,23 @@ const TestInstructions = ({ onStart }) => {
             <section className="mb-6 md:mb-8">
               <div className="mb-4 md:mb-6">
                 <p className="text-xs md:text-sm font-semibold text-primary-600 uppercase tracking-wide">
-                  Skills assessed
+                  Oceniane umiejętności
                 </p>
 
                 <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mt-1">
-                  What will be evaluated?
+                  Co będzie oceniane?
                 </h2>
 
                 <p className="text-sm md:text-base text-gray-600 mt-2">
-                  Complete each section carefully. The exact CEFR level will be
-                  revealed only at the end.
+                  Uważnie wykonaj każdą część testu. Dokładny poziom CEFR
+                  zostanie pokazany dopiero po zakończeniu całego testu.
                 </p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 md:gap-5">
                 {testAreas.map((area) => (
                   <div
-                    key={area.title}
+                    key={area.id}
                     className={`rounded-2xl border p-4 md:p-5 ${
                       area.disabled
                         ? "bg-gray-50 border-gray-100 opacity-75"
@@ -147,7 +156,7 @@ const TestInstructions = ({ onStart }) => {
                       {area.disabled && (
                         <span className="inline-flex items-center gap-1 bg-gray-200 text-gray-600 px-2 py-1 rounded-full text-[10px] font-semibold">
                           <FaLock />
-                          Later
+                          Wkrótce
                         </span>
                       )}
                     </div>
@@ -162,16 +171,16 @@ const TestInstructions = ({ onStart }) => {
 
             <div className="bg-primary-50 border border-primary-100 rounded-2xl p-4 md:p-6">
               <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-4">
-                Important rules
+                Ważne zasady
               </h3>
 
               <ul className="grid md:grid-cols-2 gap-3 text-sm md:text-base text-gray-700">
-                <li>• Answer all visible questions before continuing.</li>
-                <li>• Read each instruction carefully.</li>
-                <li>• Complete Multiple Choice, Writing and Reading.</li>
-                <li>• Use the result as a learning guide, not certification.</li>
-                <li>• The exact CEFR level is shown only after completion.</li>
-                <li>• Copying, selecting text and right click are restricted.</li>
+                <li>• Odpowiedz na wszystkie widoczne pytania przed przejściem dalej.</li>
+                <li>• Uważnie przeczytaj każdą instrukcję.</li>
+                <li>• Ukończ części: wybór wielokrotny, pisanie i czytanie.</li>
+                <li>• Traktuj wynik jako wskazówkę do nauki, a nie certyfikat.</li>
+                <li>• Dokładny poziom CEFR zostanie pokazany dopiero po zakończeniu testu.</li>
+                <li>• Kopiowanie, zaznaczanie tekstu i menu kontekstowe są ograniczone.</li>
               </ul>
             </div>
 
@@ -181,7 +190,7 @@ const TestInstructions = ({ onStart }) => {
               className="w-full mt-6 md:mt-8 bg-primary-600 hover:bg-primary-700 text-white py-4 rounded-2xl transition-colors font-bold text-base md:text-lg inline-flex items-center justify-center gap-3"
             >
               <FaPlay />
-              Start test
+              Rozpocznij test
             </button>
           </div>
         </div>

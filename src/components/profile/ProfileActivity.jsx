@@ -8,9 +8,9 @@ import {
 } from "react-icons/fa";
 
 const formatLastActivity = (date) => {
-  if (!date) return "No activity yet";
+  if (!date) return "Brak aktywności";
 
-  return date.toLocaleDateString();
+  return date.toLocaleDateString("pl-PL");
 };
 
 const ProfileActivity = ({ activitySummary }) => {
@@ -20,23 +20,23 @@ const ProfileActivity = ({ activitySummary }) => {
 
   const activityCards = [
     {
-      title: "Completed this month",
+      title: "Ukończone w tym miesiącu",
       value: completedThisMonth,
-      description: "Lessons fully completed during the current month.",
+      description: "Lekcje ukończone w całości w bieżącym miesiącu.",
       icon: <FaCheckCircle />,
       color: "bg-green-100 text-green-700"
     },
     {
-      title: "Active lessons this month",
+      title: "Aktywne lekcje w tym miesiącu",
       value: updatedThisMonth,
-      description: "Lessons opened or updated during the current month.",
+      description: "Lekcje otwarte lub zaktualizowane w bieżącym miesiącu.",
       icon: <FaFire />,
       color: "bg-orange-100 text-orange-700"
     },
     {
-      title: "Last activity",
+      title: "Ostatnia aktywność",
       value: formatLastActivity(lastActivity),
-      description: "Most recent learning activity registered.",
+      description: "Najnowsza zarejestrowana aktywność edukacyjna.",
       icon: <FaClock />,
       color: "bg-blue-100 text-blue-700"
     }
@@ -46,15 +46,15 @@ const ProfileActivity = ({ activitySummary }) => {
     <section className="bg-white rounded-3xl shadow-lg border border-gray-100 p-4 md:p-8">
       <div className="mb-5 md:mb-6">
         <p className="text-xs md:text-sm font-semibold text-primary-600 uppercase tracking-wide">
-          Monthly activity
+          Aktywność miesięczna
         </p>
 
         <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mt-1 md:mt-2">
-          Learning activity
+          Aktywność w nauce
         </h2>
 
         <p className="text-sm md:text-base text-gray-600 mt-2 leading-relaxed">
-          Review your recent study activity and completed lessons.
+          Sprawdź ostatnią aktywność edukacyjną i ukończone lekcje.
         </p>
       </div>
 
@@ -70,9 +70,7 @@ const ProfileActivity = ({ activitySummary }) => {
               {card.icon}
             </div>
 
-            <p className="text-xs md:text-sm text-gray-500">
-              {card.title}
-            </p>
+            <p className="text-xs md:text-sm text-gray-500">{card.title}</p>
 
             <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mt-1 md:mt-2 break-words">
               {card.value}
@@ -92,12 +90,12 @@ const ProfileActivity = ({ activitySummary }) => {
 
         <div>
           <h3 className="font-bold text-gray-900 text-sm md:text-base">
-            Activity note
+            Informacja o aktywności
           </h3>
 
           <p className="text-sm md:text-base text-gray-600 mt-1 leading-relaxed">
-            A lesson counts as completed only when you finish all sections and
-            move to the next lesson.
+            Lekcja jest uznawana za ukończoną dopiero po zakończeniu wszystkich
+            sekcji i przejściu do kolejnej lekcji.
           </p>
         </div>
       </div>

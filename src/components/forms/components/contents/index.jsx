@@ -1,14 +1,25 @@
 // src/components/forms/components/Contents/index.jsx
-import React, { useState } from 'react';
-import Vocabulary from './Vocabulary';
-import Grammar from './Grammar';
+
+import { useState } from "react";
+import PropTypes from "prop-types";
+
+import Grammar from "./Grammar";
+import Vocabulary from "./Vocabulary";
 
 const Contents = ({ formData, setFormData }) => {
-  const [activeSection, setActiveSection] = useState('vocabulary');
+  const [activeSection, setActiveSection] = useState("vocabulary");
 
-  const contenidos = formData.contenidos || {};
-  const vocabulario = contenidos.vocabulario || {};
-  const gramatica = contenidos.gramatica || { temas: [] };
+  const contents = formData.contents || formData.contenidos || {};
+
+  const vocabulary =
+    contents.vocabulary || contents.vocabulario || {};
+
+  const grammar =
+    contents.grammar ||
+    contents.gramatica || {
+      topics: [],
+      rules: []
+    };
 
   return (
     <div className="space-y-6">
@@ -16,47 +27,52 @@ const Contents = ({ formData, setFormData }) => {
         <nav className="-mb-px flex space-x-8">
           <button
             type="button"
-            onClick={() => setActiveSection('vocabulary')}
+            onClick={() => setActiveSection("vocabulary")}
             className={`${
-              activeSection === 'vocabulary'
-                ? 'border-primary-500 text-primary-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              activeSection === "vocabulary"
+                ? "border-primary-500 text-primary-600"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
             } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
           >
-            Vocabulario
+            Słownictwo
           </button>
 
           <button
             type="button"
-            onClick={() => setActiveSection('grammar')}
+            onClick={() => setActiveSection("grammar")}
             className={`${
-              activeSection === 'grammar'
-                ? 'border-primary-500 text-primary-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              activeSection === "grammar"
+                ? "border-primary-500 text-primary-600"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
             } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
           >
-            Gramática
+            Gramatyka
           </button>
         </nav>
       </div>
 
       <div className="mt-6">
-        {activeSection === 'vocabulary' && (
+        {activeSection === "vocabulary" && (
           <Vocabulary
-            vocabulario={vocabulario}
+            vocabulary={vocabulary}
             setFormData={setFormData}
           />
         )}
 
-        {activeSection === 'grammar' && (
+        {activeSection === "grammar" && (
           <Grammar
-            gramatica={gramatica}
+            grammar={grammar}
             setFormData={setFormData}
           />
         )}
       </div>
     </div>
   );
+};
+
+Contents.propTypes = {
+  formData: PropTypes.object.isRequired,
+  setFormData: PropTypes.func.isRequired
 };
 
 export default Contents;

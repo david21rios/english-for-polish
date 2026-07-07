@@ -1,60 +1,93 @@
 // src/components/AdminForumReports.jsx
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+
 import {
-  collection,
-  getDocs,
-  orderBy,
-  query
-} from "firebase/firestore";
-import { db } from "../../firebase";
-import {
+  FaBan,
   FaCheckCircle,
+  FaExclamationTriangle,
   FaFlag,
   FaTrash,
-  FaUndo,
-  FaBan,
-  FaExclamationTriangle
+  FaUndo
 } from "react-icons/fa";
 
 import {
   deleteForumPost,
   deleteForumPostAndResolveReport,
   deleteForumReport,
+  getForumReports,
   updateForumReportStatus
 } from "../../services/forumModerationService";
+
 import { blockForumUser } from "../../services/forumAdminService";
+
+const STATUS_LABELS = {
+  pending: "Oczekujące",
+  resolved: "Rozwiązane",
+  dismissed: "Odrzucone"
+};
+
+const getStatusLabel = (status) => {
+  return STATUS_LABELS[status] || STATUS_LABELS.pending;
+};
+
+const getStatusClassName = (status) => {
+  if (status === "resolved") {
+    return "bg-green-100 text-green-700";
+  }
+
+  if (status === "dismissed") {
+    return "bg-gray-200 text-gray-700";
+  }
+
+  return "bg-yellow-100 text-yellow-700";
+};
+
+const formatDate = (value) => {
+  if (!value) return "Brak daty";
+
+  try {
+    const date =
+      typeof value.toDate === "function"
+        ? value.toDate()
+        : new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+      return "Brak daty";
+    }
+
+    return date.toLocaleString("pl-PL");
+  } catch {
+    return "Brak daty";
+  }
+};
 
 const AdminForumReports = () => {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState({});
 
-  const loadReports = async () => {
+  const loadReports = useCallback(async () => {
     try {
       setLoading(true);
 
-      const reportsRef = collection(db, "forumReports");
-      const reportsQuery = query(reportsRef, orderBy("createdAt", "desc"));
-      const snapshot = await getDocs(reportsQuery);
+      const data = await getForumReports();
 
-      const data = snapshot.docs.map((item) => ({
-        id: item.id,
-        ...item.data()
-      }));
-
-      setReports(data);
+      setReports(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Error loading forum reports:", error);
-      alert("No se pudieron cargar los reportes.");
+
+      window.alert(
+        "Nie udało się załadować zgłoszeń z forum."
+      );
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     loadReports();
-  }, []);
+  }, [loadReports]);
 
   const setReportLoading = (reportId, value) => {
     setActionLoading((prev) => ({
@@ -64,6 +97,8 @@ const AdminForumReports = () => {
   };
 
   const updateReportStatus = async (reportId, status) => {
+    if (!reportId || !status) return;
+
     try {
       setReportLoading(reportId, true);
 
@@ -74,16 +109,21 @@ const AdminForumReports = () => {
 
       await loadReports();
     } catch (error) {
-      console.error("Error updating report:", error);
-      alert("No se pudo actualizar el reporte.");
+      console.error("Error updating forum report:", error);
+
+      window.alert(
+        "Nie udało się zaktualizować zgłoszenia."
+      );
     } finally {
       setReportLoading(reportId, false);
     }
   };
 
   const deleteReport = async (reportId) => {
+    if (!reportId) return;
+
     const confirmDelete = window.confirm(
-      "¿Seguro que deseas eliminar este reporte?"
+      "Czy na pewno chcesz usunąć to zgłoszenie?"
     );
 
     if (!confirmDelete) return;
@@ -95,16 +135,29 @@ const AdminForumReports = () => {
 
       await loadReports();
     } catch (error) {
-      console.error("Error deleting report:", error);
-      alert("No se pudo eliminar el reporte.");
+      console.error("Error deleting forum report:", error);
+
+      window.alert(
+        "Nie udało się usunąć zgłoszenia."
+      );
     } finally {
       setReportLoading(reportId, false);
     }
   };
 
   const handleDeletePost = async (report) => {
+    if (!report?.id) return;
+
+    if (!report.level || !report.postId) {
+      window.alert(
+        "Brakuje danych wymaganych do usunięcia zgłoszonego wpisu."
+      );
+
+      return;
+    }
+
     const confirmDelete = window.confirm(
-      "¿Seguro que deseas eliminar la publicación reportada? Esta acción no se puede deshacer."
+      "Czy na pewno chcesz usunąć zgłoszony wpis? Tej operacji nie można cofnąć."
     );
 
     if (!confirmDelete) return;
@@ -119,18 +172,33 @@ const AdminForumReports = () => {
 
       await loadReports();
 
-      alert("Publicación eliminada correctamente.");
+      window.alert(
+        "Wpis został pomyślnie usunięty."
+      );
     } catch (error) {
       console.error("Error deleting forum post:", error);
-      alert("No se pudo eliminar la publicación.");
+
+      window.alert(
+        "Nie udało się usunąć wpisu."
+      );
     } finally {
       setReportLoading(report.id, false);
     }
   };
 
   const handleDeletePostAndResolve = async (report) => {
+    if (!report?.id) return;
+
+    if (!report.level || !report.postId) {
+      window.alert(
+        "Brakuje danych wymaganych do usunięcia wpisu i rozwiązania zgłoszenia."
+      );
+
+      return;
+    }
+
     const confirmDelete = window.confirm(
-      "¿Seguro que deseas eliminar la publicación y marcar este reporte como resuelto? Esta acción no se puede deshacer."
+      "Czy na pewno chcesz usunąć wpis i oznaczyć zgłoszenie jako rozwiązane? Tej operacji nie można cofnąć."
     );
 
     if (!confirmDelete) return;
@@ -146,23 +214,36 @@ const AdminForumReports = () => {
 
       await loadReports();
 
-      alert("Publicación eliminada y reporte resuelto.");
+      window.alert(
+        "Wpis został usunięty, a zgłoszenie oznaczone jako rozwiązane."
+      );
     } catch (error) {
-      console.error("Error deleting post and resolving report:", error);
-      alert("No se pudo eliminar la publicación y resolver el reporte.");
+      console.error(
+        "Error deleting post and resolving report:",
+        error
+      );
+
+      window.alert(
+        "Nie udało się usunąć wpisu i rozwiązać zgłoszenia."
+      );
     } finally {
       setReportLoading(report.id, false);
     }
   };
 
   const handleBlockAuthor = async (report) => {
+    if (!report?.id) return;
+
     if (!report.postUserId) {
-      alert("Este reporte no tiene el ID del autor de la publicación.");
+      window.alert(
+        "To zgłoszenie nie zawiera identyfikatora autora wpisu."
+      );
+
       return;
     }
 
     const confirmBlock = window.confirm(
-      "¿Seguro que deseas bloquear a este usuario del foro?"
+      "Czy na pewno chcesz zablokować temu użytkownikowi dostęp do forum?"
     );
 
     if (!confirmBlock) return;
@@ -172,7 +253,9 @@ const AdminForumReports = () => {
 
       await blockForumUser({
         userId: report.postUserId,
-        reason: report.reason || "Forum rules violation"
+        reason:
+          report.reason ||
+          "Forum rules violation"
       });
 
       await updateForumReportStatus({
@@ -182,25 +265,28 @@ const AdminForumReports = () => {
 
       await loadReports();
 
-      alert("Usuario bloqueado del foro y reporte resuelto.");
+      window.alert(
+        "Użytkownik został zablokowany na forum, a zgłoszenie oznaczone jako rozwiązane."
+      );
     } catch (error) {
       console.error("Error blocking forum user:", error);
-      alert("No se pudo bloquear al usuario.");
+
+      window.alert(
+        "Nie udało się zablokować użytkownika."
+      );
     } finally {
       setReportLoading(report.id, false);
     }
-  };
-
-  const formatDate = (timestamp) => {
-    if (!timestamp?.toDate) return "Sin fecha";
-    return timestamp.toDate().toLocaleString();
   };
 
   if (loading) {
     return (
       <div className="bg-white rounded-3xl p-8 shadow-sm text-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto" />
-        <p className="text-gray-600 mt-4">Cargando reportes...</p>
+
+        <p className="text-gray-600 mt-4">
+          Ładowanie zgłoszeń...
+        </p>
       </div>
     );
   }
@@ -214,27 +300,31 @@ const AdminForumReports = () => {
 
         <div>
           <p className="text-sm font-semibold text-red-600 uppercase tracking-wide">
-            Forum moderation
+            Moderacja forum
           </p>
 
           <h2 className="text-3xl font-bold text-gray-900">
-            Reportes del foro
+            Zgłoszenia na forum
           </h2>
 
           <p className="text-gray-600 mt-1">
-            Revisa publicaciones reportadas por los estudiantes.
+            Przeglądaj i moderuj wpisy zgłoszone przez użytkowników.
           </p>
         </div>
       </div>
 
       {reports.length === 0 ? (
         <div className="bg-gray-50 border border-gray-100 rounded-2xl p-8 text-center text-gray-600">
-          No hay reportes pendientes.
+          Brak zgłoszeń do wyświetlenia.
         </div>
       ) : (
         <div className="space-y-5">
           {reports.map((report) => {
-            const isActionLoading = actionLoading[report.id];
+            const isActionLoading =
+              actionLoading[report.id] === true;
+
+            const reportStatus =
+              report.status || "pending";
 
             return (
               <article
@@ -242,123 +332,138 @@ const AdminForumReports = () => {
                 className="border border-gray-100 rounded-3xl p-5 bg-gray-50"
               >
                 <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-3 mb-3">
                       <span className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-semibold">
-                        {report.reason || "Sin motivo"}
+                        {report.reason || "Brak podanego powodu"}
                       </span>
 
                       <span
-                        className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                          report.status === "resolved"
-                            ? "bg-green-100 text-green-700"
-                            : report.status === "dismissed"
-                            ? "bg-gray-200 text-gray-700"
-                            : "bg-yellow-100 text-yellow-700"
-                        }`}
+                        className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusClassName(
+                          reportStatus
+                        )}`}
                       >
-                        {report.status || "pending"}
+                        {getStatusLabel(reportStatus)}
                       </span>
 
                       <span className="text-sm text-gray-500">
-                        Nivel: {report.level || "No definido"}
+                        Poziom:{" "}
+                        {report.level || "Nie określono"}
                       </span>
                     </div>
 
                     <p className="text-sm text-gray-500 mb-2">
-                      Fecha: {formatDate(report.createdAt)}
+                      Data: {formatDate(report.createdAt)}
                     </p>
 
-                    <p className="text-sm text-gray-500 mb-2">
-                      Reportado por: {report.reporterEmail || report.reportedBy}
+                    <p className="text-sm text-gray-500 mb-2 break-words">
+                      Zgłoszone przez:{" "}
+                      {report.reporterEmail ||
+                        report.reportedBy ||
+                        "Nieznany użytkownik"}
                     </p>
 
                     <div className="bg-white border border-gray-100 rounded-2xl p-4 mt-4">
                       <p className="text-sm font-semibold text-gray-500 mb-2">
-                        Publicación reportada
+                        Zgłoszony wpis
                       </p>
 
-                      <p className="text-gray-800 whitespace-pre-wrap">
-                        {report.postText || "Sin contenido guardado"}
+                      <p className="text-gray-800 whitespace-pre-wrap break-words">
+                        {report.postText ||
+                          "Brak zapisanej treści wpisu."}
                       </p>
                     </div>
 
                     {report.details && (
                       <div className="bg-white border border-gray-100 rounded-2xl p-4 mt-4">
                         <p className="text-sm font-semibold text-gray-500 mb-2">
-                          Detalles adicionales
+                          Dodatkowe informacje
                         </p>
 
-                        <p className="text-gray-800 whitespace-pre-wrap">
+                        <p className="text-gray-800 whitespace-pre-wrap break-words">
                           {report.details}
                         </p>
                       </div>
                     )}
                   </div>
 
-                  <div className="flex flex-col sm:flex-row lg:flex-col gap-3 min-w-[230px]">
+                  <div className="flex flex-col sm:flex-row lg:flex-col gap-3 lg:min-w-[230px]">
                     <button
                       type="button"
                       disabled={isActionLoading}
                       onClick={() =>
-                        updateReportStatus(report.id, "resolved")
+                        updateReportStatus(
+                          report.id,
+                          "resolved"
+                        )
                       }
-                      className="inline-flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-2xl font-semibold disabled:opacity-50"
+                      className="inline-flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-2xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <FaCheckCircle />
-                      Resolver
+                      Rozwiąż
                     </button>
 
                     <button
                       type="button"
                       disabled={isActionLoading}
                       onClick={() =>
-                        updateReportStatus(report.id, "dismissed")
+                        updateReportStatus(
+                          report.id,
+                          "dismissed"
+                        )
                       }
-                      className="inline-flex items-center justify-center gap-2 bg-gray-600 hover:bg-gray-700 text-white px-4 py-3 rounded-2xl font-semibold disabled:opacity-50"
+                      className="inline-flex items-center justify-center gap-2 bg-gray-600 hover:bg-gray-700 text-white px-4 py-3 rounded-2xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <FaUndo />
-                      Descartar
+                      Odrzuć
                     </button>
 
                     <button
                       type="button"
                       disabled={isActionLoading}
-                      onClick={() => handleDeletePost(report)}
-                      className="inline-flex items-center justify-center gap-2 bg-orange-600 hover:bg-orange-700 text-white px-4 py-3 rounded-2xl font-semibold disabled:opacity-50"
+                      onClick={() =>
+                        handleDeletePost(report)
+                      }
+                      className="inline-flex items-center justify-center gap-2 bg-orange-600 hover:bg-orange-700 text-white px-4 py-3 rounded-2xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <FaExclamationTriangle />
-                      Eliminar publicación
+                      Usuń wpis
                     </button>
 
                     <button
                       type="button"
                       disabled={isActionLoading}
-                      onClick={() => handleDeletePostAndResolve(report)}
-                      className="inline-flex items-center justify-center gap-2 bg-red-700 hover:bg-red-800 text-white px-4 py-3 rounded-2xl font-semibold disabled:opacity-50"
+                      onClick={() =>
+                        handleDeletePostAndResolve(report)
+                      }
+                      className="inline-flex items-center justify-center gap-2 bg-red-700 hover:bg-red-800 text-white px-4 py-3 rounded-2xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <FaTrash />
-                      Eliminar y resolver
+                      Usuń i rozwiąż
                     </button>
 
                     <button
                       type="button"
                       disabled={isActionLoading}
-                      onClick={() => handleBlockAuthor(report)}
-                      className="inline-flex items-center justify-center gap-2 bg-black hover:bg-gray-900 text-white px-4 py-3 rounded-2xl font-semibold disabled:opacity-50"
+                      onClick={() =>
+                        handleBlockAuthor(report)
+                      }
+                      className="inline-flex items-center justify-center gap-2 bg-black hover:bg-gray-900 text-white px-4 py-3 rounded-2xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <FaBan />
-                      Bloquear autor
+                      Zablokuj autora
                     </button>
 
                     <button
                       type="button"
                       disabled={isActionLoading}
-                      onClick={() => deleteReport(report.id)}
-                      className="inline-flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-2xl font-semibold disabled:opacity-50"
+                      onClick={() =>
+                        deleteReport(report.id)
+                      }
+                      className="inline-flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-2xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <FaTrash />
-                      Eliminar reporte
+                      Usuń zgłoszenie
                     </button>
                   </div>
                 </div>

@@ -1,6 +1,6 @@
 // src/pages/AdminForumReports.jsx
 
-import AdminForumReports from "../components/AdminForumReports";
+import AdminForumReports from "../components/admin/AdminForumReports";
 
 const AdminForumReportsPage = () => {
   return (

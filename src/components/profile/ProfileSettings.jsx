@@ -1,19 +1,12 @@
 // src/components/profile/ProfileSettings.jsx
 
-import {
-  FaEdit,
-  FaLock,
-  FaUserCircle
-} from "react-icons/fa";
+import { FaEdit, FaLock, FaUserCircle } from "react-icons/fa";
 
-const ProfileSettings = ({
-  onEditProfile,
-  onChangePassword
-}) => {
+const ProfileSettings = ({ onEditProfile, onChangePassword }) => {
   const settings = [
     {
-      title: "Edit Profile",
-      description: "Update your name, age and country.",
+      title: "Edytuj profil",
+      description: "Zaktualizuj imię, wiek i kraj.",
       icon: <FaEdit />,
       onClick: onEditProfile,
       cardClass: "bg-primary-50 hover:bg-primary-100 border-primary-100",
@@ -21,8 +14,8 @@ const ProfileSettings = ({
       disabled: false
     },
     {
-      title: "Change Password",
-      description: "Update your account password securely.",
+      title: "Zmień hasło",
+      description: "Bezpiecznie zaktualizuj hasło do konta.",
       icon: <FaLock />,
       onClick: onChangePassword,
       cardClass: "bg-yellow-50 hover:bg-yellow-100 border-yellow-100",
@@ -30,8 +23,8 @@ const ProfileSettings = ({
       disabled: false
     },
     {
-      title: "Choose Avatar",
-      description: "Coming soon.",
+      title: "Wybierz awatar",
+      description: "Funkcja dostępna wkrótce.",
       icon: <FaUserCircle />,
       onClick: undefined,
       cardClass: "bg-gray-50 border-gray-100 opacity-80",
@@ -44,15 +37,15 @@ const ProfileSettings = ({
     <section className="bg-white rounded-3xl shadow-lg border border-gray-100 p-4 md:p-8">
       <div className="mb-5 md:mb-6">
         <p className="text-xs md:text-sm font-semibold text-primary-600 uppercase tracking-wide">
-          Account settings
+          Ustawienia konta
         </p>
 
         <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mt-1 md:mt-2">
-          Profile settings
+          Ustawienia profilu
         </h2>
 
         <p className="text-sm md:text-base text-gray-600 mt-2 leading-relaxed">
-          Manage your personal information and account security.
+          Zarządzaj danymi osobowymi i bezpieczeństwem konta.
         </p>
       </div>
 

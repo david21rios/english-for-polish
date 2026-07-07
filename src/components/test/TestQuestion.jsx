@@ -4,63 +4,68 @@ import { useMemo, useState } from "react";
 import {
   FaBookOpen,
   FaCheckCircle,
-  FaEdit,
   FaExclamationTriangle,
   FaKeyboard,
   FaListUl,
   FaRobot
 } from "react-icons/fa";
 
-const VALID_SHORT_WORDS = new Set([
-  "y",
-  "o",
+const VALID_SHORT_ENGLISH_WORDS = new Set([
   "a",
-  "e",
-  "u",
-  "él",
-  "la",
-  "lo",
-  "le",
-  "mi",
-  "tu",
-  "su",
+  "i",
+  "am",
+  "an",
+  "as",
+  "at",
+  "be",
+  "by",
+  "do",
+  "go",
+  "he",
+  "if",
+  "in",
+  "is",
+  "it",
   "me",
-  "te",
-  "se",
-  "de",
-  "en",
-  "al",
-  "el",
-  "un",
-  "una",
-  "es",
-  "yo",
+  "my",
   "no",
-  "si",
-  "sí"
+  "of",
+  "on",
+  "or",
+  "so",
+  "to",
+  "up",
+  "us",
+  "we"
 ]);
 
 const countWords = (text = "") => {
-  return text.trim().split(/\s+/).filter(Boolean).length;
+  return text
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean).length;
 };
 
 const cleanWord = (word = "") => {
   return word
-    .replace(/[.,;:!¡?¿"'0-9()]/g, "")
+    .replace(/[.,;:!?'"0-9()[\]{}]/g, "")
     .trim()
     .toLowerCase();
 };
 
-const isValidWord = (word = "") => {
+const isValidEnglishWordPattern = (word = "") => {
   const cleanedWord = cleanWord(word);
 
   if (!cleanedWord) return true;
-  if (VALID_SHORT_WORDS.has(cleanedWord)) return true;
 
-  const hasVowel = /[aeiouáéíóúü]/i.test(cleanedWord);
+  if (VALID_SHORT_ENGLISH_WORDS.has(cleanedWord)) {
+    return true;
+  }
+
+  const hasVowel = /[aeiouy]/i.test(cleanedWord);
   const hasLongConsonantSequence =
-    cleanedWord.length >= 4 &&
-    /[bcdfghjklmnñpqrstvwxyz]{4,}/i.test(cleanedWord);
+    cleanedWord.length >= 5 &&
+    /[bcdfghjklmnpqrstvwxz]{5,}/i.test(cleanedWord);
 
   const hasRepeatedChars = /(.)\1{3,}/i.test(cleanedWord);
 
@@ -71,7 +76,7 @@ const isValidWord = (word = "") => {
   return true;
 };
 
-const checkTextValidity = (text = "", minWords = 0) => {
+const checkTextValidity = (text = "") => {
   const trimmedText = text.trim();
 
   if (!trimmedText) {
@@ -84,26 +89,20 @@ const checkTextValidity = (text = "", minWords = 0) => {
   if (/\s{3,}/.test(text)) {
     return {
       isValid: false,
-      error: "Hay demasiados espacios consecutivos."
+      error: "Wykryto zbyt wiele kolejnych spacji."
     };
   }
 
   const words = trimmedText.split(/\s+/);
-  const invalidWords = words.filter((word) => !isValidWord(word));
+
+  const invalidWords = words.filter(
+    (word) => !isValidEnglishWordPattern(word)
+  );
 
   if (invalidWords.length > 0) {
     return {
       isValid: false,
-      error: `Se detectaron posibles palabras inválidas: ${invalidWords.join(
-        ", "
-      )}`
-    };
-  }
-
-  if (minWords > 0 && countWords(trimmedText) < minWords) {
-    return {
-      isValid: false,
-      error: `Se requieren al menos ${minWords} palabras.`
+      error: `Wykryto możliwe nieprawidłowe słowa: ${invalidWords.join(", ")}`
     };
   }
 
@@ -120,12 +119,12 @@ const QuestionHeader = ({ icon, index, title, subtitle }) => {
         {icon}
       </div>
 
-      <div>
+      <div className="min-w-0">
         <p className="text-sm font-semibold text-primary-600 uppercase tracking-wide">
-          Question {index + 1}
+          Pytanie {index + 1}
         </p>
 
-        <h3 className="text-xl md:text-2xl font-bold text-gray-900 mt-1 leading-snug">
+        <h3 className="text-xl md:text-2xl font-bold text-gray-900 mt-1 leading-snug break-words">
           {title}
         </h3>
 
@@ -139,7 +138,12 @@ const QuestionHeader = ({ icon, index, title, subtitle }) => {
   );
 };
 
-const OptionButton = ({ option, selected, onClick, optionIndex }) => {
+const OptionButton = ({
+  option,
+  selected,
+  onClick,
+  optionIndex
+}) => {
   const optionLetter = String.fromCharCode(65 + optionIndex);
 
   return (
@@ -162,7 +166,7 @@ const OptionButton = ({ option, selected, onClick, optionIndex }) => {
         {optionLetter}
       </span>
 
-      <span className="leading-relaxed">
+      <span className="leading-relaxed break-words min-w-0">
         {option}
       </span>
 
@@ -182,31 +186,41 @@ const TestQuestion = ({
 }) => {
   const [localError, setLocalError] = useState(null);
 
-  const questionId = questionData?.id || `question_${index}`;
-  const questionText = questionData?.question || "Pregunta sin texto";
-  const options = Array.isArray(questionData?.options)
-    ? questionData.options
-    : [];
-
-  const currentText = typeof selectedAnswer === "string" ? selectedAnswer : "";
-  const wordCount = useMemo(() => countWords(currentText), [currentText]);
-
-  const handleTextChange = (text) => {
-    const minWords = questionData?.minWords || 0;
-    const validation = checkTextValidity(text, minWords);
-
-    setLocalError(validation.error);
-    onSelectAnswer(questionId, text);
-  };
-
   if (!questionData) {
     return (
       <div className="p-5 bg-red-50 border border-red-200 text-red-700 rounded-2xl flex items-center gap-3">
         <FaExclamationTriangle />
-        Pregunta no disponible.
+        Pytanie jest niedostępne.
       </div>
     );
   }
+
+  const questionId =
+    questionData.id || `${type || "question"}_${index}`;
+
+  const questionText =
+    questionData.question || "Brak treści pytania.";
+
+  const options = Array.isArray(questionData.options)
+    ? questionData.options
+    : [];
+
+  const currentText =
+    typeof selectedAnswer === "string"
+      ? selectedAnswer
+      : "";
+
+  const wordCount = useMemo(
+    () => countWords(currentText),
+    [currentText]
+  );
+
+  const handleTextChange = (text) => {
+    const validation = checkTextValidity(text);
+
+    setLocalError(validation.error);
+    onSelectAnswer(questionId, text);
+  };
 
   if (type === "multipleChoice") {
     return (
@@ -215,13 +229,13 @@ const TestQuestion = ({
           icon={<FaListUl />}
           index={index}
           title={questionText}
-          subtitle="Choose the correct answer."
+          subtitle="Wybierz poprawną odpowiedź."
         />
 
         {options.length === 0 ? (
           <div className="bg-red-50 border border-red-200 text-red-700 rounded-2xl p-4 flex items-center gap-3">
             <FaExclamationTriangle />
-            Esta pregunta no tiene opciones configuradas.
+            To pytanie nie ma skonfigurowanych odpowiedzi.
           </div>
         ) : (
           <div className="space-y-3">
@@ -231,7 +245,9 @@ const TestQuestion = ({
                 option={option}
                 optionIndex={optionIndex}
                 selected={selectedAnswer === option}
-                onClick={() => onSelectAnswer(questionId, option)}
+                onClick={() =>
+                  onSelectAnswer(questionId, option)
+                }
               />
             ))}
           </div>
@@ -241,14 +257,18 @@ const TestQuestion = ({
   }
 
   if (type === "writing") {
-    const minWords = questionData?.minWords || 0;
-    const maxWords = questionData?.maxWords || 0;
+    const minWords = Number(questionData.minWords) || 0;
+    const maxWords = Number(questionData.maxWords) || 0;
 
     const showMinWordsWarning =
-      currentText.trim() && minWords > 0 && wordCount < minWords;
+      Boolean(currentText.trim()) &&
+      minWords > 0 &&
+      wordCount < minWords;
 
     const showMaxWordsWarning =
-      currentText.trim() && maxWords > 0 && wordCount > maxWords;
+      Boolean(currentText.trim()) &&
+      maxWords > 0 &&
+      wordCount > maxWords;
 
     return (
       <article className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 md:p-8">
@@ -256,12 +276,13 @@ const TestQuestion = ({
           icon={<FaKeyboard />}
           index={index}
           title={questionText}
-          subtitle="Write a complete answer. Your response will be evaluated after submitting the test."
+          subtitle="Napisz pełną odpowiedź w języku angielskim. Odpowiedź zostanie oceniona po zakończeniu testu."
         />
 
         {questionData.example && (
           <div className="mb-5 bg-blue-50 border border-blue-100 rounded-2xl p-4 text-blue-800">
-            <strong>Example guide:</strong> {questionData.example}
+            <strong>Przykład:</strong>{" "}
+            {questionData.example}
           </div>
         )}
 
@@ -272,8 +293,10 @@ const TestQuestion = ({
               : "border-gray-300 focus:ring-primary-200"
           }`}
           value={currentText}
-          onChange={(event) => handleTextChange(event.target.value)}
-          placeholder="Write your answer here..."
+          onChange={(event) =>
+            handleTextChange(event.target.value)
+          }
+          placeholder="Napisz odpowiedź po angielsku..."
           autoComplete="off"
           spellCheck={false}
         />
@@ -287,14 +310,14 @@ const TestQuestion = ({
                   : "text-gray-500"
               }
             >
-              Words: {wordCount}
+              Liczba słów: {wordCount}
               {minWords > 0 && ` · minimum: ${minWords}`}
-              {maxWords > 0 && ` · maximum: ${maxWords}`}
+              {maxWords > 0 && ` · maksimum: ${maxWords}`}
             </span>
 
             <span className="inline-flex items-center gap-2 text-gray-500">
               <FaRobot />
-              AI evaluation will be applied after submission.
+              Odpowiedź zostanie oceniona po wysłaniu testu.
             </span>
           </div>
 
@@ -307,20 +330,22 @@ const TestQuestion = ({
 
           {showMinWordsWarning && (
             <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-2xl p-4 text-sm font-medium">
-              This answer has fewer words than requested. You can continue, but
-              the final AI evaluation may consider it incomplete.
+              Odpowiedź zawiera mniej słów niż wymagane minimum.
+              Możesz kontynuować, ale odpowiedź może zostać uznana
+              za niekompletną.
             </div>
           )}
 
           {showMaxWordsWarning && (
             <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-2xl p-4 text-sm font-medium">
-              This answer exceeds the recommended word limit.
+              Odpowiedź przekracza zalecaną maksymalną liczbę słów.
             </div>
           )}
 
           <div className="bg-primary-50 border border-primary-100 rounded-2xl p-4 text-sm text-primary-800">
-            Your answer is saved for final review. No score is calculated here
-            to avoid misleading feedback before the real evaluation.
+            Twoja odpowiedź jest zapisywana do końcowej oceny.
+            Wynik nie jest obliczany na tym etapie, aby uniknąć
+            nieprecyzyjnej informacji zwrotnej.
           </div>
         </div>
       </article>
@@ -328,7 +353,7 @@ const TestQuestion = ({
   }
 
   if (type === "reading") {
-    const readingQuestions = Array.isArray(questionData?.questions)
+    const readingQuestions = Array.isArray(questionData.questions)
       ? questionData.questions
       : [];
 
@@ -337,65 +362,91 @@ const TestQuestion = ({
         <QuestionHeader
           icon={<FaBookOpen />}
           index={index}
-          title="Reading text"
-          subtitle="Read the text carefully and answer the questions."
+          title="Tekst do czytania"
+          subtitle="Przeczytaj uważnie tekst i odpowiedz na pytania."
         />
 
         <div className="mb-8 p-6 bg-gray-50 rounded-2xl border border-gray-100">
           <p className="text-lg leading-relaxed text-gray-800 whitespace-pre-line">
-            {questionData.text || "Texto de lectura no disponible."}
+            {questionData.text ||
+              "Tekst do czytania jest niedostępny."}
           </p>
         </div>
 
         {readingQuestions.length === 0 ? (
           <div className="bg-red-50 border border-red-200 text-red-700 rounded-2xl p-4 flex items-center gap-3">
             <FaExclamationTriangle />
-            Este texto no tiene preguntas configuradas.
+            Ten tekst nie ma skonfigurowanych pytań.
           </div>
         ) : (
           <div className="space-y-6">
-            {readingQuestions.map((question, questionIndex) => {
-              const readingOptions = Array.isArray(question.options)
-                ? question.options
-                : [];
+            {readingQuestions.map(
+              (question, questionIndex) => {
+                const readingOptions = Array.isArray(
+                  question.options
+                )
+                  ? question.options
+                  : [];
 
-              return (
-                <div
-                  key={question.id || questionIndex}
-                  className="bg-white border border-gray-100 rounded-2xl p-5"
-                >
-                  <p className="font-bold text-gray-900 mb-4">
-                    {index + 1}.{questionIndex + 1}{" "}
-                    {question.question || "Pregunta sin texto"}
-                  </p>
+                const readingQuestionId =
+                  question.id ||
+                  `${questionId}_reading_${questionIndex}`;
 
-                  {readingOptions.length === 0 ? (
-                    <div className="bg-red-50 border border-red-200 text-red-700 rounded-2xl p-4 text-sm">
-                      Esta pregunta no tiene opciones configuradas.
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {readingOptions.map((option, optionIndex) => (
-                        <OptionButton
-                          key={`${question.id}_${optionIndex}`}
-                          option={option}
-                          optionIndex={optionIndex}
-                          selected={selectedAnswer?.[question.id] === option}
-                          onClick={() => onSelectAnswer(question.id, option)}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+                return (
+                  <div
+                    key={readingQuestionId}
+                    className="bg-white border border-gray-100 rounded-2xl p-5"
+                  >
+                    <p className="font-bold text-gray-900 mb-4">
+                      {index + 1}.{questionIndex + 1}{" "}
+                      {question.question ||
+                        "Brak treści pytania."}
+                    </p>
+
+                    {readingOptions.length === 0 ? (
+                      <div className="bg-red-50 border border-red-200 text-red-700 rounded-2xl p-4 text-sm">
+                        To pytanie nie ma skonfigurowanych odpowiedzi.
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {readingOptions.map(
+                          (option, optionIndex) => (
+                            <OptionButton
+                              key={`${readingQuestionId}_${optionIndex}`}
+                              option={option}
+                              optionIndex={optionIndex}
+                              selected={
+                                selectedAnswer?.[
+                                  readingQuestionId
+                                ] === option
+                              }
+                              onClick={() =>
+                                onSelectAnswer(
+                                  readingQuestionId,
+                                  option
+                                )
+                              }
+                            />
+                          )
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+            )}
           </div>
         )}
       </article>
     );
   }
 
-  return null;
+  return (
+    <div className="p-5 bg-red-50 border border-red-200 text-red-700 rounded-2xl flex items-center gap-3">
+      <FaExclamationTriangle />
+      Nieobsługiwany typ pytania.
+    </div>
+  );
 };
 
 export default TestQuestion;

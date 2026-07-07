@@ -8,15 +8,20 @@ import {
 } from "react-icons/fa";
 
 const getNextTestDate = (lastTestDate) => {
-  if (!lastTestDate?.toDate) return "Disponible ahora";
+  if (!lastTestDate?.toDate) return "Dostępny teraz";
 
   const lastDate = lastTestDate.toDate();
   const nextDate = new Date(lastDate);
+
   nextDate.setDate(nextDate.getDate() + 20);
 
   return nextDate <= new Date()
-    ? "Disponible ahora"
-    : nextDate.toLocaleDateString();
+    ? "Dostępny teraz"
+    : nextDate.toLocaleDateString("pl-PL");
+};
+
+const normalizeCurrentLevel = (level = "A1") => {
+  return level?.toString().split("-")[0] || "A1";
 };
 
 const ProfileProgress = ({
@@ -24,7 +29,12 @@ const ProfileProgress = ({
   testHistory = [],
   levelProgress = null
 }) => {
-  const currentLevel = userData?.currentLevel || "A1-A2";
+  const currentLevel = normalizeCurrentLevel(
+    userData?.currentLevel ||
+      userData?.level ||
+      userData?.finalLevel ||
+      "A1"
+  );
 
   const totalLessons = levelProgress?.totalLessons || 0;
   const completedLessons = levelProgress?.completedLessons || 0;
@@ -38,30 +48,30 @@ const ProfileProgress = ({
 
   const statusCards = [
     {
-      title: "Completed lessons",
+      title: "Ukończone lekcje",
       value: `${completedLessons} / ${totalLessons}`,
-      description: `Completed lessons in ${currentLevel}.`,
+      description: `Ukończone lekcje na poziomie ${currentLevel}.`,
       icon: <FaBookOpen />,
       color: "bg-blue-100 text-blue-600"
     },
     {
-      title: "Pending lessons",
+      title: "Pozostałe lekcje",
       value: pendingLessons,
-      description: "Lessons remaining in your current level.",
+      description: "Lekcje pozostałe na aktualnym poziomie.",
       icon: <FaChartLine />,
       color: "bg-primary-100 text-primary-600"
     },
     {
-      title: "Last score",
-      value: testsCompleted > 0 ? `${lastScore}%` : "Pending",
-      description: "Most recent diagnostic test result.",
+      title: "Ostatni wynik",
+      value: testsCompleted > 0 ? `${lastScore}%` : "Oczekuje",
+      description: "Najnowszy wynik testu diagnostycznego.",
       icon: <FaRocket />,
       color: "bg-green-100 text-green-700"
     },
     {
-      title: "Next test",
+      title: "Następny test",
       value: nextTestDate,
-      description: "Next available diagnostic test date.",
+      description: "Najbliższa dostępna data testu diagnostycznego.",
       icon: <FaClock />,
       color: "bg-yellow-100 text-yellow-700"
     }
@@ -71,28 +81,26 @@ const ProfileProgress = ({
     <section className="bg-white rounded-3xl shadow-lg border border-gray-100 p-4 md:p-8">
       <div className="mb-5 md:mb-8">
         <p className="text-xs md:text-sm font-semibold text-primary-600 uppercase tracking-wide">
-          Learning progress
+          Postęp w nauce
         </p>
 
         <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mt-1 md:mt-2">
-          Progress in {currentLevel}
+          Postęp na poziomie {currentLevel}
         </h2>
 
         <p className="text-sm md:text-base text-gray-600 mt-2 leading-relaxed">
-          Your progress is calculated from completed lessons in your current
-          level.
+          Postęp jest obliczany na podstawie ukończonych lekcji na aktualnym
+          poziomie.
         </p>
       </div>
 
       <div className="mb-5 md:mb-8">
         <div className="flex justify-between gap-3 text-xs md:text-sm text-gray-600 mb-2">
           <span className="break-words">
-            Lessons completed: {completedLessons} of {totalLessons}
+            Ukończone lekcje: {completedLessons} z {totalLessons}
           </span>
 
-          <span className="font-semibold shrink-0">
-            {progressPercent}%
-          </span>
+          <span className="font-semibold shrink-0">{progressPercent}%</span>
         </div>
 
         <div className="w-full bg-gray-100 rounded-full h-3 md:h-4 overflow-hidden">
@@ -115,9 +123,7 @@ const ProfileProgress = ({
               {card.icon}
             </div>
 
-            <p className="text-xs md:text-sm text-gray-500">
-              {card.title}
-            </p>
+            <p className="text-xs md:text-sm text-gray-500">{card.title}</p>
 
             <h3 className="text-xl md:text-2xl font-bold text-gray-900 mt-1 break-words">
               {card.value}

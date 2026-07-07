@@ -7,38 +7,47 @@ import {
   FaCalendarAlt
 } from "react-icons/fa";
 
+const normalizeCurrentLevel = (level = "A1") => {
+  return level?.toString().split("-")[0] || "A1";
+};
+
 const ProfileHeader = ({ userData, userCountry }) => {
   const fullName =
     `${userData?.name || ""} ${userData?.lastName || ""}`.trim() || "Student";
 
-  const currentLevel = userData?.currentLevel || "Not determined";
+  const currentLevel = normalizeCurrentLevel(
+    userData?.currentLevel ||
+      userData?.level ||
+      userData?.finalLevel ||
+      "A1"
+  );
 
   const memberSince = userData?.createdAt?.toDate
-    ? userData.createdAt.toDate().toLocaleDateString()
-    : "Not available";
+    ? userData.createdAt.toDate().toLocaleDateString("pl-PL")
+    : "Brak danych";
 
   const infoCards = [
     {
       label: "Email",
-      value: userData?.email || "Not available",
+      value: userData?.email || "Brak danych",
       icon: <FaEnvelope />,
       iconClass: "bg-primary-100 text-primary-600",
       breakValue: true
     },
     {
-      label: "Country",
-      value: userCountry?.name || "Not specified",
+      label: "Kraj",
+      value: userCountry?.name || "Nie określono",
       icon: userCountry?.flag || "🌎",
       iconClass: "bg-green-100 text-green-700"
     },
     {
-      label: "Member since",
+      label: "Użytkownik od",
       value: memberSince,
       icon: <FaCalendarAlt />,
       iconClass: "bg-blue-100 text-blue-700"
     },
     {
-      label: "Current level",
+      label: "Aktualny poziom",
       value: currentLevel,
       icon: <FaUserGraduate />,
       iconClass: "bg-yellow-100 text-yellow-700"
@@ -54,7 +63,7 @@ const ProfileHeader = ({ userData, userCountry }) => {
           </div>
 
           <p className="text-xs md:text-sm font-semibold text-primary-600 uppercase tracking-wide">
-            Student Profile
+            Profil ucznia
           </p>
 
           <h1 className="text-2xl md:text-4xl font-bold text-gray-900 mt-2 md:mt-3 leading-tight break-words">
@@ -99,7 +108,7 @@ const ProfileHeader = ({ userData, userCountry }) => {
 
             <div>
               <p className="text-xs md:text-sm text-gray-600">
-                Current level
+                Aktualny poziom
               </p>
 
               <h2 className="text-3xl md:text-5xl font-black text-primary-700 mt-1 md:mt-2 leading-none">
@@ -107,7 +116,8 @@ const ProfileHeader = ({ userData, userCountry }) => {
               </h2>
 
               <p className="text-sm md:text-base text-gray-600 mt-2 md:mt-4 leading-relaxed">
-                Your learning route is based on your latest diagnostic test.
+                Twoja ścieżka nauki opiera się na ostatnim teście
+                diagnostycznym.
               </p>
             </div>
           </div>

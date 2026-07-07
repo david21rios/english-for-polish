@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   FaMicrophone,
   FaStop,
@@ -7,28 +7,42 @@ import {
   FaExclamationTriangle
 } from "react-icons/fa";
 
+const MIN_RECORDING_SECONDS = 5;
+
 const getMicrophoneErrorMessage = (error) => {
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    return "Tu navegador no permite grabar audio desde esta página. Prueba con Chrome, Edge o Firefox actualizado.";
+    return "Twoja przeglądarka nie obsługuje nagrywania audio. Użyj aktualnej wersji Chrome, Edge lub Firefox.";
   }
 
-  if (window.location.protocol !== "https:" && window.location.hostname !== "localhost") {
-    return "La grabación de audio requiere una conexión segura HTTPS. Abre la aplicación desde una dirección segura.";
+  if (
+    window.location.protocol !== "https:" &&
+    window.location.hostname !== "localhost"
+  ) {
+    return "Nagrywanie audio wymaga bezpiecznego połączenia HTTPS.";
   }
 
-  if (error?.name === "NotAllowedError" || error?.name === "PermissionDeniedError") {
-    return "No se pudo acceder al micrófono porque el permiso fue denegado. Revisa si aceptaste el uso del micrófono en el navegador.";
+  if (
+    error?.name === "NotAllowedError" ||
+    error?.name === "PermissionDeniedError"
+  ) {
+    return "Nie można uzyskać dostępu do mikrofonu. Sprawdź uprawnienia w przeglądarce.";
   }
 
-  if (error?.name === "NotFoundError" || error?.name === "DevicesNotFoundError") {
-    return "No se encontró un micrófono disponible. Conecta un micrófono o revisa la configuración de audio del dispositivo.";
+  if (
+    error?.name === "NotFoundError" ||
+    error?.name === "DevicesNotFoundError"
+  ) {
+    return "Nie znaleziono mikrofonu. Podłącz mikrofon lub sprawdź ustawienia urządzenia.";
   }
 
-  if (error?.name === "NotReadableError" || error?.name === "TrackStartError") {
-    return "El micrófono está ocupado o no se puede usar en este momento. Cierra otras aplicaciones que puedan estar usando el micrófono.";
+  if (
+    error?.name === "NotReadableError" ||
+    error?.name === "TrackStartError"
+  ) {
+    return "Mikrofon jest zajęty albo niedostępny. Zamknij inne aplikacje używające mikrofonu.";
   }
 
-  return "No se pudo iniciar la grabación. Revisa los permisos del micrófono e intenta nuevamente.";
+  return "Nie udało się rozpocząć nagrywania. Sprawdź mikrofon i spróbuj ponownie.";
 };
 
 const AudioRecorder = ({ onRecordingComplete, onComplete }) => {
@@ -43,6 +57,7 @@ const AudioRecorder = ({ onRecordingComplete, onComplete }) => {
   const chunksRef = useRef([]);
   const audioRef = useRef(new Audio());
   const streamRef = useRef(null);
+  const recordingTimeRef = useRef(0);
 
   const clearTimer = () => {
     if (timerRef.current) {
@@ -71,6 +86,9 @@ const AudioRecorder = ({ onRecordingComplete, onComplete }) => {
         setAudioURL(null);
       }
 
+      recordingTimeRef.current = 0;
+      setRecordingTime(0);
+
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
 
@@ -84,26 +102,34 @@ const AudioRecorder = ({ onRecordingComplete, onComplete }) => {
       };
 
       mediaRecorderRef.current.onstop = () => {
+        const duration = recordingTimeRef.current;
+
+        stopStreamTracks();
+        clearTimer();
+
+        if (duration < MIN_RECORDING_SECONDS) {
+          chunksRef.current = [];
+          setAudioURL(null);
+          setErrorMessage("Nagranie jest zbyt krótkie. Spróbuj ponownie.");
+          return;
+        }
+
         const audioBlob = new Blob(chunksRef.current, { type: "audio/webm" });
         const url = URL.createObjectURL(audioBlob);
 
         setAudioURL(url);
         audioRef.current.src = url;
 
-        stopStreamTracks();
-        clearTimer();
-
         onRecordingComplete?.(audioBlob);
         onComplete?.();
       };
 
       mediaRecorderRef.current.start();
-
       setIsRecording(true);
-      setRecordingTime(0);
 
       timerRef.current = setInterval(() => {
-        setRecordingTime((prev) => prev + 1);
+        recordingTimeRef.current += 1;
+        setRecordingTime(recordingTimeRef.current);
       }, 1000);
     } catch (error) {
       console.error("Error accessing microphone:", error);
@@ -117,11 +143,11 @@ const AudioRecorder = ({ onRecordingComplete, onComplete }) => {
   };
 
   const stopRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
-      setIsRecording(false);
-      clearTimer();
-    }
+    if (!mediaRecorderRef.current || !isRecording) return;
+
+    mediaRecorderRef.current.stop();
+    setIsRecording(false);
+    clearTimer();
   };
 
   const playRecording = async () => {
@@ -139,7 +165,7 @@ const AudioRecorder = ({ onRecordingComplete, onComplete }) => {
       setIsPlaying(true);
     } catch (error) {
       console.error("Error playing audio:", error);
-      setErrorMessage("No se pudo reproducir la grabación. Intenta grabar nuevamente.");
+      setErrorMessage("Nie można odtworzyć nagrania. Nagraj odpowiedź ponownie.");
     }
   };
 
@@ -152,6 +178,7 @@ const AudioRecorder = ({ onRecordingComplete, onComplete }) => {
     setIsPlaying(false);
     setErrorMessage("");
     audioRef.current.src = "";
+    chunksRef.current = [];
   };
 
   useEffect(() => {
@@ -197,14 +224,14 @@ const AudioRecorder = ({ onRecordingComplete, onComplete }) => {
           className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
         >
           <FaMicrophone />
-          <span>Grabar</span>
+          <span>Nagraj odpowiedź</span>
         </button>
       )}
 
       {isRecording && (
         <div className="flex flex-col sm:flex-row items-center gap-4">
           <div className="text-red-500 animate-pulse font-medium">
-            Grabando: {formatTime(recordingTime)}
+            Nagrywanie: {formatTime(recordingTime)}
           </div>
 
           <button
@@ -213,7 +240,7 @@ const AudioRecorder = ({ onRecordingComplete, onComplete }) => {
             className="flex items-center gap-2 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
           >
             <FaStop />
-            <span>Detener</span>
+            <span>Zatrzymaj</span>
           </button>
         </div>
       )}
@@ -226,7 +253,7 @@ const AudioRecorder = ({ onRecordingComplete, onComplete }) => {
             className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
           >
             {isPlaying ? <FaStop /> : <FaPlay />}
-            <span>{isPlaying ? "Detener" : "Reproducir"}</span>
+            <span>{isPlaying ? "Zatrzymaj" : "Odtwórz"}</span>
           </button>
 
           <button
@@ -235,7 +262,7 @@ const AudioRecorder = ({ onRecordingComplete, onComplete }) => {
             className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
           >
             <FaTrash />
-            <span>Eliminar</span>
+            <span>Usuń nagranie</span>
           </button>
         </div>
       )}

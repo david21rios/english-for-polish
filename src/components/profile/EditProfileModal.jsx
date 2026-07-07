@@ -39,7 +39,7 @@ const EditProfileModal = ({ userId, userData, onClose, onSaved }) => {
   const getAgeGroup = (age) => {
     const numericAge = Number(age);
 
-    if (!numericAge || numericAge < 13) return "children";
+    if (!numericAge || numericAge < 13) return "kids";
     if (numericAge < 18) return "teens";
     return "adults";
   };
@@ -48,12 +48,12 @@ const EditProfileModal = ({ userId, userData, onClose, onSaved }) => {
     event.preventDefault();
 
     if (!userId) {
-      alert("No se encontró el usuario autenticado.");
+      alert("Nie znaleziono zalogowanego użytkownika.");
       return;
     }
 
     if (!formData.name.trim() || !formData.lastName.trim()) {
-      alert("Nombre y apellido son obligatorios.");
+      alert("Imię i nazwisko są wymagane.");
       return;
     }
 
@@ -73,14 +73,11 @@ const EditProfileModal = ({ userId, userData, onClose, onSaved }) => {
 
       await updateDoc(userRef, updatedData);
 
-      if (onSaved) {
-        onSaved(updatedData);
-      }
-
+      onSaved?.(updatedData);
       onClose();
     } catch (error) {
       console.error("Error updating profile:", error);
-      alert("No se pudo actualizar el perfil.");
+      alert("Nie udało się zaktualizować profilu.");
     } finally {
       setSaving(false);
     }
@@ -92,11 +89,11 @@ const EditProfileModal = ({ userId, userData, onClose, onSaved }) => {
         <header className="bg-primary-600 text-white px-5 md:px-6 py-4 md:py-5 flex items-center justify-between gap-4">
           <div className="min-w-0">
             <p className="text-primary-100 text-xs md:text-sm font-semibold uppercase tracking-wide">
-              Profile settings
+              Ustawienia profilu
             </p>
 
             <h2 className="text-xl md:text-2xl font-bold mt-1">
-              Edit profile
+              Edytuj profil
             </h2>
           </div>
 
@@ -105,6 +102,7 @@ const EditProfileModal = ({ userId, userData, onClose, onSaved }) => {
             onClick={onClose}
             className="w-10 h-10 rounded-xl bg-white/15 hover:bg-white/25 flex items-center justify-center shrink-0"
             disabled={saving}
+            aria-label="Zamknij okno"
           >
             <FaTimes />
           </button>
@@ -117,7 +115,7 @@ const EditProfileModal = ({ userId, userData, onClose, onSaved }) => {
           <div className="grid md:grid-cols-2 gap-4 md:gap-5">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Name
+                Imię
               </label>
 
               <input
@@ -126,13 +124,13 @@ const EditProfileModal = ({ userId, userData, onClose, onSaved }) => {
                 value={formData.name}
                 onChange={handleChange}
                 className="w-full border border-gray-300 rounded-2xl px-4 py-3 text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-primary-500"
-                placeholder="Your name"
+                placeholder="Twoje imię"
               />
             </div>
 
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Last name
+                Nazwisko
               </label>
 
               <input
@@ -141,7 +139,7 @@ const EditProfileModal = ({ userId, userData, onClose, onSaved }) => {
                 value={formData.lastName}
                 onChange={handleChange}
                 className="w-full border border-gray-300 rounded-2xl px-4 py-3 text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-primary-500"
-                placeholder="Your last name"
+                placeholder="Twoje nazwisko"
               />
             </div>
           </div>
@@ -149,7 +147,7 @@ const EditProfileModal = ({ userId, userData, onClose, onSaved }) => {
           <div className="grid md:grid-cols-2 gap-4 md:gap-5">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Age
+                Wiek
               </label>
 
               <input
@@ -160,13 +158,13 @@ const EditProfileModal = ({ userId, userData, onClose, onSaved }) => {
                 value={formData.age}
                 onChange={handleChange}
                 className="w-full border border-gray-300 rounded-2xl px-4 py-3 text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-primary-500"
-                placeholder="Age"
+                placeholder="Wiek"
               />
             </div>
 
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Country
+                Kraj
               </label>
 
               <select
@@ -175,7 +173,7 @@ const EditProfileModal = ({ userId, userData, onClose, onSaved }) => {
                 onChange={handleChange}
                 className="w-full border border-gray-300 rounded-2xl px-4 py-3 text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
               >
-                <option value="">Select country</option>
+                <option value="">Wybierz kraj</option>
 
                 {countries.map((country) => (
                   <option key={country.code} value={country.code}>
@@ -187,8 +185,8 @@ const EditProfileModal = ({ userId, userData, onClose, onSaved }) => {
           </div>
 
           <div className="bg-blue-50 border border-blue-100 text-blue-800 rounded-2xl p-4 text-xs md:text-sm">
-            Updating your age may adjust your learning group and the lessons
-            available for your profile.
+            Zmiana wieku może wpłynąć na grupę edukacyjną i lekcje dostępne w
+            Twoim profilu.
           </div>
 
           <div className="flex flex-col sm:flex-row justify-end gap-3 pt-2 md:pt-3">
@@ -198,7 +196,7 @@ const EditProfileModal = ({ userId, userData, onClose, onSaved }) => {
               disabled={saving}
               className="w-full sm:w-auto px-6 py-3 rounded-2xl border border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 disabled:opacity-50"
             >
-              Cancel
+              Anuluj
             </button>
 
             <button
@@ -207,7 +205,7 @@ const EditProfileModal = ({ userId, userData, onClose, onSaved }) => {
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-primary-600 text-white font-semibold hover:bg-primary-700 disabled:opacity-50"
             >
               <FaSave />
-              {saving ? "Saving..." : "Save changes"}
+              {saving ? "Zapisywanie..." : "Zapisz zmiany"}
             </button>
           </div>
         </form>

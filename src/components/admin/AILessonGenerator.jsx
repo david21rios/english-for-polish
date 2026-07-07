@@ -10,7 +10,7 @@ import {
   FaSave,
   FaSpinner
 } from "react-icons/fa";
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { doc, serverTimestamp, setDoc } from "firebase/firestore";
 
 import { db, auth } from "../../firebase";
 import { generateLessonWithAgents } from "../../services/ai/lessonAgentsService";
@@ -55,6 +55,83 @@ const sanitizeForFirestore = (value, insideArray = false) => {
   return value;
 };
 
+const getNextCourseLessonMetadata = async ({ levelId, moduleId }) => {
+  const lessonNumber = await getNextLessonNumber(levelId);
+
+  const orderInModule = moduleId
+    ? await getNextLessonOrderInModule(levelId, moduleId)
+    : 1;
+
+  return {
+    lessonNumber,
+    lessonId: `${levelId}_${lessonNumber}`,
+    orderInModule
+  };
+};
+
+const buildDraftLessonPayload = ({ generatedLesson, formData, selectedModule }) => {
+  const currentUser = auth.currentUser;
+  const lessonData = generatedLesson?.lessonData || {};
+  const metadata = generatedLesson?.metadata || {};
+  const auditReport = generatedLesson?.auditReport || {};
+
+  const safeLessonData = sanitizeForFirestore({
+    ...lessonData,
+    id: formData.lessonId.trim(),
+    lessonId: formData.lessonId.trim(),
+    nivel: formData.levelId,
+    level: formData.levelId,
+    moduleId: formData.moduleId,
+    moduleTitle: selectedModule?.title || "",
+    orderInModule: formData.orderInModule,
+    ageGroup: formData.ageGroup,
+    status: "draft",
+    generatedByAI: true,
+    approvedByTeacher: false,
+    createdByAI: true
+  });
+
+  return {
+    ...safeLessonData,
+
+    id: formData.lessonId.trim(),
+    lessonId: formData.lessonId.trim(),
+    nivel: formData.levelId,
+    level: formData.levelId,
+    moduleId: formData.moduleId,
+    moduleTitle: selectedModule?.title || "",
+    orderInModule: formData.orderInModule,
+    ageGroup: formData.ageGroup,
+
+    status: "draft",
+    generatedByAI: true,
+    approvedByTeacher: false,
+    createdByAI: true,
+
+    aiMetadata: sanitizeForFirestore({
+      ...metadata,
+      status: "draft",
+      levelId: formData.levelId,
+      moduleId: formData.moduleId,
+      moduleTitle: selectedModule?.title || "",
+      lessonId: formData.lessonId.trim(),
+      lessonNumber: formData.lessonNumber,
+      orderInModule: formData.orderInModule,
+      targetLanguage: TARGET_LANGUAGE,
+      baseLanguage: SUPPORT_LANGUAGE,
+      supportLanguage: SUPPORT_LANGUAGE,
+      product: "Polish-learning"
+    }),
+
+    auditReport: sanitizeForFirestore(auditReport),
+
+    createdBy: currentUser?.uid || null,
+    createdByEmail: currentUser?.email || null,
+    updatedAt: serverTimestamp(),
+    createdAt: serverTimestamp()
+  };
+};
+
 const AILessonGenerator = () => {
   const navigate = useNavigate();
 
@@ -80,21 +157,19 @@ const AILessonGenerator = () => {
     (module) => (module.moduleId || module.id) === formData.moduleId
   );
 
-  const loadModulesAndLessonId = async (levelId) => {
+  const loadModulesAndLessonId = async (levelId, preferredModuleId = "") => {
     try {
       const levelModules = await getModulesByLevel(levelId, {
         includeDrafts: true
       });
 
-      const firstModuleId =
-        levelModules[0]?.moduleId || levelModules[0]?.id || "";
+      const firstModuleId = levelModules[0]?.moduleId || levelModules[0]?.id || "";
+      const moduleId = preferredModuleId || firstModuleId;
 
-      const moduleId = formData.moduleId || firstModuleId;
-
-      const nextNumber = await getNextLessonNumber(levelId);
-      const nextOrder = moduleId
-        ? await getNextLessonOrderInModule(levelId, moduleId)
-        : 1;
+      const nextData = await getNextCourseLessonMetadata({
+        levelId,
+        moduleId
+      });
 
       setModules(levelModules);
 
@@ -102,9 +177,9 @@ const AILessonGenerator = () => {
         ...prev,
         levelId,
         moduleId,
-        lessonNumber: nextNumber,
-        lessonId: `${levelId}_${nextNumber}`,
-        orderInModule: nextOrder
+        lessonNumber: nextData.lessonNumber,
+        lessonId: nextData.lessonId,
+        orderInModule: nextData.orderInModule
       }));
     } catch (err) {
       console.error("Error loading modules or next lesson ID:", err);
@@ -113,8 +188,7 @@ const AILessonGenerator = () => {
   };
 
   useEffect(() => {
-    loadModulesAndLessonId(formData.levelId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    loadModulesAndLessonId("A1");
   }, []);
 
   const handleChange = async (event) => {
@@ -130,24 +204,27 @@ const AILessonGenerator = () => {
     }
 
     if (name === "moduleId") {
-      const nextOrder = await getNextLessonOrderInModule(
-        formData.levelId,
-        value
-      );
+      setGeneratedLesson(null);
+
+      const nextData = await getNextCourseLessonMetadata({
+        levelId: formData.levelId,
+        moduleId: value
+      });
 
       setFormData((prev) => ({
         ...prev,
         moduleId: value,
-        orderInModule: nextOrder
+        lessonNumber: nextData.lessonNumber,
+        lessonId: nextData.lessonId,
+        orderInModule: nextData.orderInModule
       }));
 
-      setGeneratedLesson(null);
       return;
     }
 
     setFormData((prev) => ({
       ...prev,
-      [name]: name === "lessonNumber" ? Number(value) : value
+      [name]: value
     }));
   };
 
@@ -220,7 +297,7 @@ const AILessonGenerator = () => {
         },
         metadata: {
           ...(result.lesson?.metadata || {}),
-          status: "pending_review",
+          status: "draft",
           levelId: formData.levelId,
           moduleId: formData.moduleId,
           moduleTitle: selectedModule?.title || "",
@@ -236,7 +313,7 @@ const AILessonGenerator = () => {
 
       setGeneratedLesson(normalizedGeneratedLesson);
       setSuccessMessage(
-        "Lekcja została wygenerowana. Sprawdź ją przed zapisaniem."
+        "Lekcja została wygenerowana. Sprawdź podgląd, a następnie zapisz ją jako szkic."
       );
     } catch (err) {
       console.error("AI lesson generation error:", err);
@@ -246,7 +323,7 @@ const AILessonGenerator = () => {
     }
   };
 
-  const handleSavePendingLesson = async () => {
+  const handleSaveDraftLesson = async () => {
     if (!generatedLesson) {
       setError("Brak wygenerowanej lekcji do zapisania.");
       return;
@@ -262,31 +339,43 @@ const AILessonGenerator = () => {
       setError("");
       setSuccessMessage("");
 
-      const currentUser = auth.currentUser;
-
-      const safeGeneratedLesson = sanitizeForFirestore(generatedLesson);
-
-      await addDoc(collection(db, "aiGeneratedLessons"), {
-        ...safeGeneratedLesson,
-        status: "pending_review",
-        metadata: {
-          ...(safeGeneratedLesson.metadata || {}),
-          status: "pending_review"
-        },
-        createdBy: currentUser?.uid || null,
-        createdByEmail: currentUser?.email || null,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
+      const lessonPayload = buildDraftLessonPayload({
+        generatedLesson,
+        formData,
+        selectedModule
       });
 
-      setSuccessMessage("Lekcja została zapisana jako oczekująca na przegląd.");
+      await setDoc(
+        doc(
+          db,
+          "levels",
+          formData.levelId,
+          "modules",
+          formData.moduleId,
+          "lessons",
+          formData.lessonId.trim()
+        ),
+        lessonPayload,
+        { merge: true }
+      );
+
+      await setDoc(
+        doc(db, "levels", formData.levelId, "lessons", formData.lessonId.trim()),
+        lessonPayload,
+        { merge: true }
+      );
+
+      setSuccessMessage(
+        "Lekcja została zapisana jako szkic. Możesz ją teraz edytować i opublikować w panelu lekcji."
+      );
+
       setGeneratedLesson(null);
       setExecutionLog([]);
 
-      await loadModulesAndLessonId(formData.levelId);
+      await loadModulesAndLessonId(formData.levelId, formData.moduleId);
     } catch (err) {
-      console.error("Error saving generated lesson:", err);
-      setError("Nie można zapisać wygenerowanej lekcji.");
+      console.error("Error saving AI lesson draft:", err);
+      setError("Nie można zapisać lekcji jako szkicu.");
     } finally {
       setSaving(false);
     }
@@ -320,9 +409,8 @@ const AILessonGenerator = () => {
           </h2>
 
           <p className="text-gray-600 mt-2 max-w-3xl">
-            Ten moduł generuje lekcje języka angielskiego dla polskich
-            studentów. Lekcja zostanie przypisana do konkretnego poziomu CEFR i
-            modułu akademickiego.
+            Ten moduł generuje szkic lekcji języka angielskiego dla polskich
+            studentów. Lekcja zostanie zapisana bezpośrednio w kursie jako draft.
           </p>
         </div>
       </div>
@@ -376,12 +464,6 @@ const AILessonGenerator = () => {
               })
             )}
           </select>
-
-          {modules.length === 0 && (
-            <p className="text-xs text-red-600 mt-2">
-              Najpierw utwórz moduł w panelu administratora.
-            </p>
-          )}
         </div>
 
         <div>
@@ -403,49 +485,9 @@ const AILessonGenerator = () => {
           </select>
         </div>
 
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
-            ID lekcji
-          </label>
-
-          <input
-            type="text"
-            name="lessonId"
-            value={formData.lessonId}
-            readOnly
-            className="w-full border border-gray-300 rounded-2xl px-4 py-3 bg-gray-100 text-gray-600 cursor-not-allowed"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Numer lekcji
-          </label>
-
-          <input
-            type="number"
-            name="lessonNumber"
-            min="1"
-            value={formData.lessonNumber}
-            readOnly
-            className="w-full border border-gray-300 rounded-2xl px-4 py-3 bg-gray-100 text-gray-600 cursor-not-allowed"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Kolejność w module
-          </label>
-
-          <input
-            type="number"
-            name="orderInModule"
-            min="1"
-            value={formData.orderInModule}
-            readOnly
-            className="w-full border border-gray-300 rounded-2xl px-4 py-3 bg-gray-100 text-gray-600 cursor-not-allowed"
-          />
-        </div>
+        <InputReadOnly label="ID lekcji" value={formData.lessonId} />
+        <InputReadOnly label="Numer lekcji" value={formData.lessonNumber} />
+        <InputReadOnly label="Kolejność w module" value={formData.orderInModule} />
 
         <div className="md:col-span-2 xl:col-span-3">
           <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -465,7 +507,8 @@ const AILessonGenerator = () => {
         <div className="md:col-span-2 xl:col-span-3 bg-blue-50 border border-blue-100 rounded-2xl p-4">
           <p className="text-sm text-blue-800">
             <strong>Język docelowy:</strong> English ·{" "}
-            <strong>Język wsparcia:</strong> Polish
+            <strong>Język wsparcia:</strong> Polish ·{" "}
+            <strong>Status po zapisie:</strong> draft
           </p>
         </div>
 
@@ -490,7 +533,7 @@ const AILessonGenerator = () => {
 
           <button
             type="button"
-            onClick={handleSavePendingLesson}
+            onClick={handleSaveDraftLesson}
             disabled={!generatedLesson || saving}
             className="inline-flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-2xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
           >
@@ -502,7 +545,7 @@ const AILessonGenerator = () => {
             ) : (
               <>
                 <FaSave />
-                Zapisz do przeglądu
+                Zapisz jako szkic
               </>
             )}
           </button>
@@ -510,17 +553,15 @@ const AILessonGenerator = () => {
       </form>
 
       {error && (
-        <div className="mb-6 bg-red-50 border border-red-100 text-red-700 rounded-2xl p-4 flex gap-3">
-          <FaExclamationTriangle className="mt-1 shrink-0" />
-          <p>{error}</p>
-        </div>
+        <Alert type="error" icon={<FaExclamationTriangle />}>
+          {error}
+        </Alert>
       )}
 
       {successMessage && (
-        <div className="mb-6 bg-green-50 border border-green-100 text-green-700 rounded-2xl p-4 flex gap-3">
-          <FaCheckCircle className="mt-1 shrink-0" />
-          <p>{successMessage}</p>
-        </div>
+        <Alert type="success" icon={<FaCheckCircle />}>
+          {successMessage}
+        </Alert>
       )}
 
       {executionLog.length > 0 && (
@@ -545,7 +586,7 @@ const AILessonGenerator = () => {
         <div className="space-y-6">
           <div className="bg-primary-50 border border-primary-100 rounded-3xl p-6">
             <p className="text-sm font-semibold text-primary-600 uppercase tracking-wide">
-              Podgląd
+              Podgląd szkicu
             </p>
 
             <h3 className="text-3xl font-bold text-gray-900 mt-2">
@@ -555,24 +596,6 @@ const AILessonGenerator = () => {
             <p className="text-gray-700 mt-3">
               {lessonData.descripcion || "Brak opisu."}
             </p>
-
-            <div className="flex flex-wrap gap-2 mt-4">
-              <span className="bg-white text-primary-700 px-3 py-1 rounded-full text-sm font-semibold">
-                Poziom {lessonData.level || lessonData.nivel}
-              </span>
-
-              <span className="bg-white text-primary-700 px-3 py-1 rounded-full text-sm font-semibold">
-                Moduł: {lessonData.moduleTitle || formData.moduleId}
-              </span>
-
-              <span className="bg-white text-primary-700 px-3 py-1 rounded-full text-sm font-semibold">
-                English → Polish support
-              </span>
-
-              <span className="bg-white text-primary-700 px-3 py-1 rounded-full text-sm font-semibold">
-                {lessonData.ageGroup}
-              </span>
-            </div>
           </div>
 
           <PreviewCard title="JSON wygenerowany">
@@ -586,13 +609,40 @@ const AILessonGenerator = () => {
   );
 };
 
-const PreviewCard = ({ title, children }) => {
+const InputReadOnly = ({ label, value }) => (
+  <div>
+    <label className="block text-sm font-semibold text-gray-700 mb-2">
+      {label}
+    </label>
+
+    <input
+      type="text"
+      value={value}
+      readOnly
+      className="w-full border border-gray-300 rounded-2xl px-4 py-3 bg-gray-100 text-gray-600 cursor-not-allowed"
+    />
+  </div>
+);
+
+const Alert = ({ type, icon, children }) => {
+  const styles =
+    type === "success"
+      ? "bg-green-50 border-green-100 text-green-700"
+      : "bg-red-50 border-red-100 text-red-700";
+
   return (
-    <div className="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm">
-      <h3 className="text-xl font-bold text-gray-900 mb-4">{title}</h3>
-      <div className="text-gray-700">{children}</div>
+    <div className={`mb-6 border rounded-2xl p-4 flex gap-3 ${styles}`}>
+      <span className="mt-1 shrink-0">{icon}</span>
+      <p>{children}</p>
     </div>
   );
 };
+
+const PreviewCard = ({ title, children }) => (
+  <div className="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm">
+    <h3 className="text-xl font-bold text-gray-900 mb-4">{title}</h3>
+    <div className="text-gray-700">{children}</div>
+  </div>
+);
 
 export default AILessonGenerator;

@@ -1,37 +1,72 @@
-// utils/helpers.js
+// src/components/forms/components/utils/helpers.js
 
-// Función para generar IDs únicos
-export const generateUniqueId = (prefix = '') => {
-  return `${prefix}${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+// Generates a unique identifier with an optional prefix.
+export const generateUniqueId = (prefix = "") => {
+  const randomPart = Math.random().toString(36).slice(2, 11);
+
+  return `${prefix}${Date.now()}-${randomPart}`;
 };
 
-// Función para validar formato de email
+// Validates an email address.
 export const isValidEmail = (email) => {
+  if (typeof email !== "string") {
+    return false;
+  }
+
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
+
+  return emailRegex.test(email.trim());
 };
 
-// Función para contar palabras
+// Counts words in a text value.
 export const countWords = (text) => {
-  return text.trim().split(/\s+/).length;
+  if (typeof text !== "string") {
+    return 0;
+  }
+
+  const normalizedText = text.trim();
+
+  if (!normalizedText) {
+    return 0;
+  }
+
+  return normalizedText.split(/\s+/).length;
 };
 
-// Función para formatear fecha
+// Formats a date for the Polish interface.
 export const formatDate = (date) => {
-  return new Intl.DateTimeFormat('es-ES', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  }).format(new Date(date));
+  if (!date) {
+    return "";
+  }
+
+  const parsedDate = new Date(date);
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return "";
+  }
+
+  return new Intl.DateTimeFormat("pl-PL", {
+    year: "numeric",
+    month: "long",
+    day: "numeric"
+  }).format(parsedDate);
 };
 
-// Función para sanitizar texto
+// Removes basic angle brackets from text input.
 export const sanitizeText = (text) => {
-  return text.trim().replace(/[<>]/g, '');
+  if (typeof text !== "string") {
+    return "";
+  }
+
+  return text.trim().replace(/[<>]/g, "");
 };
 
-// Función para validar URL
+// Validates a URL.
 export const isValidUrl = (url) => {
+  if (typeof url !== "string" || !url.trim()) {
+    return false;
+  }
+
   try {
     new URL(url);
     return true;
@@ -40,39 +75,78 @@ export const isValidUrl = (url) => {
   }
 };
 
-// Función para ordenar array de objetos por campo
-export const sortByField = (array, field, ascending = true) => {
+// Sorts an array of objects by a specific field.
+export const sortByField = (
+  array,
+  field,
+  ascending = true
+) => {
+  if (!Array.isArray(array)) {
+    return [];
+  }
+
   return [...array].sort((a, b) => {
-    if (ascending) {
-      return a[field] > b[field] ? 1 : -1;
+    const valueA = a?.[field];
+    const valueB = b?.[field];
+
+    if (valueA === valueB) {
+      return 0;
     }
-    return a[field] < b[field] ? 1 : -1;
+
+    if (valueA == null) {
+      return 1;
+    }
+
+    if (valueB == null) {
+      return -1;
+    }
+
+    const comparison = valueA > valueB ? 1 : -1;
+
+    return ascending ? comparison : -comparison;
   });
 };
 
-// Función para deep clone de objetos
+// Creates a deep clone of JSON-compatible data.
 export const deepClone = (obj) => {
+  if (obj === undefined) {
+    return undefined;
+  }
+
   return JSON.parse(JSON.stringify(obj));
 };
 
-// Función para comparar objetos
+// Compares JSON-compatible objects.
 export const areObjectsEqual = (obj1, obj2) => {
   return JSON.stringify(obj1) === JSON.stringify(obj2);
 };
 
-// Función para manejar errores de forma consistente
+// Handles errors consistently and returns a fallback value.
 export const handleError = (error, fallback = null) => {
-  console.error('Error:', error);
+  console.error("Error:", error);
+
   return fallback;
 };
 
-// Función para validar campos requeridos en un objeto
-export const validateRequiredFields = (obj, requiredFields) => {
+// Validates required fields in an object.
+export const validateRequiredFields = (
+  obj,
+  requiredFields
+) => {
   const errors = {};
-  requiredFields.forEach(field => {
-    if (!obj[field]) {
-      errors[field] = 'Este campo es requerido';
+
+  requiredFields.forEach((field) => {
+    const value = obj?.[field];
+
+    const isEmpty =
+      value === undefined ||
+      value === null ||
+      (typeof value === "string" && !value.trim());
+
+    if (isEmpty) {
+      errors[field] = "To pole jest wymagane.";
     }
   });
+
   return errors;
 };

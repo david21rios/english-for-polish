@@ -16,6 +16,7 @@ const SectionNavigation = ({
 }) => {
   const isFirstSection = currentSectionIndex <= 0;
   const isLastSection = currentSectionIndex >= totalSections - 1;
+
   const canAdvance =
     typeof canAdvanceCurrentSection === "function"
       ? canAdvanceCurrentSection()
@@ -35,7 +36,7 @@ const SectionNavigation = ({
           }`}
         >
           <FaArrowLeft />
-          Previous section
+          Poprzednia sekcja
         </button>
 
         <button
@@ -53,16 +54,16 @@ const SectionNavigation = ({
           {!canAdvance ? (
             <>
               <FaLock />
-              Complete activity first
+              Najpierw ukończ aktywność
             </>
           ) : isLastSection ? (
             <>
-              Finish section
+              Zakończ sekcję
               <FaCheckCircle />
             </>
           ) : (
             <>
-              Next section
+              Następna sekcja
               <FaArrowRight />
             </>
           )}

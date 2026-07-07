@@ -57,10 +57,10 @@ const TestLevelResultModal = ({
 
   if (isCalculating) {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4">
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
         <div className="bg-white rounded-2xl p-8 max-w-lg w-full shadow-lg text-center">
           <h2 className="text-xl font-semibold text-gray-800 mb-4">
-            Calculando resultados
+            Obliczanie wyników
           </h2>
 
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto" />
@@ -76,31 +76,38 @@ const TestLevelResultModal = ({
     scores.total >= MIN_SCORE_TO_PASS && currentLevel !== lastAvailableLevel;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
       <div className="bg-white rounded-3xl p-8 max-w-lg w-full shadow-2xl">
         <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
-          Resultado del nivel {currentLevel}
+          Wynik poziomu {currentLevel}
         </h2>
 
         <div className="space-y-4">
           <div className="flex justify-between border-b pb-2">
             <span className="font-medium text-gray-700">
-              Selección múltiple:
+              Wybór odpowiedzi:
             </span>
+
             <span className="font-bold text-primary-600">
               {scores.multipleChoice}%
             </span>
           </div>
 
           <div className="flex justify-between border-b pb-2">
-            <span className="font-medium text-gray-700">Escritura:</span>
+            <span className="font-medium text-gray-700">
+              Pisanie:
+            </span>
+
             <span className="font-bold text-primary-600">
               {scores.writing}%
             </span>
           </div>
 
           <div className="flex justify-between border-b pb-2">
-            <span className="font-medium text-gray-700">Lectura:</span>
+            <span className="font-medium text-gray-700">
+              Czytanie:
+            </span>
+
             <span className="font-bold text-primary-600">
               {scores.reading}%
             </span>
@@ -109,7 +116,7 @@ const TestLevelResultModal = ({
 
         <div className="mt-6 text-center">
           <p className="text-xl font-semibold text-gray-800 mb-2">
-            Puntaje Total:
+            Wynik całkowity:
           </p>
 
           <p
@@ -124,21 +131,27 @@ const TestLevelResultModal = ({
 
           {scores.total >= MIN_SCORE_TO_PASS ? (
             <div className="text-green-600 mt-3">
-              <p>¡Felicitaciones! Has superado este nivel.</p>
+              <p>Gratulacje! Ten poziom został zaliczony.</p>
+
               {canContinue ? (
-                <p className="mt-1">Puedes continuar al siguiente nivel.</p>
+                <p className="mt-1">
+                  Możesz przejść do następnego poziomu.
+                </p>
               ) : (
-                <p className="mt-1">Has llegado al último test disponible.</p>
+                <p className="mt-1">
+                  To ostatni dostępny test poziomujący.
+                </p>
               )}
             </div>
           ) : (
             <div className="text-gray-600 mt-3">
               <p>
-                Tu puntuación está por debajo del mínimo requerido (
+                Twój wynik jest poniżej wymaganego minimum (
                 {MIN_SCORE_TO_PASS}%).
               </p>
+
               <p className="mt-1">
-                Te recomendamos comenzar tus clases desde el nivel {currentLevel}.
+                Zalecamy rozpoczęcie nauki od poziomu {currentLevel}.
               </p>
             </div>
           )}
@@ -151,10 +164,10 @@ const TestLevelResultModal = ({
           className="w-full mt-6 bg-primary-600 text-white py-3 rounded-xl hover:bg-primary-700 transition-colors disabled:opacity-50"
         >
           {isLoading
-            ? "Cargando..."
+            ? "Ładowanie..."
             : canContinue
-            ? "Continuar al siguiente nivel"
-            : "Finalizar test"}
+            ? "Przejdź do następnego poziomu"
+            : "Zakończ test"}
         </button>
       </div>
     </div>

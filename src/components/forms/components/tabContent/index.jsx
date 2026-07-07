@@ -1,20 +1,31 @@
-// components/forms/components/tabContent/index.jsx
-import React from 'react';
-import PropTypes from 'prop-types'; // Añadimos PropTypes para validación
-import BasicInfo from '../BasicInfo';
-import Objectives from '../Objectives';
-import Contents from '../Contents';
-import Reading from '../Reading';
-import InteractivePractice from '../InteractivePractice.jsx';
-import WritingProduction from '../WritingProduction';
-import OralProduction from '../OralProduction';
-import Evaluation from '../Evaluation';
-import Resources from '../Resources';
-import Reflection from '../Reflection';
+// src/components/forms/components/tabContent/index.jsx
 
-// Objeto con los componentes mapeados
+import PropTypes from "prop-types";
+
+import BasicInfo from "../BasicInfo";
+import Contents from "../Contents";
+import Evaluation from "../Evaluation";
+import InteractivePractice from "../InteractivePractice.jsx";
+import Objectives from "../Objectives";
+import OralProduction from "../OralProduction";
+import Reading from "../Reading";
+import Reflection from "../Reflection";
+import Resources from "../Resources";
+import WritingProduction from "../WritingProduction";
+
 const COMPONENTS_MAP = {
   basic: BasicInfo,
+  objectives: Objectives,
+  contents: Contents,
+  reading: Reading,
+  practice: InteractivePractice,
+  writing: WritingProduction,
+  speaking: OralProduction,
+  evaluation: Evaluation,
+  resources: Resources,
+  reflection: Reflection,
+
+  // Legacy tab keys during migration.
   objetivos: Objectives,
   contenidos: Contents,
   lectura: Reading,
@@ -23,17 +34,26 @@ const COMPONENTS_MAP = {
   produccion_oral: OralProduction,
   evaluacion: Evaluation,
   recursos: Resources,
-  reflexion: Reflection
+  reflexion: Reflection,
+
+  // Transitional keys if any older component still sends these.
+  writingProduction: WritingProduction,
+  oralProduction: OralProduction
 };
 
-const TabContent = ({ activeTab, formData, setFormData, errors, isEditing }) => {
-  // Validamos que el activeTab exista en nuestro mapa de componentes
-  if (!COMPONENTS_MAP[activeTab]) {
-    console.warn(`Tab "${activeTab}" no encontrado`);
+const TabContent = ({
+  activeTab,
+  formData,
+  setFormData,
+  errors = {},
+  isEditing = false
+}) => {
+  const Component = COMPONENTS_MAP[activeTab];
+
+  if (!Component) {
+    console.warn(`Tab "${activeTab}" not found.`);
     return null;
   }
-
-  const Component = COMPONENTS_MAP[activeTab];
 
   return (
     <div className="mt-6">
@@ -47,35 +67,12 @@ const TabContent = ({ activeTab, formData, setFormData, errors, isEditing }) => 
   );
 };
 
-// Definimos PropTypes para validación de props
 TabContent.propTypes = {
   activeTab: PropTypes.oneOf(Object.keys(COMPONENTS_MAP)).isRequired,
-  formData: PropTypes.shape({
-    id: PropTypes.string,
-    titulo: PropTypes.string,
-    descripcion: PropTypes.string,
-    objetivos: PropTypes.array,
-    contenidos: PropTypes.shape({
-      vocabulario: PropTypes.object,
-      gramatica: PropTypes.object
-    }),
-    lectura: PropTypes.object,
-    practica_interactiva: PropTypes.object,
-    produccion_escrita: PropTypes.object,
-    produccion_oral: PropTypes.object,
-    evaluacion: PropTypes.object,
-    recursos_adicionales: PropTypes.array,
-    reflexion_final: PropTypes.string
-  }).isRequired,
+  formData: PropTypes.object.isRequired,
   setFormData: PropTypes.func.isRequired,
   errors: PropTypes.object,
   isEditing: PropTypes.bool
-};
-
-// Valores por defecto para props opcionales
-TabContent.defaultProps = {
-  errors: {},
-  isEditing: false
 };
 
 export default TabContent;
