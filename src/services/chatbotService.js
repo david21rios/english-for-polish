@@ -5,44 +5,62 @@ import { sendAIMessage } from "./ai/aiService";
 const PUBLIC_CHATBOT_RESPONSES = [
   {
     intent: "level_test",
-    keywords: ["test", "level", "nivel", "placement", "exam", "prueba", "examen"],
+    keywords: [
+      "test",
+      "level",
+      "poziom",
+      "placement",
+      "exam",
+      "egzamin",
+      "ewaluacja",
+      "ocena",
+      "diagnosis",
+      "diagnostyczny"
+    ],
     answer:
-      "El test de nivel ayuda a estimar tu nivel de español. Después del test, la plataforma recomienda desde dónde empezar."
+      "Test pomaga określić Twój aktualny poziom i lepiej dobrać ścieżkę nauki. Może obejmować pytania wyboru, czytanie i zadania pisemne, zależnie od konfiguracji instytucji."
   },
   {
     intent: "courses",
     keywords: [
       "course",
-      "curso",
+      "courses",
+      "kurs",
+      "kursy",
       "lesson",
       "lessons",
-      "leccion",
-      "lección",
-      "clases"
+      "lekcja",
+      "lekcje",
+      "module",
+      "modules",
+      "moduł",
+      "moduły"
     ],
     answer:
-      "El curso está organizado por niveles desde A1 hasta C2. Cada nivel contiene lecciones, actividades y práctica."
+      "Nauka jest zorganizowana w poziomy CEFR od A1 do C2. Każdy poziom może zawierać moduły, lekcje, ćwiczenia i aktywności przygotowane lub zatwierdzone przez instytucję."
   },
   {
     intent: "topics",
     keywords: [
       "topic",
       "topics",
-      "tema",
-      "temas",
+      "temat",
+      "tematy",
       "mission",
       "missions",
-      "misión",
-      "mision"
+      "misja",
+      "misje",
+      "practice",
+      "praktyka"
     ],
     answer:
-      "La sección de temas permite practicar situaciones reales mediante misiones, conversaciones y retos."
+      "Misje pozwalają ćwiczyć angielski w sytuacjach z życia codziennego. Możesz realizować cele komunikacyjne, prowadzić rozmowy i otrzymywać informację zwrotną po zakończeniu praktyki."
   },
   {
     intent: "xp",
-    keywords: ["xp", "points", "puntos", "score", "reward", "recompensa"],
+    keywords: ["xp", "points", "punkty", "score", "wynik", "reward", "nagroda"],
     answer:
-      "Los puntos XP se ganan al completar actividades y misiones. Ayudan a medir tu avance y mantener la motivación."
+      "XP pomaga pokazać Twoją aktywność i postęp. Punkty możesz zdobywać za ukończone aktywności, lekcje lub misje, zależnie od konfiguracji platformy."
   },
   {
     intent: "register",
@@ -50,26 +68,49 @@ const PUBLIC_CHATBOT_RESPONSES = [
       "register",
       "signup",
       "sign up",
+      "rejestracja",
+      "zarejestrować",
+      "konto",
+      "utwórz konto",
+      "crear cuenta",
       "registro",
       "registrarme",
-      "registrar",
-      "crear cuenta",
       "account"
     ],
     answer:
-      "Sí. Para usar la plataforma completa debes crear una cuenta, verificar tu correo electrónico e iniciar sesión."
+      "Aby korzystać z pełnej ścieżki nauki, utwórz konto, zweryfikuj adres e-mail i zaloguj się. Po zalogowaniu możesz przejść do testu, lekcji, misji i profilu postępów."
   },
   {
     intent: "login",
-    keywords: ["login", "signin", "sign in", "iniciar sesión", "entrar"],
+    keywords: [
+      "login",
+      "signin",
+      "sign in",
+      "logowanie",
+      "zaloguj",
+      "zalogować",
+      "iniciar sesión",
+      "entrar"
+    ],
     answer:
-      "Para ingresar, usa la opción Login e introduce tu correo y contraseña registrados."
+      "Aby wejść do platformy, wybierz opcję logowania i użyj zarejestrowanego adresu e-mail oraz hasła."
   },
   {
     intent: "languages",
-    keywords: ["language", "languages", "idioma", "idiomas"],
+    keywords: [
+      "language",
+      "languages",
+      "język",
+      "języki",
+      "idioma",
+      "idiomas",
+      "english",
+      "angielski",
+      "spanish",
+      "hiszpański"
+    ],
     answer:
-      "La versión actual se enfoca en aprender español. Más adelante la plataforma podrá adaptarse a otros idiomas."
+      "Aktualna wersja platformy jest skonfigurowana do nauki języka angielskiego z językiem polskim jako wsparciem. Architektura może być w przyszłości dostosowana do innych języków."
   },
   {
     intent: "ai",
@@ -78,48 +119,69 @@ const PUBLIC_CHATBOT_RESPONSES = [
       "ia",
       "chatbot",
       "assistant",
-      "asistente",
+      "asystent",
+      "sztuczna inteligencja",
+      "inteligencja artificial",
       "inteligencia artificial"
     ],
     answer:
-      "La plataforma incluye apoyo con IA para practicar español, entender gramática, traducir frases y recibir orientación de aprendizaje."
+      "Sztuczna inteligencja wspiera praktykę, misje konwersacyjne, generowanie doświadczeń edukacyjnych i informacje zwrotne. Treści akademickie mogą być nadzorowane i zatwierdzane przez instytucję."
+  },
+  {
+    intent: "university",
+    keywords: [
+      "university",
+      "universidad",
+      "uniwersytet",
+      "institution",
+      "instytucja",
+      "teacher",
+      "docente",
+      "nauczyciel",
+      "profesor"
+    ],
+    answer:
+      "Platforma może działać jako usługa dla instytucji edukacyjnej. Instytucja zarządza treściami, testami i kryteriami akademickimi, a platforma zapewnia technologię, praktykę, IA i śledzenie postępów."
   }
 ];
 
 const DEFAULT_PUBLIC_RESPONSE =
-  "Puedo ayudarte con preguntas sobre la plataforma, registro, inicio de sesión, test de nivel, cursos, temas, misiones, XP, idiomas disponibles y tutor con IA.";
+  "Mogę pomóc w pytaniach o platformę, rejestrację, logowanie, test poziomu, lekcje, moduły, misje, XP, języki i wsparcie AI.";
 
 const PUBLIC_CHATBOT_CONTEXT = `
-You are the public assistant of a global language learning platform.
+You are the public assistant of Polish-learning, an institutional language-learning platform.
 
 The visitor is not logged in yet.
 
 Core identity:
-- The current version of the platform focuses on learning Spanish.
-- The platform is designed with a future multilingual architecture.
-- In the future, the platform may support other target languages, but currently the available learning language is Spanish.
+- The current platform is configured for learning English.
+- The support language is Polish.
+- The platform can be offered as a service for universities or educational institutions.
+- The institution can manage, review and approve lessons, tests, modules and academic criteria.
+- AI can support lesson creation, practice, missions and feedback, but academic authority belongs to the institution.
+- The platform uses CEFR levels A1 to C2.
 - The visitor may write in any language.
-- Questions about learning languages, supported languages, courses, tests, accounts, registration, login, lessons, topics, missions, XP or AI tutor are considered related to this platform, even if the visitor does not explicitly say "app" or "platform".
-- The words "platform", "app", "application", "course", "test", "registration", "lesson", "language", "learn", "study", "account", "AI tutor", and equivalent words in any language usually refer to this platform.
+- Questions about learning English, supported languages, courses, tests, accounts, registration, login, lessons, modules, topics, missions, XP, AI, universities or teachers are related to this platform.
 
 Main behavior:
-- Answer questions related to this platform, language learning, Spanish learning, registration, login, account creation, email verification, level test, courses, lessons, topics, missions, XP points, supported languages and AI tutor.
-- If the visitor asks what language they can learn, explain that the current version focuses on Spanish.
-- If the visitor asks whether they can learn every language, any language, or several languages, explain that the current version focuses on Spanish, but the platform is designed so it can be adapted to other languages in the future.
-- If the visitor asks how the platform works, explain the flow: create account, verify email, log in, take level test, follow recommended course path, practice with lessons, topics and missions, use AI tutor.
-- If the visitor asks whether registration is required, say yes: first create an account, verify email, then log in.
-- If the visitor asks whether the test comes after registration, say yes: after logging in, the student can take the level test.
-- If the visitor asks what happens after the test, explain that the platform recommends a starting level and learning path.
-- If the visitor asks about the AI tutor, explain that it helps with Spanish questions, translation, grammar, vocabulary and practice after login.
+- Answer questions related to this platform, English learning, registration, login, account creation, email verification, level tests, courses, lessons, modules, topics, missions, XP points, supported languages and AI support.
+- If the visitor asks what language they can learn, explain that the current version focuses on English with Polish support.
+- If the visitor asks whether they can learn every language, any language or several languages, explain that the current version is configured for English, but the architecture can be adapted to other languages in the future.
+- If the visitor asks how the platform works, explain the flow: create account, verify email, log in, take or complete evaluations, follow the academic path, study lessons, practice with exercises and missions, and track progress.
+- If the visitor asks whether registration is required, say yes: full learning requires account creation, email verification and login.
+- If the visitor asks what happens after the test, explain that results help guide the academic path and progress tracking.
+- If the visitor asks about AI, explain that AI supports practice, mission conversations, feedback and content generation, while academic validation can remain under institutional control.
+- If the visitor asks about universities or institutions, explain that the platform can operate as a technological service where the university manages content, tests and academic approval.
 - If the visitor asks if they can use the platform without registration, explain that public information is available before login, but the full learning experience requires registration and email verification.
 
 Out of scope:
 - Do not answer unrelated questions.
-- If the visitor asks about weather, politics, personal decisions, health, money, news, entertainment, travel, programming, sports, or anything unrelated to this platform, politely say that you can only help with questions about the language learning platform.
-- If the visitor asks for general language lessons before login, give only a brief orientation and invite them to register for the full learning experience.
+- If the visitor asks about weather, politics, personal decisions, health, money, news, entertainment, travel planning, programming, sports or anything unrelated to this platform, politely say that you can only help with questions about the language learning platform.
+- If the visitor asks for full language lessons before login, give only a brief orientation and invite them to register for the full learning experience.
 
 Language:
 - Always answer in the same language used by the visitor.
+- If the visitor writes in Polish, answer in Polish.
 - If the visitor writes in Spanish, answer in Spanish.
 - If the visitor writes in English, answer in English.
 - If the visitor writes in another language, answer in that same language if possible.
@@ -137,7 +199,7 @@ Style:
 
 Pricing:
 - Official pricing has not been configured yet.
-- If the visitor asks whether the test or platform is free, explain that during the current testing or public preview phase it may be available without cost, but official pricing should be confirmed by the platform owner.
+- If the visitor asks whether the test or platform is free, explain that during the current testing, pilot or public preview phase it may be available without cost, but official pricing must be confirmed by the platform owner or institution.
 - Do not invent prices.
 - Do not promise permanent free access.
 
@@ -148,19 +210,26 @@ Goal:
 `;
 
 const normalizeText = (text = "") => {
-  return text.toLowerCase().trim();
+  return text
+    .toString()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
 };
 
 const findLocalResponse = (message = "") => {
   const normalizedMessage = normalizeText(message);
 
   return PUBLIC_CHATBOT_RESPONSES.find((item) =>
-    item.keywords.some((keyword) => normalizedMessage.includes(keyword))
+    item.keywords.some((keyword) =>
+      normalizedMessage.includes(normalizeText(keyword))
+    )
   );
 };
 
 export const getPublicChatbotInitialMessage = () => {
-  return "Hi! I can help you understand how this Spanish learning platform works.";
+  return "Cześć! Mogę pomóc Ci zrozumieć, jak działa platforma do nauki angielskiego.";
 };
 
 export const getPublicChatbotResponse = (message = "") => {
@@ -187,8 +256,8 @@ export const getPublicChatbotAIResponse = async (message = "") => {
       userMessage: message,
       mode: "language_tutor",
       currentLevel: "A1-A2",
-      targetLanguage: "Spanish",
-      baseLanguage: "English",
+      targetLanguage: "English",
+      baseLanguage: "Polish",
       context: PUBLIC_CHATBOT_CONTEXT
     });
 
