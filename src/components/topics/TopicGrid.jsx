@@ -1,39 +1,69 @@
 // src/components/topics/TopicGrid.jsx
 
-import React from "react";
 import TopicCard from "./TopicCard";
 
 const TopicGrid = ({
-  temas,
-  circlesRef,
+  temas = [],
   handleTemaClick
 }) => {
+  const topics =
+    Array.isArray(temas)
+      ? temas
+      : [];
+
+  const handleTopicClick = (
+    topic
+  ) => {
+    if (
+      !topic?.id ||
+      typeof handleTemaClick !==
+        "function"
+    ) {
+      return;
+    }
+
+    handleTemaClick(
+      topic.id
+    );
+  };
+
+  if (topics.length === 0) {
+    return null;
+  }
+
   return (
-    <section className="w-full">
-      <div className="mb-5 md:mb-8">
-        <p className="text-sm font-semibold text-primary-600 uppercase tracking-wide">
+    <section
+      className="w-full"
+      aria-labelledby="topics-grid-title"
+    >
+      <header className="mb-6 md:mb-8">
+        <p className="text-sm font-semibold uppercase tracking-wide text-primary-600">
           Tematy do ćwiczeń
         </p>
 
-        <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mt-2">
+        <h2
+          id="topics-grid-title"
+          className="mt-2 text-2xl font-bold text-gray-900 md:text-3xl"
+        >
           Wybierz sytuację z życia codziennego
         </h2>
 
-        <p className="text-gray-600 mt-2 text-sm md:text-base max-w-2xl">
-          Zacznij od tematu, dopasuj kontekst do siebie i ćwicz przydatne
-          rozmowy poprzez misje.
+        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-gray-600 md:text-base">
+          Wybierz interesujący Cię temat, wykonuj realistyczne misje i ćwicz
+          komunikację dopasowaną do Twojego poziomu językowego.
         </p>
-      </div>
+      </header>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-5 relative z-10">
-        {temas.map((tema, index) => (
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-5 lg:grid-cols-3 xl:grid-cols-4">
+        {topics.map((topic) => (
           <TopicCard
-            key={tema.id}
-            ref={(el) => {
-              circlesRef.current[index] = el;
-            }}
-            tema={tema}
-            onClick={() => handleTemaClick(tema.id)}
+            key={topic.id}
+            tema={topic}
+            onClick={() =>
+              handleTopicClick(
+                topic
+              )
+            }
           />
         ))}
       </div>

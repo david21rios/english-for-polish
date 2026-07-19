@@ -16,12 +16,12 @@ import {
   getNextLessonNumber,
   getNextLessonOrderInModule,
   updateLesson
-} from "../services/lessonManager";
+} from "../services/courses/lessonManager";
 
 import {
   getModulesByLevel,
   refreshModuleLessonCount
-} from "../services/moduleService";
+} from "../services/courses/moduleService";
 
 import {
   cleanLessonData,

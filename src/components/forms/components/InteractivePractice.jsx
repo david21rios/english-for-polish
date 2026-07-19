@@ -16,11 +16,18 @@ const EXERCISE_TYPES = {
 };
 
 const LEGACY_TYPES = {
-  seleccion_multiple: "multiple_choice",
-  completar: "fill_blank",
-  ordenar: "ordering",
-  order: "ordering",
-  relacionar: "matching"
+  seleccion_multiple: EXERCISE_TYPES.multiple_choice,
+  multiple_choice: EXERCISE_TYPES.multiple_choice,
+
+  completar: EXERCISE_TYPES.fill_blank,
+  fill_blank: EXERCISE_TYPES.fill_blank,
+
+  ordenar: EXERCISE_TYPES.ordering,
+  order: EXERCISE_TYPES.ordering,
+  ordering: EXERCISE_TYPES.ordering,
+
+  relacionar: EXERCISE_TYPES.matching,
+  matching: EXERCISE_TYPES.matching
 };
 
 const LEGACY_TYPE_MAP = {
@@ -30,52 +37,165 @@ const LEGACY_TYPE_MAP = {
   matching: "relacionar"
 };
 
-const cleanArray = (items = []) =>
+/**
+ * Comprueba si una propiedad existe realmente.
+ *
+ * Esto permite distinguir entre:
+ * - propiedad ausente;
+ * - propiedad presente con valor vacío "";
+ * - propiedad presente con arreglo vacío [];
+ */
+const hasOwn = (source, key) =>
+  Object.prototype.hasOwnProperty.call(source || {}, key);
+
+/**
+ * Obtiene el primer campo existente sin descartar valores válidos
+ * como "", 0, false o [].
+ */
+const getExistingValue = (
+  source = {},
+  keys = [],
+  fallback = ""
+) => {
+  for (const key of keys) {
+    if (hasOwn(source, key)) {
+      return source[key] ?? fallback;
+    }
+  }
+
+  return fallback;
+};
+
+/**
+ * Obtiene el primer arreglo existente.
+ *
+ * Importante:
+ * No elimina cadenas vacías porque son necesarias mientras el
+ * docente está creando nuevas opciones, palabras, pares o elementos.
+ */
+const getExistingArray = (
+  source = {},
+  keys = [],
+  fallback = []
+) => {
+  for (const key of keys) {
+    if (hasOwn(source, key)) {
+      return Array.isArray(source[key])
+        ? [...source[key]]
+        : fallback;
+    }
+  }
+
+  return fallback;
+};
+
+const normalizeStringArray = (items = []) =>
   Array.isArray(items)
-    ? items.filter((item) => item !== null && item !== undefined && item !== "")
+    ? items.map((item) =>
+        item === null || item === undefined
+          ? ""
+          : String(item)
+      )
     : [];
 
-const normalizeExerciseType = (type = "") =>
-  LEGACY_TYPES[type] || type || EXERCISE_TYPES.multiple_choice;
+const createExerciseId = () => {
+  if (
+    typeof crypto !== "undefined" &&
+    typeof crypto.randomUUID === "function"
+  ) {
+    return `exercise-${crypto.randomUUID()}`;
+  }
+
+  return `exercise-${Date.now()}-${Math.random()
+    .toString(36)
+    .slice(2, 10)}`;
+};
+
+const normalizeExerciseType = (type = "") => {
+  const safeType = String(type || "")
+    .trim()
+    .toLowerCase();
+
+  return (
+    LEGACY_TYPES[safeType] ||
+    EXERCISE_TYPES.multiple_choice
+  );
+};
 
 const isIndex = (value) =>
   typeof value === "number" ||
-  (typeof value === "string" && /^\d+$/.test(value.trim()));
-
-const sameItemsSet = (a = [], b = []) =>
-  a.map(String).sort().join("|") === b.map(String).sort().join("|");
-
-const buildCorrectOrderValues = (exercise = {}, items = []) => {
-  const rawValues = cleanArray(
-    exercise.correctOrderValues ||
-      exercise.correct_order_values ||
-      exercise.correctOrderText ||
-      exercise.correct_order_text
+  (
+    typeof value === "string" &&
+    /^\d+$/.test(value.trim())
   );
 
-  const rawOrder = cleanArray(
-    exercise.correctOrder ||
-      exercise.correct_order ||
-      exercise.orden_correcto
+const sameItemsSet = (first = [], second = []) => {
+  if (first.length !== second.length) {
+    return false;
+  }
+
+  const normalizedFirst = first
+    .map(String)
+    .sort();
+
+  const normalizedSecond = second
+    .map(String)
+    .sort();
+
+  return (
+    normalizedFirst.join("|") ===
+    normalizedSecond.join("|")
+  );
+};
+
+const buildCorrectOrderValues = (
+  exercise = {},
+  items = []
+) => {
+  const rawValues = normalizeStringArray(
+    getExistingArray(
+      exercise,
+      [
+        "correctOrderValues",
+        "correct_order_values",
+        "correctOrderText",
+        "correct_order_text"
+      ],
+      []
+    )
+  );
+
+  const rawOrder = getExistingArray(
+    exercise,
+    [
+      "correctOrder",
+      "correct_order",
+      "orden_correcto"
+    ],
+    []
   );
 
   if (
     rawValues.length === items.length &&
     sameItemsSet(rawValues, items)
   ) {
-    return rawValues.map(String);
+    return rawValues;
   }
 
   if (
     rawOrder.length === items.length &&
     rawOrder.every(isIndex)
   ) {
-    const values = rawOrder
-      .map((index) => items[Number(index)])
-      .filter(Boolean);
+    const values = rawOrder.map((index) => {
+      const item = items[Number(index)];
+
+      return item === null || item === undefined
+        ? ""
+        : String(item);
+    });
 
     if (values.length === items.length) {
-      return values.map(String);
+      return values;
     }
   }
 
@@ -83,52 +203,208 @@ const buildCorrectOrderValues = (exercise = {}, items = []) => {
     rawOrder.length === items.length &&
     sameItemsSet(rawOrder, items)
   ) {
-    return rawOrder.map(String);
+    return normalizeStringArray(rawOrder);
   }
 
-  return items.map(String);
+  return normalizeStringArray(items);
 };
 
-const buildCorrectOrderIndexes = (items = [], correctOrderValues = []) =>
+const buildCorrectOrderIndexes = (
+  items = [],
+  correctOrderValues = []
+) =>
   correctOrderValues.map((value) => {
-    const index = items.findIndex((item) => String(item) === String(value));
+    const index = items.findIndex(
+      (item) => String(item) === String(value)
+    );
+
     return index >= 0 ? index : value;
   });
 
 const normalizeExercise = (exercise = {}) => {
-  const type = normalizeExerciseType(exercise.type || exercise.tipo);
-  const items = cleanArray(exercise.items || exercise.elementos);
+  const type = normalizeExerciseType(
+    getExistingValue(
+      exercise,
+      ["type", "tipo"],
+      EXERCISE_TYPES.multiple_choice
+    )
+  );
+
+  const items = normalizeStringArray(
+    getExistingArray(
+      exercise,
+      ["items", "elementos"],
+      []
+    )
+  );
+
   const correctOrderValues =
     type === EXERCISE_TYPES.ordering
       ? buildCorrectOrderValues(exercise, items)
-      : cleanArray(
-          exercise.correctOrderValues || exercise.correct_order_values
+      : normalizeStringArray(
+          getExistingArray(
+            exercise,
+            [
+              "correctOrderValues",
+              "correct_order_values"
+            ],
+            []
+          )
         );
+
+  const leftPairs = normalizeStringArray(
+    getExistingArray(
+      exercise,
+      [
+        "leftPairs",
+        "leftItems",
+        "left_items",
+        "pares_izquierda",
+        "elementos_izquierda"
+      ],
+      []
+    )
+  );
+
+  const rightPairs = normalizeStringArray(
+    getExistingArray(
+      exercise,
+      [
+        "rightPairs",
+        "rightItems",
+        "right_items",
+        "pares_derecha",
+        "elementos_derecha"
+      ],
+      []
+    )
+  );
 
   return {
     ...exercise,
+
+    id: String(
+      getExistingValue(
+        exercise,
+        ["id"],
+        ""
+      )
+    ),
+
     type,
-    question: exercise.question || exercise.pregunta || "",
-    instructions: exercise.instructions || exercise.instrucciones || "",
-    options: cleanArray(exercise.options || exercise.opciones),
-    correctAnswer: exercise.correctAnswer || exercise.respuesta_correcta || "",
-    text: exercise.text || exercise.texto || "",
-    words: cleanArray(exercise.words || exercise.palabras),
-    answers: exercise.answers || exercise.respuestas || {},
+
+    question: String(
+      getExistingValue(
+        exercise,
+        ["question", "pregunta"],
+        ""
+      )
+    ),
+
+    instructions: String(
+      getExistingValue(
+        exercise,
+        [
+          "instructions",
+          "instruction",
+          "instrucciones"
+        ],
+        ""
+      )
+    ),
+
+    options: normalizeStringArray(
+      getExistingArray(
+        exercise,
+        ["options", "opciones"],
+        []
+      )
+    ),
+
+    correctAnswer: String(
+      getExistingValue(
+        exercise,
+        [
+          "correctAnswer",
+          "correct_answer",
+          "respuesta_correcta",
+          "respuesta",
+          "answer"
+        ],
+        ""
+      )
+    ),
+
+    text: String(
+      getExistingValue(
+        exercise,
+        ["text", "texto"],
+        ""
+      )
+    ),
+
+    words: normalizeStringArray(
+      getExistingArray(
+        exercise,
+        ["words", "palabras"],
+        []
+      )
+    ),
+
+    answers: getExistingValue(
+      exercise,
+      [
+        "answers",
+        "correctAnswers",
+        "correct_answers",
+        "respuestas",
+        "respuestas_correctas"
+      ],
+      {}
+    ),
+
+    acceptedAnswers: getExistingValue(
+      exercise,
+      [
+        "acceptedAnswers",
+        "accepted_answers",
+        "respuestas_aceptadas"
+      ],
+      {}
+    ),
 
     items,
-    correctOrder: buildCorrectOrderIndexes(items, correctOrderValues),
+
+    correctOrder: buildCorrectOrderIndexes(
+      items,
+      correctOrderValues
+    ),
+
     correctOrderValues,
+
     correct_order_values: correctOrderValues,
 
-    leftPairs: cleanArray(exercise.leftPairs || exercise.pares_izquierda),
-    rightPairs: cleanArray(exercise.rightPairs || exercise.pares_derecha),
-    correctMatches: exercise.correctMatches || exercise.respuestas_correctas || {}
+    leftPairs,
+
+    rightPairs,
+
+    correctMatches: getExistingValue(
+      exercise,
+      [
+        "correctMatches",
+        "correctPairs",
+        "correct_pairs",
+        "respuestas_correctas",
+        "pares_correctos"
+      ],
+      {}
+    )
   };
 };
 
 const buildLegacyExercise = (exercise = {}) => {
   const normalized = normalizeExercise(exercise);
+
   const correctOrder = buildCorrectOrderIndexes(
     normalized.items,
     normalized.correctOrderValues
@@ -136,44 +412,114 @@ const buildLegacyExercise = (exercise = {}) => {
 
   return {
     ...normalized,
-    tipo: LEGACY_TYPE_MAP[normalized.type] || normalized.type,
-    pregunta: normalized.question || "",
-    instrucciones: normalized.instructions || "",
-    opciones: normalized.options || [],
-    respuesta_correcta: normalized.correctAnswer || "",
-    texto: normalized.text || "",
-    palabras: normalized.words || [],
-    respuestas: normalized.answers || {},
 
-    elementos: normalized.items || [],
+    tipo:
+      LEGACY_TYPE_MAP[normalized.type] ||
+      normalized.type,
+
+    pregunta: normalized.question ?? "",
+
+    instrucciones:
+      normalized.instructions ?? "",
+
+    opciones: Array.isArray(normalized.options)
+      ? normalized.options
+      : [],
+
+    respuesta_correcta:
+      normalized.correctAnswer ?? "",
+
+    texto: normalized.text ?? "",
+
+    palabras: Array.isArray(normalized.words)
+      ? normalized.words
+      : [],
+
+    respuestas:
+      normalized.answers &&
+      typeof normalized.answers === "object"
+        ? normalized.answers
+        : {},
+
+    respuestas_aceptadas:
+      normalized.acceptedAnswers &&
+      typeof normalized.acceptedAnswers === "object"
+        ? normalized.acceptedAnswers
+        : {},
+
+    elementos: Array.isArray(normalized.items)
+      ? normalized.items
+      : [],
+
     orden_correcto: correctOrder,
-    correctOrder: correctOrder,
-    correctOrderValues: normalized.correctOrderValues || [],
-    correct_order_values: normalized.correctOrderValues || [],
 
-    pares_izquierda: normalized.leftPairs || [],
-    pares_derecha: normalized.rightPairs || [],
-    respuestas_correctas: normalized.correctMatches || {}
+    correctOrder,
+
+    correctOrderValues:
+      normalized.correctOrderValues || [],
+
+    correct_order_values:
+      normalized.correctOrderValues || [],
+
+    pares_izquierda:
+      normalized.leftPairs || [],
+
+    pares_derecha:
+      normalized.rightPairs || [],
+
+    respuestas_correctas:
+      normalized.correctMatches || {}
   };
 };
 
-const normalizePractice = (practice = {}) => ({
-  title: practice.title || practice.titulo || "",
-  description: practice.description || practice.descripcion || "",
-  exercises: (
-    Array.isArray(practice.exercises)
-      ? practice.exercises
-      : Array.isArray(practice.ejercicios)
-        ? practice.ejercicios
-        : []
-  ).map(normalizeExercise)
-});
+const normalizePractice = (practice = {}) => {
+  const rawExercises = getExistingArray(
+    practice,
+    ["exercises", "ejercicios"],
+    []
+  );
+
+  return {
+    title: String(
+      getExistingValue(
+        practice,
+        ["title", "titulo"],
+        ""
+      )
+    ),
+
+    description: String(
+      getExistingValue(
+        practice,
+        ["description", "descripcion"],
+        ""
+      )
+    ),
+
+    exercises: rawExercises.map(normalizeExercise)
+  };
+};
 
 const buildLegacyPractice = (practice = {}) => ({
-  titulo: practice.title || "",
-  descripcion: practice.description || "",
-  ejercicios: (practice.exercises || []).map(buildLegacyExercise)
+  titulo: practice.title ?? "",
+  descripcion: practice.description ?? "",
+
+  ejercicios: Array.isArray(practice.exercises)
+    ? practice.exercises.map(buildLegacyExercise)
+    : []
 });
+
+const getPracticeSource = (formData = {}) => {
+  if (hasOwn(formData, "interactivePractice")) {
+    return formData.interactivePractice || {};
+  }
+
+  if (hasOwn(formData, "practica_interactiva")) {
+    return formData.practica_interactiva || {};
+  }
+
+  return {};
+};
 
 const getExerciseTypeLabel = (type) => {
   const labels = {
@@ -186,20 +532,57 @@ const getExerciseTypeLabel = (type) => {
   return labels[type] || "Ćwiczenie";
 };
 
-const InteractivePractice = ({ formData, setFormData }) => {
+const buildEmptyExercise = (type) =>
+  normalizeExercise({
+    id: createExerciseId(),
+    type,
+
+    question: "",
+    instructions: "",
+
+    options: [],
+    correctAnswer: "",
+
+    text: "",
+    words: [],
+    answers: {},
+    acceptedAnswers: {},
+
+    items: [],
+    correctOrder: [],
+    correctOrderValues: [],
+    correct_order_values: [],
+
+    leftPairs: [],
+    rightPairs: [],
+    correctMatches: {}
+  });
+
+const InteractivePractice = ({
+  formData,
+  setFormData
+}) => {
   const practice = normalizePractice(
-    formData.interactivePractice ||
-      formData.practica_interactiva ||
-      {}
+    getPracticeSource(formData)
   );
 
+  /**
+   * Único punto responsable de sincronizar:
+   *
+   * - modelo canónico: interactivePractice
+   * - modelo legacy: practica_interactiva
+   */
   const updatePractice = (updatedPractice) => {
-    const normalizedPractice = normalizePractice(updatedPractice);
+    const normalizedPractice =
+      normalizePractice(updatedPractice);
 
-    setFormData((prev) => ({
-      ...prev,
+    setFormData((previousFormData) => ({
+      ...previousFormData,
+
       interactivePractice: normalizedPractice,
-      practica_interactiva: buildLegacyPractice(normalizedPractice)
+
+      practica_interactiva:
+        buildLegacyPractice(normalizedPractice)
     }));
   };
 
@@ -211,104 +594,107 @@ const InteractivePractice = ({ formData, setFormData }) => {
   };
 
   const handleAddExercise = (type) => {
-    const newExercise = normalizeExercise({
-      type,
-      question: "",
-      instructions: "",
-      options: [],
-      correctAnswer: "",
-      text: "",
-      words: [],
-      answers: {},
-      items: [],
-      correctOrder: [],
-      correctOrderValues: [],
-      correct_order_values: [],
-      leftPairs: [],
-      rightPairs: [],
-      correctMatches: {}
-    });
+    const newExercise = buildEmptyExercise(type);
 
     updatePractice({
       ...practice,
-      exercises: [...practice.exercises, newExercise]
+      exercises: [
+        ...practice.exercises,
+        newExercise
+      ]
     });
   };
 
-  const handleExerciseChange = (index, field, value) => {
-    const newExercises = [...practice.exercises];
+  const handleUpdateExercise = (
+    index,
+    updatedExercise
+  ) => {
+    const nextExercises = [
+      ...practice.exercises
+    ];
 
-    newExercises[index] = normalizeExercise({
-      ...newExercises[index],
-      [field]: value
+    const currentExercise =
+      nextExercises[index] || {};
+
+    nextExercises[index] = normalizeExercise({
+      ...currentExercise,
+      ...updatedExercise,
+
+      id:
+        updatedExercise?.id ||
+        currentExercise.id ||
+        createExerciseId()
     });
 
     updatePractice({
       ...practice,
-      exercises: newExercises
-    });
-  };
-
-  const handleUpdateExercise = (index, updatedExercise) => {
-    const newExercises = [...practice.exercises];
-
-    newExercises[index] = normalizeExercise(updatedExercise);
-
-    updatePractice({
-      ...practice,
-      exercises: newExercises
+      exercises: nextExercises
     });
   };
 
   const handleRemoveExercise = (index) => {
     updatePractice({
       ...practice,
+
       exercises: practice.exercises.filter(
-        (_, exerciseIndex) => exerciseIndex !== index
+        (_, exerciseIndex) =>
+          exerciseIndex !== index
       )
     });
   };
 
-  const renderExerciseEditor = (exercise, index) => {
-    const legacyExercise = buildLegacyExercise(exercise);
+  const renderExerciseEditor = (
+    exercise,
+    index
+  ) => {
+    const canonicalExercise =
+      normalizeExercise(exercise);
 
-    const handleLegacyChange = (updatedLegacyExercise) => {
-      handleUpdateExercise(index, updatedLegacyExercise);
+    const legacyExercise =
+      buildLegacyExercise(canonicalExercise);
+
+    const handleEditorChange = (
+      updatedExercise
+    ) => {
+      handleUpdateExercise(
+        index,
+        updatedExercise
+      );
     };
 
-    if (exercise.type === EXERCISE_TYPES.multiple_choice) {
-      return (
-        <MultipleChoice
-          ejercicio={legacyExercise}
-          onChange={handleLegacyChange}
-        />
-      );
+    const commonProps = {
+      exercise: canonicalExercise,
+      ejercicio: legacyExercise,
+      onChange: handleEditorChange
+    };
+
+    if (
+      canonicalExercise.type ===
+      EXERCISE_TYPES.multiple_choice
+    ) {
+      return <MultipleChoice {...commonProps} />;
     }
 
-    if (exercise.type === EXERCISE_TYPES.fill_blank) {
-      return (
-        <FillInBlank
-          ejercicio={legacyExercise}
-          onChange={handleLegacyChange}
-        />
-      );
+    if (
+      canonicalExercise.type ===
+      EXERCISE_TYPES.fill_blank
+    ) {
+      return <FillInBlank {...commonProps} />;
     }
 
-    if (exercise.type === EXERCISE_TYPES.ordering) {
-      return (
-        <OrderExercise
-          ejercicio={legacyExercise}
-          onChange={handleLegacyChange}
-        />
-      );
+    if (
+      canonicalExercise.type ===
+      EXERCISE_TYPES.ordering
+    ) {
+      return <OrderExercise {...commonProps} />;
     }
 
-    if (exercise.type === EXERCISE_TYPES.matching) {
+    if (
+      canonicalExercise.type ===
+      EXERCISE_TYPES.matching
+    ) {
       return (
-        <MatchingExercise
-          ejercicio={legacyExercise}
-          onChange={handleLegacyChange}
-        />
+        <MatchingExercise {...commonProps} />
       );
     }
 
@@ -325,7 +711,12 @@ const InteractivePractice = ({ formData, setFormData }) => {
         <input
           type="text"
           value={practice.title}
-          onChange={(event) => handleChange("title", event.target.value)}
+          onChange={(event) =>
+            handleChange(
+              "title",
+              event.target.value
+            )
+          }
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
           placeholder="Wpisz tytuł ćwiczeń interaktywnych..."
         />
@@ -338,7 +729,12 @@ const InteractivePractice = ({ formData, setFormData }) => {
 
         <textarea
           value={practice.description}
-          onChange={(event) => handleChange("description", event.target.value)}
+          onChange={(event) =>
+            handleChange(
+              "description",
+              event.target.value
+            )
+          }
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
           rows={4}
           placeholder="Wpisz opis ćwiczeń interaktywnych..."
@@ -354,37 +750,53 @@ const InteractivePractice = ({ formData, setFormData }) => {
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
-              onClick={() => handleAddExercise(EXERCISE_TYPES.multiple_choice)}
-              className="px-3 py-1 bg-blue-600 text-white rounded-md text-sm"
+              onClick={() =>
+                handleAddExercise(
+                  EXERCISE_TYPES.multiple_choice
+                )
+              }
+              className="inline-flex items-center px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm transition-colors"
             >
-              <FaPlus className="inline mr-1" />
+              <FaPlus className="mr-1" />
               Wielokrotny wybór
             </button>
 
             <button
               type="button"
-              onClick={() => handleAddExercise(EXERCISE_TYPES.fill_blank)}
-              className="px-3 py-1 bg-green-600 text-white rounded-md text-sm"
+              onClick={() =>
+                handleAddExercise(
+                  EXERCISE_TYPES.fill_blank
+                )
+              }
+              className="inline-flex items-center px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-md text-sm transition-colors"
             >
-              <FaPlus className="inline mr-1" />
+              <FaPlus className="mr-1" />
               Uzupełnianie luk
             </button>
 
             <button
               type="button"
-              onClick={() => handleAddExercise(EXERCISE_TYPES.ordering)}
-              className="px-3 py-1 bg-yellow-600 text-white rounded-md text-sm"
+              onClick={() =>
+                handleAddExercise(
+                  EXERCISE_TYPES.ordering
+                )
+              }
+              className="inline-flex items-center px-3 py-1.5 bg-yellow-600 hover:bg-yellow-700 text-white rounded-md text-sm transition-colors"
             >
-              <FaPlus className="inline mr-1" />
+              <FaPlus className="mr-1" />
               Porządkowanie
             </button>
 
             <button
               type="button"
-              onClick={() => handleAddExercise(EXERCISE_TYPES.matching)}
-              className="px-3 py-1 bg-purple-600 text-white rounded-md text-sm"
+              onClick={() =>
+                handleAddExercise(
+                  EXERCISE_TYPES.matching
+                )
+              }
+              className="inline-flex items-center px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-md text-sm transition-colors"
             >
-              <FaPlus className="inline mr-1" />
+              <FaPlus className="mr-1" />
               Dopasowywanie
             </button>
           </div>
@@ -395,40 +807,53 @@ const InteractivePractice = ({ formData, setFormData }) => {
             Nie zdefiniowano jeszcze ćwiczeń interaktywnych.
           </p>
         ) : (
-          practice.exercises.map((exercise, index) => (
-            <div
-              key={index}
-              className="border border-gray-200 p-4 rounded-lg space-y-4 bg-white"
-            >
-              <div className="flex justify-between items-center gap-3">
-                <span className="font-medium">
-                  {getExerciseTypeLabel(exercise.type)}
-                </span>
+          practice.exercises.map(
+            (exercise, index) => {
+              const exerciseId =
+                exercise.id ||
+                `exercise-${index}`;
 
-                <button
-                  type="button"
-                  onClick={() => handleRemoveExercise(index)}
-                  className="p-2 text-red-600 hover:text-red-800 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-                  aria-label={`Usuń ćwiczenie ${index + 1}`}
-                  title="Usuń ćwiczenie"
+              return (
+                <div
+                  key={exerciseId}
+                  className="border border-gray-200 p-4 rounded-lg space-y-4 bg-white"
                 >
-                  <FaTrash />
-                </button>
-              </div>
+                  <div className="flex justify-between items-center gap-3">
+                    <div>
+                      <span className="font-medium">
+                        {getExerciseTypeLabel(
+                          exercise.type
+                        )}
+                      </span>
 
-              <input
-                type="text"
-                value={exercise.question || ""}
-                onChange={(event) =>
-                  handleExerciseChange(index, "question", event.target.value)
-                }
-                className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
-                placeholder="Pytanie lub instrukcja..."
-              />
+                      <p className="text-xs text-gray-500 mt-1">
+                        Ćwiczenie {index + 1}
+                      </p>
+                    </div>
 
-              {renderExerciseEditor(exercise, index)}
-            </div>
-          ))
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleRemoveExercise(index)
+                      }
+                      className="p-2 text-red-600 hover:text-red-800 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                      aria-label={`Usuń ćwiczenie ${
+                        index + 1
+                      }`}
+                      title="Usuń ćwiczenie"
+                    >
+                      <FaTrash />
+                    </button>
+                  </div>
+
+                  {renderExerciseEditor(
+                    exercise,
+                    index
+                  )}
+                </div>
+              );
+            }
+          )
         )}
       </div>
     </div>

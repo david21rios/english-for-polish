@@ -1,54 +1,111 @@
 // src/components/forms/components/interactiveExercises/MultipleChoice.jsx
 
+import { useId } from "react";
 import PropTypes from "prop-types";
 import { FaPlus, FaTrash } from "react-icons/fa";
+
+const getExistingValue = (source = {}, keys = [], fallback = "") => {
+  for (const key of keys) {
+    if (Object.prototype.hasOwnProperty.call(source, key)) {
+      return source[key] ?? fallback;
+    }
+  }
+
+  return fallback;
+};
+
+const normalizeOptions = (exercise = {}) => {
+  if (
+    Object.prototype.hasOwnProperty.call(exercise, "options") &&
+    Array.isArray(exercise.options)
+  ) {
+    return exercise.options;
+  }
+
+  if (
+    Object.prototype.hasOwnProperty.call(exercise, "opciones") &&
+    Array.isArray(exercise.opciones)
+  ) {
+    return exercise.opciones;
+  }
+
+  return [];
+};
 
 const normalizeExercise = (exercise = {}) => ({
   ...exercise,
 
-  question:
-    exercise.question ||
-    exercise.pregunta ||
-    "",
+  question: String(
+    getExistingValue(
+      exercise,
+      ["question", "pregunta"],
+      ""
+    )
+  ),
 
-  instructions:
-    exercise.instructions ||
-    exercise.instrucciones ||
-    "",
+  instructions: String(
+    getExistingValue(
+      exercise,
+      ["instructions", "instrucciones"],
+      ""
+    )
+  ),
 
-  options: Array.isArray(exercise.options)
-    ? exercise.options
-    : Array.isArray(exercise.opciones)
-      ? exercise.opciones
-      : [],
+  options: normalizeOptions(exercise).map((option) =>
+    option === null || option === undefined ? "" : String(option)
+  ),
 
-  correctAnswer:
-    exercise.correctAnswer ||
-    exercise.respuesta_correcta ||
-    ""
+  correctAnswer: String(
+    getExistingValue(
+      exercise,
+      ["correctAnswer", "respuesta_correcta"],
+      ""
+    )
+  )
 });
 
 const buildLegacyExercise = (exercise = {}) => ({
-  ...exercise,
-
-  pregunta: exercise.question || "",
-  instrucciones: exercise.instructions || "",
-  opciones: exercise.options || [],
-  respuesta_correcta: exercise.correctAnswer || ""
+  pregunta: exercise.question ?? "",
+  instrucciones: exercise.instructions ?? "",
+  opciones: Array.isArray(exercise.options)
+    ? exercise.options
+    : [],
+  respuesta_correcta: exercise.correctAnswer ?? ""
 });
 
-const MultipleChoice = ({ exercise, ejercicio, onChange }) => {
-  const sourceExercise = exercise || ejercicio || {};
+const MultipleChoice = ({
+  exercise = null,
+  ejercicio = null,
+  onChange
+}) => {
+  const radioGroupId = useId();
+
+  /*
+   * `exercise` es el modelo canónico.
+   * `ejercicio` se conserva solo como compatibilidad legacy.
+   */
+  const sourceExercise = exercise ?? ejercicio ?? {};
   const normalizedExercise = normalizeExercise(sourceExercise);
 
   const updateExercise = (updatedExercise) => {
     const canonicalExercise = normalizeExercise(updatedExercise);
+    const legacyExercise = buildLegacyExercise(canonicalExercise);
 
     onChange({
+      /*
+       * Conservamos otros posibles campos del ejercicio, como `id` y `type`.
+       */
+      ...sourceExercise,
+
+      /*
+       * Modelo canónico.
+       */
       ...canonicalExercise,
 
-      // Legacy compatibility during migration.
-      ...buildLegacyExercise(canonicalExercise)
+      /*
+       * Compatibilidad legacy sincronizada.
+       */
+      ...legacyExercise
     });
   };
 
@@ -62,40 +119,39 @@ const MultipleChoice = ({ exercise, ejercicio, onChange }) => {
   const handleAddOption = () => {
     updateExercise({
       ...normalizedExercise,
-      options: [
-        ...normalizedExercise.options,
-        ""
-      ]
+      options: [...normalizedExercise.options, ""]
     });
   };
 
   const handleOptionChange = (index, value) => {
     const newOptions = [...normalizedExercise.options];
-    const oldValue = newOptions[index];
+    const previousValue = newOptions[index] ?? "";
 
     newOptions[index] = value;
+
+    const nextCorrectAnswer =
+      normalizedExercise.correctAnswer === previousValue
+        ? value
+        : normalizedExercise.correctAnswer;
 
     updateExercise({
       ...normalizedExercise,
       options: newOptions,
-
-      correctAnswer:
-        normalizedExercise.correctAnswer === oldValue
-          ? value
-          : normalizedExercise.correctAnswer
+      correctAnswer: nextCorrectAnswer
     });
   };
 
   const handleRemoveOption = (index) => {
-    const removedOption = normalizedExercise.options[index];
+    const removedOption =
+      normalizedExercise.options[index] ?? "";
+
+    const newOptions = normalizedExercise.options.filter(
+      (_, optionIndex) => optionIndex !== index
+    );
 
     updateExercise({
       ...normalizedExercise,
-
-      options: normalizedExercise.options.filter(
-        (_, optionIndex) => optionIndex !== index
-      ),
-
+      options: newOptions,
       correctAnswer:
         normalizedExercise.correctAnswer === removedOption
           ? ""
@@ -104,6 +160,11 @@ const MultipleChoice = ({ exercise, ejercicio, onChange }) => {
   };
 
   const handleCorrectAnswerChange = (option) => {
+    /*
+     * Una opción vacía no puede seleccionarse como respuesta correcta.
+     */
+    if (!option.trim()) return;
+
     handleChange("correctAnswer", option);
   };
 
@@ -150,9 +211,9 @@ const MultipleChoice = ({ exercise, ejercicio, onChange }) => {
           <button
             type="button"
             onClick={handleAddOption}
-            className="text-primary-600 hover:text-primary-700 text-sm font-medium"
+            className="inline-flex items-center text-primary-600 hover:text-primary-700 text-sm font-medium"
           >
-            <FaPlus className="inline mr-2" />
+            <FaPlus className="mr-2" />
             Dodaj opcję
           </button>
         </div>
@@ -160,20 +221,21 @@ const MultipleChoice = ({ exercise, ejercicio, onChange }) => {
         {normalizedExercise.options.length > 0 ? (
           normalizedExercise.options.map((option, index) => (
             <div
-              key={index}
+              key={`${radioGroupId}-option-${index}`}
               className="flex items-center gap-2"
             >
               <input
                 type="radio"
-                name="multiple-choice-correct-answer"
+                name={`multiple-choice-correct-answer-${radioGroupId}`}
                 checked={
-                  normalizedExercise.correctAnswer === option &&
-                  option !== ""
+                  option.trim() !== "" &&
+                  normalizedExercise.correctAnswer === option
                 }
+                disabled={option.trim() === ""}
                 onChange={() =>
                   handleCorrectAnswerChange(option)
                 }
-                className="h-4 w-4 text-primary-600 focus:ring-primary-500"
+                className="h-4 w-4 text-primary-600 focus:ring-primary-500 disabled:opacity-40"
                 aria-label={`Oznacz opcję ${index + 1} jako poprawną`}
               />
 
@@ -181,10 +243,7 @@ const MultipleChoice = ({ exercise, ejercicio, onChange }) => {
                 type="text"
                 value={option}
                 onChange={(event) =>
-                  handleOptionChange(
-                    index,
-                    event.target.value
-                  )
+                  handleOptionChange(index, event.target.value)
                 }
                 className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
                 placeholder={`Opcja ${index + 1}`}
@@ -222,11 +281,6 @@ MultipleChoice.propTypes = {
   exercise: PropTypes.object,
   ejercicio: PropTypes.object,
   onChange: PropTypes.func.isRequired
-};
-
-MultipleChoice.defaultProps = {
-  exercise: null,
-  ejercicio: null
 };
 
 export default MultipleChoice;

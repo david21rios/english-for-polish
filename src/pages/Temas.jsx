@@ -1,124 +1,138 @@
 // src/pages/Temas.jsx
 
-import React, { useEffect, useRef, useState } from "react";
-import { collection, getDocs } from "firebase/firestore";
-import { useNavigate } from "react-router-dom";
+import {
+  useCallback,
+  useEffect,
+  useState
+} from "react";
 
-import { db } from "../firebase";
+import {
+  useNavigate
+} from "react-router-dom";
+
+import TopicEmptyState from "../components/topics/TopicEmptyState";
 import TopicGrid from "../components/topics/TopicGrid";
 import TopicIntro from "../components/topics/TopicIntro";
+import TopicLoading from "../components/topics/TopicLoading";
+
+import {
+  getPublishedTopics
+} from "../services/missions/topicCatalogService";
 
 const Temas = () => {
-  const [temas, setTemas] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [topics, setTopics] =
+    useState([]);
 
-  const navigate = useNavigate();
+  const [loading, setLoading] =
+    useState(true);
 
-  const containerRef = useRef(null);
-  const circlesRef = useRef([]);
+  const [error, setError] =
+    useState("");
 
-  useEffect(() => {
-    const fetchTemas = async () => {
+  const navigate =
+    useNavigate();
+
+  /*
+  |--------------------------------------------------------------------------
+  | Load public topics
+  |--------------------------------------------------------------------------
+  */
+
+  const loadTopics =
+    useCallback(async () => {
       try {
         setLoading(true);
+        setError("");
 
-        const temasSnapshot = await getDocs(collection(db, "temas"));
+        const publishedTopics =
+          await getPublishedTopics();
 
-        const temasData = temasSnapshot.docs.map((documentSnapshot) => ({
-          id: documentSnapshot.id,
-          ...documentSnapshot.data()
-        }));
+        setTopics(
+          Array.isArray(
+            publishedTopics
+          )
+            ? publishedTopics
+            : []
+        );
+      } catch (loadError) {
+        console.error(
+          "Error loading topics:",
+          {
+            code:
+              loadError?.code,
 
-        setTemas(temasData);
-      } catch (error) {
-        console.error("Error loading topics:", error);
+            message:
+              loadError?.message
+          }
+        );
+
+        setTopics([]);
+
+        setError(
+          "Nie udało się załadować tematów. Spróbuj ponownie."
+        );
       } finally {
         setLoading(false);
       }
-    };
+    }, []);
 
-    fetchTemas();
-  }, []);
+  useEffect(() => {
+    loadTopics();
+  }, [loadTopics]);
 
-  const generateLines = () => {
-    if (!containerRef.current || circlesRef.current.length === 0) {
-      return "";
+  /*
+  |--------------------------------------------------------------------------
+  | Navigation
+  |--------------------------------------------------------------------------
+  */
+
+  const handleTopicClick = (
+    topicId
+  ) => {
+    const normalizedTopicId =
+      String(topicId || "")
+        .trim();
+
+    if (!normalizedTopicId) {
+      return;
     }
 
-    return circlesRef.current.slice(0, -1).map((circle, index) => {
-      const nextCircle = circlesRef.current[index + 1];
-
-      if (!circle || !nextCircle) {
-        return null;
-      }
-
-      const rect1 = circle.getBoundingClientRect();
-      const rect2 = nextCircle.getBoundingClientRect();
-      const containerRect = containerRef.current.getBoundingClientRect();
-
-      const x1 = rect1.left + rect1.width / 2 - containerRect.left;
-      const y1 = rect1.top + rect1.height / 2 - containerRect.top;
-      const x2 = rect2.left + rect2.width / 2 - containerRect.left;
-      const y2 = rect2.top + rect2.height / 2 - containerRect.top;
-
-      return (
-        <path
-          key={index}
-          d={`M${x1} ${y1} C${(x1 + x2) / 2} ${y1}, ${
-            (x1 + x2) / 2
-          } ${y2}, ${x2} ${y2}`}
-          stroke="#D1D5DB"
-          strokeWidth="2"
-          fill="none"
-        />
-      );
-    });
+    navigate(
+      `/tema/${normalizedTopicId}`
+    );
   };
 
-  const handleTemaClick = (temaId) => {
-    navigate(`/tema/${temaId}`);
-  };
+  /*
+  |--------------------------------------------------------------------------
+  | View
+  |--------------------------------------------------------------------------
+  */
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white py-4 md:py-6 overflow-x-hidden">
+    <div className="min-h-screen overflow-x-hidden bg-gradient-to-b from-primary-50 to-white py-4 md:py-6">
       <div className="container mx-auto px-3 sm:px-4">
         <TopicIntro />
 
-        <section className="relative bg-white py-6 md:py-12 lg:py-16 px-3 sm:px-6 lg:px-8 rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+        <section className="rounded-3xl border border-gray-100 bg-white px-3 py-6 shadow-sm sm:px-6 md:py-12 lg:px-8 lg:py-16">
           {loading ? (
-            <div className="flex items-center justify-center min-h-[240px]">
-              <div className="text-center">
-                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary-600 mx-auto mb-4" />
-                <p className="text-gray-600 text-sm">
-                  Ładowanie tematów...
-                </p>
-              </div>
-            </div>
-          ) : temas.length === 0 ? (
-            <div className="text-center py-10">
-              <h2 className="text-xl font-bold text-gray-900 mb-2">
-                Nie ma jeszcze dostępnych tematów
-              </h2>
-
-              <p className="text-gray-600 text-sm">
-                Administrator może utworzyć tematy w panelu administracyjnym.
-              </p>
-            </div>
+            <TopicLoading />
+          ) : error ? (
+            <TopicEmptyState
+              title="Nie udało się załadować tematów"
+              description={error}
+              actionLabel="Spróbuj ponownie"
+              onAction={loadTopics}
+              loading={loading}
+            />
+          ) : topics.length === 0 ? (
+            <TopicEmptyState />
           ) : (
-            <div ref={containerRef} className="relative mx-auto max-w-7xl">
-              <svg
-                className="hidden md:block absolute top-0 left-0 w-full h-full pointer-events-none"
-                preserveAspectRatio="none"
-              >
-                {generateLines()}
-              </svg>
-
-              <TopicGrid
-                temas={temas}
-                circlesRef={circlesRef}
-                handleTemaClick={handleTemaClick}
-              />
-            </div>
+            <TopicGrid
+              temas={topics}
+              handleTemaClick={
+                handleTopicClick
+              }
+            />
           )}
         </section>
       </div>

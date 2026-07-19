@@ -6,7 +6,7 @@ import { useAuthState } from "react-firebase-hooks/auth";
 
 import { auth } from "../../firebase";
 import LoadingSpinner from "../shared/LoadingSpinner";
-import { isUserAdmin } from "../../services/firestoreService";
+import { isUserAdmin } from "../../services/auth/firestoreService";
 
 function AdminRoute({ children }) {
   const [user, loading] = useAuthState(auth);

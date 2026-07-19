@@ -21,9 +21,9 @@ import {
   isUserAdmin,
   toggleUserForumBlock,
   updateUserRole
-} from "../../services/firestoreService";
+} from "../../services/auth/firestoreService";
 
-import { initializeDatabase } from "../../services/initializeData";
+import { initializeDatabase } from "../../services/database/initializeData";
 
 import AdminNavigationCards from "./AdminNavigationCards";
 import AdminUsersTable from "./AdminUsersTable";

@@ -1,260 +1,918 @@
 // src/pages/TemaDetalle.jsx
 
-import React, { useEffect, useState, useCallback, useMemo } from "react";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { doc, getDoc } from "firebase/firestore";
-import { auth, db } from "../firebase";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState
+} from "react";
+
+import {
+  useLocation,
+  useNavigate,
+  useParams
+} from "react-router-dom";
+
+import {
+  doc,
+  getDoc
+} from "firebase/firestore";
+
+import {
+  onAuthStateChanged
+} from "firebase/auth";
+
+import {
+  auth,
+  db
+} from "../firebase";
 
 import MissionList from "../components/topics/MissionList";
 import TopicProgress from "../components/topics/TopicProgress";
 
-import { getMissionsByTheme } from "../services/firestoreService";
-import { getTopicProgress } from "../services/topicProgressService";
+import {
+  getMissionsByTheme
+} from "../services/auth/firestoreService";
+
+import {
+  getTopicProgress
+} from "../services/progress/topicProgressService";
+
+/*
+|--------------------------------------------------------------------------
+| Configuration
+|--------------------------------------------------------------------------
+*/
+
+const INACTIVE_TOPIC_STATUSES =
+  new Set([
+    "archived",
+    "deleted",
+    "inactive",
+    "disabled"
+  ]);
+
+/*
+|--------------------------------------------------------------------------
+| Generic helpers
+|--------------------------------------------------------------------------
+*/
+
+const normalizeText = (
+  value = ""
+) => {
+  return String(value || "")
+    .normalize("NFKC")
+    .trim();
+};
+
+const normalizeNumber = (
+  value,
+  fallback = 0
+) => {
+  const numericValue =
+    Number(value);
+
+  return Number.isFinite(
+    numericValue
+  )
+    ? numericValue
+    : fallback;
+};
+
+const isTopicAvailable = (
+  topicData = {}
+) => {
+  const status =
+    normalizeText(
+      topicData.status ||
+        "active"
+    ).toLowerCase();
+
+  const softDeleted =
+    topicData.isDeleted ===
+      true ||
+    topicData.deleted ===
+      true ||
+    Boolean(
+      topicData.deletedAt
+    );
+
+  const explicitlyHidden =
+    topicData.isVisible ===
+      false ||
+    topicData.published ===
+      false;
+
+  return (
+    !softDeleted &&
+    !explicitlyHidden &&
+    !INACTIVE_TOPIC_STATUSES.has(
+      status
+    )
+  );
+};
+
+const sortMissions = (
+  missions = []
+) => {
+  if (!Array.isArray(missions)) {
+    return [];
+  }
+
+  return [...missions].sort(
+    (
+      firstMission,
+      secondMission
+    ) => {
+      const firstOrder =
+        normalizeNumber(
+          firstMission.order,
+          999
+        );
+
+      const secondOrder =
+        normalizeNumber(
+          secondMission.order,
+          999
+        );
+
+      if (
+        firstOrder !==
+        secondOrder
+      ) {
+        return (
+          firstOrder -
+          secondOrder
+        );
+      }
+
+      return normalizeText(
+        firstMission.title
+      ).localeCompare(
+        normalizeText(
+          secondMission.title
+        )
+      );
+    }
+  );
+};
+
+const normalizeCompletedMissions = (
+  completedMissions
+) => {
+  if (
+    !Array.isArray(
+      completedMissions
+    )
+  ) {
+    return [];
+  }
+
+  return Array.from(
+    new Set(
+      completedMissions
+        .map(normalizeText)
+        .filter(Boolean)
+    )
+  );
+};
+
+/*
+|--------------------------------------------------------------------------
+| Component
+|--------------------------------------------------------------------------
+*/
 
 const TemaDetalle = () => {
-  const { temaTitle } = useParams();
-  const navigate = useNavigate();
-  const location = useLocation();
+  const {
+    temaTitle: topicId
+  } = useParams();
 
-  const [topic, setTopic] = useState(null);
-  const [missions, setMissions] = useState([]);
-  const [topicProgress, setTopicProgress] = useState(null);
-  const [pendingMissionId, setPendingMissionId] = useState(
-    location.state?.missionId || null
+  const navigate =
+    useNavigate();
+
+  const location =
+    useLocation();
+
+  const [userId, setUserId] =
+    useState(
+      auth.currentUser?.uid ||
+        null
+    );
+
+  const [authResolved, setAuthResolved] =
+    useState(false);
+
+  const [topic, setTopic] =
+    useState(null);
+
+  const [missions, setMissions] =
+    useState([]);
+
+  const [
+    topicProgress,
+    setTopicProgress
+  ] = useState(null);
+
+  const [
+    pendingMissionId,
+    setPendingMissionId
+  ] = useState(
+    normalizeText(
+      location.state?.missionId
+    ) || null
   );
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
 
-  const userId = auth.currentUser?.uid || null;
-  const topicTitle = topic?.title || topic?.titulo || temaTitle || "Temat";
+  const [loading, setLoading] =
+    useState(true);
 
-  const loadTopicAndMissions = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError("");
+  const [
+    progressLoading,
+    setProgressLoading
+  ] = useState(false);
 
-      const topicRef = doc(db, "temas", temaTitle);
-      const topicSnap = await getDoc(topicRef);
+  const [error, setError] =
+    useState("");
 
-      if (topicSnap.exists()) {
-        setTopic({
-          id: topicSnap.id,
-          ...topicSnap.data()
-        });
-      } else {
-        setTopic({
-          id: temaTitle,
-          title: temaTitle,
-          description: "Ćwicz codzienne sytuacje poprzez misje.",
-          icon: "🎯"
-        });
+  const [
+    progressError,
+    setProgressError
+  ] = useState("");
+
+  /*
+  |--------------------------------------------------------------------------
+  | Authentication observer
+  |--------------------------------------------------------------------------
+  */
+
+  useEffect(() => {
+    const unsubscribe =
+      onAuthStateChanged(
+        auth,
+        (currentUser) => {
+          setUserId(
+            currentUser?.uid ||
+              null
+          );
+
+          setAuthResolved(true);
+        }
+      );
+
+    return unsubscribe;
+  }, []);
+
+  /*
+  |--------------------------------------------------------------------------
+  | Load public topic and missions
+  |--------------------------------------------------------------------------
+  */
+
+  const loadTopicAndMissions =
+    useCallback(async () => {
+      const normalizedTopicId =
+        normalizeText(topicId);
+
+      if (!normalizedTopicId) {
+        setError(
+          "Nieprawidłowy identyfikator tematu."
+        );
+
+        setLoading(false);
+        return;
       }
 
-      const missionsData = await getMissionsByTheme(temaTitle, {
-        includeDrafts: false
-      });
+      try {
+        setLoading(true);
+        setError("");
 
-      setMissions(missionsData || []);
+        const topicReference =
+          doc(
+            db,
+            "temas",
+            normalizedTopicId
+          );
 
-      if (userId) {
-        const progress = await getTopicProgress(userId, temaTitle);
-        setTopicProgress(progress);
+        const topicSnapshot =
+          await getDoc(
+            topicReference
+          );
+
+        if (
+          !topicSnapshot.exists()
+        ) {
+          throw new Error(
+            "TOPIC_NOT_FOUND"
+          );
+        }
+
+        const topicData = {
+          id:
+            topicSnapshot.id,
+
+          ...topicSnapshot.data()
+        };
+
+        if (
+          !isTopicAvailable(
+            topicData
+          )
+        ) {
+          throw new Error(
+            "TOPIC_NOT_AVAILABLE"
+          );
+        }
+
+        const missionsData =
+          await getMissionsByTheme(
+            normalizedTopicId,
+            {
+              includeDrafts:
+                false
+            }
+          );
+
+        const publishedMissions =
+          sortMissions(
+            (
+              Array.isArray(
+                missionsData
+              )
+                ? missionsData
+                : []
+            ).filter(
+              (mission) =>
+                normalizeText(
+                  mission.status ||
+                    "draft"
+                ).toLowerCase() ===
+                "published"
+            )
+          );
+
+        setTopic(topicData);
+        setMissions(
+          publishedMissions
+        );
+      } catch (loadError) {
+        console.error(
+          "Error loading topic missions:",
+          loadError
+        );
+
+        if (
+          loadError?.message ===
+          "TOPIC_NOT_FOUND"
+        ) {
+          setError(
+            "Ten temat nie istnieje."
+          );
+        } else if (
+          loadError?.message ===
+          "TOPIC_NOT_AVAILABLE"
+        ) {
+          setError(
+            "Ten temat nie jest obecnie dostępny."
+          );
+        } else {
+          setError(
+            "Nie udało się załadować misji dla tego tematu."
+          );
+        }
+
+        setTopic(null);
+        setMissions([]);
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error("Error loading topic missions:", error);
-      setError("Nie udało się załadować misji dla tego tematu.");
-    } finally {
-      setLoading(false);
-    }
-  }, [temaTitle, userId]);
+    }, [topicId]);
 
   useEffect(() => {
     loadTopicAndMissions();
   }, [loadTopicAndMissions]);
 
-  const completedMissions = topicProgress?.completedMissions || [];
-  const totalXp = topicProgress?.totalXp || 0;
+  /*
+  |--------------------------------------------------------------------------
+  | Load user progress independently
+  |--------------------------------------------------------------------------
+  |
+  | A progress read failure must not hide the public mission list.
+  |
+  */
 
-  const publishedMissionIds = useMemo(
-    () => missions.map((mission) => mission.id),
-    [missions]
-  );
+  const loadProgress =
+    useCallback(async () => {
+      const normalizedTopicId =
+        normalizeText(topicId);
 
-  const completedCount = completedMissions.filter((missionId) =>
-    publishedMissionIds.includes(missionId)
-  ).length;
+      if (
+        !authResolved ||
+        !normalizedTopicId
+      ) {
+        return;
+      }
 
-  const totalMissions = missions.length;
+      if (!userId) {
+        setTopicProgress(null);
+        setProgressError("");
+        return;
+      }
 
-  const missionsWithProgress = useMemo(() => {
-    return missions.map((mission, index) => {
-      const isCompleted = completedMissions.includes(mission.id);
-      const previousMission = missions[index - 1];
+      try {
+        setProgressLoading(true);
+        setProgressError("");
 
-      const previousMissionCompleted =
-        index === 0 || completedMissions.includes(previousMission?.id);
+        const progress =
+          await getTopicProgress(
+            userId,
+            normalizedTopicId
+          );
 
-      const unlockAfter = Array.isArray(mission.unlockAfter)
-        ? mission.unlockAfter
-        : [];
+        setTopicProgress(
+          progress
+        );
+      } catch (loadError) {
+        console.error(
+          "Error loading topic progress:",
+          loadError
+        );
 
-      const unlockAfterCompleted =
-        unlockAfter.length === 0 ||
-        unlockAfter.every((missionId) => completedMissions.includes(missionId));
+        setTopicProgress(null);
 
-      return {
-        ...mission,
-        completed: isCompleted,
-        locked:
-          mission.locked === true ||
-          !previousMissionCompleted ||
-          !unlockAfterCompleted
-      };
-    });
-  }, [missions, completedMissions]);
-
-  const handleStartMission = (mission) => {
-    if (mission.locked) return;
-
-    navigate(`/tema/${temaTitle}/mission/${mission.id}`);
-  };
-
-  const handleCreatePersonalizedMission = () => {
-    navigate(`/tema/${temaTitle}/custom-mission`);
-  };
+        setProgressError(
+          "Nie udało się załadować Twojego postępu. Misje nadal są dostępne."
+        );
+      } finally {
+        setProgressLoading(false);
+      }
+    }, [
+      authResolved,
+      topicId,
+      userId
+    ]);
 
   useEffect(() => {
-    if (!pendingMissionId || missionsWithProgress.length === 0) {
-      return;
-    }
+    loadProgress();
+  }, [loadProgress]);
 
-    const requestedMission = missionsWithProgress.find(
-      (mission) => mission.id === pendingMissionId
+  /*
+  |--------------------------------------------------------------------------
+  | Derived topic data
+  |--------------------------------------------------------------------------
+  */
+
+  const topicTitle =
+    normalizeText(
+      topic?.title ||
+        topic?.titulo ||
+        topicId
+    ) ||
+    "Temat";
+
+  const completedMissions =
+    useMemo(
+      () =>
+        normalizeCompletedMissions(
+          topicProgress
+            ?.completedMissions
+        ),
+      [
+        topicProgress
+          ?.completedMissions
+      ]
     );
 
-    if (!requestedMission || requestedMission.locked) {
-      setPendingMissionId(null);
+  const completedMissionSet =
+    useMemo(
+      () =>
+        new Set(
+          completedMissions
+        ),
+      [completedMissions]
+    );
+
+  const totalXp =
+    normalizeNumber(
+      topicProgress?.totalXp,
+      0
+    );
+
+  const publishedMissionIds =
+    useMemo(
+      () =>
+        missions.map(
+          (mission) =>
+            mission.id
+        ),
+      [missions]
+    );
+
+  const completedCount =
+    useMemo(
+      () =>
+        publishedMissionIds.filter(
+          (missionId) =>
+            completedMissionSet.has(
+              missionId
+            )
+        ).length,
+      [
+        completedMissionSet,
+        publishedMissionIds
+      ]
+    );
+
+  const totalMissions =
+    missions.length;
+
+  /*
+  |--------------------------------------------------------------------------
+  | Mission unlocking
+  |--------------------------------------------------------------------------
+  |
+  | Rules:
+  |
+  | 1. mission.locked === true always blocks the mission.
+  | 2. unlockAfter takes precedence when configured.
+  | 3. Without unlockAfter, sequential progression is used.
+  |
+  */
+
+  const missionsWithProgress =
+    useMemo(() => {
+      return missions.map(
+        (
+          mission,
+          index
+        ) => {
+          const isCompleted =
+            completedMissionSet.has(
+              mission.id
+            );
+
+          const unlockAfter =
+            Array.isArray(
+              mission.unlockAfter
+            )
+              ? mission.unlockAfter
+                  .map(
+                    normalizeText
+                  )
+                  .filter(Boolean)
+              : [];
+
+          const hasExplicitUnlockRules =
+            unlockAfter.length >
+            0;
+
+          const explicitRequirementsMet =
+            !hasExplicitUnlockRules ||
+            unlockAfter.every(
+              (
+                requiredMissionId
+              ) =>
+                completedMissionSet.has(
+                  requiredMissionId
+                )
+            );
+
+          const previousMission =
+            missions[index - 1];
+
+          const previousMissionCompleted =
+            index === 0 ||
+            completedMissionSet.has(
+              previousMission?.id
+            );
+
+          const progressionRequirementMet =
+            hasExplicitUnlockRules
+              ? explicitRequirementsMet
+              : previousMissionCompleted;
+
+          const locked =
+            mission.locked ===
+              true ||
+            !progressionRequirementMet;
+
+          return {
+            ...mission,
+
+            completed:
+              isCompleted,
+
+            locked,
+
+            unlockReason:
+              locked &&
+              mission.locked !==
+                true
+                ? hasExplicitUnlockRules
+                  ? "required_missions_incomplete"
+                  : "previous_mission_incomplete"
+                : null
+          };
+        }
+      );
+    }, [
+      completedMissionSet,
+      missions
+    ]);
+
+  /*
+  |--------------------------------------------------------------------------
+  | Navigation
+  |--------------------------------------------------------------------------
+  */
+
+  const handleStartMission = (
+    mission
+  ) => {
+    if (
+      !mission ||
+      mission.locked === true
+    ) {
       return;
     }
 
+    navigate(
+      `/tema/${topicId}/mission/${mission.id}`,
+      {
+        state: {
+          topicId,
+          missionId:
+            mission.id
+        }
+      }
+    );
+  };
+
+  const handleCreatePersonalizedMission =
+    () => {
+      navigate(
+        `/tema/${topicId}/custom-mission`,
+        {
+          state: {
+            topic
+          }
+        }
+      );
+    };
+
+  /*
+  |--------------------------------------------------------------------------
+  | Open requested mission
+  |--------------------------------------------------------------------------
+  |
+  | Used when the user enters from Home or a suggested mission card.
+  |
+  */
+
+  useEffect(() => {
+    if (
+      !pendingMissionId ||
+      missionsWithProgress.length ===
+        0
+    ) {
+      return;
+    }
+
+    const requestedMission =
+      missionsWithProgress.find(
+        (mission) =>
+          mission.id ===
+          pendingMissionId
+      );
+
     setPendingMissionId(null);
-    navigate(`/tema/${temaTitle}/mission/${requestedMission.id}`);
-  }, [pendingMissionId, missionsWithProgress, navigate, temaTitle]);
+
+    /*
+     * Remove transient navigation state so browser navigation does not
+     * repeatedly reopen the mission.
+     */
+
+    navigate(
+      location.pathname,
+      {
+        replace: true,
+        state: null
+      }
+    );
+
+    if (
+      !requestedMission ||
+      requestedMission.locked ===
+        true
+    ) {
+      return;
+    }
+
+    navigate(
+      `/tema/${topicId}/mission/${requestedMission.id}`,
+      {
+        replace: true,
+        state: {
+          topicId,
+          missionId:
+            requestedMission.id
+        }
+      }
+    );
+  }, [
+    location.pathname,
+    missionsWithProgress,
+    navigate,
+    pendingMissionId,
+    topicId
+  ]);
+
+  /*
+  |--------------------------------------------------------------------------
+  | Loading and error states
+  |--------------------------------------------------------------------------
+  */
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-[calc(100vh-4rem)] bg-gray-50 px-4">
+      <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center bg-gray-50 px-4">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-11 w-11 border-t-2 border-b-2 border-primary-600 mx-auto mb-4" />
-          <p className="text-sm text-gray-600">Ładowanie tematu...</p>
+          <div className="mx-auto mb-4 h-11 w-11 animate-spin rounded-full border-b-2 border-t-2 border-primary-600" />
+
+          <p className="text-sm text-gray-600">
+            Ładowanie tematu...
+          </p>
         </div>
       </div>
     );
   }
 
-  if (error) {
+  if (error || !topic) {
     return (
-      <div className="min-h-[calc(100vh-4rem)] bg-gray-50 flex items-center justify-center px-4">
-        <div className="bg-red-100 text-red-700 p-4 rounded-xl text-sm text-center">
-          {error}
+      <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center bg-gray-50 px-4">
+        <div className="w-full max-w-lg rounded-2xl border border-red-200 bg-red-50 p-5 text-center">
+          <p className="text-sm text-red-700">
+            {error ||
+              "Nie udało się znaleźć tematu."}
+          </p>
+
+          <button
+            type="button"
+            onClick={() =>
+              navigate("/temas")
+            }
+            className="mt-4 rounded-xl bg-primary-600 px-5 py-3 text-sm font-semibold text-white hover:bg-primary-700"
+          >
+            Powrót do tematów
+          </button>
         </div>
       </div>
     );
   }
+
+  /*
+  |--------------------------------------------------------------------------
+  | View
+  |--------------------------------------------------------------------------
+  */
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white pt-2 pb-5 md:py-10 overflow-x-hidden">
-      <div className="container mx-auto px-3 sm:px-4 max-w-6xl">
+    <div className="min-h-screen overflow-x-hidden bg-gradient-to-b from-primary-50 to-white pb-5 pt-2 md:py-10">
+      <div className="container mx-auto max-w-6xl px-3 sm:px-4">
         <button
           type="button"
-          onClick={() => navigate("/temas")}
-          className="inline-flex items-center text-sm text-gray-600 hover:text-primary-600 font-medium mb-3 md:mb-6"
+          onClick={() =>
+            navigate("/temas")
+          }
+          className="mb-3 inline-flex items-center text-sm font-medium text-gray-600 hover:text-primary-600 md:mb-6"
         >
           ← Powrót do tematów
         </button>
 
-        <header className="mb-5 md:mb-8 bg-white rounded-3xl shadow-sm border border-gray-100 p-5 md:p-8 overflow-hidden">
-          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-5">
-            <div className="flex items-start gap-4 min-w-0">
-              <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-primary-50 flex items-center justify-center text-3xl md:text-4xl shrink-0">
-                {topic?.icon || "🎯"}
+        <header className="mb-5 overflow-hidden rounded-3xl border border-gray-100 bg-white p-5 shadow-sm md:mb-8 md:p-8">
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+            <div className="flex min-w-0 items-start gap-4">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-primary-50 text-3xl md:h-16 md:w-16 md:text-4xl">
+                {topic.icon ||
+                  "🎯"}
               </div>
 
               <div className="min-w-0">
-                <p className="text-xs md:text-sm font-semibold text-primary-600 uppercase tracking-wide">
+                <p className="text-xs font-semibold uppercase tracking-wide text-primary-600 md:text-sm">
                   Misje w realnych sytuacjach
                 </p>
 
-                <h1 className="text-2xl md:text-4xl font-bold text-gray-900 mt-1 md:mt-2 leading-tight break-words">
+                <h1 className="mt-1 break-words text-2xl font-bold leading-tight text-gray-900 md:mt-2 md:text-4xl">
                   {topicTitle}
                 </h1>
 
-                <p className="text-gray-600 mt-3 max-w-3xl leading-relaxed text-sm md:text-base break-words">
-                  {topic?.description ||
-                    topic?.descripcion ||
+                <p className="mt-3 max-w-3xl break-words text-sm leading-relaxed text-gray-600 md:text-base">
+                  {topic.description ||
+                    topic.descripcion ||
                     "Wybierz misję, ukończ rozmowę i otrzymaj informację zwrotną na końcu."}
                 </p>
 
                 <div className="mt-4 flex flex-wrap gap-2">
-                  <span className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 px-3 py-2 rounded-full text-xs font-semibold">
+                  <span className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700">
                     🎮 Nauka przez grę
                   </span>
 
-                  <span className="inline-flex items-center gap-2 bg-primary-50 text-primary-700 px-3 py-2 rounded-full text-xs font-semibold">
+                  <span className="inline-flex items-center gap-2 rounded-full bg-primary-50 px-3 py-2 text-xs font-semibold text-primary-700">
                     💬 Ćwiczenie rozmowy
                   </span>
 
-                  <span className="inline-flex items-center gap-2 bg-yellow-50 text-yellow-700 px-3 py-2 rounded-full text-xs font-semibold">
+                  <span className="inline-flex items-center gap-2 rounded-full bg-yellow-50 px-3 py-2 text-xs font-semibold text-yellow-700">
                     🏆 Punkty XP
                   </span>
                 </div>
               </div>
             </div>
 
-            <div className="shrink-0 bg-yellow-50 text-yellow-700 px-4 py-3 rounded-2xl font-bold text-sm md:text-base w-fit">
-              ⚡ {totalXp} XP
+            <div className="w-fit shrink-0 rounded-2xl bg-yellow-50 px-4 py-3 text-sm font-bold text-yellow-700 md:text-base">
+              {progressLoading
+                ? "⚡ ..."
+                : `⚡ ${totalXp} XP`}
             </div>
           </div>
         </header>
 
+        {progressError && (
+          <div
+            role="status"
+            className="mb-5 rounded-2xl border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-800"
+          >
+            {progressError}
+          </div>
+        )}
+
         <TopicProgress
-          completedCount={completedCount}
-          totalMissions={totalMissions}
-          totalXp={totalXp}
+          completedCount={
+            completedCount
+          }
+          totalMissions={
+            totalMissions
+          }
+          totalXp={
+            totalXp
+          }
         />
 
-        <div className="space-y-5 md:space-y-8 mt-5 md:mt-8">
-          <section className="bg-white rounded-3xl shadow-sm border border-gray-100 p-5 md:p-6">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div className="mt-5 space-y-5 md:mt-8 md:space-y-8">
+          <section className="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm md:p-6">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div>
-                <p className="text-xs md:text-sm font-semibold text-primary-600 uppercase tracking-wide">
+                <p className="text-xs font-semibold uppercase tracking-wide text-primary-600 md:text-sm">
                   Praktyka personalizowana
                 </p>
 
-                <h2 className="text-xl md:text-2xl font-bold text-gray-900 mt-1">
+                <h2 className="mt-1 text-xl font-bold text-gray-900 md:text-2xl">
                   Utwórz własną misję AI
                 </h2>
 
-                <p className="text-sm md:text-base text-gray-600 mt-2 leading-relaxed max-w-3xl">
+                <p className="mt-2 max-w-3xl text-sm leading-relaxed text-gray-600 md:text-base">
                   Zbuduj własną rozmowę na podstawie Twojej sytuacji, celu,
                   poziomu i roli AI.
+                </p>
+
+                <p className="mt-2 text-xs leading-relaxed text-gray-500">
+                  Misje personalizowane służą do ćwiczeń i obecnie nie
+                  przyznają punktów XP.
                 </p>
               </div>
 
               <button
                 type="button"
-                onClick={handleCreatePersonalizedMission}
-                className="inline-flex items-center justify-center bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl px-5 py-3 transition-colors"
+                onClick={
+                  handleCreatePersonalizedMission
+                }
+                className="inline-flex items-center justify-center rounded-xl bg-primary-600 px-5 py-3 font-semibold text-white transition-colors hover:bg-primary-700"
               >
                 Utwórz personalizowaną misję AI
               </button>
             </div>
           </section>
 
-          <MissionList
-            missions={missionsWithProgress}
-            onStartMission={handleStartMission}
-          />
+          {missionsWithProgress.length ===
+          0 ? (
+            <section className="rounded-3xl border border-gray-100 bg-white p-8 text-center shadow-sm">
+              <h2 className="text-xl font-bold text-gray-900">
+                Brak dostępnych misji
+              </h2>
+
+              <p className="mt-2 text-sm text-gray-600">
+                W tym temacie nie opublikowano jeszcze żadnych misji.
+              </p>
+            </section>
+          ) : (
+            <MissionList
+              missions={
+                missionsWithProgress
+              }
+              onStartMission={
+                handleStartMission
+              }
+            />
+          )}
         </div>
       </div>
     </div>

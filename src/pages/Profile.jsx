@@ -16,11 +16,11 @@ import ProfileMissionHistory from "../components/profile/ProfileMissionHistory";
 import EditProfileModal from "../components/profile/EditProfileModal";
 import ChangePasswordModal from "../components/profile/ChangePasswordModal";
 
-import { getUserTestHistory } from "../services/firestoreService";
+import { getUserTestHistory } from "../services/auth/firestoreService";
 import {
   getUserLevelProgressSummary,
   getUserLearningActivitySummary
-} from "../services/progressService";
+} from "../services/progress/progressService";
 import { countries } from "../utils/countries";
 
 const buildMissionHistory = async (userId) => {

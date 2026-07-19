@@ -1,4 +1,5 @@
 // src/utils/countries.js
+
 export const countries = [
   { code: 'AF', name: 'Afganistán', flag: '🇦🇫' },
   { code: 'AL', name: 'Albania', flag: '🇦🇱' },

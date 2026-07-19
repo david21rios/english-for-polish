@@ -17,8 +17,8 @@ import { generateLessonWithAgents } from "../../services/ai/lessonAgentsService"
 import {
   getNextLessonNumber,
   getNextLessonOrderInModule
-} from "../../services/lessonManager";
-import { getModulesByLevel } from "../../services/moduleService";
+} from "../../services/courses/lessonManager";
+import { getModulesByLevel } from "../../services/courses/moduleService";
 
 const LEVEL_OPTIONS = ["A1", "A2", "B1", "B2", "C1", "C2"];
 

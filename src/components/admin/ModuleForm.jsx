@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { FaSave, FaTimes } from "react-icons/fa";
 
-import { getNextModuleOrder } from "../../services/moduleService";
+import { getNextModuleOrder } from "../../services/courses/moduleService";
 
 const STATUS_OPTIONS = [
   { value: "published", label: "Opublikowany" },

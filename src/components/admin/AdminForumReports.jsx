@@ -17,9 +17,9 @@ import {
   deleteForumReport,
   getForumReports,
   updateForumReportStatus
-} from "../../services/forumModerationService";
+} from "../../services/forum/forumModerationService";
 
-import { blockForumUser } from "../../services/forumAdminService";
+import { blockForumUser } from "../../services/forum/forumAdminService";
 
 const STATUS_LABELS = {
   pending: "Oczekujące",

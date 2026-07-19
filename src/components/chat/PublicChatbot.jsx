@@ -5,7 +5,7 @@ import { FaRobot, FaTimes, FaPaperPlane } from "react-icons/fa";
 import {
   getPublicChatbotInitialMessage,
   getPublicChatbotAIResponse
-} from "../../services/chatbotService";
+} from "../../services/ai/chatbotService";
 
 const PublicChatbot = () => {
   const [isOpen, setIsOpen] = useState(false);

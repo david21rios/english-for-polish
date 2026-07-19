@@ -1,95 +1,349 @@
 // src/components/forms/components/interactiveExercises/OrderExercise.jsx
 
 import PropTypes from "prop-types";
-import { FaArrowDown, FaArrowUp, FaPlus, FaTrash } from "react-icons/fa";
+import {
+  FaArrowDown,
+  FaArrowUp,
+  FaPlus,
+  FaTrash
+} from "react-icons/fa";
 
-const cleanArray = (items = []) =>
+const hasOwn = (source, key) =>
+  Object.prototype.hasOwnProperty.call(source || {}, key);
+
+/**
+ * Conserva valores válidos como:
+ * - ""
+ * - 0
+ * - false
+ * - []
+ *
+ * Esto evita que reaparezcan valores legacy después de borrar un campo.
+ */
+const getExistingValue = (
+  source = {},
+  keys = [],
+  fallback = ""
+) => {
+  for (const key of keys) {
+    if (hasOwn(source, key)) {
+      return source[key] ?? fallback;
+    }
+  }
+
+  return fallback;
+};
+
+/**
+ * Obtiene el primer arreglo realmente presente.
+ *
+ * No elimina cadenas vacías porque representan elementos nuevos
+ * que el docente todavía está editando.
+ */
+const getExistingArray = (
+  source = {},
+  keys = [],
+  fallback = []
+) => {
+  for (const key of keys) {
+    if (hasOwn(source, key)) {
+      return Array.isArray(source[key])
+        ? [...source[key]]
+        : fallback;
+    }
+  }
+
+  return fallback;
+};
+
+const normalizeStringArray = (items = []) =>
   Array.isArray(items)
-    ? items.filter((item) => item !== null && item !== undefined && item !== "")
+    ? items.map((item) =>
+        item === null || item === undefined
+          ? ""
+          : String(item)
+      )
     : [];
 
+const isIndex = (value) =>
+  typeof value === "number" ||
+  (
+    typeof value === "string" &&
+    /^\d+$/.test(value.trim())
+  );
+
+/**
+ * Compara arreglos respetando también valores repetidos.
+ */
+const haveSameValues = (first = [], second = []) => {
+  if (first.length !== second.length) {
+    return false;
+  }
+
+  const normalize = (items) =>
+    items
+      .map((item) => String(item))
+      .sort()
+      .join("\u0000");
+
+  return normalize(first) === normalize(second);
+};
+
+/**
+ * Convierte índices históricos en valores visibles.
+ */
+const resolveOrderValuesFromIndexes = (
+  rawOrder = [],
+  items = []
+) => {
+  if (
+    rawOrder.length !== items.length ||
+    !rawOrder.every(isIndex)
+  ) {
+    return null;
+  }
+
+  const values = rawOrder.map((rawIndex) => {
+    const index = Number(rawIndex);
+
+    return index >= 0 && index < items.length
+      ? items[index]
+      : undefined;
+  });
+
+  return values.every(
+    (value) => value !== undefined
+  )
+    ? normalizeStringArray(values)
+    : null;
+};
+
+/**
+ * Obtiene la posición de una ocurrencia concreta.
+ *
+ * Es necesario porque podrían existir dos elementos con el mismo texto.
+ */
+const findOccurrenceIndex = (
+  values = [],
+  targetValue = "",
+  occurrenceNumber = 0,
+  usedIndexes = new Set()
+) => {
+  let currentOccurrence = 0;
+
+  for (let index = 0; index < values.length; index += 1) {
+    if (usedIndexes.has(index)) continue;
+
+    if (String(values[index]) !== String(targetValue)) {
+      continue;
+    }
+
+    if (currentOccurrence === occurrenceNumber) {
+      return index;
+    }
+
+    currentOccurrence += 1;
+  }
+
+  return -1;
+};
+
+/**
+ * Convierte el orden basado en valores a índices, respetando duplicados.
+ */
+const buildCorrectOrderIndexes = (
+  items = [],
+  correctOrderValues = []
+) => {
+  const usedIndexes = new Set();
+
+  return correctOrderValues.map((value) => {
+    let foundIndex = -1;
+
+    for (let index = 0; index < items.length; index += 1) {
+      if (
+        !usedIndexes.has(index) &&
+        String(items[index]) === String(value)
+      ) {
+        foundIndex = index;
+        break;
+      }
+    }
+
+    if (foundIndex >= 0) {
+      usedIndexes.add(foundIndex);
+      return foundIndex;
+    }
+
+    return value;
+  });
+};
+
 const normalizeExercise = (exercise = {}) => {
-  const items = cleanArray(
-    Array.isArray(exercise.items) ? exercise.items : exercise.elementos
+  const items = normalizeStringArray(
+    getExistingArray(
+      exercise,
+      ["items", "elementos"],
+      []
+    )
   );
 
-  const rawCorrectOrderValues = cleanArray(
-    exercise.correctOrderValues ||
-      exercise.correct_order_values ||
-      exercise.correctOrderText ||
-      exercise.correct_order_text
+  const rawCorrectOrderValues = normalizeStringArray(
+    getExistingArray(
+      exercise,
+      [
+        "correctOrderValues",
+        "correct_order_values",
+        "correctOrderText",
+        "correct_order_text"
+      ],
+      []
+    )
   );
 
-  const rawCorrectOrder = cleanArray(
-    Array.isArray(exercise.correctOrder)
-      ? exercise.correctOrder
-      : exercise.orden_correcto
+  const rawCorrectOrder = getExistingArray(
+    exercise,
+    [
+      "correctOrder",
+      "correct_order",
+      "orden_correcto"
+    ],
+    []
   );
-
-  const isIndex = (value) =>
-    typeof value === "number" ||
-    (typeof value === "string" && /^\d+$/.test(value.trim()));
 
   let correctOrderValues = [];
 
-  const sameItemsSet = (a = [], b = []) =>
-    a.map(String).sort().join("|") === b.map(String).sort().join("|");
-
   if (
     rawCorrectOrderValues.length === items.length &&
-    sameItemsSet(rawCorrectOrderValues, items)
+    haveSameValues(rawCorrectOrderValues, items)
   ) {
-    correctOrderValues = rawCorrectOrderValues.map(String);
-  } else if (rawCorrectOrder.length > 0 && rawCorrectOrder.every(isIndex)) {
-    correctOrderValues = rawCorrectOrder
-      .map((index) => items[Number(index)])
-      .filter(Boolean);
-  } else if (rawCorrectOrder.length > 0) {
-    correctOrderValues = rawCorrectOrder.map(String);
-  }
-  
-  if (correctOrderValues.length !== items.length) {
-    correctOrderValues = [...items];
+    correctOrderValues = rawCorrectOrderValues;
+  } else {
+    const valuesFromIndexes =
+      resolveOrderValuesFromIndexes(
+        rawCorrectOrder,
+        items
+      );
+
+    if (valuesFromIndexes) {
+      correctOrderValues = valuesFromIndexes;
+    } else if (
+      rawCorrectOrder.length === items.length &&
+      haveSameValues(rawCorrectOrder, items)
+    ) {
+      correctOrderValues =
+        normalizeStringArray(rawCorrectOrder);
+    } else {
+      correctOrderValues = [...items];
+    }
   }
 
   return {
     ...exercise,
-    instructions: exercise.instructions || exercise.instrucciones || "",
+
+    instructions: String(
+      getExistingValue(
+        exercise,
+        [
+          "instructions",
+          "instruction",
+          "instrucciones"
+        ],
+        ""
+      )
+    ),
+
     items,
     correctOrderValues
   };
 };
 
 const buildPayload = (exercise = {}) => {
-  const items = cleanArray(exercise.items);
-  const correctOrderValues = cleanArray(exercise.correctOrderValues).map(String);
+  const normalizedExercise =
+    normalizeExercise(exercise);
 
-  const correctOrder = correctOrderValues.map((value) => {
-    const index = items.findIndex((item) => item === value);
-    return index >= 0 ? index : value;
-  });
+  const items = normalizedExercise.items;
+  const correctOrderValues =
+    normalizedExercise.correctOrderValues;
+
+  const correctOrder =
+    buildCorrectOrderIndexes(
+      items,
+      correctOrderValues
+    );
 
   return {
-    ...exercise,
+    ...normalizedExercise,
 
+    // Modelo canónico.
     items,
     correctOrder,
     correctOrderValues,
     correct_order_values: correctOrderValues,
 
-    // Legacy compatibility
-    instrucciones: exercise.instructions || "",
+    // Compatibilidad legacy.
+    instrucciones:
+      normalizedExercise.instructions ?? "",
+
     elementos: items,
+
     orden_correcto: correctOrder
   };
 };
 
-const OrderExercise = ({ exercise, ejercicio, onChange }) => {
-  const sourceExercise = exercise || ejercicio || {};
-  const normalizedExercise = normalizeExercise(sourceExercise);
+/**
+ * Obtiene qué ocurrencia de un valor representa un índice concreto.
+ *
+ * Ejemplo:
+ * items = ["Hello", "Hello", "Bye"]
+ * index = 1
+ * resultado = 1 (segunda ocurrencia de "Hello")
+ */
+const getOccurrenceNumber = (
+  items = [],
+  index = 0
+) => {
+  const targetValue = items[index];
+  let occurrence = 0;
+
+  for (
+    let currentIndex = 0;
+    currentIndex < index;
+    currentIndex += 1
+  ) {
+    if (
+      String(items[currentIndex]) ===
+      String(targetValue)
+    ) {
+      occurrence += 1;
+    }
+  }
+
+  return occurrence;
+};
+
+const OrderExercise = ({
+  exercise = null,
+  ejercicio = null,
+  onChange
+}) => {
+  /*
+   * El modelo canónico tiene prioridad.
+   * El modelo legacy se usa únicamente como fallback.
+   */
+  const sourceExercise =
+    exercise ?? ejercicio ?? {};
+
+  const normalizedExercise =
+    normalizeExercise(sourceExercise);
 
   const updateExercise = (updatedExercise) => {
-    onChange(buildPayload(normalizeExercise(updatedExercise)));
+    const payload = buildPayload({
+      ...sourceExercise,
+      ...updatedExercise
+    });
+
+    onChange(payload);
   };
 
   const handleChange = (field, value) => {
@@ -100,58 +354,132 @@ const OrderExercise = ({ exercise, ejercicio, onChange }) => {
   };
 
   const handleAddItem = () => {
-    const newItems = [...normalizedExercise.items, ""];
-    const newCorrectOrderValues = [...normalizedExercise.correctOrderValues, ""];
-
     updateExercise({
       ...normalizedExercise,
-      items: newItems,
-      correctOrderValues: newCorrectOrderValues
+
+      items: [
+        ...normalizedExercise.items,
+        ""
+      ],
+
+      correctOrderValues: [
+        ...normalizedExercise.correctOrderValues,
+        ""
+      ]
     });
   };
 
   const handleItemChange = (index, value) => {
-    const oldValue = normalizedExercise.items[index];
-    const newItems = [...normalizedExercise.items];
-    newItems[index] = value;
+    const previousValue =
+      normalizedExercise.items[index] ?? "";
 
-    const newCorrectOrderValues = normalizedExercise.correctOrderValues.map(
-      (item) => (item === oldValue ? value : item)
+    const occurrenceNumber =
+      getOccurrenceNumber(
+        normalizedExercise.items,
+        index
+      );
+
+    const nextItems = [
+      ...normalizedExercise.items
+    ];
+
+    nextItems[index] = value;
+
+    const nextCorrectOrderValues = [
+      ...normalizedExercise.correctOrderValues
+    ];
+
+    const orderIndex = findOccurrenceIndex(
+      nextCorrectOrderValues,
+      previousValue,
+      occurrenceNumber
     );
+
+    if (orderIndex >= 0) {
+      nextCorrectOrderValues[orderIndex] = value;
+    }
 
     updateExercise({
       ...normalizedExercise,
-      items: newItems,
-      correctOrderValues: newCorrectOrderValues
+      items: nextItems,
+      correctOrderValues:
+        nextCorrectOrderValues
     });
   };
 
   const handleRemoveItem = (index) => {
-    const removedValue = normalizedExercise.items[index];
+    const removedValue =
+      normalizedExercise.items[index] ?? "";
+
+    const occurrenceNumber =
+      getOccurrenceNumber(
+        normalizedExercise.items,
+        index
+      );
+
+    const nextItems =
+      normalizedExercise.items.filter(
+        (_, itemIndex) => itemIndex !== index
+      );
+
+    const nextCorrectOrderValues = [
+      ...normalizedExercise.correctOrderValues
+    ];
+
+    const orderIndex = findOccurrenceIndex(
+      nextCorrectOrderValues,
+      removedValue,
+      occurrenceNumber
+    );
+
+    if (orderIndex >= 0) {
+      nextCorrectOrderValues.splice(
+        orderIndex,
+        1
+      );
+    }
 
     updateExercise({
       ...normalizedExercise,
-      items: normalizedExercise.items.filter((_, itemIndex) => itemIndex !== index),
-      correctOrderValues: normalizedExercise.correctOrderValues.filter(
-        (item) => item !== removedValue
-      )
+      items: nextItems,
+      correctOrderValues:
+        nextCorrectOrderValues
     });
   };
 
-  const handleMoveOrder = (orderIndex, direction) => {
-    const newCorrectOrderValues = [...normalizedExercise.correctOrderValues];
-    const newIndex = direction === "up" ? orderIndex - 1 : orderIndex + 1;
+  const handleMoveOrder = (
+    orderIndex,
+    direction
+  ) => {
+    const nextCorrectOrderValues = [
+      ...normalizedExercise.correctOrderValues
+    ];
 
-    if (newIndex < 0 || newIndex >= newCorrectOrderValues.length) return;
+    const targetIndex =
+      direction === "up"
+        ? orderIndex - 1
+        : orderIndex + 1;
 
-    [newCorrectOrderValues[orderIndex], newCorrectOrderValues[newIndex]] = [
-      newCorrectOrderValues[newIndex],
-      newCorrectOrderValues[orderIndex]
+    if (
+      targetIndex < 0 ||
+      targetIndex >=
+        nextCorrectOrderValues.length
+    ) {
+      return;
+    }
+
+    [
+      nextCorrectOrderValues[orderIndex],
+      nextCorrectOrderValues[targetIndex]
+    ] = [
+      nextCorrectOrderValues[targetIndex],
+      nextCorrectOrderValues[orderIndex]
     ];
 
     updateExercise({
       ...normalizedExercise,
-      correctOrderValues: newCorrectOrderValues
+      correctOrderValues:
+        nextCorrectOrderValues
     });
   };
 
@@ -164,7 +492,12 @@ const OrderExercise = ({ exercise, ejercicio, onChange }) => {
 
         <textarea
           value={normalizedExercise.instructions}
-          onChange={(event) => handleChange("instructions", event.target.value)}
+          onChange={(event) =>
+            handleChange(
+              "instructions",
+              event.target.value
+            )
+          }
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
           rows={2}
           placeholder="Wpisz instrukcję porządkowania elementów..."
@@ -180,74 +513,121 @@ const OrderExercise = ({ exercise, ejercicio, onChange }) => {
           <button
             type="button"
             onClick={handleAddItem}
-            className="text-primary-600 hover:text-primary-700 text-sm font-medium"
+            className="inline-flex items-center text-primary-600 hover:text-primary-700 text-sm font-medium"
           >
-            <FaPlus className="inline mr-2" />
+            <FaPlus className="mr-2" />
             Dodaj element
           </button>
         </div>
 
-        {normalizedExercise.items.map((item, index) => (
-          <div key={index} className="flex items-center gap-2">
-            <input
-              type="text"
-              value={item}
-              onChange={(event) => handleItemChange(index, event.target.value)}
-              className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
-              placeholder={`Element ${index + 1}`}
-            />
+        {normalizedExercise.items.length > 0 ? (
+          normalizedExercise.items.map(
+            (item, index) => (
+              <div
+                key={`order-item-${index}`}
+                className="flex items-center gap-2"
+              >
+                <input
+                  type="text"
+                  value={item}
+                  onChange={(event) =>
+                    handleItemChange(
+                      index,
+                      event.target.value
+                    )
+                  }
+                  className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                  placeholder={`Element ${index + 1}`}
+                />
 
-            <button
-              type="button"
-              onClick={() => handleRemoveItem(index)}
-              className="p-2 text-red-600 hover:text-red-800 rounded-md"
-              title="Usuń element"
-            >
-              <FaTrash />
-            </button>
-          </div>
-        ))}
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleRemoveItem(index)
+                  }
+                  className="p-2 text-red-600 hover:text-red-800 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                  aria-label={`Usuń element ${index + 1}`}
+                  title="Usuń element"
+                >
+                  <FaTrash />
+                </button>
+              </div>
+            )
+          )
+        ) : (
+          <p className="text-sm text-gray-500 italic">
+            Nie dodano jeszcze elementów.
+          </p>
+        )}
       </div>
 
-      {normalizedExercise.correctOrderValues.length > 0 && (
+      {normalizedExercise.correctOrderValues
+        .length > 0 && (
         <div className="space-y-2">
           <label className="block text-sm font-medium text-gray-700">
             Poprawna kolejność
           </label>
 
           <div className="space-y-2 border rounded-md p-4 bg-gray-50">
-            {normalizedExercise.correctOrderValues.map((item, orderIndex) => (
-              <div
-                key={`${item}_${orderIndex}`}
-                className="flex items-center gap-2 bg-white p-2 rounded shadow-sm"
-              >
-                <span className="text-gray-500 w-6 text-center">
-                  {orderIndex + 1}.
-                </span>
-
-                <span className="flex-1">{item || `Element ${orderIndex + 1}`}</span>
-
-                <button
-                  type="button"
-                  onClick={() => handleMoveOrder(orderIndex, "up")}
-                  disabled={orderIndex === 0}
-                  className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-50"
-                  title="Przenieś w górę"
+            {normalizedExercise.correctOrderValues.map(
+              (item, orderIndex) => (
+                <div
+                  key={`correct-order-${orderIndex}`}
+                  className="flex items-center gap-2 bg-white p-2 rounded shadow-sm"
                 >
-                  <FaArrowUp />
-                </button>
+                  <span className="text-gray-500 w-6 text-center">
+                    {orderIndex + 1}.
+                  </span>
 
-                <button
-                  type="button"
-                  onClick={() => handleMoveOrder(orderIndex, "down")}
-                  disabled={orderIndex === normalizedExercise.correctOrderValues.length - 1}
-                  className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-50"
-                  title="Przenieś w dół"
-                >
-                  <FaArrowDown />
-                </button>
-              </div>
-            ))}
+                  <span className="flex-1 break-words">
+                    {item ||
+                      `Element ${orderIndex + 1}`}
+                  </span>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      handleMoveOrder(
+                        orderIndex,
+                        "up"
+                      )
+                    }
+                    disabled={orderIndex === 0}
+                    className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-40 disabled:cursor-not-allowed"
+                    title="Przenieś w górę"
+                    aria-label={`Przenieś element ${
+                      orderIndex + 1
+                    } w górę`}
+                  >
+                    <FaArrowUp />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      handleMoveOrder(
+                        orderIndex,
+                        "down"
+                      )
+                    }
+                    disabled={
+                      orderIndex ===
+                      normalizedExercise
+                        .correctOrderValues
+                        .length -
+                        1
+                    }
+                    className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-40 disabled:cursor-not-allowed"
+                    title="Przenieś w dół"
+                    aria-label={`Przenieś element ${
+                      orderIndex + 1
+                    } w dół`}
+                  >
+                    <FaArrowDown />
+                  </button>
+                </div>
+              )
+            )}
           </div>
         </div>
       )}
@@ -259,11 +639,6 @@ OrderExercise.propTypes = {
   exercise: PropTypes.object,
   ejercicio: PropTypes.object,
   onChange: PropTypes.func.isRequired
-};
-
-OrderExercise.defaultProps = {
-  exercise: null,
-  ejercicio: null
 };
 
 export default OrderExercise;

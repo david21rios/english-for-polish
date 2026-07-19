@@ -126,9 +126,6 @@ function Header() {
             Forum
           </Link>
 
-          <Link to="/contact" className={linkClass} onClick={closeMenus}>
-            Contact
-          </Link>
         </>
       );
     }

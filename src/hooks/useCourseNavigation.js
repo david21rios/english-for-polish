@@ -12,14 +12,14 @@ import {
   getNextLesson,
   getPreviousLesson,
   getNextLevel
-} from "../services/courseNavigationService";
+} from "../services/courses/courseNavigationService";
 
 import {
   getLessonProgress,
   saveLessonProgress,
   saveActivityResult,
   markLessonAsCompleted
-} from "../services/progressService";
+} from "../services/progress/progressService";
 
 import {
   sectionHasRequiredWork as engineSectionHasRequiredWork,

@@ -18,7 +18,7 @@ import {
   deleteTest,
   createTest,
   updateTest
-} from "../services/firestoreService";
+} from "../services/auth/firestoreService";
 
 import TestForm from "./testForms/TestForm";
 

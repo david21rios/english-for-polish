@@ -6,7 +6,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 
 import { auth, db } from "../firebase";
-import { getCourseLevelsForUser } from "../services/courseService";
+import { getCourseLevelsForUser } from "../services/courses/courseService";
 
 import CourseHero from "../components/cursos/CourseHero";
 import CourseLevelsGrid from "../components/cursos/CourseLevelsGrid";

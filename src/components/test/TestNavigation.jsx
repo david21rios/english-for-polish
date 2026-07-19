@@ -1,68 +1,188 @@
 // src/components/test/TestNavigation.jsx
 
+import PropTypes from "prop-types";
 import {
   FaArrowLeft,
   FaArrowRight,
-  FaCheckCircle
+  FaCheckCircle,
+  FaExclamationTriangle
 } from "react-icons/fa";
 
-const LAST_SECTION = "reading";
+const SECTION_ORDER = [
+  "multipleChoice",
+  "writing",
+  "reading"
+];
+
+const SECTION_LABELS = {
+  multipleChoice: "Wybór odpowiedzi",
+  writing: "Pisanie",
+  reading: "Czytanie"
+};
 
 const TestNavigation = ({
   currentSection,
   handlePreviousSection,
-  handleNextSection
+  handleNextSection,
+  unansweredCount = 0,
+  currentLevel = "",
+  disableNext = false,
+  isSubmitting = false
 }) => {
-  const isFirstSection = currentSection === "multipleChoice";
-  const isLastSection = currentSection === LAST_SECTION;
+  const currentIndex = SECTION_ORDER.indexOf(currentSection);
+
+  const isFirstSection = currentIndex === 0;
+  const isLastSection = currentIndex === SECTION_ORDER.length - 1;
+
+  const currentLabel =
+    SECTION_LABELS[currentSection] || currentSection;
 
   return (
-    <footer className="sticky bottom-3 z-30 mt-8">
-      <div className="bg-white/95 backdrop-blur border border-gray-100 rounded-3xl shadow-lg p-3 md:p-4">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <footer className="bottom-3 z-40 mt-8">
+      <div className="rounded-3xl border border-gray-100 bg-white/95 backdrop-blur shadow-xl">
+
+        {/* ---------- Información ---------- */}
+
+        <div className="border-b border-gray-100 px-6 py-4">
+
+          <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
+
+            <div>
+
+              <p className="text-xs uppercase tracking-wider text-primary-600 font-bold">
+                Poziom {currentLevel}
+              </p>
+
+              <h3 className="text-lg font-bold text-gray-900">
+                Sekcja: {currentLabel}
+              </h3>
+
+            </div>
+
+            <div className="text-sm text-gray-500">
+
+              Sekcja {currentIndex + 1} z {SECTION_ORDER.length}
+
+            </div>
+
+          </div>
+
+        </div>
+
+        {/* ---------- Advertencia ---------- */}
+
+        {unansweredCount > 0 && (
+          <div className="mx-5 mt-4 rounded-2xl border border-yellow-200 bg-yellow-50 p-4">
+
+            <div className="flex items-start gap-3">
+
+              <FaExclamationTriangle className="mt-1 text-yellow-600" />
+
+              <div>
+
+                <p className="font-semibold text-yellow-800">
+                  Nie wszystkie pytania zostały rozwiązane.
+                </p>
+
+                <p className="mt-1 text-sm text-yellow-700">
+                  Pozostało {unansweredCount}{" "}
+                  {unansweredCount === 1
+                    ? "pytanie"
+                    : "pytań"}{" "}
+                  bez odpowiedzi.
+                </p>
+
+              </div>
+
+            </div>
+
+          </div>
+        )}
+
+        {/* ---------- Navegación ---------- */}
+
+        <div className="flex flex-col gap-3 p-5 md:flex-row md:items-center md:justify-between">
+
           <button
             type="button"
             onClick={handlePreviousSection}
-            disabled={isFirstSection}
-            className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl font-semibold transition-all ${
-              isFirstSection
-                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
-            }`}
+            disabled={isFirstSection || isSubmitting}
+            className={`inline-flex items-center justify-center gap-2 rounded-2xl px-6 py-3 font-semibold transition-all
+              ${
+                isFirstSection
+                  ? "cursor-not-allowed bg-gray-100 text-gray-400"
+                  : "border border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+              }`}
           >
             <FaArrowLeft />
+
             Poprzednia sekcja
           </button>
 
-          <div className="hidden md:block text-center text-sm text-gray-500">
-            Odpowiedz na wszystkie widoczne pytania przed przejściem dalej.
+          <div className="hidden text-center text-sm text-gray-500 lg:block">
+
+            Przed przejściem dalej upewnij się, że odpowiedziałeś na wszystkie pytania w bieżącej sekcji.
+
           </div>
 
           <button
             type="button"
             onClick={handleNextSection}
-            className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl font-semibold text-white transition-all ${
-              isLastSection
-                ? "bg-green-600 hover:bg-green-700"
-                : "bg-secondary-500 hover:bg-secondary-600"
-            }`}
+            disabled={disableNext || isSubmitting}
+            className={`inline-flex items-center justify-center gap-2 rounded-2xl px-6 py-3 font-semibold text-white transition-all
+
+              ${
+                disableNext || isSubmitting
+                  ? "cursor-not-allowed bg-gray-300"
+                  : isLastSection
+                    ? "bg-green-600 hover:bg-green-700"
+                    : "bg-secondary-500 hover:bg-secondary-600"
+              }`}
           >
-            {isLastSection ? (
+            {isSubmitting ? (
+              <>
+                Przetwarzanie...
+              </>
+            ) : isLastSection ? (
               <>
                 <FaCheckCircle />
-                Sprawdź wyniki
+
+                Zakończ poziom
               </>
             ) : (
               <>
                 Następna sekcja
+
                 <FaArrowRight />
               </>
             )}
           </button>
+
         </div>
+
       </div>
     </footer>
   );
+};
+
+TestNavigation.propTypes = {
+  currentSection: PropTypes.oneOf([
+    "multipleChoice",
+    "writing",
+    "reading"
+  ]).isRequired,
+
+  currentLevel: PropTypes.string,
+
+  unansweredCount: PropTypes.number,
+
+  disableNext: PropTypes.bool,
+
+  isSubmitting: PropTypes.bool,
+
+  handlePreviousSection: PropTypes.func.isRequired,
+
+  handleNextSection: PropTypes.func.isRequired
 };
 
 export default TestNavigation;
