@@ -29,18 +29,18 @@ const LessonCard = ({
       <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4">
         <div className="min-w-0">
           <h3 className="text-lg font-semibold text-gray-900 break-words">
-            {lesson.titulo || "Lección sin título"}
+            {lesson.titulo || "Lekcja bez tytułu"}
           </h3>
 
           <p className="text-gray-600 text-sm break-all">ID: {lesson.id}</p>
 
           <div className="flex flex-wrap gap-2 mt-2">
             <span className="text-xs px-2 py-1 bg-primary-100 text-primary-700 rounded">
-              Módulo: {getModuleTitle(lesson.moduleId)}
+              Moduł: {getModuleTitle(lesson.moduleId)}
             </span>
 
             <span className="text-xs px-2 py-1 bg-gray-200 text-gray-700 rounded">
-              Orden: {lesson.orderInModule || "N/A"}
+              Kolejność: {lesson.orderInModule || "Brak"}
             </span>
 
             <span className="text-xs px-2 py-1 bg-gray-200 text-gray-700 rounded">
@@ -69,14 +69,15 @@ const LessonCard = ({
                 : "bg-green-100 text-green-700 hover:bg-green-200"
             }`}
           >
-            {isPublished ? "Pasar a borrador" : "Publicar"}
+            {isPublished ? "Przenieś do wersji roboczej" : "Opublikuj"}
           </button>
 
           <button
             type="button"
             onClick={() => onEdit(lesson)}
             className="p-2 text-blue-600 hover:text-blue-800"
-            title="Editar lección"
+            title="Edytuj lekcję"
+            aria-label="Edytuj lekcję"
           >
             <FaEdit />
           </button>
@@ -85,7 +86,8 @@ const LessonCard = ({
             type="button"
             onClick={() => onDelete(lesson)}
             className="p-2 text-red-600 hover:text-red-800"
-            title="Eliminar lección"
+            title="Usuń lekcję"
+            aria-label="Usuń lekcję"
           >
             <FaTrash />
           </button>
@@ -94,7 +96,9 @@ const LessonCard = ({
             type="button"
             onClick={() => onToggleDetails(lesson.id)}
             className="p-2 text-primary-600 hover:text-primary-800"
-            title="Ver detalles"
+            title={isSelected ? "Ukryj szczegóły" : "Pokaż szczegóły"}
+            aria-label={isSelected ? "Ukryj szczegóły lekcji" : "Pokaż szczegóły lekcji"}
+            aria-expanded={isSelected}
           >
             {isSelected ? <FaChevronUp /> : <FaChevronDown />}
           </button>

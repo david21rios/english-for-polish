@@ -8,9 +8,10 @@ import {
   FaExclamationTriangle,
   FaFlag,
   FaTrash,
+  FaArrowLeft,
   FaUndo
 } from "react-icons/fa";
-
+import { useNavigate } from "react-router-dom";
 import {
   deleteForumPost,
   deleteForumPostAndResolveReport,
@@ -63,6 +64,7 @@ const formatDate = (value) => {
 };
 
 const AdminForumReports = () => {
+  const navigate = useNavigate();
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState({});
@@ -293,6 +295,15 @@ const AdminForumReports = () => {
 
   return (
     <section className="bg-white rounded-3xl shadow-lg border border-gray-100 p-6 md:p-8">
+      <button
+        type="button"
+        onClick={() => navigate("/admin")}
+        className="mb-6 inline-flex items-center gap-2 text-gray-600 hover:text-primary-600 font-medium"
+      >
+        <FaArrowLeft />
+        Wróć do panelu administratora
+      </button>
+
       <div className="flex items-center gap-4 mb-8">
         <div className="w-14 h-14 rounded-2xl bg-red-100 text-red-600 flex items-center justify-center text-2xl">
           <FaFlag />

@@ -16,7 +16,7 @@ const ModuleLessonsGroup = ({
   onToggleDetails
 }) => {
   const moduleId = module?.moduleId || module?.id || "without_module";
-  const moduleTitle = module?.title || "Sin módulo";
+  const moduleTitle = module?.title || "Bez modułu";
   const moduleIcon = module?.icon || "📚";
 
   const publishedCount = lessons.filter(
@@ -35,7 +35,7 @@ const ModuleLessonsGroup = ({
             <div className="min-w-0">
               <p className="text-xs font-semibold uppercase tracking-wide text-primary-600 flex items-center gap-2">
                 <FaLayerGroup />
-                Módulo
+                Moduł
               </p>
 
               <h2 className="text-xl font-bold text-gray-900 break-words">
@@ -51,11 +51,21 @@ const ModuleLessonsGroup = ({
           <div className="flex flex-wrap gap-2">
             <span className="inline-flex items-center gap-2 text-sm bg-white border border-gray-200 text-gray-700 px-3 py-2 rounded-full">
               <FaBookOpen />
-              {lessons.length} lección{lessons.length === 1 ? "" : "es"}
+              {lessons.length}{" "}
+              {lessons.length === 1
+                ? "lekcja"
+                : lessons.length >= 2 && lessons.length <= 4
+                  ? "lekcje"
+                  : "lekcji"}
             </span>
 
             <span className="inline-flex items-center gap-2 text-sm bg-green-50 border border-green-100 text-green-700 px-3 py-2 rounded-full">
-              {publishedCount} publicadas
+              {publishedCount}{" "}
+              {publishedCount === 1
+                ? "opublikowana"
+                : publishedCount >= 2 && publishedCount <= 4
+                  ? "opublikowane"
+                  : "opublikowanych"}
             </span>
           </div>
         </div>
@@ -64,7 +74,7 @@ const ModuleLessonsGroup = ({
       <div className="p-4 space-y-4">
         {lessons.length === 0 ? (
           <div className="text-center py-6 text-gray-500 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
-            Este módulo todavía no tiene lecciones.
+            Ten moduł nie zawiera jeszcze żadnych lekcji.
           </div>
         ) : (
           lessons.map((lesson) => (

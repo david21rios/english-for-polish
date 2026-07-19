@@ -24,7 +24,7 @@ const LessonFiltersPanel = ({
   onAgeGroupChange,
   onStatusChange
 }) => {
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
     <section className="bg-white rounded-2xl shadow-sm border border-gray-100 mb-6 overflow-hidden">
@@ -40,11 +40,11 @@ const LessonFiltersPanel = ({
 
           <div className="text-left">
             <h2 className="font-bold text-gray-900">
-              Filtros de lecciones
+              Filtry lekcji
             </h2>
 
             <p className="text-sm text-gray-600">
-              Mostrando {filteredLessonsCount} de {totalLessons} lecciones · Nivel{" "}
+              Wyświetlanie {filteredLessonsCount} z {totalLessons} lekcji · Poziom{" "}
               {activeLevel}
             </p>
           </div>
@@ -58,7 +58,9 @@ const LessonFiltersPanel = ({
       {isOpen && (
         <div className="border-t border-gray-100 p-4 space-y-6">
           <div>
-            <p className="text-sm font-medium text-gray-700 mb-2">Nivel</p>
+            <p className="text-sm font-medium text-gray-700 mb-2">
+              Poziom
+            </p>
 
             <div className="flex gap-2 overflow-x-auto pb-2">
               {levels.map((level) => (
@@ -72,7 +74,7 @@ const LessonFiltersPanel = ({
                       : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                   }`}
                 >
-                  Nivel {level}
+                  Poziom {level}
                 </button>
               ))}
             </div>
@@ -80,7 +82,7 @@ const LessonFiltersPanel = ({
 
           <div>
             <p className="text-sm font-medium text-gray-700 mb-2">
-              Filtrar por módulo
+              Filtruj według modułu
             </p>
 
             <div className="flex flex-wrap gap-2">
@@ -93,7 +95,7 @@ const LessonFiltersPanel = ({
                     : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                 }`}
               >
-                Todos
+                Wszystkie
               </button>
 
               {modules.map((module) => {
@@ -119,7 +121,7 @@ const LessonFiltersPanel = ({
               {modules.length === 0 && (
                 <span className="inline-flex items-center gap-2 text-sm text-gray-500 px-3 py-2">
                   <FaLayerGroup />
-                  No hay módulos en este nivel.
+                  Brak modułów na tym poziomie.
                 </span>
               )}
             </div>
@@ -127,7 +129,7 @@ const LessonFiltersPanel = ({
 
           <div>
             <p className="text-sm font-medium text-gray-700 mb-2">
-              Filtrar por grupo de edad
+              Filtruj według grupy wiekowej
             </p>
 
             <div className="flex flex-wrap gap-2">
@@ -150,7 +152,7 @@ const LessonFiltersPanel = ({
 
           <div>
             <p className="text-sm font-medium text-gray-700 mb-2">
-              Filtrar por estado
+              Filtruj według statusu
             </p>
 
             <div className="flex flex-wrap gap-2">

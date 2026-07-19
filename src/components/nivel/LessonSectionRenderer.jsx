@@ -140,7 +140,6 @@ const LessonSectionRenderer = ({
   currentSection,
   lessonDetails,
   levelId,
-  currentLesson,
   completedSections = [],
   activityResults = {},
   markSectionCompleted,
