@@ -2,8 +2,6 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 
-import { LessonProvider } from "./context/lessonContext";
-
 import ErrorBoundary from "./components/shared/ErrorMessage";
 
 import App from "./App";
@@ -123,11 +121,9 @@ const bootstrapApplication = () => {
 
           <BrowserRouter>
 
-            <LessonProvider>
 
               <App />
 
-            </LessonProvider>
 
           </BrowserRouter>
 

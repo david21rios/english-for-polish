@@ -1181,48 +1181,49 @@ const useMissionPlayer = ({
           return;
         }
 
-        if (
-          evaluation?.passed !== true
-        ) {
-          setValidationMessage(
-            getMissionEvaluationMessage(
-              evaluation
-            ) ||
-              "Misja nie została jeszcze ukończona. Kontynuuj rozmowę i spróbuj ponownie."
-          );
-
-          return;
-        }
-
+        /*
+         * Toda evaluación final y confiable debe enviarse
+         * a MissionFeedback, tanto si el estudiante aprobó
+         * como si no aprobó.
+         *
+         * MissionChatPage decidirá si corresponde guardar
+         * progreso y conceder XP.
+         */
+              
         const fullAnswer =
           buildMissionFullAnswer(
             messages
           );
-
+        
         if (
           typeof onComplete ===
           "function"
         ) {
           await onComplete({
             mission,
-
+          
             answer:
               fullAnswer,
-
+          
             conversation:
               messages,
-
+          
             feedback:
               evaluation,
-
+          
             userContext,
-
+          
+            /*
+             * Una evaluación no aprobada nunca debe
+             * conceder XP desde el cliente.
+             */
             xpEarned:
-              Number(
-                evaluation
-                  ?.xpAwarded
-              ) || 0,
-
+              evaluation?.passed === true
+                ? Number(
+                    evaluation?.xpAwarded
+                  ) || 0
+                : 0,
+                
             completedAt:
               new Date()
                 .toISOString()

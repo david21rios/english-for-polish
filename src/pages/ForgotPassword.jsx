@@ -64,10 +64,12 @@ function ForgotPassword() {
    */
   const handleGoBack = () => {
     navigate("/login", {
+      replace: true,
       state: {
         from:
           location.state?.from ||
-          location
+          null,
+        email
       }
     });
   };

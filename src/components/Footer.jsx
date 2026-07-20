@@ -17,8 +17,8 @@ import {
 
 import {
   FiBookOpen,
-  FiHelpCircle,
   FiHome,
+  FiInfo,
   FiMail,
   FiMessageSquare,
   FiShield,
@@ -36,16 +36,13 @@ const HIDDEN_FOOTER_ROUTES = [
   "/verification-pending"
 ];
 
-const CONTACT_SECTION_ID =
-  "contact";
+const PUBLIC_SECTIONS = {
+  home: "welcome",
+  about: "about",
+  test: "test-info",
+  contact: "contact-form"
+};
 
-/**
- * Determines whether the footer should be hidden
- * for the current route.
- *
- * @param {string} pathname
- * @returns {boolean}
- */
 const shouldHideFooter = (
   pathname
 ) => {
@@ -58,54 +55,29 @@ const shouldHideFooter = (
   );
 };
 
-/**
- * Scrolls smoothly to the public contact section.
- *
- * @returns {boolean}
- */
-const scrollToContactSection = () => {
-  const contactSection =
-    document.getElementById(
-      CONTACT_SECTION_ID
-    );
-
-  if (!contactSection) {
-    return false;
-  }
-
-  contactSection.scrollIntoView({
-    behavior: "smooth",
-    block: "start"
-  });
-
-  return true;
-};
-
 function Footer() {
-  const location =
-    useLocation();
-
-  const navigate =
-    useNavigate();
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const [
     isAuthenticated,
     setIsAuthenticated
   ] = useState(
-    Boolean(auth.currentUser)
+    Boolean(
+      auth.currentUser
+        ?.emailVerified
+    )
   );
 
-  /**
-   * Keeps the authentication state synchronized
-   * with Firebase Authentication.
-   */
   useEffect(() => {
     const unsubscribe =
       onAuthStateChanged(
         auth,
         (user) => {
           setIsAuthenticated(
-            Boolean(user)
+            Boolean(
+              user?.emailVerified
+            )
           );
         }
       );
@@ -114,26 +86,51 @@ function Footer() {
   }, []);
 
   /**
-   * Handles navigation to hash sections after
-   * React Router updates the current location.
+   * Handles section navigation after arriving
+   * at the public Welcome page.
    */
   useEffect(() => {
     if (
       location.pathname !==
-        "/welcome" ||
-      location.hash !==
-        `#${CONTACT_SECTION_ID}`
+      "/welcome"
     ) {
       return;
     }
 
-    const timeoutId =
-      window.setTimeout(
-        () => {
-          scrollToContactSection();
-        },
-        100
+    const sectionId =
+      location.hash.replace(
+        "#",
+        ""
       );
+
+    if (!sectionId) {
+      return;
+    }
+
+    const timeoutId =
+      window.setTimeout(() => {
+        if (
+          sectionId ===
+          PUBLIC_SECTIONS.home
+        ) {
+          window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+          });
+
+          return;
+        }
+
+        const section =
+          document.getElementById(
+            sectionId
+          );
+
+        section?.scrollIntoView({
+          behavior: "smooth",
+          block: "start"
+        });
+      }, 100);
 
     return () => {
       window.clearTimeout(
@@ -154,86 +151,128 @@ function Footer() {
   }
 
   /**
-   * Sends authenticated users to the private
-   * support page and visitors to the public
-   * contact section on the welcome page.
+   * Navigates a public visitor to a section
+   * of Welcome.
+   *
+   * @param {React.MouseEvent} event
+   * @param {string} sectionId
    */
-  const handleContactNavigation = (
-    event
+  const handlePublicNavigation = (
+    event,
+    sectionId
   ) => {
     event.preventDefault();
 
-    if (isAuthenticated) {
-      navigate("/contact");
-      return;
-    }
-
-    const isAlreadyOnWelcome =
+    const isWelcomePage =
       location.pathname ===
       "/welcome";
 
-    if (isAlreadyOnWelcome) {
-      window.history.replaceState(
-        null,
-        "",
-        `/welcome#${CONTACT_SECTION_ID}`
+    if (!isWelcomePage) {
+      navigate(
+        `/welcome#${sectionId}`
       );
-
-      const sectionFound =
-        scrollToContactSection();
-
-      if (!sectionFound) {
-        navigate(
-          `/welcome#${CONTACT_SECTION_ID}`
-        );
-      }
 
       return;
     }
 
-    navigate(
-      `/welcome#${CONTACT_SECTION_ID}`
+    if (
+      sectionId ===
+      PUBLIC_SECTIONS.home
+    ) {
+      window.history.replaceState(
+        null,
+        "",
+        "/welcome"
+      );
+
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+      });
+
+      return;
+    }
+
+    window.history.replaceState(
+      null,
+      "",
+      `/welcome#${sectionId}`
     );
+
+    const section =
+      document.getElementById(
+        sectionId
+      );
+
+    section?.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
   };
 
-  const contactDestination =
-    isAuthenticated
-      ? "/contact"
-      : `/welcome#${CONTACT_SECTION_ID}`;
+  const publicLinkClass =
+    "group inline-flex items-center gap-2 transition-colors hover:text-white";
 
   return (
     <footer className="mt-auto bg-slate-950 text-slate-300">
       <div className="mx-auto max-w-7xl px-5 py-12 sm:px-6 lg:px-8">
-        <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-3">
 
           {/* Brand */}
-          <section className="lg:col-span-1">
-            <Link
-              to={
-                isAuthenticated
-                  ? "/home"
-                  : "/welcome"
-              }
-              className="inline-flex items-center gap-3"
-              aria-label="English for Polish"
-            >
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-600 text-white shadow-lg shadow-blue-950/30">
-                <FiBookOpen
-                  size={22}
-                  aria-hidden="true"
-                />
-              </div>
+          <section>
+            {isAuthenticated ? (
+              <Link
+                to="/home"
+                className="inline-flex items-center gap-3"
+                aria-label="English for Polish"
+              >
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-600 text-white shadow-lg shadow-blue-950/30">
+                  <FiBookOpen
+                    size={22}
+                    aria-hidden="true"
+                  />
+                </div>
 
-              <div>
-                <p className="text-lg font-bold text-white">
-                  English for Polish
-                </p>
+                <div>
+                  <p className="text-lg font-bold text-white">
+                    English for Polish
+                  </p>
 
-                <p className="text-xs text-slate-400">
-                  Platforma do nauki języka angielskiego
-                </p>
-              </div>
-            </Link>
+                  <p className="text-xs text-slate-400">
+                    Platforma do nauki języka angielskiego
+                  </p>
+                </div>
+              </Link>
+            ) : (
+              <button
+                type="button"
+                onClick={(event) =>
+                  handlePublicNavigation(
+                    event,
+                    PUBLIC_SECTIONS.home
+                  )
+                }
+                className="inline-flex items-center gap-3 text-left"
+                aria-label="English for Polish"
+              >
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-600 text-white shadow-lg shadow-blue-950/30">
+                  <FiBookOpen
+                    size={22}
+                    aria-hidden="true"
+                  />
+                </div>
+
+                <div>
+                  <p className="text-lg font-bold text-white">
+                    English for Polish
+                  </p>
+
+                  <p className="text-xs text-slate-400">
+                    Platforma do nauki języka angielskiego
+                  </p>
+                </div>
+              </button>
+            )}
 
             <p className="mt-5 max-w-sm text-sm leading-6 text-slate-400">
               Ucz się języka angielskiego krok po kroku
@@ -242,86 +281,188 @@ function Footer() {
             </p>
           </section>
 
-          {/* Learning */}
+          {/* Navigation */}
           <section>
             <h2 className="mb-5 text-sm font-semibold uppercase tracking-wider text-white">
-              Nauka
+              {isAuthenticated
+                ? "Nauka"
+                : "Nawigacja"}
             </h2>
 
             <ul className="space-y-3 text-sm">
-              <li>
-                <Link
-                  to={
-                    isAuthenticated
-                      ? "/home"
-                      : "/welcome"
-                  }
-                  className="group inline-flex items-center gap-2 transition-colors hover:text-white"
-                >
-                  <FiHome
-                    className="text-slate-500 transition-colors group-hover:text-blue-400"
-                    aria-hidden="true"
-                  />
+              {isAuthenticated ? (
+                <>
+                  <li>
+                    <Link
+                      to="/home"
+                      className={
+                        publicLinkClass
+                      }
+                    >
+                      <FiHome
+                        className="text-slate-500 transition-colors group-hover:text-blue-400"
+                        aria-hidden="true"
+                      />
 
-                  Strona główna
-                </Link>
-              </li>
+                      Strona główna
+                    </Link>
+                  </li>
 
-              <li>
-                <Link
-                  to="/curso"
-                  className="group inline-flex items-center gap-2 transition-colors hover:text-white"
-                >
-                  <FiBookOpen
-                    className="text-slate-500 transition-colors group-hover:text-blue-400"
-                    aria-hidden="true"
-                  />
+                  <li>
+                    <Link
+                      to="/curso"
+                      className={
+                        publicLinkClass
+                      }
+                    >
+                      <FiBookOpen
+                        className="text-slate-500 transition-colors group-hover:text-blue-400"
+                        aria-hidden="true"
+                      />
 
-                  Kurs
-                </Link>
-              </li>
+                      Kurs
+                    </Link>
+                  </li>
 
-              <li>
-                <Link
-                  to="/temas"
-                  className="group inline-flex items-center gap-2 transition-colors hover:text-white"
-                >
-                  <FiTarget
-                    className="text-slate-500 transition-colors group-hover:text-blue-400"
-                    aria-hidden="true"
-                  />
+                  <li>
+                    <Link
+                      to="/temas"
+                      className={
+                        publicLinkClass
+                      }
+                    >
+                      <FiTarget
+                        className="text-slate-500 transition-colors group-hover:text-blue-400"
+                        aria-hidden="true"
+                      />
 
-                  Tematy i misje
-                </Link>
-              </li>
+                      Tematy i misje
+                    </Link>
+                  </li>
 
-              <li>
-                <Link
-                  to="/test"
-                  className="group inline-flex items-center gap-2 transition-colors hover:text-white"
-                >
-                  <FiShield
-                    className="text-slate-500 transition-colors group-hover:text-blue-400"
-                    aria-hidden="true"
-                  />
+                  <li>
+                    <Link
+                      to="/test"
+                      className={
+                        publicLinkClass
+                      }
+                    >
+                      <FiShield
+                        className="text-slate-500 transition-colors group-hover:text-blue-400"
+                        aria-hidden="true"
+                      />
 
-                  Test poziomujący
-                </Link>
-              </li>
+                      Test poziomujący
+                    </Link>
+                  </li>
 
-              <li>
-                <Link
-                  to="/foro"
-                  className="group inline-flex items-center gap-2 transition-colors hover:text-white"
-                >
-                  <FiMessageSquare
-                    className="text-slate-500 transition-colors group-hover:text-blue-400"
-                    aria-hidden="true"
-                  />
+                  <li>
+                    <Link
+                      to="/foro"
+                      className={
+                        publicLinkClass
+                      }
+                    >
+                      <FiMessageSquare
+                        className="text-slate-500 transition-colors group-hover:text-blue-400"
+                        aria-hidden="true"
+                      />
 
-                  Forum
-                </Link>
-              </li>
+                      Forum
+                    </Link>
+                  </li>
+                </>
+              ) : (
+                <>
+                  <li>
+                    <a
+                      href="/welcome"
+                      onClick={(event) =>
+                        handlePublicNavigation(
+                          event,
+                          PUBLIC_SECTIONS.home
+                        )
+                      }
+                      className={
+                        publicLinkClass
+                      }
+                    >
+                      <FiHome
+                        className="text-slate-500 transition-colors group-hover:text-blue-400"
+                        aria-hidden="true"
+                      />
+
+                      Strona główna
+                    </a>
+                  </li>
+
+                  <li>
+                    <a
+                      href="/welcome#about"
+                      onClick={(event) =>
+                        handlePublicNavigation(
+                          event,
+                          PUBLIC_SECTIONS.about
+                        )
+                      }
+                      className={
+                        publicLinkClass
+                      }
+                    >
+                      <FiInfo
+                        className="text-slate-500 transition-colors group-hover:text-blue-400"
+                        aria-hidden="true"
+                      />
+
+                      O platformie
+                    </a>
+                  </li>
+
+                  <li>
+                    <a
+                      href="/welcome#test-info"
+                      onClick={(event) =>
+                        handlePublicNavigation(
+                          event,
+                          PUBLIC_SECTIONS.test
+                        )
+                      }
+                      className={
+                        publicLinkClass
+                      }
+                    >
+                      <FiShield
+                        className="text-slate-500 transition-colors group-hover:text-blue-400"
+                        aria-hidden="true"
+                      />
+
+                      Test
+                    </a>
+                  </li>
+
+                  <li>
+                    <a
+                      href="/welcome#contact-form"
+                      onClick={(event) =>
+                        handlePublicNavigation(
+                          event,
+                          PUBLIC_SECTIONS.contact
+                        )
+                      }
+                      className={
+                        publicLinkClass
+                      }
+                    >
+                      <FiMail
+                        className="text-slate-500 transition-colors group-hover:text-blue-400"
+                        aria-hidden="true"
+                      />
+
+                      Kontakt
+                    </a>
+                  </li>
+                </>
+              )}
             </ul>
           </section>
 
@@ -333,108 +474,84 @@ function Footer() {
 
             <ul className="space-y-3 text-sm">
               <li>
-                <Link
-                  to={contactDestination}
-                  onClick={
-                    handleContactNavigation
-                  }
-                  className="group inline-flex items-center gap-2 transition-colors hover:text-white"
-                >
-                  <FiMail
-                    className="text-slate-500 transition-colors group-hover:text-blue-400"
-                    aria-hidden="true"
-                  />
+                {isAuthenticated ? (
+                  <Link
+                    to="/contact"
+                    className={
+                      publicLinkClass
+                    }
+                  >
+                    <FiMail
+                      className="text-slate-500 transition-colors group-hover:text-blue-400"
+                      aria-hidden="true"
+                    />
 
-                  Pomoc i kontakt
-                </Link>
+                    Pomoc i kontakt
+                  </Link>
+                ) : (
+                  <a
+                    href="/welcome#contact-form"
+                    onClick={(event) =>
+                      handlePublicNavigation(
+                        event,
+                        PUBLIC_SECTIONS.contact
+                      )
+                    }
+                    className={
+                      publicLinkClass
+                    }
+                  >
+                    <FiMail
+                      className="text-slate-500 transition-colors group-hover:text-blue-400"
+                      aria-hidden="true"
+                    />
+
+                    Pomoc i kontakt
+                  </a>
+                )}
               </li>
 
               <li>
-                <Link
-                  to="/faq"
-                  className="group inline-flex items-center gap-2 transition-colors hover:text-white"
-                >
-                  <FiHelpCircle
-                    className="text-slate-500 transition-colors group-hover:text-blue-400"
-                    aria-hidden="true"
-                  />
+                {isAuthenticated ? (
+                  <Link
+                    to="/contact?category=technical"
+                    className={
+                      publicLinkClass
+                    }
+                  >
+                    <FiShield
+                      className="text-slate-500 transition-colors group-hover:text-blue-400"
+                      aria-hidden="true"
+                    />
 
-                  Najczęściej zadawane pytania
-                </Link>
-              </li>
+                    Zgłoś problem
+                  </Link>
+                ) : (
+                  <a
+                    href="/welcome#contact-form"
+                    onClick={(event) =>
+                      handlePublicNavigation(
+                        event,
+                        PUBLIC_SECTIONS.contact
+                      )
+                    }
+                    className={
+                      publicLinkClass
+                    }
+                  >
+                    <FiShield
+                      className="text-slate-500 transition-colors group-hover:text-blue-400"
+                      aria-hidden="true"
+                    />
 
-              <li>
-                <Link
-                  to={
-                    isAuthenticated
-                      ? "/contact?category=technical"
-                      : `/welcome#${CONTACT_SECTION_ID}`
-                  }
-                  onClick={
-                    isAuthenticated
-                      ? undefined
-                      : handleContactNavigation
-                  }
-                  className="group inline-flex items-center gap-2 transition-colors hover:text-white"
-                >
-                  <FiShield
-                    className="text-slate-500 transition-colors group-hover:text-blue-400"
-                    aria-hidden="true"
-                  />
-
-                  Zgłoś problem
-                </Link>
-              </li>
-            </ul>
-          </section>
-
-          {/* Legal */}
-          <section>
-            <h2 className="mb-5 text-sm font-semibold uppercase tracking-wider text-white">
-              Informacje prawne
-            </h2>
-
-            <ul className="space-y-3 text-sm">
-              <li>
-                <Link
-                  to="/privacy"
-                  className="transition-colors hover:text-white"
-                >
-                  Polityka prywatności
-                </Link>
-              </li>
-
-              <li>
-                <Link
-                  to="/terms"
-                  className="transition-colors hover:text-white"
-                >
-                  Regulamin
-                </Link>
-              </li>
-
-              <li>
-                <Link
-                  to="/security"
-                  className="transition-colors hover:text-white"
-                >
-                  Bezpieczeństwo
-                </Link>
-              </li>
-
-              <li>
-                <Link
-                  to="/community-guidelines"
-                  className="transition-colors hover:text-white"
-                >
-                  Zasady społeczności
-                </Link>
+                    Zgłoś problem
+                  </a>
+                )}
               </li>
             </ul>
           </section>
         </div>
 
-        {/* Bottom */}
         <div className="mt-12 flex flex-col gap-4 border-t border-slate-800 pt-6 text-center text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between sm:text-left">
           <p>
             © {new Date().getFullYear()} English for Polish.

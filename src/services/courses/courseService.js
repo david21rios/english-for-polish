@@ -1,4 +1,4 @@
-// src/services/courseService.js
+// src/services/courses/courseService.js
 
 import { db } from "../../firebase";
 import { collection, doc, getDoc, getDocs } from "firebase/firestore";

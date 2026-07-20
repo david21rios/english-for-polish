@@ -111,7 +111,7 @@ const normalizeCompletionResult = ({
   correctAnswers = null,
   totalExercises = null,
   completedExercises = null,
-  extra = {}
+  ...rest
 } = {}) => ({
   completed,
   score,
@@ -119,7 +119,7 @@ const normalizeCompletionResult = ({
   correctAnswers,
   totalExercises,
   completedExercises,
-  ...extra
+  ...rest
 });
 
 const playWord = (word = "") => {
@@ -161,6 +161,20 @@ const LessonSectionRenderer = ({
     }
 
     await markSectionCompleted?.(sectionId, payload);
+  };
+
+  const saveSectionProgress = async (sectionId, result = {}) => {
+    if (!registerActivityResult) {
+      return;
+    }
+
+    await registerActivityResult(
+      sectionId,
+      normalizeCompletionResult({
+        completed: false,
+        ...result
+      })
+    );
   };
 
   const isCompleted = completedSections.includes(currentSection.id);
@@ -499,13 +513,55 @@ const LessonSectionRenderer = ({
                 <div className="w-full overflow-hidden">
                   <InteractiveQuiz
                     questions={preguntas}
-                    normalizeQuestion={normalizeQuizQuestion}
+                    normalizeQuestion={
+                      normalizeQuizQuestion
+                    }
+                    initialResult={currentResult}
+                    onProgress={(result) =>
+                      saveSectionProgress(
+                        "reading",
+                        {
+                          score:
+                            result?.score ?? 0,
+                        
+                          totalQuestions:
+                            result?.totalQuestions ??
+                            preguntas.length,
+                        
+                          correctAnswers:
+                            result?.correctAnswers ??
+                            0,
+                        
+                          answers:
+                            result?.answers || {},
+                        
+                          feedback:
+                            result?.feedback || {}
+                        }
+                      )
+                    }
                     onComplete={(result) =>
-                      completeSection("reading", {
-                        score: result?.score ?? 100,
-                        totalQuestions: result?.totalQuestions ?? preguntas.length,
-                        correctAnswers: result?.correctAnswers ?? preguntas.length
-                      })
+                      completeSection(
+                        "reading",
+                        {
+                          score:
+                            result?.score ?? 100,
+                        
+                          totalQuestions:
+                            result?.totalQuestions ??
+                            preguntas.length,
+                        
+                          correctAnswers:
+                            result?.correctAnswers ??
+                            preguntas.length,
+                        
+                          answers:
+                            result?.answers || {},
+                        
+                          feedback:
+                            result?.feedback || {}
+                        }
+                      )
                     }
                   />
                 </div>
@@ -552,12 +608,32 @@ const LessonSectionRenderer = ({
 
               <InteractivePractice
                 exercises={exercises}
+                initialResult={currentResult}
+                onProgress={(result) =>
+                  saveSectionProgress("practice", {
+                    score: result?.score ?? 0,
+                    attempts: result?.attempts ?? 0,
+                    totalExercises:
+                      result?.totalExercises ??
+                      exercises.length,
+                    completedExercises:
+                      result?.completedExercises ?? 0,
+                    exerciseResults:
+                      result?.exerciseResults || {}
+                  })
+                }
                 onComplete={(result) =>
                   completeSection("practice", {
                     score: result?.score ?? 100,
-                    totalExercises: result?.totalExercises ?? exercises.length,
+                    attempts: result?.attempts ?? 0,
+                    totalExercises:
+                      result?.totalExercises ??
+                      exercises.length,
                     completedExercises:
-                      result?.completedExercises ?? exercises.length
+                      result?.completedExercises ??
+                      exercises.length,
+                    exerciseResults:
+                      result?.exerciseResults || {}
                   })
                 }
               />
@@ -598,13 +674,35 @@ const LessonSectionRenderer = ({
 
                 <WritingExercises
                   ejercicios={writingExercises}
+                  initialResult={currentResult}
+                  onProgress={(result) =>
+                    saveSectionProgress("writing", {
+                      score: result?.score ?? null,
+                      totalExercises:
+                        result?.totalExercises ??
+                        writingExercises.length,
+                      completedExercises:
+                        result?.completedExercises ?? 0,
+                      responses:
+                        result?.responses || {},
+                      reviews:
+                        result?.reviews || {},
+                      submitted: false
+                    })
+                  }
                   onComplete={(result) =>
                     completeSection("writing", {
                       score: result?.score ?? null,
                       totalExercises:
-                        result?.totalExercises ?? writingExercises.length,
+                        result?.totalExercises ??
+                        writingExercises.length,
                       completedExercises:
-                        result?.completedExercises ?? writingExercises.length,
+                        result?.completedExercises ??
+                        writingExercises.length,
+                      responses:
+                        result?.responses || {},
+                      reviews:
+                        result?.reviews || {},
                       submitted: true
                     })
                   }
@@ -674,14 +772,6 @@ const LessonSectionRenderer = ({
 
               <AudioRecorder
                 exercises={oralExercises}
-                onComplete={(result) =>
-                  completeSection("speaking", {
-                    score: result?.score ?? null,
-                    totalExercises: oralExercises.length,
-                    completedExercises: oralExercises.length,
-                    recorded: true
-                  })
-                }
                 onRecordingComplete={() =>
                   completeSection("speaking", {
                     score: null,
@@ -748,13 +838,55 @@ const LessonSectionRenderer = ({
 
                   <InteractiveQuiz
                     questions={questions}
-                    normalizeQuestion={normalizeQuizQuestion}
+                    normalizeQuestion={
+                      normalizeQuizQuestion
+                    }
+                    initialResult={currentResult}
+                    onProgress={(result) =>
+                      saveSectionProgress(
+                        "evaluation",
+                        {
+                          score:
+                            result?.score ?? 0,
+                        
+                          totalQuestions:
+                            result?.totalQuestions ??
+                            questions.length,
+                        
+                          correctAnswers:
+                            result?.correctAnswers ??
+                            0,
+                        
+                          answers:
+                            result?.answers || {},
+                        
+                          feedback:
+                            result?.feedback || {}
+                        }
+                      )
+                    }
                     onComplete={(result) =>
-                      completeSection("evaluation", {
-                        score: result?.score ?? 100,
-                        totalQuestions: result?.totalQuestions ?? questions.length,
-                        correctAnswers: result?.correctAnswers ?? questions.length
-                      })
+                      completeSection(
+                        "evaluation",
+                        {
+                          score:
+                            result?.score ?? 100,
+                        
+                          totalQuestions:
+                            result?.totalQuestions ??
+                            questions.length,
+                        
+                          correctAnswers:
+                            result?.correctAnswers ??
+                            questions.length,
+                        
+                          answers:
+                            result?.answers || {},
+                        
+                          feedback:
+                            result?.feedback || {}
+                        }
+                      )
                     }
                   />
                 </div>

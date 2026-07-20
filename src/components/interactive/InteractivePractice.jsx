@@ -1,5 +1,11 @@
-//src/components/interactive/InteractivePractice.jsx
-import React, { useEffect, useMemo, useState } from "react";
+// src/components/interactive/InteractivePractice.jsx
+
+import React, {
+  useEffect,
+  useMemo,
+  useRef,
+  useState
+} from "react";
 
 const normalizeAnswer = (text = "") =>
   text
@@ -12,15 +18,21 @@ const normalizeAnswer = (text = "") =>
     .trim();
 
 const normalizeExerciseType = (type = "") => {
-  const normalized = type.toString().toLowerCase().trim();
+  const normalized = type
+    .toString()
+    .toLowerCase()
+    .trim();
 
   const map = {
     multiple_choice: "multiple_choice",
     seleccion_multiple: "multiple_choice",
+
     fill_blank: "fill_blank",
     completar: "fill_blank",
+
     matching: "matching",
     relacionar: "matching",
+
     ordering: "ordering",
     ordenar: "ordering"
   };
@@ -30,37 +42,80 @@ const normalizeExerciseType = (type = "") => {
 
 const toArray = (value) => {
   if (Array.isArray(value)) {
-    return value.filter((item) => item !== null && item !== undefined && item !== "");
+    return value.filter(
+      (item) =>
+        item !== null &&
+        item !== undefined &&
+        item !== ""
+    );
   }
 
-  if (value !== null && value !== undefined && value !== "") {
+  if (
+    value !== null &&
+    value !== undefined &&
+    value !== ""
+  ) {
     return [value];
   }
 
   return [];
 };
 
+const isPlainObject = (value) =>
+  value !== null &&
+  typeof value === "object" &&
+  !Array.isArray(value);
+
 const shuffleArray = (items = []) => {
-  const original = Array.isArray(items) ? [...items].filter(Boolean) : [];
-  if (original.length <= 1) return original;
+  const original = Array.isArray(items)
+    ? [...items].filter(Boolean)
+    : [];
+
+  if (original.length <= 1) {
+    return original;
+  }
 
   let shuffled = [...original];
 
-  for (let attempt = 0; attempt < 10; attempt += 1) {
+  for (
+    let attempt = 0;
+    attempt < 10;
+    attempt += 1
+  ) {
     shuffled = [...original];
 
-    for (let i = shuffled.length - 1; i > 0; i -= 1) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    for (
+      let index = shuffled.length - 1;
+      index > 0;
+      index -= 1
+    ) {
+      const randomIndex = Math.floor(
+        Math.random() * (index + 1)
+      );
+
+      [
+        shuffled[index],
+        shuffled[randomIndex]
+      ] = [
+        shuffled[randomIndex],
+        shuffled[index]
+      ];
     }
 
-    if (JSON.stringify(shuffled) !== JSON.stringify(original)) break;
+    if (
+      JSON.stringify(shuffled) !==
+      JSON.stringify(original)
+    ) {
+      break;
+    }
   }
 
   return shuffled;
 };
 
-const normalizeCorrectPairs = (exercise = {}) => {
+const normalizeCorrectPairs = (
+  exercise = {}
+) => {
   const source =
     exercise.correctPairs ||
     exercise.correct_pairs ||
@@ -76,46 +131,87 @@ const normalizeCorrectPairs = (exercise = {}) => {
       exercise.elementos_izquierda
   );
 
-  if (!source || typeof source !== "object") return {};
+  if (!isPlainObject(source)) {
+    return {};
+  }
 
-  return Object.entries(source).reduce((acc, [key, value]) => {
-    if (key.startsWith("pair") || key.startsWith("par")) {
-      const index = Number(key.replace(/\D/g, ""));
-      const leftValue = leftItems[index];
+  return Object.entries(source).reduce(
+    (accumulator, [key, value]) => {
+      if (
+        key.startsWith("pair") ||
+        key.startsWith("par")
+      ) {
+        const index = Number(
+          key.replace(/\D/g, "")
+        );
 
-      if (leftValue) {
-        acc[leftValue] = value;
+        const leftValue =
+          leftItems[index];
+
+        if (leftValue) {
+          accumulator[leftValue] =
+            value;
+        }
+
+        return accumulator;
       }
 
-      return acc;
-    }
+      accumulator[key] = value;
 
-    acc[key] = value;
-    return acc;
-  }, {});
+      return accumulator;
+    },
+    {}
+  );
 };
 
-const normalizeExercise = (exercise = {}) => {
-  const type = normalizeExerciseType(exercise.type || exercise.tipo);
+const normalizeExercise = (
+  exercise = {}
+) => {
+  const type = normalizeExerciseType(
+    exercise.type ||
+      exercise.tipo
+  );
+
+  const correctAnswer =
+    exercise.correctAnswer ??
+    exercise.correct_answer ??
+    exercise.respuesta_correcta ??
+    exercise.answer ??
+    "";
 
   return {
     ...exercise,
+
     type,
-    question: exercise.question || exercise.pregunta || "",
+
+    question:
+      exercise.question ||
+      exercise.pregunta ||
+      "",
+
     instruction:
       exercise.instruction ||
       exercise.instructions ||
       exercise.instrucciones ||
       "",
-    options: toArray(exercise.options || exercise.opciones),
-    correctAnswer:
-      exercise.correctAnswer ||
-      exercise.correct_answer ||
-      exercise.respuesta_correcta ||
-      exercise.answer ||
+
+    options: toArray(
+      exercise.options ||
+        exercise.opciones
+    ),
+
+    correctAnswer,
+
+    text:
+      exercise.text ||
+      exercise.texto ||
       "",
-    text: exercise.text || exercise.texto || "",
-    words: toArray(exercise.words || exercise.palabras),
+
+    words: toArray(
+      exercise.words ||
+        exercise.palabras
+    ),
+
     correctAnswers: (() => {
       const candidates = [
         exercise.correctAnswers,
@@ -124,59 +220,80 @@ const normalizeExercise = (exercise = {}) => {
         exercise.answers,
         exercise.respuestas_correctas
       ];
-    
+
       return (
         candidates.find(
           (item) =>
-            item &&
-            typeof item === "object" &&
-            !Array.isArray(item) &&
+            isPlainObject(item) &&
             Object.keys(item).length > 0
         ) || {}
       );
     })(),
+
     acceptedAnswers:
       exercise.acceptedAnswers ||
       exercise.accepted_answers ||
       exercise.respuestas_aceptadas ||
       {},
+
     leftItems: toArray(
       exercise.leftItems ||
         exercise.left_items ||
         exercise.pares_izquierda ||
         exercise.elementos_izquierda
     ),
+
     rightItems: toArray(
       exercise.rightItems ||
         exercise.right_items ||
         exercise.pares_derecha ||
         exercise.elementos_derecha
     ),
-    correctPairs: normalizeCorrectPairs(exercise),
-    items: toArray(exercise.items || exercise.elementos),
+
+    correctPairs:
+      normalizeCorrectPairs(exercise),
+
+    items: toArray(
+      exercise.items ||
+        exercise.elementos
+    ),
+
     correctOrder: toArray(
       exercise.correctOrder ||
         exercise.correct_order ||
         exercise.orden_correcto
     ),
+
     correctOrderValues: toArray(
-      exercise.correctOrderValues || exercise.correct_order_values
-    ),
-    correct_order_values: toArray(
-      exercise.correct_order_values || exercise.correctOrderValues
+      exercise.correctOrderValues ||
+        exercise.correct_order_values
     )
   };
 };
 
-const sameItemsSet = (a = [], b = []) => {
+const sameItemsSet = (
+  firstList = [],
+  secondList = []
+) => {
   const normalizeList = (list) =>
-    list.map(normalizeAnswer).sort().join("|");
+    list
+      .map(normalizeAnswer)
+      .sort()
+      .join("|");
 
-  return normalizeList(a) === normalizeList(b);
+  return (
+    normalizeList(firstList) ===
+    normalizeList(secondList)
+  );
 };
 
-const getCorrectOrder = (exercise = {}) => {
-  const items = toArray(exercise.items || exercise.elementos);
+const getCorrectOrder = (
+  exercise = {}
+) => {
+  const items = toArray(
+    exercise.items ||
+      exercise.elementos
+  );
 
   const explicitOrder = toArray(
     exercise.correctOrderValues ||
@@ -187,8 +304,12 @@ const getCorrectOrder = (exercise = {}) => {
 
   if (
     explicitOrder.length > 0 &&
-    explicitOrder.length === items.length &&
-    sameItemsSet(explicitOrder, items)
+    explicitOrder.length ===
+      items.length &&
+    sameItemsSet(
+      explicitOrder,
+      items
+    )
   ) {
     return explicitOrder.map(String);
   }
@@ -201,209 +322,676 @@ const getCorrectOrder = (exercise = {}) => {
 
   const isNumericIndex = (item) =>
     typeof item === "number" ||
-    (typeof item === "string" && /^\d+$/.test(item.trim()));
+    (
+      typeof item === "string" &&
+      /^\d+$/.test(item.trim())
+    );
 
-  if (correctOrder.length > 0 && correctOrder.every(isNumericIndex)) {
+  if (
+    correctOrder.length > 0 &&
+    correctOrder.every(
+      isNumericIndex
+    )
+  ) {
     const ordered = correctOrder
-      .map((index) => items[Number(index)])
-      .filter((item) => item !== null && item !== undefined && item !== "");
+      .map(
+        (index) =>
+          items[Number(index)]
+      )
+      .filter(
+        (item) =>
+          item !== null &&
+          item !== undefined &&
+          item !== ""
+      );
 
-    if (ordered.length === items.length) {
+    if (
+      ordered.length ===
+      items.length
+    ) {
       return ordered;
     }
   }
 
   if (
     correctOrder.length > 0 &&
-    correctOrder.length === items.length &&
-    sameItemsSet(correctOrder.map(String), items)
+    correctOrder.length ===
+      items.length &&
+    sameItemsSet(
+      correctOrder.map(String),
+      items
+    )
   ) {
     return correctOrder.map(String);
   }
 
-  console.warn("Ordering exercise has no valid correct order:", exercise);
+  console.warn(
+    "Ordering exercise has no valid correct order:",
+    exercise
+  );
+
   return [];
 };
 
-const calculatePracticeProgress = ({ exercisesArray = [], resultMap = {} }) => {
-  const totalExercises = exercisesArray.length;
+const calculatePracticeProgress = ({
+  exercisesArray = [],
+  resultMap = {}
+}) => {
+  const totalExercises =
+    exercisesArray.length;
 
-  const completedExercises = Object.values(resultMap).filter(
-    (item) => item?.isCorrect === true
-  ).length;
+  const completedExercises =
+    Object.values(resultMap).filter(
+      (result) =>
+        result?.isCorrect === true
+    ).length;
 
-  const attempts = Object.values(resultMap).reduce(
-    (total, item) => total + (Number(item?.attempts) || 0),
-    0
-  );
+  const attempts =
+    Object.values(resultMap).reduce(
+      (total, result) =>
+        total +
+        (
+          Number(
+            result?.attempts
+          ) || 0
+        ),
+      0
+    );
 
   const score =
     totalExercises > 0
-      ? Math.round((completedExercises / totalExercises) * 100)
+      ? Math.round(
+          (
+            completedExercises /
+            totalExercises
+          ) * 100
+        )
       : null;
 
   return {
-    completed: totalExercises > 0 && completedExercises === totalExercises,
+    completed:
+      totalExercises > 0 &&
+      completedExercises ===
+        totalExercises,
+
     score,
     attempts,
     completedExercises,
     totalExercises,
-    correctAnswers: completedExercises,
+    correctAnswers:
+      completedExercises,
     totalQuestions: null,
     skill: "practice",
-    updatedAt: new Date().toISOString()
+    updatedAt:
+      new Date().toISOString()
   };
 };
 
-const InteractivePractice = ({ exercises = [], onComplete }) => {
-  const exercisesArray = useMemo(() => {
-    const rawExercises = Array.isArray(exercises)
-      ? exercises.filter(Boolean)
-      : exercises
-      ? [exercises]
-      : [];
+const getInitialUserResponse = (
+  exercise
+) => {
+  if (!exercise) {
+    return "";
+  }
 
-    return rawExercises.map(normalizeExercise);
-  }, [exercises]);
+  switch (exercise.type) {
+    case "ordering":
+      return shuffleArray(
+        exercise.items || []
+      );
 
-  const [resultMap, setResultMap] = useState({});
-  const [completed, setCompleted] = useState(false);
+    case "fill_blank":
+    case "matching":
+      return {};
+
+    default:
+      return "";
+  }
+};
+
+const InteractivePractice = ({
+  exercises = [],
+  initialResult = null,
+  onProgress = null,
+  onComplete
+}) => {
+  const exercisesArray =
+    useMemo(() => {
+      const rawExercises =
+        Array.isArray(exercises)
+          ? exercises.filter(Boolean)
+          : exercises
+          ? [exercises]
+          : [];
+
+      return rawExercises.map(
+        normalizeExercise
+      );
+    }, [exercises]);
+
+  const initialExerciseResults =
+    isPlainObject(
+      initialResult?.exerciseResults
+    )
+      ? initialResult.exerciseResults
+      : {};
+
+  const [resultMap, setResultMap] =
+    useState(
+      initialExerciseResults
+    );
+
+  const [completed, setCompleted] =
+    useState(
+      Boolean(
+        initialResult?.completed
+      )
+    );
+
+  /*
+   * Impide que el resultado que vuelve desde
+   * Firestore reinicie el ejercicio mientras
+   * el estudiante está trabajando.
+   */
+  const hasLocalChangesRef =
+    useRef(false);
+
+  const hydratingRef =
+    useRef(false);
+
+  const completionNotifiedRef =
+    useRef(
+      Boolean(
+        initialResult?.completed
+      )
+    );
+
+  const onProgressRef =
+    useRef(onProgress);
+
+  const onCompleteRef =
+    useRef(onComplete);
 
   useEffect(() => {
-    setResultMap({});
-    setCompleted(false);
-  }, [exercises]);
+    onProgressRef.current =
+      onProgress;
+  }, [onProgress]);
 
   useEffect(() => {
-    if (completed) return;
+    onCompleteRef.current =
+      onComplete;
+  }, [onComplete]);
 
-    const progress = calculatePracticeProgress({
-      exercisesArray,
-      resultMap
-    });
+  const externalResultKey =
+    useMemo(
+      () =>
+        JSON.stringify({
+          exerciseResults:
+            initialExerciseResults,
+          completed: Boolean(
+            initialResult?.completed
+          )
+        }),
+      [
+        initialExerciseResults,
+        initialResult?.completed
+      ]
+    );
+
+  useEffect(() => {
+    /*
+     * Solo hidratamos mientras todavía no
+     * existen cambios locales. Después de
+     * responder un ejercicio, los cambios
+     * devueltos por Firestore son solamente
+     * un eco del estado que ya tenemos.
+     */
+    if (
+      hasLocalChangesRef.current
+    ) {
+      return;
+    }
+
+    hydratingRef.current = true;
+
+    setResultMap(
+      initialExerciseResults
+    );
+
+    const restoredCompleted =
+      Boolean(
+        initialResult?.completed
+      );
+
+    setCompleted(
+      restoredCompleted
+    );
+
+    completionNotifiedRef.current =
+      restoredCompleted;
+  }, [externalResultKey]);
+
+  useEffect(() => {
+    if (hydratingRef.current) {
+      hydratingRef.current = false;
+      return;
+    }
+
+    if (
+      !hasLocalChangesRef.current ||
+      Object.keys(resultMap).length === 0
+    ) {
+      return;
+    }
+
+    const progress =
+      calculatePracticeProgress({
+        exercisesArray,
+        resultMap
+      });
+
+    const result = {
+      ...progress,
+      exerciseResults:
+        resultMap
+    };
 
     if (progress.completed) {
       setCompleted(true);
-      onComplete?.(progress);
+
+      if (
+        !completionNotifiedRef.current
+      ) {
+        completionNotifiedRef.current =
+          true;
+
+        onCompleteRef.current?.(
+          result
+        );
+      }
+
+      return;
     }
-  }, [resultMap, exercisesArray, completed, onComplete]);
+
+    setCompleted(false);
+
+    completionNotifiedRef.current =
+      false;
+
+    onProgressRef.current?.(
+      result
+    );
+  }, [
+    resultMap,
+    exercisesArray
+  ]);
+
+  const handleResultChange = (
+    exerciseIndex,
+    result
+  ) => {
+    hasLocalChangesRef.current =
+      true;
+
+    setResultMap(
+      (previousResults) => ({
+        ...previousResults,
+        [exerciseIndex]: result
+      })
+    );
+  };
 
   if (!exercisesArray.length) {
-    return <p className="text-gray-500">Brak dostępnych ćwiczeń.</p>;
+    return (
+      <p className="text-gray-500">
+        Brak dostępnych ćwiczeń.
+      </p>
+    );
   }
 
   return (
     <div className="space-y-6">
-      {exercisesArray.map((exercise, index) => (
-        <SingleExercise
-          key={`${exercise.type || "exercise"}-${index}`}
-          exercise={exercise}
-          onResultChange={(result) => {
-            setResultMap((prev) => ({
-              ...prev,
-              [index]: result
-            }));
-          }}
-        />
-      ))}
+      {exercisesArray.map(
+        (exercise, index) => (
+          <SingleExercise
+            key={
+              exercise.id ||
+              `${exercise.type}-${index}`
+            }
+            exercise={exercise}
+            initialResult={
+              initialExerciseResults[
+                index
+              ] || null
+            }
+            onResultChange={(
+              result
+            ) =>
+              handleResultChange(
+                index,
+                result
+              )
+            }
+          />
+        )
+      )}
+
+      {completed && (
+        <div className="rounded-xl border border-green-200 bg-green-50 p-4 font-semibold text-green-700">
+          Świetnie! Wszystkie ćwiczenia
+          zostały wykonane poprawnie.
+        </div>
+      )}
     </div>
   );
 };
 
-const SingleExercise = ({ exercise, onResultChange }) => {
-  const initializeUserResponse = () => {
-    if (!exercise) return "";
+const SingleExercise = ({
+  exercise,
+  initialResult = null,
+  onResultChange
+}) => {
+  const [userResponse, setUserResponse] =
+    useState(() =>
+      initialResult?.userResponse ??
+      getInitialUserResponse(
+        exercise
+      )
+    );
 
-    switch (exercise.type) {
-      case "ordering":
-        return shuffleArray(exercise.items || []);
+  const [feedback, setFeedback] =
+    useState(
+      initialResult?.feedback ||
+        null
+    );
 
-      case "fill_blank":
-      case "matching":
-        return {};
+  const [
+    fieldFeedback,
+    setFieldFeedback
+  ] = useState(
+    initialResult?.fieldFeedback ||
+      {}
+  );
 
-      default:
-        return "";
-    }
-  };
+  const [
+    matchingFeedback,
+    setMatchingFeedback
+  ] = useState(
+    initialResult?.matchingFeedback ||
+      {}
+  );
 
-  const [userResponse, setUserResponse] = useState(initializeUserResponse);
-  const [feedback, setFeedback] = useState(null);
-  const [fieldFeedback, setFieldFeedback] = useState({});
-  const [matchingFeedback, setMatchingFeedback] = useState({});
-  const [orderingFeedback, setOrderingFeedback] = useState({});
-  const [matchedPairs, setMatchedPairs] = useState({});
-  const [selectedLeft, setSelectedLeft] = useState(null);
-  const [draggedIndex, setDraggedIndex] = useState(null);
-  const [displayRightItems, setDisplayRightItems] = useState([]);
-  const [attempts, setAttempts] = useState(0);
+  const [
+    orderingFeedback,
+    setOrderingFeedback
+  ] = useState(
+    initialResult?.orderingFeedback ||
+      {}
+  );
+
+  const [
+    matchedPairs,
+    setMatchedPairs
+  ] = useState(
+    initialResult?.matchedPairs ||
+      {}
+  );
+
+  const [
+    selectedLeft,
+    setSelectedLeft
+  ] = useState(null);
+
+  const [
+    draggedIndex,
+    setDraggedIndex
+  ] = useState(null);
+
+  const [
+    displayRightItems,
+    setDisplayRightItems
+  ] = useState(() =>
+    initialResult
+      ?.displayRightItems ||
+    shuffleArray(
+      exercise?.rightItems ||
+        []
+    )
+  );
+
+  const [attempts, setAttempts] =
+    useState(
+      Number(
+        initialResult?.attempts
+      ) || 0
+    );
+
+  /*
+   * Después de la primera interacción, no
+   * volvemos a hidratar desde initialResult.
+   * Esto elimina el ciclo de titileo.
+   */
+  const hasInteractedRef =
+    useRef(false);
+
+  const initialResultKey =
+    useMemo(
+      () =>
+        JSON.stringify(
+          initialResult || null
+        ),
+      [initialResult]
+    );
 
   useEffect(() => {
-    setUserResponse(initializeUserResponse());
-    setDisplayRightItems(shuffleArray(exercise?.rightItems || []));
+    if (
+      hasInteractedRef.current
+    ) {
+      return;
+    }
+
+    if (initialResult) {
+      setUserResponse(
+        initialResult
+          .userResponse ??
+          getInitialUserResponse(
+            exercise
+          )
+      );
+
+      setFeedback(
+        initialResult.feedback ||
+          null
+      );
+
+      setFieldFeedback(
+        initialResult
+          .fieldFeedback ||
+          {}
+      );
+
+      setMatchingFeedback(
+        initialResult
+          .matchingFeedback ||
+          {}
+      );
+
+      setOrderingFeedback(
+        initialResult
+          .orderingFeedback ||
+          {}
+      );
+
+      setMatchedPairs(
+        initialResult
+          .matchedPairs ||
+          {}
+      );
+
+      setDisplayRightItems(
+        initialResult
+          .displayRightItems ||
+          shuffleArray(
+            exercise?.rightItems ||
+              []
+          )
+      );
+
+      setAttempts(
+        Number(
+          initialResult.attempts
+        ) || 0
+      );
+
+      setSelectedLeft(null);
+      setDraggedIndex(null);
+
+      return;
+    }
+
+    setUserResponse(
+      getInitialUserResponse(
+        exercise
+      )
+    );
+
     setFeedback(null);
     setFieldFeedback({});
     setMatchingFeedback({});
     setOrderingFeedback({});
     setMatchedPairs({});
+
+    setDisplayRightItems(
+      shuffleArray(
+        exercise?.rightItems ||
+          []
+      )
+    );
+
+    setAttempts(0);
     setSelectedLeft(null);
     setDraggedIndex(null);
-    setAttempts(0);
+  }, [
+    exercise,
+    initialResultKey
+  ]);
 
-    onResultChange?.({
-      isCorrect: false,
-      attempts: 0,
-      updatedAt: new Date().toISOString()
-    });
-  }, [exercise]);
+  if (
+    !exercise ||
+    !exercise.type
+  ) {
+    return null;
+  }
 
-  if (!exercise || !exercise.type) return null;
+  const markInteraction = () => {
+    hasInteractedRef.current =
+      true;
+  };
 
-  const getAcceptedAnswers = (key, correctValue) => {
-    const accepted = exercise.acceptedAnswers?.[key];
+  const clearValidation = () => {
+    markInteraction();
+
+    setFeedback(null);
+  };
+
+  const getAcceptedAnswers = (
+    key,
+    correctValue
+  ) => {
+    const accepted =
+      exercise
+        .acceptedAnswers?.[key];
 
     if (Array.isArray(accepted)) {
-      return [correctValue, ...accepted].map(normalizeAnswer);
+      return [
+        correctValue,
+        ...accepted
+      ].map(normalizeAnswer);
     }
 
-    return [correctValue].map(normalizeAnswer);
+    return [
+      correctValue
+    ].map(normalizeAnswer);
   };
 
-  const resetGeneralFeedback = () => {
-    setFeedback(null);
-
-    onResultChange?.({
-      isCorrect: false,
-      attempts,
-      updatedAt: new Date().toISOString()
-    });
-  };
-
-  const notifyResult = ({ isCorrect, nextAttempts }) => {
+  const emitResult = ({
+    isCorrect,
+    nextAttempts,
+    nextFeedback,
+    nextFieldFeedback,
+    nextMatchingFeedback,
+    nextOrderingFeedback
+  }) => {
     onResultChange?.({
       isCorrect,
-      attempts: nextAttempts,
-      updatedAt: new Date().toISOString()
+      attempts:
+        nextAttempts,
+
+      userResponse,
+
+      feedback:
+        nextFeedback,
+
+      fieldFeedback:
+        nextFieldFeedback,
+
+      matchingFeedback:
+        nextMatchingFeedback,
+
+      orderingFeedback:
+        nextOrderingFeedback,
+
+      matchedPairs,
+      displayRightItems,
+
+      updatedAt:
+        new Date().toISOString()
     });
   };
 
   const checkAnswer = () => {
+    markInteraction();
+
     let isCorrect = false;
     let customMessage = "";
 
-    const nextAttempts = attempts + 1;
-    setAttempts(nextAttempts);
+    const nextAttempts =
+      attempts + 1;
+
+    let nextFieldFeedback = {
+      ...fieldFeedback
+    };
+
+    let nextMatchingFeedback = {
+      ...matchingFeedback
+    };
+
+    let nextOrderingFeedback = {
+      ...orderingFeedback
+    };
 
     switch (exercise.type) {
       case "multiple_choice": {
-        let correctAnswer = exercise.correctAnswer;
+        let correctAnswer =
+          exercise.correctAnswer;
 
-        if (typeof correctAnswer === "number") {
-          correctAnswer = exercise.options?.[correctAnswer];
+        if (
+          typeof correctAnswer ===
+          "number"
+        ) {
+          correctAnswer =
+            exercise.options?.[
+              correctAnswer
+            ];
         }
 
         isCorrect =
-          normalizeAnswer(userResponse) === normalizeAnswer(correctAnswer);
+          normalizeAnswer(
+            userResponse
+          ) ===
+          normalizeAnswer(
+            correctAnswer
+          );
 
         customMessage = isCorrect
           ? "Dobrze! Poprawna odpowiedź."
@@ -414,61 +1002,126 @@ const SingleExercise = ({ exercise, onResultChange }) => {
 
       case "fill_blank": {
         const results = {};
-        const textParts = exercise.text.split(/_{2,}/g);
-        const blankCount = Math.max(textParts.length - 1, 0);
-            
-        for (let index = 0; index < blankCount; index += 1) {
-          const blankKey = `blank${index}`;
-          const alternativeKey = String(index);
-        
-          const expected =
-            exercise.correctAnswers?.[blankKey] ??
-            exercise.correctAnswers?.[alternativeKey] ??
-            exercise.words?.[index] ??
-            "";
-        
-          const user =
-            userResponse[blankKey] ??
-            userResponse[alternativeKey] ??
-            "";
-        
-          const acceptedAnswers = getAcceptedAnswers(
-            exercise.correctAnswers?.[blankKey] !== undefined ? blankKey : alternativeKey,
-            expected
+
+        const textParts =
+          exercise.text.split(
+            /_{2,}/g
           );
-        
-          results[blankKey] = acceptedAnswers.includes(normalizeAnswer(user));
+
+        const blankCount =
+          Math.max(
+            textParts.length - 1,
+            0
+          );
+
+        for (
+          let index = 0;
+          index < blankCount;
+          index += 1
+        ) {
+          const blankKey =
+            `blank${index}`;
+
+          const alternativeKey =
+            String(index);
+
+          const expected =
+            exercise
+              .correctAnswers?.[
+                blankKey
+              ] ??
+            exercise
+              .correctAnswers?.[
+                alternativeKey
+              ] ??
+            exercise.words?.[
+              index
+            ] ??
+            "";
+
+          const user =
+            userResponse?.[
+              blankKey
+            ] ??
+            userResponse?.[
+              alternativeKey
+            ] ??
+            "";
+
+          const answerKey =
+            exercise
+              .correctAnswers?.[
+                blankKey
+              ] !== undefined
+              ? blankKey
+              : alternativeKey;
+
+          const acceptedAnswers =
+            getAcceptedAnswers(
+              answerKey,
+              expected
+            );
+
+          results[blankKey] =
+            acceptedAnswers.includes(
+              normalizeAnswer(user)
+            );
         }
-      
-        setFieldFeedback(results);
-      
+
+        nextFieldFeedback =
+          results;
+
         isCorrect =
-          Object.keys(results).length > 0 &&
-          Object.values(results).every(Boolean);
-      
+          Object.keys(
+            results
+          ).length > 0 &&
+          Object.values(
+            results
+          ).every(Boolean);
+
         customMessage = isCorrect
           ? "Dobrze! Wszystkie luki są uzupełnione poprawnie."
           : "Sprawdź pola oznaczone na czerwono i spróbuj ponownie.";
-      
+
         break;
       }
 
       case "matching": {
         const results = {};
 
-        exercise.leftItems.forEach((item, index) => {
-          const expected = exercise.correctPairs?.[item];
-          const selected = matchedPairs[`item-${index}`];
+        exercise.leftItems.forEach(
+          (item, index) => {
+            const expected =
+              exercise
+                .correctPairs?.[
+                  item
+                ];
 
-          results[index] =
-            normalizeAnswer(selected) === normalizeAnswer(expected);
-        });
+            const selected =
+              matchedPairs[
+                `item-${index}`
+              ];
 
-        setMatchingFeedback(results);
+            results[index] =
+              normalizeAnswer(
+                selected
+              ) ===
+              normalizeAnswer(
+                expected
+              );
+          }
+        );
+
+        nextMatchingFeedback =
+          results;
 
         isCorrect =
-          Object.keys(results).length > 0 &&
-          Object.values(results).every(Boolean);
+          Object.keys(
+            results
+          ).length > 0 &&
+          Object.values(
+            results
+          ).every(Boolean);
 
         customMessage = isCorrect
           ? "Dobrze! Wszystkie pary są poprawne."
@@ -479,20 +1132,41 @@ const SingleExercise = ({ exercise, onResultChange }) => {
 
       case "ordering": {
         const results = {};
-        const correctOrder = getCorrectOrder(exercise);
 
-        if (Array.isArray(userResponse) && correctOrder.length > 0) {
-          userResponse.forEach((item, index) => {
-            results[index] =
-              normalizeAnswer(item) === normalizeAnswer(correctOrder[index]);
-          });
+        const correctOrder =
+          getCorrectOrder(
+            exercise
+          );
 
-          setOrderingFeedback(results);
-
-          isCorrect =
-            Object.keys(results).length > 0 &&
-            Object.values(results).every(Boolean);
+        if (
+          Array.isArray(
+            userResponse
+          ) &&
+          correctOrder.length > 0
+        ) {
+          userResponse.forEach(
+            (item, index) => {
+              results[index] =
+                normalizeAnswer(
+                  item
+                ) ===
+                normalizeAnswer(
+                  correctOrder[index]
+                );
+            }
+          );
         }
+
+        nextOrderingFeedback =
+          results;
+
+        isCorrect =
+          Object.keys(
+            results
+          ).length > 0 &&
+          Object.values(
+            results
+          ).every(Boolean);
 
         customMessage = isCorrect
           ? "Dobrze! Kolejność jest poprawna."
@@ -505,63 +1179,115 @@ const SingleExercise = ({ exercise, onResultChange }) => {
         return;
     }
 
-    setFeedback({
+    const nextFeedback = {
       isCorrect,
       message: customMessage
-    });
+    };
 
-    notifyResult({
-      isCorrect,
+    setAttempts(
       nextAttempts
+    );
+
+    setFeedback(
+      nextFeedback
+    );
+
+    setFieldFeedback(
+      nextFieldFeedback
+    );
+
+    setMatchingFeedback(
+      nextMatchingFeedback
+    );
+
+    setOrderingFeedback(
+      nextOrderingFeedback
+    );
+
+    emitResult({
+      isCorrect,
+      nextAttempts,
+      nextFeedback,
+      nextFieldFeedback,
+      nextMatchingFeedback,
+      nextOrderingFeedback
     });
   };
 
   const renderMultipleChoice = () => (
     <div className="space-y-3">
-      <p className="font-medium mb-4">{exercise.question}</p>
+      <p className="font-medium mb-4">
+        {exercise.question}
+      </p>
 
-      {(exercise.options || []).map((option, index) => {
-        const isSelected = userResponse === option;
-        let correctAnswer = exercise.correctAnswer;
+      {(exercise.options || []).map(
+        (option, index) => {
+          const isSelected =
+            userResponse ===
+            option;
 
-        if (typeof correctAnswer === "number") {
-          correctAnswer = exercise.options?.[correctAnswer];
+          let correctAnswer =
+            exercise.correctAnswer;
+
+          if (
+            typeof correctAnswer ===
+            "number"
+          ) {
+            correctAnswer =
+              exercise.options?.[
+                correctAnswer
+              ];
+          }
+
+          const isCorrectOption =
+            normalizeAnswer(option) ===
+            normalizeAnswer(
+              correctAnswer
+            );
+
+          const optionClass =
+            feedback
+              ? isCorrectOption
+                ? "bg-green-100 border-green-500 text-green-800"
+                : isSelected
+                ? "bg-red-100 border-red-500 text-red-800"
+                : "hover:bg-gray-50 border-gray-200"
+              : isSelected
+              ? "bg-primary-50 border-primary-500"
+              : "hover:bg-gray-50 border-gray-200";
+
+          return (
+            <button
+              key={`${option}-${index}`}
+              type="button"
+              className={`w-full text-left p-4 rounded-lg border-2 transition-all ${optionClass}`}
+              onClick={() => {
+                markInteraction();
+
+                setUserResponse(
+                  option
+                );
+
+                setFeedback(null);
+              }}
+            >
+              {option}
+            </button>
+          );
         }
-
-        const isCorrectOption =
-          normalizeAnswer(option) === normalizeAnswer(correctAnswer);
-
-        const optionClass = feedback
-          ? isCorrectOption
-            ? "bg-green-100 border-green-500 text-green-800"
-            : isSelected
-            ? "bg-red-100 border-red-500 text-red-800"
-            : "hover:bg-gray-50 border-gray-200"
-          : isSelected
-          ? "bg-primary-50 border-primary-500"
-          : "hover:bg-gray-50 border-gray-200";
-
-        return (
-          <button
-            key={index}
-            type="button"
-            className={`w-full text-left p-4 rounded-lg border-2 transition-all ${optionClass}`}
-            onClick={() => {
-              setUserResponse(option);
-              resetGeneralFeedback();
-            }}
-          >
-            {option}
-          </button>
-        );
-      })}
+      )}
     </div>
   );
 
   const renderFillInBlank = () => {
-    if (!exercise.text) return null;
+    if (!exercise.text) {
+      return null;
+    }
 
-    const textParts = exercise.text.split(/_{2,}/g);
+    const textParts =
+      exercise.text.split(
+        /_{2,}/g
+      );
 
     return (
       <div className="space-y-4">
@@ -574,75 +1300,136 @@ const SingleExercise = ({ exercise, onResultChange }) => {
         <div className="bg-gray-50 p-4 rounded-lg">
           {exercise.instruction && (
             <p className="font-medium mb-4 text-gray-700">
-              {exercise.instruction}
+              {
+                exercise.instruction
+              }
             </p>
           )}
 
-          {exercise.words.length > 0 && (
+          {exercise.words.length >
+            0 && (
             <div className="mb-4">
-              <p className="text-sm text-gray-600 mb-2">Słowa pomocnicze:</p>
+              <p className="text-sm text-gray-600 mb-2">
+                Słowa pomocnicze:
+              </p>
 
               <div className="flex flex-wrap gap-2">
-                {exercise.words.map((word, index) => (
-                  <span
-                    key={index}
-                    className="px-3 py-1.5 bg-blue-100 text-blue-800 rounded-full font-medium text-sm"
-                  >
-                    {word}
-                  </span>
-                ))}
+                {exercise.words.map(
+                  (
+                    word,
+                    index
+                  ) => (
+                    <span
+                      key={`${word}-${index}`}
+                      className="px-3 py-1.5 bg-blue-100 text-blue-800 rounded-full font-medium text-sm"
+                    >
+                      {word}
+                    </span>
+                  )
+                )}
               </div>
             </div>
           )}
 
           <div className="mt-6 flex flex-wrap items-center gap-2 leading-10">
-            {textParts.map((part, index) => {
-              const blankKey = `blank${index}`;
-              const alternativeKey = String(index);
-              const answerKey =
-                exercise.correctAnswers?.[blankKey] !== undefined
-                  ? blankKey
-                  : exercise.correctAnswers?.[alternativeKey] !== undefined
-                  ? alternativeKey
-                  : blankKey;
-              const state = fieldFeedback[answerKey];
+            {textParts.map(
+              (part, index) => {
+                const blankKey =
+                  `blank${index}`;
 
-              return (
-                <React.Fragment key={index}>
-                  <span className="text-gray-700 text-lg">{part}</span>
+                const alternativeKey =
+                  String(index);
 
-                  {index < textParts.length - 1 && (
-                    <span className="inline-block min-w-[140px]">
-                      <input
-                        type="text"
-                        value={userResponse[answerKey] || ""}
-                        onChange={(event) => {
-                          setUserResponse((prev) => ({
-                            ...prev,
-                            [answerKey]: event.target.value
-                          }));
+                const answerKey =
+                  exercise
+                    .correctAnswers?.[
+                      blankKey
+                    ] !== undefined
+                    ? blankKey
+                    : exercise
+                        .correctAnswers?.[
+                          alternativeKey
+                        ] !== undefined
+                    ? alternativeKey
+                    : blankKey;
 
-                          setFieldFeedback((prev) => ({
-                            ...prev,
-                            [answerKey]: undefined
-                          }));
+                const state =
+                  fieldFeedback[
+                    blankKey
+                  ] ??
+                  fieldFeedback[
+                    answerKey
+                  ];
 
-                          resetGeneralFeedback();
-                        }}
-                        className={`w-full px-3 py-1 border-b-2 focus:outline-none text-center ${
-                          state === true
-                            ? "border-green-500 bg-green-50 text-green-800"
-                            : state === false
-                            ? "border-red-500 bg-red-50 text-red-800"
-                            : "border-gray-300 focus:border-primary-500"
-                        }`}
-                        placeholder="Wpisz tutaj"
-                      />
+                return (
+                  <React.Fragment
+                    key={index}
+                  >
+                    <span className="text-gray-700 text-lg">
+                      {part}
                     </span>
-                  )}
-                </React.Fragment>
-              );
-            })}
+
+                    {index <
+                      textParts.length -
+                        1 && (
+                      <span className="inline-block min-w-[140px]">
+                        <input
+                          type="text"
+                          value={
+                            userResponse?.[
+                              answerKey
+                            ] || ""
+                          }
+                          onChange={(
+                            event
+                          ) => {
+                            markInteraction();
+
+                            const value =
+                              event.target
+                                .value;
+
+                            setUserResponse(
+                              (
+                                previous
+                              ) => ({
+                                ...previous,
+                                [answerKey]:
+                                  value
+                              })
+                            );
+
+                            setFieldFeedback(
+                              (
+                                previous
+                              ) => ({
+                                ...previous,
+                                [blankKey]:
+                                  undefined,
+                                [answerKey]:
+                                  undefined
+                              })
+                            );
+
+                            setFeedback(
+                              null
+                            );
+                          }}
+                          className={`w-full px-3 py-1 border-b-2 focus:outline-none text-center ${
+                            state === true
+                              ? "border-green-500 bg-green-50 text-green-800"
+                              : state === false
+                              ? "border-red-500 bg-red-50 text-red-800"
+                              : "border-gray-300 focus:border-primary-500"
+                          }`}
+                          placeholder="Wpisz tutaj"
+                        />
+                      </span>
+                    )}
+                  </React.Fragment>
+                );
+              }
+            )}
           </div>
         </div>
       </div>
@@ -650,231 +1437,449 @@ const SingleExercise = ({ exercise, onResultChange }) => {
   };
 
   const renderMatching = () => {
-    const leftItems = exercise.leftItems || [];
-    const rightItems = displayRightItems;
+    const leftItems =
+      exercise.leftItems || [];
 
-    if (!leftItems.length || !rightItems.length) {
-      return <p className="text-gray-500">To ćwiczenie nie ma dostępnych par.</p>;
+    const rightItems =
+      displayRightItems;
+
+    if (
+      !leftItems.length ||
+      !rightItems.length
+    ) {
+      return (
+        <p className="text-gray-500">
+          To ćwiczenie nie ma dostępnych par.
+        </p>
+      );
     }
 
     return (
       <div className="space-y-4">
-        {exercise.question && <p className="font-medium">{exercise.question}</p>}
+        {exercise.question && (
+          <p className="font-medium">
+            {exercise.question}
+          </p>
+        )}
 
         {exercise.instruction && (
-          <p className="text-gray-700">{exercise.instruction}</p>
+          <p className="text-gray-700">
+            {
+              exercise.instruction
+            }
+          </p>
         )}
 
         <div className="grid md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            {leftItems.map((item, index) => {
-              const selected = matchedPairs[`item-${index}`];
-              const state = matchingFeedback[index];
+            {leftItems.map(
+              (item, index) => {
+                const selected =
+                  matchedPairs[
+                    `item-${index}`
+                  ];
 
-              const leftClass =
-                state === true
-                  ? "bg-green-100 border-green-500 text-green-800"
-                  : state === false
-                  ? "bg-red-100 border-red-500 text-red-800"
-                  : selected
-                  ? "bg-blue-50 border-blue-500 text-blue-800"
-                  : selectedLeft === index
-                  ? "bg-primary-50 border-primary-500"
-                  : "hover:bg-gray-50 border-gray-200";
+                const state =
+                  matchingFeedback[
+                    index
+                  ];
 
-              return (
-                <button
-                  key={index}
-                  type="button"
-                  className={`w-full text-left p-3 rounded-lg border-2 transition-all ${leftClass}`}
-                  onClick={() => {
-                    setSelectedLeft(selectedLeft === index ? null : index);
-                    resetGeneralFeedback();
-                  }}
-                >
-                  <div className="font-semibold">{item}</div>
+                const leftClass =
+                  state === true
+                    ? "bg-green-100 border-green-500 text-green-800"
+                    : state === false
+                    ? "bg-red-100 border-red-500 text-red-800"
+                    : selected
+                    ? "bg-blue-50 border-blue-500 text-blue-800"
+                    : selectedLeft ===
+                      index
+                    ? "bg-primary-50 border-primary-500"
+                    : "hover:bg-gray-50 border-gray-200";
 
-                  {selected && (
-                    <div className="text-sm mt-1 opacity-80">🔗 {selected}</div>
-                  )}
-                </button>
-              );
-            })}
+                return (
+                  <button
+                    key={`${item}-${index}`}
+                    type="button"
+                    className={`w-full text-left p-3 rounded-lg border-2 transition-all ${leftClass}`}
+                    onClick={() => {
+                      markInteraction();
+
+                      setSelectedLeft(
+                        selectedLeft ===
+                          index
+                          ? null
+                          : index
+                      );
+
+                      setFeedback(
+                        null
+                      );
+                    }}
+                  >
+                    <div className="font-semibold">
+                      {item}
+                    </div>
+
+                    {selected && (
+                      <div className="text-sm mt-1 opacity-80">
+                        🔗 {selected}
+                      </div>
+                    )}
+                  </button>
+                );
+              }
+            )}
           </div>
 
           <div className="space-y-2">
-            {rightItems.map((item, index) => {
-              const alreadySelectedByAnother = Object.entries(
-                matchedPairs
-              ).some(
-                ([key, value]) =>
-                  key !== `item-${selectedLeft}` && value === item
-              );
+            {rightItems.map(
+              (item, index) => {
+                const alreadySelected =
+                  Object.entries(
+                    matchedPairs
+                  ).some(
+                    ([
+                      key,
+                      value
+                    ]) =>
+                      key !==
+                        `item-${selectedLeft}` &&
+                      value ===
+                        item
+                  );
 
-              return (
-                <button
-                  key={`${item}-${index}`}
-                  type="button"
-                  className={`w-full text-left p-3 rounded-lg border-2 transition-all ${
-                    alreadySelectedByAnother
-                      ? "bg-gray-100 border-gray-300 text-gray-500"
-                      : selectedLeft !== null
-                      ? "bg-white border-gray-300 hover:bg-primary-50 hover:border-primary-400"
-                      : "bg-white border-gray-200 hover:bg-gray-50"
-                  }`}
-                  onClick={() => {
-                    if (selectedLeft === null || alreadySelectedByAnother) return;
+                return (
+                  <button
+                    key={`${item}-${index}`}
+                    type="button"
+                    className={`w-full text-left p-3 rounded-lg border-2 transition-all ${
+                      alreadySelected
+                        ? "bg-gray-100 border-gray-300 text-gray-500"
+                        : selectedLeft !==
+                          null
+                        ? "bg-white border-gray-300 hover:bg-primary-50 hover:border-primary-400"
+                        : "bg-white border-gray-200 hover:bg-gray-50"
+                    }`}
+                    onClick={() => {
+                      if (
+                        selectedLeft ===
+                          null ||
+                        alreadySelected
+                      ) {
+                        return;
+                      }
 
-                    setMatchedPairs((prev) => ({
-                      ...prev,
-                      [`item-${selectedLeft}`]: item
-                    }));
+                      markInteraction();
 
-                    setMatchingFeedback((prev) => ({
-                      ...prev,
-                      [selectedLeft]: undefined
-                    }));
+                      const targetIndex =
+                        selectedLeft;
 
-                    setSelectedLeft(null);
-                    resetGeneralFeedback();
-                  }}
-                >
-                  {item}
-                </button>
-              );
-            })}
+                      setMatchedPairs(
+                        (
+                          previous
+                        ) => ({
+                          ...previous,
+                          [`item-${targetIndex}`]:
+                            item
+                        })
+                      );
+
+                      setMatchingFeedback(
+                        (
+                          previous
+                        ) => ({
+                          ...previous,
+                          [targetIndex]:
+                            undefined
+                        })
+                      );
+
+                      setSelectedLeft(
+                        null
+                      );
+
+                      setFeedback(
+                        null
+                      );
+                    }}
+                  >
+                    {item}
+                  </button>
+                );
+              }
+            )}
           </div>
         </div>
 
-          <button
-            type="button"
-            disabled={Object.keys(matchedPairs).length === 0}
-            className={`text-sm font-medium ${
-              Object.keys(matchedPairs).length === 0
-                ? "text-gray-400 cursor-not-allowed"
-                : "text-red-600 hover:text-red-700"
-            }`}
-            onClick={() => {
-              if (Object.keys(matchedPairs).length === 0) return;
-            
-              setMatchedPairs({});
-              setMatchingFeedback({});
-              setSelectedLeft(null);
-              resetGeneralFeedback();
-            }}
-          >
-            Wyczyść połączenia
-          </button>
+        <button
+          type="button"
+          disabled={
+            Object.keys(
+              matchedPairs
+            ).length === 0
+          }
+          className={`text-sm font-medium ${
+            Object.keys(
+              matchedPairs
+            ).length === 0
+              ? "text-gray-400 cursor-not-allowed"
+              : "text-red-600 hover:text-red-700"
+          }`}
+          onClick={() => {
+            if (
+              Object.keys(
+                matchedPairs
+              ).length === 0
+            ) {
+              return;
+            }
+
+            markInteraction();
+
+            setMatchedPairs({});
+            setMatchingFeedback({});
+            setSelectedLeft(null);
+            setFeedback(null);
+          }}
+        >
+          Wyczyść połączenia
+        </button>
       </div>
     );
   };
 
   const renderOrdering = () => {
-    if (!Array.isArray(userResponse)) return null;
+    if (
+      !Array.isArray(
+        userResponse
+      )
+    ) {
+      return null;
+    }
+
+    const updateOrder = (
+      nextOrder
+    ) => {
+      markInteraction();
+
+      setUserResponse(
+        nextOrder
+      );
+
+      setOrderingFeedback({});
+      setFeedback(null);
+    };
 
     return (
       <div className="space-y-4">
-        {exercise.question && <p className="font-medium">{exercise.question}</p>}
+        {exercise.question && (
+          <p className="font-medium">
+            {exercise.question}
+          </p>
+        )}
 
         {exercise.instruction && (
-          <p className="text-gray-700">{exercise.instruction}</p>
+          <p className="text-gray-700">
+            {
+              exercise.instruction
+            }
+          </p>
         )}
 
         <div className="space-y-3">
-          {userResponse.map((item, index) => {
-            const state = orderingFeedback[index];
+          {userResponse.map(
+            (item, index) => {
+              const state =
+                orderingFeedback[
+                  index
+                ];
 
-            const itemClass =
-              state === true
-                ? "border-green-500 bg-green-50 text-green-800"
-                : state === false
-                ? "border-red-500 bg-red-50 text-red-800"
-                : draggedIndex === index
-                ? "border-primary-500"
-                : "border-gray-200";
+              const itemClass =
+                state === true
+                  ? "border-green-500 bg-green-50 text-green-800"
+                  : state === false
+                  ? "border-red-500 bg-red-50 text-red-800"
+                  : draggedIndex ===
+                    index
+                  ? "border-primary-500"
+                  : "border-gray-200";
 
-            return (
-              <div
-                key={`${item}-${index}`}
-                draggable
-                className={`p-4 rounded-lg shadow-sm cursor-move border-2 hover:shadow-md transition-all ${itemClass}`}
-                onDragStart={(event) => {
-                  setDraggedIndex(index);
-                  event.dataTransfer.setData("text/plain", index.toString());
-                }}
-                onDragEnd={() => setDraggedIndex(null)}
-                onDragOver={(event) => event.preventDefault()}
-                onDrop={(event) => {
-                  event.preventDefault();
+              return (
+                <div
+                  key={`${item}-${index}`}
+                  draggable
+                  className={`p-4 rounded-lg shadow-sm cursor-move border-2 hover:shadow-md transition-all ${itemClass}`}
+                  onDragStart={(
+                    event
+                  ) => {
+                    markInteraction();
 
-                  const fromIndex = parseInt(
-                    event.dataTransfer.getData("text/plain"),
-                    10
-                  );
+                    setDraggedIndex(
+                      index
+                    );
 
-                  if (fromIndex === index) return;
+                    event.dataTransfer.setData(
+                      "text/plain",
+                      index.toString()
+                    );
+                  }}
+                  onDragEnd={() =>
+                    setDraggedIndex(
+                      null
+                    )
+                  }
+                  onDragOver={(
+                    event
+                  ) =>
+                    event.preventDefault()
+                  }
+                  onDrop={(
+                    event
+                  ) => {
+                    event.preventDefault();
 
-                  const newOrder = [...userResponse];
-                  const [movedItem] = newOrder.splice(fromIndex, 1);
-                  newOrder.splice(index, 0, movedItem);
+                    const fromIndex =
+                      Number.parseInt(
+                        event.dataTransfer.getData(
+                          "text/plain"
+                        ),
+                        10
+                      );
 
-                  setUserResponse(newOrder);
-                  setOrderingFeedback({});
-                  resetGeneralFeedback();
-                }}
-              >
-                <div className="flex justify-between items-center gap-4">
-                  <span>{item}</span>
+                    if (
+                      fromIndex ===
+                        index ||
+                      Number.isNaN(
+                        fromIndex
+                      )
+                    ) {
+                      return;
+                    }
 
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      disabled={index === 0}
-                      className="text-gray-400 hover:text-gray-700"
-                      onClick={() => {
-                        if (index <= 0) return;
+                    const nextOrder = [
+                      ...userResponse
+                    ];
 
-                        const newOrder = [...userResponse];
+                    const [
+                      movedItem
+                    ] =
+                      nextOrder.splice(
+                        fromIndex,
+                        1
+                      );
 
-                        [newOrder[index], newOrder[index - 1]] = [
-                          newOrder[index - 1],
-                          newOrder[index]
-                        ];
+                    nextOrder.splice(
+                      index,
+                      0,
+                      movedItem
+                    );
 
-                        setUserResponse(newOrder);
-                        setOrderingFeedback({});
-                        resetGeneralFeedback();
-                      }}
-                    >
-                      ↑
-                    </button>
+                    updateOrder(
+                      nextOrder
+                    );
+                  }}
+                >
+                  <div className="flex justify-between items-center gap-4">
+                    <span>
+                      {item}
+                    </span>
 
-                    <button
-                      type="button"
-                      disabled={index === userResponse.length - 1}
-                      className="text-gray-400 hover:text-gray-700"
-                      onClick={() => {
-                        if (index >= userResponse.length - 1) return;
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        disabled={
+                          index === 0
+                        }
+                        className="text-gray-400 hover:text-gray-700 disabled:opacity-40"
+                        onClick={() => {
+                          if (
+                            index <= 0
+                          ) {
+                            return;
+                          }
 
-                        const newOrder = [...userResponse];
+                          const nextOrder = [
+                            ...userResponse
+                          ];
 
-                        [newOrder[index], newOrder[index + 1]] = [
-                          newOrder[index + 1],
-                          newOrder[index]
-                        ];
+                          [
+                            nextOrder[
+                              index
+                            ],
+                            nextOrder[
+                              index -
+                                1
+                            ]
+                          ] = [
+                            nextOrder[
+                              index -
+                                1
+                            ],
+                            nextOrder[
+                              index
+                            ]
+                          ];
 
-                        setUserResponse(newOrder);
-                        setOrderingFeedback({});
-                        resetGeneralFeedback();
-                      }}
-                    >
-                      ↓
-                    </button>
+                          updateOrder(
+                            nextOrder
+                          );
+                        }}
+                      >
+                        ↑
+                      </button>
+
+                      <button
+                        type="button"
+                        disabled={
+                          index ===
+                          userResponse.length -
+                            1
+                        }
+                        className="text-gray-400 hover:text-gray-700 disabled:opacity-40"
+                        onClick={() => {
+                          if (
+                            index >=
+                            userResponse.length -
+                              1
+                          ) {
+                            return;
+                          }
+
+                          const nextOrder = [
+                            ...userResponse
+                          ];
+
+                          [
+                            nextOrder[
+                              index
+                            ],
+                            nextOrder[
+                              index +
+                                1
+                            ]
+                          ] = [
+                            nextOrder[
+                              index +
+                                1
+                            ],
+                            nextOrder[
+                              index
+                            ]
+                          ];
+
+                          updateOrder(
+                            nextOrder
+                          );
+                        }}
+                      >
+                        ↓
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            }
+          )}
         </div>
       </div>
     );
@@ -900,7 +1905,10 @@ const SingleExercise = ({ exercise, onResultChange }) => {
             <p className="text-red-700 font-medium">
               Nieobsługiwany typ ćwiczenia:
             </p>
-            <p className="text-red-600">{exercise.type}</p>
+
+            <p className="text-red-600">
+              {exercise.type}
+            </p>
           </div>
         );
     }
@@ -926,9 +1934,13 @@ const SingleExercise = ({ exercise, onResultChange }) => {
               : "bg-red-100 text-red-800 border border-red-300"
           }`}
         >
-          <p className="font-medium">{feedback.message}</p>
+          <p className="font-medium">
+            {feedback.message}
+          </p>
 
-          <div className="mt-2 text-sm opacity-80">Próby: {attempts}</div>
+          <div className="mt-2 text-sm opacity-80">
+            Próby: {attempts}
+          </div>
         </div>
       )}
     </div>

@@ -30,42 +30,40 @@ function LoginHeader({
 
   return (
     <>
-      <button
-        type="button"
-        onClick={handleGoBack}
-        className="
-          absolute
-          top-6
-          left-6
-          z-20
-          inline-flex
-          items-center
-          gap-2
-          rounded-full
-          bg-white/70
-          px-4
-          py-2
-          font-medium
-          text-gray-700
-          shadow-sm
-          backdrop-blur
-          transition-colors
-          duration-200
-          hover:text-primary-600
-          focus:outline-none
-          focus:ring-2
-          focus:ring-primary-500
-          focus:ring-offset-2
-        "
-      >
-        <FaArrowLeft
-          aria-hidden="true"
-        />
-
-        <span>
-          Wstecz
-        </span>
-      </button>
+      {typeof onGoBack === "function" && (
+        <button
+          type="button"
+          onClick={handleGoBack}
+          className="
+            absolute
+            top-6
+            left-6
+            z-20
+            inline-flex
+            items-center
+            gap-2
+            rounded-full
+            bg-white/70
+            px-4
+            py-2
+            font-medium
+            text-gray-700
+            shadow-sm
+            backdrop-blur
+            transition-colors
+            duration-200
+            hover:text-primary-600
+            focus:outline-none
+            focus:ring-2
+            focus:ring-primary-500
+            focus:ring-offset-2
+          "
+        >
+          <FaArrowLeft aria-hidden="true" />
+            
+          <span>Wstecz</span>
+        </button>
+      )}
 
       <header>
         <h1 className="mt-6 text-center text-3xl font-heading font-bold text-gray-900">

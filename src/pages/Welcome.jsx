@@ -322,8 +322,8 @@ const Welcome = () => {
 
       <div className="container mx-auto px-4 py-12">
         <MotionSection
-          id="welcome-title"
-          className="mb-20"
+          id="home"
+          className="mb-20 scroll-mt-24"
           initial="initial"
           whileInView="animate"
           viewport={{ once: true }}
@@ -448,8 +448,8 @@ const Welcome = () => {
         </MotionSection>
 
         <MotionSection
-          id="about-me"
-          className="mb-20"
+          id="about"
+          className="mb-20 scroll-mt-24"
           initial="initial"
           whileInView="animate"
           viewport={{ once: true }}
@@ -489,7 +489,7 @@ const Welcome = () => {
 
         <MotionSection
           id="test-info"
-          className="mb-20"
+          className="mb-20 scroll-mt-24"
           initial="initial"
           whileInView="animate"
           viewport={{ once: true }}
@@ -621,7 +621,7 @@ const Welcome = () => {
 
         <MotionSection
           id="contact-form"
-          className="mb-20"
+          className="mb-20 scroll-mt-24"
           initial="initial"
           whileInView="animate"
           viewport={{ once: true }}

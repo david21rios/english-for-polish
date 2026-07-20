@@ -574,29 +574,89 @@ export const getUserLevelProgressSummary = async ({
     (progress) => progress.levelId === levelId
   );
 
+  const progressByLessonId = levelProgressDocs.reduce(
+    (acc, progress) => {
+      const lessonId = progress.lessonId;
+
+      if (!lessonId) {
+        return acc;
+      }
+
+      acc[lessonId] = progress.completed
+        ? 100
+        : Math.min(
+            Math.max(
+              Number(progress.progressPercentage) || 0,
+              0
+            ),
+            100
+          );
+
+      return acc;
+    },
+    {}
+  );
+
   const completedLessonIds = levelProgressDocs
     .filter((progress) => progress.completed)
     .map((progress) => progress.lessonId);
 
   const totalLessons = publishedLessons.length;
 
-  const completedLessons = publishedLessons.filter((lesson) =>
-    completedLessonIds.includes(lesson.id || lesson.lessonId)
+  const completedLessons = publishedLessons.filter(
+    (lesson) => {
+      const lessonId =
+        lesson.lessonId ||
+        lesson.id;
+
+      return completedLessonIds.includes(
+        lessonId
+      );
+    }
   ).length;
+
+  const accumulatedProgress =
+    publishedLessons.reduce(
+      (total, lesson) => {
+        const lessonId =
+          lesson.lessonId ||
+          lesson.id;
+
+        return (
+          total +
+          (progressByLessonId[lessonId] || 0)
+        );
+      },
+      0
+    );
 
   const progressPercent =
     totalLessons > 0
-      ? Math.round((completedLessons / totalLessons) * 100)
+      ? Math.round(
+          accumulatedProgress /
+            totalLessons
+        )
       : 0;
 
-  const averageScore = calculateAverageScoreFromProgress(levelProgressDocs);
-  const skillScores = calculateAggregatedSkillScores(levelProgressDocs);
+  const averageScore =
+    calculateAverageScoreFromProgress(
+      levelProgressDocs
+    );
+
+  const skillScores =
+    calculateAggregatedSkillScores(
+      levelProgressDocs
+    );
 
   return {
     levelId,
     totalLessons,
     completedLessons,
-    pendingLessons: totalLessons - completedLessons,
+    pendingLessons:
+      Math.max(
+        totalLessons - completedLessons,
+        0
+      ),
     progressPercent,
     averageScore,
     skillScores
@@ -609,7 +669,11 @@ export const getUserModuleProgressSummary = async ({
   moduleId,
   userAgeGroup = null
 }) => {
-  if (!userId || !levelId || !moduleId) {
+  if (
+    !userId ||
+    !levelId ||
+    !moduleId
+  ) {
     return {
       levelId,
       moduleId,
@@ -629,46 +693,130 @@ export const getUserModuleProgressSummary = async ({
   });
 
   const module = level?.modules?.find(
-    (item) => (item.moduleId || item.id) === moduleId
+    (item) =>
+      (item.moduleId || item.id) ===
+      moduleId
   );
 
-  const lessons = module?.lessons || [];
-  const progressDocs = await getUserProgressDocs(userId);
+  const lessons =
+    module?.lessons || [];
 
-  const moduleProgressDocs = progressDocs.filter(
-    (progress) =>
-      progress.levelId === levelId &&
-      (progress.moduleId === moduleId ||
-        lessons.some(
-          (lesson) => (lesson.id || lesson.lessonId) === progress.lessonId
-        ))
-  );
+  const progressDocs =
+    await getUserProgressDocs(userId);
 
-  const completedLessonIds = moduleProgressDocs
-    .filter((progress) => progress.completed)
-    .map((progress) => progress.lessonId);
+  const moduleProgressDocs =
+    progressDocs.filter(
+      (progress) =>
+        progress.levelId === levelId &&
+        (
+          progress.moduleId === moduleId ||
+          lessons.some(
+            (lesson) =>
+              (
+                lesson.lessonId ||
+                lesson.id
+              ) === progress.lessonId
+          )
+        )
+    );
 
-  const totalLessons = lessons.length;
+  const progressByLessonId =
+    moduleProgressDocs.reduce(
+      (acc, progress) => {
+        if (!progress.lessonId) {
+          return acc;
+        }
 
-  const completedLessons = lessons.filter((lesson) =>
-    completedLessonIds.includes(lesson.id || lesson.lessonId)
-  ).length;
+        acc[progress.lessonId] =
+          progress.completed
+            ? 100
+            : Math.min(
+                Math.max(
+                  Number(
+                    progress
+                      .progressPercentage
+                  ) || 0,
+                  0
+                ),
+                100
+              );
+
+        return acc;
+      },
+      {}
+    );
+
+  const completedLessonIds =
+    moduleProgressDocs
+      .filter(
+        (progress) =>
+          progress.completed
+      )
+      .map(
+        (progress) =>
+          progress.lessonId
+      );
+
+  const totalLessons =
+    lessons.length;
+
+  const completedLessons =
+    lessons.filter(
+      (lesson) => {
+        const lessonId =
+          lesson.lessonId ||
+          lesson.id;
+
+        return completedLessonIds.includes(
+          lessonId
+        );
+      }
+    ).length;
+
+  const accumulatedProgress =
+    lessons.reduce(
+      (total, lesson) => {
+        const lessonId =
+          lesson.lessonId ||
+          lesson.id;
+
+        return (
+          total +
+          (progressByLessonId[lessonId] || 0)
+        );
+      },
+      0
+    );
 
   const progressPercent =
     totalLessons > 0
-      ? Math.round((completedLessons / totalLessons) * 100)
+      ? Math.round(
+          accumulatedProgress /
+            totalLessons
+        )
       : 0;
 
   return {
     levelId,
     moduleId,
-    moduleTitle: module?.title || "",
+    moduleTitle:
+      module?.title || "",
     totalLessons,
     completedLessons,
-    pendingLessons: totalLessons - completedLessons,
+    pendingLessons:
+      Math.max(
+        totalLessons - completedLessons,
+        0
+      ),
     progressPercent,
-    averageScore: calculateAverageScoreFromProgress(moduleProgressDocs),
-    skillScores: calculateAggregatedSkillScores(moduleProgressDocs)
+    averageScore:
+      calculateAverageScoreFromProgress(
+        moduleProgressDocs
+      ),
+    skillScores:
+      calculateAggregatedSkillScores(
+        moduleProgressDocs
+      )
   };
 };
 const calculateAverageScoreFromProgress = (progressDocs = []) => {
@@ -842,7 +990,14 @@ export const getLastLessonProgress = async (userId) => {
 export const getUserCourseProgressSummary = async ({
   userId,
   userAgeGroup = null,
-  levels = ["A1", "A2", "B1", "B2", "C1", "C2"]
+  levels = [
+    "A1",
+    "A2",
+    "B1",
+    "B2",
+    "C1",
+    "C2"
+  ]
 }) => {
   if (!userId) {
     return {
@@ -856,41 +1011,85 @@ export const getUserCourseProgressSummary = async ({
     };
   }
 
-  const levelSummaries = await Promise.all(
-    levels.map((levelId) =>
-      getUserLevelProgressSummary({
-        userId,
-        levelId,
-        userAgeGroup
-      })
-    )
-  );
+  const levelSummaries =
+    await Promise.all(
+      levels.map((levelId) =>
+        getUserLevelProgressSummary({
+          userId,
+          levelId,
+          userAgeGroup
+        })
+      )
+    );
 
-  const totalLessons = levelSummaries.reduce(
-    (total, level) => total + level.totalLessons,
-    0
-  );
+  const totalLessons =
+    levelSummaries.reduce(
+      (total, level) =>
+        total +
+        Number(
+          level.totalLessons ||
+            0
+        ),
+      0
+    );
 
-  const completedLessons = levelSummaries.reduce(
-    (total, level) => total + level.completedLessons,
-    0
-  );
+  const completedLessons =
+    levelSummaries.reduce(
+      (total, level) =>
+        total +
+        Number(
+          level.completedLessons ||
+            0
+        ),
+      0
+    );
+
+  const accumulatedProgress =
+    levelSummaries.reduce(
+      (total, level) =>
+        total +
+        (
+          Number(
+            level.progressPercent ||
+              0
+          ) *
+          Number(
+            level.totalLessons ||
+              0
+          )
+        ),
+      0
+    );
 
   const progressPercent =
     totalLessons > 0
-      ? Math.round((completedLessons / totalLessons) * 100)
+      ? Math.round(
+          accumulatedProgress /
+            totalLessons
+        )
       : 0;
 
-  const progressDocs = await getUserProgressDocs(userId);
+  const progressDocs =
+    await getUserProgressDocs(userId);
 
   return {
     totalLessons,
     completedLessons,
-    pendingLessons: totalLessons - completedLessons,
+    pendingLessons:
+      Math.max(
+        totalLessons - completedLessons,
+        0
+      ),
     progressPercent,
-    averageScore: calculateAverageScoreFromProgress(progressDocs),
+    averageScore:
+      calculateAverageScoreFromProgress(
+        progressDocs
+      ),
     levels: levelSummaries,
-    skillScores: calculateAggregatedSkillScores(progressDocs)
+    skillScores:
+      calculateAggregatedSkillScores(
+        progressDocs
+      )
   };
 };
 

@@ -21,7 +21,7 @@ import {
   useLocation,
   useNavigate
 } from "react-router-dom";
-
+import { FaArrowLeft } from "react-icons/fa";
 import { auth, db } from "../firebase";
 
 import LoginHeader from "../components/login/LoginHeader";
@@ -109,14 +109,9 @@ function Login() {
   ]);
 
   const handleGoBack = () => {
-    if (
-      window.history.length > 1
-    ) {
-      navigate(-1);
-      return;
-    }
-
-    navigate("/welcome");
+    navigate("/welcome", {
+      replace: true
+    });
   };
 
   const handleTogglePassword =
@@ -189,26 +184,13 @@ function Login() {
         const loggedUser =
           userCredential.user;
 
-        if (
-          !loggedUser.emailVerified
-        ) {
+        if (!loggedUser.emailVerified) {
           await signOut(auth);
 
-          navigate(
-            "/verification-pending",
-            {
-              replace: true,
-              state: {
-                email:
-                  loggedUser.email,
-                from:
-                  location.state
-                    ?.from ||
-                  null
-              }
-            }
+          setError(
+            "Twój adres e-mail nie został jeszcze zweryfikowany. Sprawdź swoją skrzynkę odbiorczą i kliknij link weryfikacyjny przed zalogowaniem."
           );
-
+        
           return;
         }
 
@@ -253,20 +235,29 @@ function Login() {
 
         <div className="animation-delay-4000 absolute -bottom-40 left-20 h-80 w-80 animate-blob rounded-full bg-accent-yellow opacity-70 mix-blend-multiply blur-xl" />
       </div>
+      {/* Back button */}
+      <button
+        type="button"
+        onClick={handleGoBack}
+        className="absolute top-6 left-6 z-20 inline-flex items-center gap-2 text-gray-700 hover:text-primary-600 font-medium bg-white/70 backdrop-blur px-4 py-2 rounded-full shadow-sm transition-colors duration-200"
+      >
+        <FaArrowLeft />
 
-      <LoginHeader
-        onGoBack={
-          handleGoBack
-        }
-        registerState={{
-          from:
-            location.state?.from ||
-            location
-        }}
-      />
-
+        <span>Wstecz</span>
+      </button>
       <main className="relative w-full max-w-md">
         <section className="space-y-8 rounded-2xl bg-white/90 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.12)] backdrop-blur-xl transition-all duration-300 hover:bg-white/95 hover:shadow-[0_8px_30px_rgb(0,0,0,0.2)]">
+          <LoginHeader
+            title="Zaloguj się"
+            subtitle="Nie masz jeszcze konta?"
+            linkText="Zarejestruj się"
+            linkTo="/register"
+            linkState={{
+              from:
+                location.state?.from ||
+                null
+            }}
+          />
           <LoginForm
             onSubmit={
               handleLogin
@@ -293,9 +284,9 @@ function Login() {
             error={error}
             forgotPasswordState={{
               from:
-                location.state
-                  ?.from ||
-                location
+                location.state?.from ||
+                null,
+              email
             }}
           />
         </section>

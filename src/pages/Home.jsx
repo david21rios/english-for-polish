@@ -485,6 +485,11 @@ const Home = () => {
   ] = useState(true);
 
   const [
+    profileMissing,
+    setProfileMissing
+  ] = useState(false);
+
+  const [
     lastLesson,
     setLastLesson
   ] = useState(null);
@@ -538,15 +543,21 @@ const Home = () => {
               await getDoc(
                 userRef
               );
+            
+            if (!userSnapshot.exists()) {
+              if (componentActive) {
+                setProfileMissing(true);
+                setLoading(false);
+              }
+            
+              return;
+            }
 
-            if (
-              componentActive &&
-              userSnapshot.exists()
-            ) {
+            if (componentActive) {
+              setProfileMissing(false);
+            
               setUserData({
-                id:
-                  userSnapshot.id,
-
+                id: userSnapshot.id,
                 ...userSnapshot.data()
               });
             }
@@ -1020,6 +1031,30 @@ const Home = () => {
           <p className="text-gray-600">
             Ładowanie panelu ucznia...
           </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (profileMissing) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white flex items-center justify-center px-4">
+        <div className="max-w-md rounded-2xl border border-red-200 bg-red-50 p-8 text-center shadow">
+          <h2 className="text-2xl font-bold text-red-700 mb-4">
+            Nie znaleziono profilu użytkownika
+          </h2>
+    
+          <p className="text-gray-700 mb-6">
+            Twoje konto istnieje w systemie uwierzytelniania, ale nie posiada profilu w bazie danych.
+          </p>
+    
+          <button
+            type="button"
+            onClick={() => navigate("/welcome")}
+            className="rounded-xl bg-primary-600 px-6 py-3 font-semibold text-white hover:bg-primary-700"
+          >
+            Wróć do strony głównej
+          </button>
         </div>
       </div>
     );
