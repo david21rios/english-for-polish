@@ -36,6 +36,16 @@ import {
   saveTopicMissionProgress
 } from "../services/progress/topicProgressService";
 
+import {
+  getMissionsByTheme
+} from "../services/auth/firestoreService";
+
+import {
+  evaluateMissionAvailability,
+  resolveUserCefrLevel,
+  sortMissionsForAvailability
+} from "../services/missions/missionAvailability";
+
 /*
 |--------------------------------------------------------------------------
 | Configuration
@@ -360,6 +370,10 @@ const MissionChatPage = () => {
        * mediante location.state.
        */
 
+      if (!authResolved) {
+        return;
+      }
+
       if (!normalizedTopicId) {
         setError(
           "Nieprawidłowy identyfikator tematu."
@@ -636,12 +650,91 @@ const MissionChatPage = () => {
           );
         }
 
+        const orderedMissions =
+          sortMissionsForAvailability(
+            await getMissionsByTheme(
+              normalizedTopicId,
+              {
+                includeDrafts: false
+              }
+            )
+          );
+
+        const missionIndex =
+          orderedMissions.findIndex(
+            (catalogMission) =>
+              normalizeSingleLineText(
+                catalogMission?.id,
+                150
+              ) ===
+              normalizedMissionId
+          );
+
+        if (missionIndex < 0) {
+          throw new Error(
+            "MISSION_NOT_FOUND"
+          );
+        }
+
+        let accessProgress = null;
+        let userLevel = null;
+
+        if (userId) {
+          const [progress, userSnapshot] =
+            await Promise.all([
+              getTopicProgress(
+                userId,
+                normalizedTopicId
+              ),
+              getDoc(
+                doc(
+                  db,
+                  "users",
+                  userId
+                )
+              )
+            ]);
+
+          accessProgress = progress;
+          userLevel =
+            userSnapshot.exists()
+              ? resolveUserCefrLevel(
+                  userSnapshot.data()
+                )
+              : null;
+        }
+
+        const availability =
+          evaluateMissionAvailability({
+            mission:
+              orderedMissions[
+                missionIndex
+              ],
+            missionIndex,
+            orderedMissions,
+            completedMissionIds:
+              accessProgress
+                ?.completedMissions,
+            userLevel
+          });
+
+        if (!availability.available) {
+          throw new Error(
+            "MISSION_LOCKED"
+          );
+        }
+
+        setTopicProgress(
+          accessProgress
+        );
+
         setTopic(
           loadedTopic
         );
 
         setMission({
           ...loadedMission,
+          ...availability,
 
           topicId:
             normalizedTopicId,
@@ -701,6 +794,12 @@ const MissionChatPage = () => {
             );
             break;
 
+          case "MISSION_LOCKED":
+            setError(
+              "Ta misja jest zablokowana. UkoÅ„cz wymagane misje lub sprawdÅº swÃ³j poziom."
+            );
+            break;
+
           case "PERSONALIZED_MISSION_MISSING":
             setError(
               "Nie znaleziono danych misji personalizowanej. Utwórz misję ponownie."
@@ -732,12 +831,14 @@ const MissionChatPage = () => {
         setLoading(false);
       }
     }, [
+      authResolved,
       initialMission,
       initialTopic,
       isPersonalizedMission,
       location.state,
       normalizedMissionId,
-      normalizedTopicId
+      normalizedTopicId,
+      userId
     ]);
 
   useEffect(() => {
@@ -957,8 +1058,9 @@ const MissionChatPage = () => {
               : {};
 
           /*
-           * useMissionPlayer currently calls onComplete only for a final,
-           * passed evaluation. We validate again at the page boundary.
+           * Every trustworthy completed evaluation reaches this boundary,
+           * including failed missions. Persistence remains restricted to
+           * final passed results.
            */
 
           const reliableResult =

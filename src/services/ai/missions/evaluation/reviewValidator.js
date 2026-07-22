@@ -39,20 +39,6 @@ const normalizeNumber = (
   );
 };
 
-const normalizeBoolean = (
-  value,
-  fallback = false
-) => {
-  if (
-    value === true ||
-    value === false
-  ) {
-    return value;
-  }
-
-  return fallback;
-};
-
 const addReviewReason = (
   reasons,
   {
@@ -81,7 +67,6 @@ export const evaluateMissionReviewRequirement =
     confidence = 0,
     totalMessages = 0,
     totalWords = 0,
-    missionState = {},
     objectiveEvaluation = {},
     integrityEvaluation = {},
     externalRequiresReview = false,
@@ -145,28 +130,6 @@ export const evaluateMissionReviewRequirement =
         {
           minimum: 0,
           maximum: 1,
-          fallback: 0
-        }
-      );
-
-    const meaningfulReplies =
-      Math.max(
-        0,
-        Math.round(
-          Number(
-            missionState
-              .meaningfulReplies
-          ) || 0
-        )
-      );
-
-    const progressScore =
-      normalizeNumber(
-        missionState
-          .progressScore,
-        {
-          minimum: 0,
-          maximum: 100,
           fallback: 0
         }
       );
@@ -308,52 +271,6 @@ export const evaluateMissionReviewRequirement =
           details: {
             totalWords:
               normalizedTotalWords
-          }
-        }
-      );
-    }
-
-    if (
-      meaningfulReplies <
-      MISSION_COMPLETION_THRESHOLDS
-        .minimumMeaningfulReplies
-    ) {
-      addReviewReason(
-        reasons,
-        {
-          code:
-            "INSUFFICIENT_MEANINGFUL_REPLIES",
-
-          severity: "high",
-
-          message:
-            "The conversation contains too few meaningful replies.",
-
-          details: {
-            meaningfulReplies
-          }
-        }
-      );
-    }
-
-    if (
-      progressScore <
-      MISSION_COMPLETION_THRESHOLDS
-        .minimumProgressScore
-    ) {
-      addReviewReason(
-        reasons,
-        {
-          code:
-            "LOW_MISSION_PROGRESS",
-
-          severity: "medium",
-
-          message:
-            "Mission progress is below the automatic completion threshold.",
-
-          details: {
-            progressScore
           }
         }
       );

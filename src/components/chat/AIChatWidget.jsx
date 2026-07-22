@@ -47,7 +47,10 @@ const AIChatWidget = ({
         currentLevel,
         targetLanguage,
         baseLanguage,
-        lessonTitle
+        lessonTitle,
+        auditContext: {
+          operation: "ai_tutor"
+        }
       });
 
       setMessages((prev) => [

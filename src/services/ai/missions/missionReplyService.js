@@ -149,7 +149,7 @@ const getMessageText = (
 |
 */
 
-const removeDuplicatedLatestUserMessage = ({
+export const removeDuplicatedLatestUserMessage = ({
   conversation,
   latestUserMessage
 }) => {
@@ -456,7 +456,8 @@ const requestMissionReply =
   async ({
     prompt,
     mission,
-    userContext
+    userContext,
+    auditContext = {}
   }) => {
     try {
       const compactPrompt =
@@ -493,7 +494,9 @@ const requestMissionReply =
           REPLY_MAX_OUTPUT_TOKENS,
 
         thinkingBudget:
-          REPLY_THINKING_BUDGET
+          REPLY_THINKING_BUDGET,
+
+        auditContext
       });
     } catch (error) {
       throw buildMissionReplyError({
@@ -587,7 +590,22 @@ export const generateMissionReplyResult =
         await requestMissionReply({
           prompt,
           mission,
-          userContext
+          userContext,
+          auditContext: {
+            operation:
+              "mission_reply",
+            missionId:
+              mission?.id || null,
+            conversationMessageCount:
+              normalizedConversation
+                .length,
+            userMessageCount:
+              normalizedConversation.filter(
+                (message) =>
+                  message.sender ===
+                  "user"
+              ).length
+          }
         });
 
       const reply =

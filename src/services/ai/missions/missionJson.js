@@ -745,19 +745,39 @@ const normalizeObjectiveEvaluations = (
           return null;
         }
 
+        const completed =
+          normalizeBoolean(
+            item.completed,
+            false
+          );
+
         return {
+          id:
+            normalizeSingleLineText(
+              item.id ||
+                item.objectiveId,
+              100
+            ) || null,
+
           objective,
 
-          completed:
+          attempted:
             normalizeBoolean(
-              item.completed,
-              false
+              item.attempted,
+              completed
             ),
+
+          completed,
 
           evidence:
             normalizeText(
               item.evidence,
               500
+            ) || null,
+
+          confidence:
+            normalizeMissionConfidence(
+              item.confidence
             )
         };
       })
@@ -765,6 +785,33 @@ const normalizeObjectiveEvaluations = (
     MISSION_LIMITS.evaluation
       .maxObjectives
   );
+};
+
+export const normalizeMissionConfidence = (
+  value
+) => {
+  if (
+    value === null ||
+    value === undefined ||
+    String(value).trim() === ""
+  ) {
+    return null;
+  }
+
+  const numericValue = Number(value);
+
+  if (
+    !Number.isFinite(numericValue) ||
+    numericValue < 0 ||
+    numericValue > 100
+  ) {
+    return null;
+  }
+
+  return numericValue > 0 &&
+    numericValue <= 1
+    ? numericValue * 100
+    : numericValue;
 };
 
 const normalizeCorrections = (
@@ -1017,6 +1064,7 @@ export default {
   extractMissionJsonText,
   parseMissionJson,
   safeParseMissionJson,
+  normalizeMissionConfidence,
   normalizeMissionObjectives,
   normalizePersonalizedMissionJson,
   normalizeMissionStateJson,

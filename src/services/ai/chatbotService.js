@@ -258,7 +258,11 @@ export const getPublicChatbotAIResponse = async (message = "") => {
       currentLevel: "A1-A2",
       targetLanguage: "English",
       baseLanguage: "Polish",
-      context: PUBLIC_CHATBOT_CONTEXT
+      context: PUBLIC_CHATBOT_CONTEXT,
+      auditContext: {
+        operation:
+          "public_chatbot"
+      }
     });
 
     return {

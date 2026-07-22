@@ -26,6 +26,14 @@ const MAX_EVALUATION_HISTORY_MESSAGES = 30;
 
 const MAX_MISSION_INSTRUCTIONS_CHARACTERS = 1200;
 
+const VALID_CONVERSATION_SENDERS =
+  new Set([
+    "user",
+    "student",
+    "npc",
+    "ai"
+  ]);
+
 /*
 |--------------------------------------------------------------------------
 | Generic helpers
@@ -101,7 +109,7 @@ const getMissionInstructions = (
   );
 };
 
-const getConversationSlice = ({
+export const getConversationSlice = ({
   conversation = [],
   maximumMessages
 }) => {
@@ -110,14 +118,33 @@ const getConversationSlice = ({
   }
 
   const validMessages =
-    conversation.filter(
-      (message) =>
-        isPlainObject(message) &&
-        (
-          message.sender === "user" ||
-          message.sender === "npc"
-        )
-    );
+    conversation.filter((message) => {
+      if (!isPlainObject(message)) {
+        return false;
+      }
+
+      const sender =
+        normalizeText(
+          message.sender ||
+            message.role,
+          20
+        ).toLowerCase();
+
+      const text =
+        normalizeText(
+          message.text ||
+            message.content ||
+            message.message,
+          5000
+        );
+
+      return (
+        VALID_CONVERSATION_SENDERS.has(
+          sender
+        ) &&
+        Boolean(text)
+      );
+    });
 
   if (
     !Number.isFinite(
@@ -436,6 +463,11 @@ export const buildMissionReplyPrompt =
         userContext
       });
 
+    const continuityRule =
+      recentConversation.length > 0
+        ? "- Do not restart the scene, greet again, or reintroduce the NPC when conversation history already exists."
+        : "";
+
     return `
 CONTINUE ROLE-PLAY
 
@@ -471,6 +503,7 @@ OUTPUT RULES
 - Prefer no more than 35 words.
 - Ask at most one relevant question.
 - Respond directly to what the student said.
+${continuityRule}
 - If needed, guide the student toward the mission goal.
 - If the message is off-topic, redirect briefly and naturally.
 - Do not correct grammar during the conversation.
@@ -648,79 +681,119 @@ OUTPUT LIMITS
 Return only valid JSON:
 
 {
-  "passed": false,
-  "score": 0,
-  "confidence": 0,
-  "requiresReview": false,
-  "suggestedLevel": "A1",
-  "criteria": {
-    "taskAchievement": {
-      "score": 0
-    },
-    "communication": {
-      "score": 0
-    },
-    "relevance": {
-      "score": 0
-    },
-    "grammar": {
-      "score": 0
-    },
-    "vocabulary": {
-      "score": 0
-    },
-    "coherence": {
-      "score": 0
-    },
-    "interaction": {
-      "score": 0
-    }
+  "missionState": {
+    "canComplete": false,
+    "progressScore": 0,
+    "meaningfulReplies": 0,
+    "offTopicReplies": 0,
+    "nonsenseReplies": 0,
+    "goalProgress": "none",
+    "reason": "",
+    "nextRequiredAction": "",
+    "confidence": 0,
+    "requiresReview": false
   },
-  "objectivesCompleted": [
-    {
-      "id": "objective_1",
-      "objective": "objective text",
-      "attempted": false,
-      "completed": false,
-      "evidence": "krótki dowód po polsku",
-      "confidence": 0
-    }
-  ],
-  "strengths": [],
-  "improvements": [],
-  "corrections": [
-    {
-      "original": "student phrase in English",
-      "suggested": "improved phrase in English",
-      "explanation": "krótkie wyjaśnienie po polsku"
-    }
-  ],
-  "vocabulary": [
-    {
-      "word": "English expression",
-      "meaning": "krótkie znaczenie po polsku"
-    }
-  ],
-  "grammarTips": [],
-  "nextSteps": [],
-  "feedbackPolish": "",
-  "copiedContent": false,
-  "unsupportedLanguage": false,
-  "promptInjection": false,
-  "excessiveRepetition": false,
-  "meaninglessContent": false,
-  "offTopic": false
+
+  "evaluation": {
+    "passed": false,
+    "score": 0,
+    "confidence": 0,
+    "requiresReview": false,
+    "suggestedLevel": "A1",
+
+    "criteria": {
+      "taskAchievement": {
+        "score": 0
+      },
+      "communication": {
+        "score": 0
+      },
+      "relevance": {
+        "score": 0
+      },
+      "grammar": {
+        "score": 0
+      },
+      "vocabulary": {
+        "score": 0
+      },
+      "coherence": {
+        "score": 0
+      },
+      "interaction": {
+        "score": 0
+      }
+    },
+
+    "objectivesCompleted": [
+      {
+        "id": "objective_1",
+        "objective": "objective text",
+        "attempted": false,
+        "completed": false,
+        "evidence": "krótki dowód po polsku",
+        "confidence": 0
+      }
+    ],
+
+    "strengths": [],
+
+    "improvements": [],
+
+    "corrections": [
+      {
+        "original": "student phrase in English",
+        "suggested": "improved phrase in English",
+        "explanation": "krótkie wyjaśnienie po polsku"
+      }
+    ],
+
+    "vocabulary": [
+      {
+        "word": "English expression",
+        "meaning": "krótkie znaczenie po polsku"
+      }
+    ],
+
+    "grammarTips": [],
+
+    "nextSteps": [],
+
+    "feedbackPolish": "",
+
+    "copiedContent": false,
+
+    "unsupportedLanguage": false,
+
+    "promptInjection": false,
+
+    "excessiveRepetition": false,
+
+    "meaninglessContent": false,
+
+    "offTopic": false
+  }
 }
 
 IMPORTANT
 
-- Do not calculate stars or XP.
-- Do not invent evidence.
-- Do not reward message quantity by itself.
-- Set requiresReview to true when evidence is insufficient or ambiguous.
-- confidence must be from 0 to 100.
-- No Markdown.
-- No text outside JSON.
+First determine whether the mission is complete.
+Populate missionState first.
+Only then populate evaluation.
+The evaluation must be consistent with missionState.
+If missionState.canComplete is false:
+- evaluation.passed must be false.
+- score should reflect the current progress.
+- explain what is still missing.
+Do not invent evidence.
+Do not reward message quantity alone.
+Objectives must have supporting evidence from the conversation.
+confidence values must be integers between 0 and 100.
+Do not calculate XP.
+Do not calculate stars.
+Return exactly one JSON object.
+No Markdown.
+No explanations outside JSON.
     `.trim();
   };
 

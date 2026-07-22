@@ -9,9 +9,17 @@ import {
 import {
   getMissionAiRole,
   getMissionLevel,
-  getMissionTitle,
   getUserMessages
 } from "./missionContext";
+
+import {
+  buildMissionOpeningTemplate,
+  inferMissionOpeningIntent
+} from "./missionOpeningTemplates";
+
+export {
+  inferMissionOpeningIntent
+};
 
 /*
 |--------------------------------------------------------------------------
@@ -113,88 +121,25 @@ const buildConversationMetrics = (
 export const buildLocalFallbackOpening = ({
   mission = {}
 } = {}) => {
-  const npcRole =
-    getMissionAiRole(
-      mission
+  const explicitOpening =
+    normalizeText(
+      mission.openingMessage,
+      280
     );
 
-  const missionTitle =
-    getMissionTitle(
-      mission
-    );
+  if (explicitOpening) {
+    return explicitOpening;
+  }
 
   const level =
     getMissionLevel({
       mission
     });
 
-  const role =
-    npcRole.toLowerCase();
-
-  if (
-    role.includes("waiter") ||
-    role.includes("server")
-  ) {
-    return "Hello! Welcome. What would you like to order?";
-  }
-
-  if (
-    role.includes("receptionist")
-  ) {
-    return "Hello! How can I help you today?";
-  }
-
-  if (
-    role.includes("doctor")
-  ) {
-    return "Hello. How are you feeling today?";
-  }
-
-  if (
-    role.includes("teacher")
-  ) {
-    return "Hello! Are you ready to begin?";
-  }
-
-  if (
-    role.includes("interviewer")
-  ) {
-    return "Hello. Thank you for coming today. Could you introduce yourself?";
-  }
-
-  if (
-    role.includes("manager") ||
-    role.includes("team leader")
-  ) {
-    return "Hello. Let’s discuss the situation. Can you tell me your plan?";
-  }
-
-  if (
-    role.includes("customer")
-  ) {
-    return "Hello. I need some help, please.";
-  }
-
-  if (
-    role.includes("police")
-  ) {
-    return "Hello. Please explain what happened.";
-  }
-
-  if (
-    role.includes("friend")
-  ) {
-    return "Hi! It’s good to see you. How are you?";
-  }
-
-  if (
-    level === "A1" ||
-    level === "A2"
-  ) {
-    return "Hello! Let’s begin. What would you like to say?";
-  }
-
-  return `Hello. Let’s begin the mission: ${missionTitle}.`;
+  return buildMissionOpeningTemplate({
+    mission,
+    level
+  });
 };
 
 /*
@@ -345,6 +290,8 @@ export const buildLocalFallbackFeedback = ({
       MISSION_FALLBACK_PROVIDER,
 
     isFallback: true,
+
+    evaluationCompleted: false,
 
     isFinal: false,
 

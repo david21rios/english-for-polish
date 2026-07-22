@@ -71,11 +71,6 @@ const MissionFeedback = ({
       true &&
     feedback?.isFallback !== true;
 
-  const isFinalPassed =
-    status ===
-    MISSION_FEEDBACK_VIEW_STATUS
-      .passed;
-
   const criteria =
     feedback?.criteria &&
     typeof feedback.criteria ===

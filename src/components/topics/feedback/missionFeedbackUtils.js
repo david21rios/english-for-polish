@@ -1,5 +1,9 @@
 // src/components/topics/feedback/missionFeedbackUtils.js
 
+import {
+  classifyMissionResult
+} from "../../../services/ai/missions/evaluation/missionResultClassifier";
+
 /*
 |--------------------------------------------------------------------------
 | Generic normalization
@@ -133,24 +137,9 @@ export const getMissionFeedbackScore = (
 export const getMissionFeedbackStars = (
   feedback = {}
 ) => {
-  const isPending =
-    feedback.isFinal !== true ||
-    feedback.requiresReview ===
-      true ||
-    feedback.isFallback === true;
-
-  if (isPending) {
-    return 0;
-  }
-
-  return clampFeedbackNumber(
-    feedback.stars,
-    {
-      minimum: 0,
-      maximum: 5,
-      fallback: 0
-    }
-  );
+  return classifyMissionResult(
+    feedback
+  ).stars;
 };
 
 export const getMissionFeedbackXp = ({
@@ -222,52 +211,21 @@ export const getMissionFeedbackXp = ({
 export const MISSION_FEEDBACK_VIEW_STATUS =
   Object.freeze({
     passed: "passed",
-    failed: "failed",
+    good: "good",
+    excellent: "excellent",
+    developing: "developing",
+    failed: "not_passed",
     pending: "pending",
-    review: "review",
+    review: "review_required",
     unavailable: "unavailable"
   });
 
 export const getMissionFeedbackViewStatus = (
   feedback = {}
 ) => {
-  if (
-    feedback.isFallback === true ||
-    feedback.status ===
-      "unavailable"
-  ) {
-    return MISSION_FEEDBACK_VIEW_STATUS
-      .unavailable;
-  }
-
-  if (
-    feedback.requiresReview ===
-      true ||
-    feedback.status ===
-      "manual_review"
-  ) {
-    return MISSION_FEEDBACK_VIEW_STATUS
-      .review;
-  }
-
-  if (
-    feedback.isFinal !== true ||
-    feedback.status ===
-      "pending_evaluation"
-  ) {
-    return MISSION_FEEDBACK_VIEW_STATUS
-      .pending;
-  }
-
-  if (
-    feedback.passed === true
-  ) {
-    return MISSION_FEEDBACK_VIEW_STATUS
-      .passed;
-  }
-
-  return MISSION_FEEDBACK_VIEW_STATUS
-    .failed;
+  return classifyMissionResult(
+    feedback
+  ).key;
 };
 
 export const getMissionFeedbackStatusContent = (
@@ -301,6 +259,55 @@ export const getMissionFeedbackStatusContent = (
     },
 
     [MISSION_FEEDBACK_VIEW_STATUS
+      .good]: {
+      eyebrow: "Misja ukończona",
+      title: "Bardzo dobry wynik",
+      description:
+        normalizeFeedbackText(
+          feedback.feedbackPolish
+        ) ||
+        "Ukończyłeś misję z dobrym wynikiem i skutecznie zrealizowałeś jej wymagania.",
+      gradientClass:
+        "from-emerald-600 to-green-600",
+      accentClass:
+        "text-emerald-100",
+      iconType: "trophy"
+    },
+
+    [MISSION_FEEDBACK_VIEW_STATUS
+      .excellent]: {
+      eyebrow: "Misja ukończona",
+      title: "Doskonała robota",
+      description:
+        normalizeFeedbackText(
+          feedback.feedbackPolish
+        ) ||
+        "Ukończyłeś misję z doskonałym wynikiem i bardzo dobrze poradziłeś sobie w rozmowie.",
+      gradientClass:
+        "from-green-600 to-teal-600",
+      accentClass:
+        "text-green-100",
+      iconType: "trophy"
+    },
+
+    [MISSION_FEEDBACK_VIEW_STATUS
+      .developing]: {
+      eyebrow:
+        "Misja wymaga jeszcze praktyki",
+      title: "Dobry początek",
+      description:
+        normalizeFeedbackText(
+          feedback.feedbackPolish
+        ) ||
+        "Jesteś blisko zaliczenia misji. Przećwicz wskazane elementy i spróbuj ponownie.",
+      gradientClass:
+        "from-amber-500 to-orange-600",
+      accentClass:
+        "text-amber-50",
+      iconType: "retry"
+    },
+
+    [MISSION_FEEDBACK_VIEW_STATUS
       .failed]: {
       eyebrow:
         "Misja wymaga dalszej pracy",
@@ -315,7 +322,7 @@ export const getMissionFeedbackStatusContent = (
         "Rozmowa została oceniona, ale cele misji nie zostały jeszcze wystarczająco zrealizowane.",
 
       gradientClass:
-        "from-orange-600 to-red-600",
+        "from-red-600 to-red-700",
 
       accentClass:
         "text-orange-100",

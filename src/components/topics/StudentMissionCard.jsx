@@ -27,7 +27,7 @@ const MissionCard = ({ mission, onStart }) => {
   const isLocked = mission.locked === true;
   const isCompleted = mission.completed === true;
 
-  const xpReward = Number(mission.xpReward || mission.xp || 10);
+  const xpReward = Number(mission.xpReward ?? mission.xp ?? 10);
   const difficulty = formatDifficulty(mission.difficulty || "easy");
   const level = mission.level || "A1";
   const estimatedMinutes = Number(mission.estimatedMinutes || 5);

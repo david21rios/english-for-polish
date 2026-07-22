@@ -169,7 +169,8 @@ const validateMissionStateInput = ({
 
 const requestMissionState =
   async ({
-    prompt
+    prompt,
+    auditContext = {}
   }) => {
     try {
       return await sendGeminiMessage({
@@ -199,7 +200,9 @@ const requestMissionState =
           STATE_MAX_OUTPUT_TOKENS,
 
         thinkingBudget:
-          STATE_THINKING_BUDGET
+          STATE_THINKING_BUDGET,
+
+        auditContext
       });
     } catch (error) {
       throw buildMissionStateError({
@@ -378,7 +381,22 @@ export const analyzeMissionState =
 
       const rawResponse =
         await requestMissionState({
-          prompt
+          prompt,
+          auditContext: {
+            operation:
+              "mission_state_analysis",
+            missionId:
+              mission?.id || null,
+            conversationMessageCount:
+              normalizedConversation
+                .length,
+            userMessageCount:
+              normalizedConversation.filter(
+                (message) =>
+                  message.sender ===
+                  "user"
+              ).length
+          }
         });
 
       const parsedResponse =

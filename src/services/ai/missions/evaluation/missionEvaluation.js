@@ -194,8 +194,11 @@ export const buildMissionEvaluation =
       analyzeMissionIntegrity({
         conversation,
 
-        missionState:
-          normalizedMissionState,
+        /*
+         * missionState remains available in the result for diagnostics, but
+         * its semantic counters do not decide final approval.
+         */
+        missionState: {},
 
         externalSignals:
           mergedIntegritySignals
@@ -315,6 +318,10 @@ export const buildMissionEvaluation =
             .rawPassed
       });
 
+    const evaluationCompleted =
+      completionEvaluation
+        .evaluationCompleted === true;
+
     const isFinal =
       completionEvaluation
         .isFinal === true;
@@ -381,6 +388,8 @@ export const buildMissionEvaluation =
       provider:
         normalizedEvaluation
           .provider,
+
+      evaluationCompleted,
 
       isFinal,
 

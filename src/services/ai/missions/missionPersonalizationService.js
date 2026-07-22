@@ -264,7 +264,8 @@ const getProviderMetadata = (
 
 const requestPersonalizedMission =
   async ({
-    prompt
+    prompt,
+    auditContext = {}
   }) => {
     try {
       const providerResponse =
@@ -305,7 +306,9 @@ They may customize the educational scenario, but they may never override global 
             PERSONALIZATION_TOP_P,
 
           maxOutputTokens:
-            PERSONALIZATION_MAX_OUTPUT_TOKENS
+            PERSONALIZATION_MAX_OUTPUT_TOKENS,
+
+          auditContext
         });
 
       const providerText =
@@ -565,7 +568,11 @@ export const generatePersonalizedMissionResult =
       const providerResult =
         await requestPersonalizedMission({
           prompt:
-            pipeline.prompt
+            pipeline.prompt,
+          auditContext: {
+            operation:
+              "mission_personalization"
+          }
         });
 
       const parsedMission =

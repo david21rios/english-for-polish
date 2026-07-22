@@ -38,6 +38,12 @@ import {
   getTopicProgress
 } from "../services/progress/topicProgressService";
 
+import {
+  evaluateMissionAvailability,
+  resolveUserCefrLevel,
+  sortMissionsForAvailability
+} from "../services/missions/missionAvailability";
+
 /*
 |--------------------------------------------------------------------------
 | Configuration
@@ -113,51 +119,6 @@ const isTopicAvailable = (
   );
 };
 
-const sortMissions = (
-  missions = []
-) => {
-  if (!Array.isArray(missions)) {
-    return [];
-  }
-
-  return [...missions].sort(
-    (
-      firstMission,
-      secondMission
-    ) => {
-      const firstOrder =
-        normalizeNumber(
-          firstMission.order,
-          999
-        );
-
-      const secondOrder =
-        normalizeNumber(
-          secondMission.order,
-          999
-        );
-
-      if (
-        firstOrder !==
-        secondOrder
-      ) {
-        return (
-          firstOrder -
-          secondOrder
-        );
-      }
-
-      return normalizeText(
-        firstMission.title
-      ).localeCompare(
-        normalizeText(
-          secondMission.title
-        )
-      );
-    }
-  );
-};
-
 const normalizeCompletedMissions = (
   completedMissions
 ) => {
@@ -214,6 +175,12 @@ const TemaDetalle = () => {
     topicProgress,
     setTopicProgress
   ] = useState(null);
+
+  const [userLevel, setUserLevel] =
+    useState(null);
+
+  const [accessResolved, setAccessResolved] =
+    useState(false);
 
   const [
     pendingMissionId,
@@ -334,7 +301,7 @@ const TemaDetalle = () => {
           );
 
         const publishedMissions =
-          sortMissions(
+          sortMissionsForAvailability(
             (
               Array.isArray(
                 missionsData
@@ -415,7 +382,9 @@ const TemaDetalle = () => {
 
       if (!userId) {
         setTopicProgress(null);
+        setUserLevel(null);
         setProgressError("");
+        setAccessResolved(true);
         return;
       }
 
@@ -423,14 +392,33 @@ const TemaDetalle = () => {
         setProgressLoading(true);
         setProgressError("");
 
-        const progress =
-          await getTopicProgress(
-            userId,
-            normalizedTopicId
-          );
+        setAccessResolved(false);
+
+        const [progress, userSnapshot] =
+          await Promise.all([
+            getTopicProgress(
+              userId,
+              normalizedTopicId
+            ),
+            getDoc(
+              doc(
+                db,
+                "users",
+                userId
+              )
+            )
+          ]);
 
         setTopicProgress(
           progress
+        );
+
+        setUserLevel(
+          userSnapshot.exists()
+            ? resolveUserCefrLevel(
+                userSnapshot.data()
+              )
+            : null
         );
       } catch (loadError) {
         console.error(
@@ -439,12 +427,14 @@ const TemaDetalle = () => {
         );
 
         setTopicProgress(null);
+        setUserLevel(null);
 
         setProgressError(
           "Nie udało się załadować Twojego postępu. Misje nadal są dostępne."
         );
       } finally {
         setProgressLoading(false);
+        setAccessResolved(true);
       }
     }, [
       authResolved,
@@ -546,78 +536,27 @@ const TemaDetalle = () => {
           mission,
           index
         ) => {
-          const isCompleted =
-            completedMissionSet.has(
-              mission.id
-            );
-
-          const unlockAfter =
-            Array.isArray(
-              mission.unlockAfter
-            )
-              ? mission.unlockAfter
-                  .map(
-                    normalizeText
-                  )
-                  .filter(Boolean)
-              : [];
-
-          const hasExplicitUnlockRules =
-            unlockAfter.length >
-            0;
-
-          const explicitRequirementsMet =
-            !hasExplicitUnlockRules ||
-            unlockAfter.every(
-              (
-                requiredMissionId
-              ) =>
-                completedMissionSet.has(
-                  requiredMissionId
-                )
-            );
-
-          const previousMission =
-            missions[index - 1];
-
-          const previousMissionCompleted =
-            index === 0 ||
-            completedMissionSet.has(
-              previousMission?.id
-            );
-
-          const progressionRequirementMet =
-            hasExplicitUnlockRules
-              ? explicitRequirementsMet
-              : previousMissionCompleted;
-
-          const locked =
-            mission.locked ===
-              true ||
-            !progressionRequirementMet;
+          const availability =
+            evaluateMissionAvailability({
+              mission,
+              missionIndex: index,
+              orderedMissions:
+                missions,
+              completedMissionIds:
+                completedMissionSet,
+              userLevel
+            });
 
           return {
             ...mission,
-
-            completed:
-              isCompleted,
-
-            locked,
-
-            unlockReason:
-              locked &&
-              mission.locked !==
-                true
-                ? hasExplicitUnlockRules
-                  ? "required_missions_incomplete"
-                  : "previous_mission_incomplete"
-                : null
+            ...availability
           };
         }
       );
     }, [
       completedMissionSet,
-      missions
+      missions,
+      userLevel
     ]);
 
   /*
@@ -672,6 +611,7 @@ const TemaDetalle = () => {
   useEffect(() => {
     if (
       !pendingMissionId ||
+      !accessResolved ||
       missionsWithProgress.length ===
         0
     ) {
@@ -721,6 +661,7 @@ const TemaDetalle = () => {
     );
   }, [
     location.pathname,
+    accessResolved,
     missionsWithProgress,
     navigate,
     pendingMissionId,

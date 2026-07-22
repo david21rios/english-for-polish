@@ -39,10 +39,6 @@ const MissionPlayer = ({
     aiLoading,
     finishingMission,
 
-    missionState,
-    canRequestEvaluation,
-    nextRequiredAction,
-
     minimumReplies,
     userMessagesCount,
     minimumReplyCountReached,

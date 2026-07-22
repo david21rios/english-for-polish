@@ -9,6 +9,10 @@ import {
   normalizeContextObjectives
 } from "../missionContext";
 
+import {
+  normalizeMissionConfidence
+} from "../missionJson";
+
 /*
 |--------------------------------------------------------------------------
 | Text normalization
@@ -135,16 +139,8 @@ const normalizeObjectiveResult = (
       ),
 
     confidence:
-      Math.max(
-        0,
-        Math.min(
-          100,
-          Math.round(
-            Number(
-              result.confidence
-            ) || 0
-          )
-        )
+      normalizeMissionConfidence(
+        result.confidence
       )
   };
 };
@@ -257,7 +253,7 @@ export const evaluateMissionObjectives = ({
 
           confidence:
             matchedResult
-              ?.confidence || 0
+              ?.confidence ?? null
         };
       }
     );

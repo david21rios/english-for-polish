@@ -1,12 +1,8 @@
 // src/services/ai/missions/evaluation/starsCalculator.js
 
 import {
-  MISSION_STAR_THRESHOLDS
-} from "./evaluationConstants";
-
-import {
-  clampMissionScore
-} from "./scoreCalculator";
+  classifyMissionResult
+} from "./missionResultClassifier";
 
 /*
 |--------------------------------------------------------------------------
@@ -73,40 +69,20 @@ export const calculateMissionStars = ({
     return 0;
   }
 
-  const normalizedScore =
-    clampMissionScore(score);
-
   if (
     severeIntegrityIssue === true
   ) {
     return 1;
   }
 
-  const matchedThreshold =
-    MISSION_STAR_THRESHOLDS.find(
-      (threshold) =>
-        normalizedScore >=
-        threshold.minimumScore
-    );
-
-  const calculatedStars =
-    matchedThreshold?.stars || 1;
-
-  /*
-   * A failed mission cannot receive
-   * more than two stars.
-   */
-  if (!passed) {
-    return Math.min(
-      calculatedStars,
-      2
-    );
-  }
-
-  return clampStars(
-    calculatedStars,
-    1
-  );
+  return classifyMissionResult({
+    score,
+    passed,
+    evaluationCompleted: isFinal,
+    isFinal,
+    requiresReview,
+    isFallback: false
+  }).stars;
 };
 
 /*

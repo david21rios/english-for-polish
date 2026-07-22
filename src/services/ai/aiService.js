@@ -314,7 +314,8 @@ export const sendAIMessage =
     lessonTitle = "",
     writingTask = {},
     rubric = {},
-    forceJson = false
+    forceJson = false,
+    auditContext = {}
   } = {}) => {
     const normalizedMode =
       normalizeMode(mode);
@@ -390,6 +391,7 @@ export const sendAIMessage =
           normalizedUserMessage,
         context:
           normalizedContext,
+        auditContext,
         ...modeConfiguration
       });
     }

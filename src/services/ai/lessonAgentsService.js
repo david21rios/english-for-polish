@@ -107,6 +107,10 @@ const runAgent = async (
       userMessage: prompt,
       mode: "lesson_generator",
       forceJson: true,
+      auditContext: {
+        operation:
+          "admin_generation"
+      },
       context:
         "Return only valid JSON. Do not use Markdown. Do not include comments. Do not include trailing commas. Use double quotes for all property names and string values."
     });

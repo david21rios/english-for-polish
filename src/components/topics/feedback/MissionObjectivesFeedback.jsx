@@ -79,10 +79,16 @@ const normalizeObjective = (
     return null;
   }
 
+  const hasConfidence =
+    item.confidence !== null &&
+    item.confidence !== undefined &&
+    String(item.confidence).trim() !==
+      "";
+
   const numericConfidence =
-    Number(
-      item.confidence
-    );
+    hasConfidence
+      ? Number(item.confidence)
+      : Number.NaN;
 
   return {
     id:

@@ -389,7 +389,7 @@ export const buildObjectivesText = (
 |--------------------------------------------------------------------------
 */
 
-const normalizeConversationSender = (
+export const normalizeConversationSender = (
   sender
 ) => {
   const normalizedSender =
@@ -404,13 +404,24 @@ const normalizeConversationSender = (
     return "user";
   }
 
-  return "ai";
+  if (
+    normalizedSender === "npc" ||
+    normalizedSender === "ai"
+  ) {
+    return "ai";
+  }
+
+  return null;
 };
 
 const normalizeConversationMessage = (
   message = {},
   index = 0
 ) => {
+  if (!message || typeof message !== "object" || Array.isArray(message)) {
+    return null;
+  }
+
   const text =
     normalizeMultilineText(
       message.text ||
@@ -424,6 +435,16 @@ const normalizeConversationMessage = (
     return null;
   }
 
+  const sender =
+    normalizeConversationSender(
+      message.sender ||
+        message.role
+    );
+
+  if (!sender) {
+    return null;
+  }
+
   return {
     id:
       normalizeSingleLineText(
@@ -432,11 +453,7 @@ const normalizeConversationMessage = (
       ) ||
       `message_${index + 1}`,
 
-    sender:
-      normalizeConversationSender(
-        message.sender ||
-          message.role
-      ),
+    sender,
 
     text
   };
@@ -502,10 +519,11 @@ export const buildConversationText = (
   const conversationText =
     normalizedConversation
       .map((message) => {
-        const speaker =
-          message.sender === "user"
-            ? "Student"
-            : "NPC";
+      const speaker =
+        message.sender === "user" ||
+        message.sender === "student"
+          ? "Student"
+          : "NPC";
 
         return [
           `<message sender="${speaker}">`,

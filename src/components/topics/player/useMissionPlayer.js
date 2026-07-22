@@ -159,9 +159,6 @@ const AI_NETWORK_WARNING =
 const OPENING_WARNING =
   "Nie udało się w pełni połączyć z usługą AI. Rozmowa została rozpoczęta przy użyciu bezpiecznej wiadomości zastępczej.";
 
-const STATE_WARNING =
-  "Nie udało się teraz potwierdzić postępu misji. Twoja rozmowa została zachowana.";
-
 const EVALUATION_WARNING =
   "Nie udało się przeprowadzić wiarygodnej oceny. Misja nie została zakończona i XP nie zostały przyznane.";
 
@@ -331,6 +328,27 @@ const createNpcMessage = ({
   };
 };
 
+const buildEvaluationSnapshot = (
+  conversation = []
+) => {
+  if (!Array.isArray(conversation)) {
+    return "";
+  }
+
+  return JSON.stringify(
+    conversation.map((item) => [
+      normalizeText(
+        item?.sender,
+        20
+      ).toLowerCase(),
+      normalizeText(
+        item?.text,
+        5000
+      )
+    ])
+  );
+};
+
 /*
 |--------------------------------------------------------------------------
 | Hook
@@ -410,6 +428,13 @@ const useMissionPlayer = ({
    */
   const completionRef =
     useRef(false);
+
+  /*
+   * Prevents evaluating the same conversation snapshot again after a
+   * trustworthy final result has already been produced.
+   */
+  const completedEvaluationSnapshotRef =
+    useRef("");
 
   /*
    * Incremented whenever the active mission changes.
@@ -513,6 +538,9 @@ const useMissionPlayer = ({
 
     completionRef.current =
       false;
+
+    completedEvaluationSnapshotRef.current =
+      "";
 
     setMessage("");
     setMessages([]);
@@ -1107,10 +1135,18 @@ const useMissionPlayer = ({
 
   const handleCompleteMission =
     useCallback(async () => {
+      const evaluationSnapshot =
+        buildEvaluationSnapshot(
+          messages
+        );
+
       if (
         !minimumReplyCountReached ||
         completionRef.current ||
-        interactionDisabled
+        interactionDisabled ||
+        completedEvaluationSnapshotRef
+          .current ===
+          evaluationSnapshot
       ) {
         return;
       }
@@ -1127,7 +1163,11 @@ const useMissionPlayer = ({
       setFinishingMission(
         true
       );
-
+      /*
+      * The final evaluation performs both mission-state analysis
+      * and pedagogical evaluation in a single AI request.
+      * No intermediate mission-state request is executed.
+      */
       try {
         const evaluation =
           await finalizeMission({
@@ -1137,9 +1177,6 @@ const useMissionPlayer = ({
 
             conversation:
               messages,
-
-            missionState:
-              null,
 
             repeatedCompletion:
               mission?.completed ===
@@ -1156,9 +1193,22 @@ const useMissionPlayer = ({
           return;
         }
 
-        if (
-          evaluation?.isFinal !==
+        const evaluationCompleted =
+          evaluation
+            ?.evaluationCompleted ===
             true ||
+          (
+            evaluation
+              ?.evaluationCompleted ==
+              null &&
+            evaluation?.isFinal ===
+              true &&
+            evaluation?.isFallback !==
+              true
+          );
+
+        if (
+          !evaluationCompleted ||
           evaluation?.requiresReview ===
             true ||
           evaluation?.isFallback ===
@@ -1180,6 +1230,9 @@ const useMissionPlayer = ({
 
           return;
         }
+
+        completedEvaluationSnapshotRef.current =
+          evaluationSnapshot;
 
         /*
          * Toda evaluación final y confiable debe enviarse

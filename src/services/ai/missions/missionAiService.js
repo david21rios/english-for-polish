@@ -345,87 +345,16 @@ export const finalizeMission =
     userContext = {},
     topic = {},
     conversation = [],
-    missionState = null,
     externalSignals = {},
     repeatedCompletion = false,
     bonusMultiplier = 1,
     allowFallback = true
   } = {}) => {
-    let resolvedMissionState =
-      missionState;
-
-    if (
-      !isPlainObject(
-        resolvedMissionState
-      )
-    ) {
-      resolvedMissionState =
-        await analyzeMissionState({
-          mission,
-          userContext,
-          topic,
-          conversation,
-          allowFallback
-        });
-    }
-
-    if (
-      !canRequestMissionCompletion(
-        resolvedMissionState
-      )
-    ) {
-      return {
-        status:
-          resolvedMissionState
-            ?.status ||
-          "mission_incomplete",
-
-        provider:
-          resolvedMissionState
-            ?.provider ||
-          "mission_controller",
-
-        isFinal: false,
-
-        passed: false,
-
-        requiresReview:
-          resolvedMissionState
-            ?.requiresReview ===
-            true,
-
-        score: null,
-
-        stars: 0,
-
-        xpMultiplier: 0,
-
-        xpAwarded: 0,
-
-        canAwardXp: false,
-
-        missionState:
-          resolvedMissionState,
-
-        nextRequiredAction:
-          getMissionStateNextAction(
-            resolvedMissionState
-          ),
-
-        evaluatedAt:
-          new Date().toISOString()
-      };
-    }
-
     return evaluateMissionConversationResult({
       mission,
       userContext,
       topic,
       conversation,
-
-      missionState:
-        resolvedMissionState,
-
       externalSignals,
       repeatedCompletion,
       bonusMultiplier,

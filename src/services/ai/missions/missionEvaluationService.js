@@ -21,10 +21,6 @@ import {
 } from "./missionPromptBuilder";
 
 import {
-  analyzeMissionState
-} from "./missionStateAnalyzer";
-
-import {
   tryBuildMissionEvaluation
 } from "./evaluation/missionEvaluation";
 
@@ -213,7 +209,8 @@ const validateEvaluationInput = ({
 
 const requestMissionEvaluation =
   async ({
-    prompt
+    prompt,
+    auditContext = {}
   }) => {
     try {
       return await sendGeminiMessage({
@@ -244,7 +241,9 @@ const requestMissionEvaluation =
           EVALUATION_MAX_OUTPUT_TOKENS,
 
         thinkingBudget:
-          EVALUATION_THINKING_BUDGET
+          EVALUATION_THINKING_BUDGET,
+
+        auditContext
       });
     } catch (error) {
       throw buildMissionEvaluationError({
@@ -281,154 +280,6 @@ const requestMissionEvaluation =
 |--------------------------------------------------------------------------
 */
 
-const isUsableMissionState = (
-  missionState
-) => {
-  return (
-    isPlainObject(
-      missionState
-    ) &&
-    missionState.isFallback !==
-      true &&
-    missionState.requiresReview !==
-      true
-  );
-};
-
-const validateResolvedMissionState = (
-  missionState
-) => {
-  if (!isPlainObject(missionState)) {
-    throw buildMissionEvaluationError({
-      message:
-        "Mission state is unavailable.",
-
-      code:
-        "MISSION_STATE_UNAVAILABLE",
-
-      retryable:
-        true
-    });
-  }
-
-  if (
-    missionState.isFallback ===
-    true
-  ) {
-    throw buildMissionEvaluationError({
-      message:
-        "Mission completion could not be verified because the state analysis used a fallback.",
-
-      code:
-        "MISSION_STATE_UNAVAILABLE",
-
-      retryable:
-        missionState?.error
-          ?.retryable !== false,
-
-      details: {
-        missionState
-      }
-    });
-  }
-
-  if (
-    missionState.requiresReview ===
-    true
-  ) {
-    throw buildMissionEvaluationError({
-      message:
-        "Mission state requires review before final evaluation.",
-
-      code:
-        "MISSION_STATE_REQUIRES_REVIEW",
-
-      retryable:
-        false,
-
-      details: {
-        missionState
-      }
-    });
-  }
-
-  if (
-    missionState.canComplete !==
-    true
-  ) {
-    throw buildMissionEvaluationError({
-      message:
-        "Mission state does not allow final evaluation yet.",
-
-      code:
-        "MISSION_NOT_READY_FOR_EVALUATION",
-
-      retryable:
-        false,
-
-      details: {
-        progressScore:
-          normalizeNumber(
-            missionState
-              .progressScore,
-            0
-          ),
-
-        nextRequiredAction:
-          missionState
-            .nextRequiredAction ||
-          ""
-      }
-    });
-  }
-
-  return missionState;
-};
-
-/*
-|--------------------------------------------------------------------------
-| Mission-state resolution
-|--------------------------------------------------------------------------
-|
-| The normal MissionPlayer flow supplies an already calculated mission state.
-| A new Gemini state-analysis request is made only when that state is missing
-| or unusable.
-|
-*/
-
-const resolveMissionState =
-  async ({
-    mission,
-    userContext,
-    topic,
-    conversation,
-    missionState
-  }) => {
-    if (
-      isUsableMissionState(
-        missionState
-      )
-    ) {
-      return validateResolvedMissionState(
-        missionState
-      );
-    }
-
-    const analyzedState =
-      await analyzeMissionState({
-        mission,
-        userContext,
-        topic,
-        conversation,
-        allowFallback:
-          true
-      });
-
-    return validateResolvedMissionState(
-      analyzedState
-    );
-  };
-
 /*
 |--------------------------------------------------------------------------
 | Detailed evaluation result
@@ -441,7 +292,6 @@ export const evaluateMissionConversationResult =
     userContext = {},
     topic = {},
     conversation = [],
-    missionState = null,
     externalSignals = {},
     repeatedCompletion = false,
     bonusMultiplier = 1,
@@ -457,18 +307,6 @@ export const evaluateMissionConversationResult =
           conversation
         });
 
-      const resolvedMissionState =
-        await resolveMissionState({
-          mission,
-          userContext,
-          topic,
-
-          conversation:
-            normalizedConversation,
-
-          missionState
-        });
-
       const prompt =
         buildMissionEvaluationPrompt({
           mission,
@@ -481,17 +319,32 @@ export const evaluateMissionConversationResult =
 
       const rawResponse =
         await requestMissionEvaluation({
-          prompt
+          prompt,
+          auditContext: {
+            operation:
+              "mission_evaluation",
+            missionId:
+              mission?.id || null,
+            conversationMessageCount:
+              normalizedConversation
+                .length,
+            userMessageCount:
+              normalizedConversation.filter(
+                (message) =>
+                  message.sender ===
+                  "user"
+              ).length
+          }
         });
 
-      const parsedEvaluation =
+      const parsedResponse =
         parseMissionJson(
           rawResponse
         );
 
       if (
         !isPlainObject(
-          parsedEvaluation
+          parsedResponse
         )
       ) {
         throw buildMissionEvaluationError({
@@ -505,6 +358,20 @@ export const evaluateMissionConversationResult =
             false
         });
       }
+
+      const resolvedMissionState =
+        isPlainObject(
+          parsedResponse.missionState
+        )
+          ? parsedResponse.missionState
+          : {};
+
+      const parsedEvaluation =
+        isPlainObject(
+          parsedResponse.evaluation
+        )
+          ? parsedResponse.evaluation
+          : {};
 
       const buildResult =
         tryBuildMissionEvaluation({
@@ -649,7 +516,7 @@ export const evaluateMissionConversationResult =
       });
     }
   };
-
+  
 /*
 |--------------------------------------------------------------------------
 | Compatibility service

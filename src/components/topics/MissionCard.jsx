@@ -27,7 +27,7 @@ const MissionCard = ({ mission, onStart }) => {
   const isLocked = mission.locked === true;
   const isCompleted = mission.completed === true;
 
-  const xpReward = Number(mission.xpReward || mission.xp || 10);
+  const xpReward = Number(mission.xpReward ?? mission.xp ?? 10);
   const difficulty = formatDifficulty(mission.difficulty || "easy");
   const level = mission.level || "A1";
   const estimatedMinutes = Number(mission.estimatedMinutes || 5);
@@ -38,10 +38,10 @@ const MissionCard = ({ mission, onStart }) => {
   return (
     <article
       className={`rounded-3xl border p-4 md:p-5 shadow-sm transition-all flex flex-col min-h-[250px] overflow-hidden ${
-        isLocked
-          ? "bg-gray-100 border-gray-200 opacity-75"
-          : isCompleted
+        isCompleted
           ? "bg-green-50 border-green-200"
+          : isLocked
+          ? "bg-gray-100 border-gray-200 opacity-75"
           : "bg-white border-gray-100 hover:shadow-xl hover:-translate-y-1"
       }`}
     >
@@ -62,17 +62,17 @@ const MissionCard = ({ mission, onStart }) => {
 
         <div
           className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 ${
-            isLocked
-              ? "bg-gray-200 text-gray-500"
-              : isCompleted
+            isCompleted
               ? "bg-green-100 text-green-700"
+              : isLocked
+              ? "bg-gray-200 text-gray-500"
               : "bg-primary-100 text-primary-600"
           }`}
         >
-          {isLocked ? (
-            <FaLock />
-          ) : isCompleted ? (
+          {isCompleted ? (
             <FaCheckCircle />
+          ) : isLocked ? (
+            <FaLock />
           ) : (
             <FaStar />
           )}

@@ -1,6 +1,10 @@
 // src/components/topics/feedback/MissionFeedbackSummary.jsx
 
 import {
+  createElement
+} from "react";
+
+import {
   FaBrain,
   FaChartLine,
   FaComments,
@@ -13,7 +17,7 @@ import {
 } from "./missionFeedbackUtils";
 
 const SummaryCard = ({
-  icon: Icon,
+  icon,
   label,
   value,
   containerClass,
@@ -25,10 +29,11 @@ const SummaryCard = ({
       className={`rounded-2xl border p-3 md:p-5 ${containerClass}`}
     >
       <div className="mb-2 flex items-center gap-2 md:mb-3 md:gap-3">
-        <Icon
-          className={`shrink-0 ${iconClass}`}
-          aria-hidden="true"
-        />
+        {createElement(icon, {
+          className:
+            `shrink-0 ${iconClass}`,
+          "aria-hidden": true
+        })}
 
         <h2 className="text-xs font-semibold text-gray-900 md:text-base">
           {label}
@@ -94,9 +99,14 @@ const MissionFeedbackSummary = ({
       )}
 
       {!alreadyCompleted &&
-        status ===
+        [
           MISSION_FEEDBACK_VIEW_STATUS
-            .passed &&
+            .passed,
+          MISSION_FEEDBACK_VIEW_STATUS
+            .good,
+          MISSION_FEEDBACK_VIEW_STATUS
+            .excellent
+        ].includes(status) &&
         !canAwardXp && (
           <div className="mx-4 mt-5 flex items-start gap-3 rounded-2xl border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-800 md:mx-8 md:mt-6">
             <FaShieldAlt className="mt-0.5 shrink-0" />

@@ -20,8 +20,12 @@ const MissionList = ({ missions = [], onStartMission }) => {
   }
 
   const completedCount = missions.filter((mission) => mission.completed).length;
-  const lockedCount = missions.filter((mission) => mission.locked).length;
-  const availableCount = missions.length - lockedCount;
+  const lockedCount = missions.filter(
+    (mission) => mission.locked && !mission.completed
+  ).length;
+  const availableCount = missions.filter(
+    (mission) => mission.available && !mission.completed
+  ).length;
 
   return (
     <section className="space-y-5 md:space-y-6">
@@ -42,7 +46,7 @@ const MissionList = ({ missions = [], onStartMission }) => {
             </p>
           </div>
 
-          <div className="grid grid-cols-3 gap-2 text-center shrink-0">
+          <div className="grid grid-cols-2 gap-2 text-center shrink-0 sm:grid-cols-4">
             <div className="bg-primary-50 text-primary-700 rounded-2xl px-3 py-2">
               <p className="font-bold">{missions.length}</p>
               <p className="text-[11px]">Razem</p>
@@ -56,6 +60,11 @@ const MissionList = ({ missions = [], onStartMission }) => {
             <div className="bg-gray-50 text-gray-600 rounded-2xl px-3 py-2">
               <p className="font-bold">{availableCount}</p>
               <p className="text-[11px]">Dostępne</p>
+            </div>
+
+            <div className="bg-gray-100 text-gray-600 rounded-2xl px-3 py-2">
+              <p className="font-bold">{lockedCount}</p>
+              <p className="text-[11px]">Zablokowane</p>
             </div>
           </div>
         </div>

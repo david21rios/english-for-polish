@@ -10,10 +10,6 @@ import {
   shouldBlockMissionCompletionForIntegrity
 } from "./antiCheatValidator";
 
-import {
-  canAutomaticallyFinalizeMission
-} from "./reviewValidator";
-
 /*
 |--------------------------------------------------------------------------
 | Generic helpers
@@ -74,7 +70,6 @@ const addCompletionBlocker = (
 export const evaluateCompletionEvidence =
   ({
     level = "A1",
-    missionState = {},
     objectiveEvaluation = {},
     integrityEvaluation = {},
     totalMessages = 0,
@@ -82,17 +77,6 @@ export const evaluateCompletionEvidence =
   } = {}) => {
     const cefrExpectations =
       getCefrExpectations(level);
-
-    const meaningfulReplies =
-      Math.max(
-        0,
-        Math.round(
-          Number(
-            missionState
-              .meaningfulReplies
-          ) || 0
-        )
-      );
 
     const normalizedTotalMessages =
       Math.max(
@@ -127,8 +111,11 @@ export const evaluateCompletionEvidence =
         .minimumAverageWordsPerReply ??
       2;
 
+    const meaningfulReplies =
+      normalizedTotalMessages;
+
     const sufficientMeaningfulReplies =
-      meaningfulReplies >=
+      normalizedTotalMessages >=
       minimumMeaningfulReplies;
 
     const sufficientAverageReplyLength =
@@ -147,7 +134,6 @@ export const evaluateCompletionEvidence =
     const sufficientEvidence =
       sufficientMeaningfulReplies &&
       sufficientAverageReplyLength &&
-      sufficientObjectiveEvidence &&
       !blockedByIntegrity;
 
     return {
@@ -239,186 +225,32 @@ export const validateMissionCompletion =
         totalWords
       });
 
-    if (
-      missionState.canComplete !==
-      true
-    ) {
-      addCompletionBlocker(
-        blockers,
-        {
-          code:
-            "MISSION_STATE_NOT_COMPLETE",
-
-          message:
-            "The mission-state evaluator did not authorize completion.",
-
-          details: {
-            reason:
-              missionState.reason ||
-              ""
-          }
-        }
-      );
-    }
-
-    if (
-      progressScore <
-      MISSION_COMPLETION_THRESHOLDS
-        .minimumProgressScore
-    ) {
-      addCompletionBlocker(
-        blockers,
-        {
-          code:
-            "INSUFFICIENT_PROGRESS",
-
-          message:
-            "Mission progress is below the required threshold.",
-
-          details: {
-            progressScore,
-
-            minimumProgressScore:
-              MISSION_COMPLETION_THRESHOLDS
-                .minimumProgressScore
-          }
-        }
-      );
-    }
-
-    if (
-      evidenceEvaluation
-        .sufficientMeaningfulReplies !==
-      true
-    ) {
-      addCompletionBlocker(
-        blockers,
-        {
-          code:
-            "INSUFFICIENT_MEANINGFUL_REPLIES",
-
-          message:
-            "The student did not provide enough meaningful replies.",
-
-          details: {
-            meaningfulReplies:
-              evidenceEvaluation
-                .meaningfulReplies,
-
-            minimumMeaningfulReplies:
-              evidenceEvaluation
-                .minimumMeaningfulReplies
-          }
-        }
-      );
-    }
-
-    if (
-      evidenceEvaluation
-        .sufficientAverageReplyLength !==
-      true
-    ) {
-      addCompletionBlocker(
-        blockers,
-        {
-          code:
-            "INSUFFICIENT_REPLY_DETAIL",
-
-          message:
-            "The replies are too short for the configured CEFR level.",
-
-          severity: "medium",
-
-          details: {
-            averageWordsPerReply:
-              evidenceEvaluation
-                .averageWordsPerReply,
-
-            minimumAverageWordsPerReply:
-              evidenceEvaluation
-                .minimumAverageWordsPerReply
-          }
-        }
-      );
-    }
-
-    if (
+    const requiredObjectivesSatisfied =
       objectiveEvaluation
-        .allRequiredAttempted !== true
-    ) {
-      addCompletionBlocker(
-        blockers,
-        {
-          code:
-            "REQUIRED_OBJECTIVES_NOT_ATTEMPTED",
-
-          message:
-            "Not all required mission objectives were attempted.",
-
-          details: {
-            unattemptedObjectives:
-              objectiveEvaluation
-                .unattemptedRequiredObjectives ||
-              []
-          }
-        }
-      );
-    }
-
-    if (
+        .requiredObjectives === 0 ||
       objectiveEvaluation
-        .goalAchieved !== true
-    ) {
+        .requiredCompletionRatio === 1;
+
+    if (!requiredObjectivesSatisfied) {
       addCompletionBlocker(
         blockers,
         {
           code:
-            "MISSION_GOAL_NOT_ACHIEVED",
+            "REQUIRED_OBJECTIVES_NOT_COMPLETED",
 
           message:
-            "The required mission goal was not sufficiently achieved.",
+            "Not all required mission objectives were completed.",
 
           details: {
             requiredCompletionRatio:
               objectiveEvaluation
                 .requiredCompletionRatio,
 
-            minimumRequiredRatio:
+            missingObjectives:
               objectiveEvaluation
-                .minimumRequiredRatio
+                .missingRequiredObjectives ||
+              []
           }
-        }
-      );
-    }
-
-    if (
-      integrityEvaluation
-        .mostlyOffTopic === true
-    ) {
-      addCompletionBlocker(
-        blockers,
-        {
-          code:
-            "MOSTLY_OFF_TOPIC",
-
-          message:
-            "Most of the conversation was unrelated to the mission."
-        }
-      );
-    }
-
-    if (
-      integrityEvaluation
-        .mostlyMeaningless === true
-    ) {
-      addCompletionBlocker(
-        blockers,
-        {
-          code:
-            "MOSTLY_MEANINGLESS",
-
-          message:
-            "Most of the conversation did not contain meaningful communication."
         }
       );
     }
@@ -466,11 +298,7 @@ export const validateMissionCompletion =
       );
     }
 
-    if (
-      !canAutomaticallyFinalizeMission(
-        reviewEvaluation
-      )
-    ) {
+    if (reviewEvaluation?.requiresReview === true) {
       addCompletionBlocker(
         blockers,
         {
@@ -489,36 +317,17 @@ export const validateMissionCompletion =
       );
     }
 
-    if (
-      confidence > 0 &&
-      confidence <
-        MISSION_COMPLETION_THRESHOLDS
-          .minimumAutomaticConfidence
-    ) {
-      addCompletionBlocker(
-        blockers,
-        {
-          code:
-            "LOW_STATE_CONFIDENCE",
-
-          message:
-            "Mission-state confidence is too low for automatic completion.",
-
-          severity: "medium",
-
-          details: {
-            confidence,
-
-            requiredConfidence:
-              MISSION_COMPLETION_THRESHOLDS
-                .minimumAutomaticConfidence
-          }
-        }
-      );
-    }
-
     const canComplete =
       blockers.length === 0;
+
+    /*
+     * Reaching this validator means Gemini returned a parseable evaluation
+     * and the deterministic evaluation pipeline completed successfully.
+     * A pedagogically failed mission is still a completed evaluation.
+     */
+    const evaluationCompleted =
+      reviewEvaluation
+        ?.requiresReview !== true;
 
     /*
      * Gemini's passed value is retained only
@@ -527,6 +336,7 @@ export const validateMissionCompletion =
      * It never overrides local validation.
      */
     const passed =
+      evaluationCompleted &&
       canComplete &&
       normalizedScore >=
         MISSION_SCORE_THRESHOLDS
@@ -539,12 +349,12 @@ export const validateMissionCompletion =
     return {
       canComplete,
 
+      evaluationCompleted,
+
       passed,
 
       isFinal:
-        canComplete &&
-        reviewEvaluation
-          ?.requiresReview !== true,
+        evaluationCompleted,
 
       score:
         normalizedScore,
@@ -561,8 +371,7 @@ export const validateMissionCompletion =
         evidenceEvaluation,
 
       goalAchieved:
-        objectiveEvaluation
-          .goalAchieved === true,
+        requiredObjectivesSatisfied,
 
       blockers,
 

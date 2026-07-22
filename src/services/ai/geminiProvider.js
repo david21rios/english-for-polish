@@ -9,6 +9,8 @@ const DEFAULT_REQUEST_TIMEOUT = 45000;
 
 const MAX_RETRY_DELAY = 65000;
 
+let geminiAuditRequestSequence = 0;
+
 const GEMINI_API_KEY = String(
   import.meta.env.VITE_GEMINI_API_KEY ||
     ""
@@ -187,6 +189,54 @@ const wait = (
       );
     }
   );
+};
+
+const shouldSkipAutomaticRetry = (
+  error
+) => {
+  return (
+    Number(error?.status) ===
+      429 ||
+    String(
+      error?.code || ""
+    ).toUpperCase() ===
+      "RESOURCE_EXHAUSTED"
+  );
+};
+
+const normalizeAuditContext = (
+  auditContext = {}
+) => {
+  const normalizeCount = (value) => {
+    const count = Number(value);
+
+    return Number.isFinite(count)
+      ? Math.max(0, Math.round(count))
+      : null;
+  };
+
+  return {
+    operation:
+      String(
+        auditContext?.operation ||
+          "unknown"
+      ).trim().slice(0, 80) ||
+      "unknown",
+    missionId:
+      String(
+        auditContext?.missionId || ""
+      ).trim().slice(0, 150) ||
+      null,
+    conversationMessageCount:
+      normalizeCount(
+        auditContext
+          ?.conversationMessageCount
+      ),
+    userMessageCount:
+      normalizeCount(
+        auditContext?.userMessageCount
+      )
+  };
 };
 
 /*
@@ -994,7 +1044,8 @@ export const sendGeminiMessage =
     temperature = null,
     topP = null,
     maxOutputTokens = null,
-    thinkingBudget = null
+    thinkingBudget = null,
+    auditContext = {}
   } = {}) => {
     if (!GEMINI_API_KEY) {
       throw buildProviderError({
@@ -1072,6 +1123,31 @@ export const sendGeminiMessage =
       attempt <= MAX_RETRIES;
       attempt += 1
     ) {
+      geminiAuditRequestSequence += 1;
+
+      const requestId =
+        `gemini-${geminiAuditRequestSequence}`;
+      const requestStartedAt =
+        Date.now();
+      const normalizedAuditContext =
+        normalizeAuditContext(
+          auditContext
+        );
+
+      console.info(
+        "[GeminiAudit] request-start",
+        {
+          requestId,
+          ...normalizedAuditContext,
+          model: GEMINI_MODEL,
+          timestamp:
+            new Date(
+              requestStartedAt
+            ).toISOString(),
+          attempt
+        }
+      );
+
       try {
         const response =
           await fetchWithTimeout(
@@ -1105,6 +1181,27 @@ export const sendGeminiMessage =
           lastError =
             providerError;
 
+          console.info(
+            "[GeminiAudit] request-failure",
+            {
+              requestId,
+              operation:
+                normalizedAuditContext
+                  .operation,
+              status:
+                providerError.status,
+              code:
+                providerError.code,
+              durationMs:
+                Date.now() -
+                requestStartedAt,
+              attempt
+            }
+          );
+
+          providerError.auditLogged =
+            true;
+
           console.error(
             "Gemini API error:",
             {
@@ -1133,6 +1230,9 @@ export const sendGeminiMessage =
           );
 
           if (
+            shouldSkipAutomaticRetry(
+              providerError
+            ) ||
             !providerError
               .retryable ||
             attempt ===
@@ -1160,17 +1260,36 @@ export const sendGeminiMessage =
         const data =
           await response.json();
 
-        return validateSuccessfulResponse({
-          data,
+        const responseText =
+          validateSuccessfulResponse({
+            data,
 
-          responseStatus:
-            response.status,
+            responseStatus:
+              response.status,
 
-          forceJson:
-            Boolean(
-              forceJson
-            )
-        });
+            forceJson:
+              Boolean(
+                forceJson
+              )
+          });
+
+        console.info(
+          "[GeminiAudit] request-success",
+          {
+            requestId,
+            operation:
+              normalizedAuditContext
+                .operation,
+            status:
+              response.status,
+            durationMs:
+              Date.now() -
+              requestStartedAt,
+            attempt
+          }
+        );
+
+        return responseText;
       } catch (error) {
         const normalizedError =
           normalizeRequestError(
@@ -1179,6 +1298,29 @@ export const sendGeminiMessage =
 
         lastError =
           normalizedError;
+
+        if (
+          normalizedError
+            .auditLogged !== true
+        ) {
+          console.info(
+            "[GeminiAudit] request-failure",
+            {
+              requestId,
+              operation:
+                normalizedAuditContext
+                  .operation,
+              status:
+                normalizedError.status,
+              code:
+                normalizedError.code,
+              durationMs:
+                Date.now() -
+                requestStartedAt,
+              attempt
+            }
+          );
+        }
 
         console.error(
           "Gemini request failed:",
@@ -1210,6 +1352,9 @@ export const sendGeminiMessage =
         );
 
         if (
+          shouldSkipAutomaticRetry(
+            normalizedError
+          ) ||
           attempt ===
             MAX_RETRIES ||
           normalizedError

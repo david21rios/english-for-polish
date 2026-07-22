@@ -1051,6 +1051,11 @@ export const evaluateWritingWithGemini =
           context:
             "This is a CEFR placement test writing evaluation. Assess task relevance, communicative achievement, language quality and CEFR appropriateness. Return only valid JSON.",
 
+          auditContext: {
+            operation:
+              "writing_evaluation"
+          },
+
           forceJson: true
         });
 

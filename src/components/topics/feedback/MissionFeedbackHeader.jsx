@@ -108,10 +108,14 @@ const MissionFeedbackHeader = ({
 
   alreadyCompleted = false
 }) => {
-  const isFinalPassed =
-    status ===
+  const isFinalPassed = [
     MISSION_FEEDBACK_VIEW_STATUS
-      .passed;
+      .passed,
+    MISSION_FEEDBACK_VIEW_STATUS
+      .good,
+    MISSION_FEEDBACK_VIEW_STATUS
+      .excellent
+  ].includes(status);
 
   const xpLabel =
     alreadyCompleted
