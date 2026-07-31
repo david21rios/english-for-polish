@@ -1,0 +1,12 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    // SaaS-01A scaffold only.
+    // The deployed ruleset has not been retrieved or replaced.
+    // Functional rules must be defined in SaaS-02 after SaaS-01B contracts.
+    match /{object=**} {
+      allow read, write: if false;
+    }
+  }
+}

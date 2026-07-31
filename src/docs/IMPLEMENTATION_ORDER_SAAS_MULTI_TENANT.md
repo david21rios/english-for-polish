@@ -110,6 +110,61 @@ retirar scaffolding.
 
 Cerrar modelos puros antes de escribir reglas o repositorios funcionales.
 
+01B se entrega mediante subfases aprobadas de forma independiente. `01B.1`
+define exclusivamente el modelo organizacional (`Tenant`, `Membership`,
+`TenantSettings`, `TenantBranding` y sus enums) en
+`src/domain/organization/`. Completar 01B.1 no satisface por sí solo el gate de
+01B ni habilita SaaS-02.
+
+`01B.2` depende del vocabulario organizacional de 01B.1 y define exclusivamente
+el modelo académico puro (`Course`, `Enrollment`, `LearningLanguage`,
+`InterfaceLanguage` y sus enums) en `src/domain/academic/`. Completar 01B.2
+tampoco satisface por sí solo el gate de 01B ni habilita SaaS-02.
+
+`01B.3` depende de MembershipRole definido en 01B.1 y modela exclusivamente la
+identidad global y la solicitud de acceso institucional (`Identity`,
+`RegistrationRequest`, `RegistrationPolicy` y `AccessState`) en
+`src/domain/identity/`. Completar 01B.3 tampoco satisface por sí solo el gate de
+01B ni habilita SaaS-02.
+
+`01B.4` depende de los roles y estados definidos en 01B.1 y 01B.3. Define
+exclusivamente el catálogo declarativo de capacidades, PlatformRole, scopes,
+matriz por rol y AuthorizationContext en `src/domain/authorization/`. No
+implementa evaluación y tampoco satisface por sí solo el gate de 01B ni
+habilita SaaS-02.
+
+`01B.5` referencia los estados y roles ya aprobados para documentar creación,
+actores y transiciones de RegistrationRequest, Membership, Enrollment, Course
+y Tenant en `src/domain/workflow/`. No implementa máquinas de estado y tampoco
+satisface por sí solo el gate de 01B ni habilita SaaS-02.
+
+`01B.5A` reconcilia de forma controlada RegistrationRequestStatus,
+MembershipStatus y las capacidades `course.activate` y
+`platform.tenant_archive`, sin implementar lógica ni habilitar SaaS-02.
+
+`01B.6` documenta el modelo relacional lógico, ownership, cardinalidades,
+dependencias y Aggregate Roots sin diseñar persistencia. Tampoco satisface por
+sí solo el gate de 01B ni habilita SaaS-02.
+
+`01B.7` realiza la revisión cruzada de Architecture Freeze. `01B.7A` reconcilia
+exclusivamente sus cinco hallazgos altos: identidad canónica de Membership,
+precedencia de AccessState, capacidades self de Identity, idioma de soporte de
+Course y frontera idempotente de aprobación. Los resultados quedan
+`resolved_pending_reaudit`; sólo una reauditoría posterior puede declarar el
+freeze y habilitar el gate hacia SaaS-02.
+
+`01B.7B` reaudita el gate y `01B.7C` reconcilia exclusivamente sus seis
+bloqueadores: AccessState tenant-scoped, BCP 47, RegistrationPolicy compuesto,
+retirada self de Membership, eliminación de `membership.review` y ownership de
+`interfaceLocale`. Los cierres permanecen
+`resolved_pending_final_reaudit`; SaaS-02 continúa bloqueada hasta la decisión
+independiente de 01B.7D.
+
+`01B.7D` reaudita directamente contratos y documentos, cierra todos los
+bloqueadores contractuales y aprueba `Architecture Freeze` para Domain 1.0.0.
+SaaS-01B queda finalizada. SaaS-02 es la siguiente fase del plan y todavía no
+ha comenzado.
+
 ### Crear
 
 ```text
@@ -118,12 +173,33 @@ src/config/localeConfig.js
 src/config/cefrConfig.js
 src/config/routeConfig.js
 src/config/featureFlags.js
-src/domain/tenants/tenantModel.js
-src/domain/memberships/membershipModel.js
-src/domain/courses/courseModel.js
-src/domain/enrollments/enrollmentModel.js
-src/domain/access/accessState.js
-src/domain/auth/capabilities.js
+src/domain/organization/tenant.js
+src/domain/organization/membership.js
+src/domain/organization/tenantSettings.js
+src/domain/organization/tenantBranding.js
+src/domain/organization/enums.js
+src/domain/academic/course.js
+src/domain/academic/enrollment.js
+src/domain/academic/learningLanguage.js
+src/domain/academic/interfaceLanguage.js
+src/domain/academic/enums.js
+src/domain/identity/identity.js
+src/domain/identity/registrationRequest.js
+src/domain/identity/registrationPolicy.js
+src/domain/identity/accessStatePrecedence.js
+src/domain/identity/enums.js
+src/domain/authorization/enums.js
+src/domain/authorization/capabilities.js
+src/domain/authorization/identitySelfCapabilities.js
+src/domain/authorization/roleCapabilityMatrix.js
+src/domain/authorization/authorizationContext.js
+src/domain/workflow/actors.js
+src/domain/workflow/registrationApproval.js
+src/domain/workflow/registrationRequestWorkflow.js
+src/domain/workflow/membershipWorkflow.js
+src/domain/workflow/enrollmentWorkflow.js
+src/domain/workflow/courseWorkflow.js
+src/domain/workflow/tenantWorkflow.js
 ```
 
 ### Modificar
