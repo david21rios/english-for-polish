@@ -282,6 +282,11 @@ const Welcome = () => {
       return;
     }
 
+    if (cleanName.length < 2 || cleanName.length > 100) {
+      setError("Imię i nazwisko musi mieć od 2 do 100 znaków.");
+      return;
+    }
+
     if (!isValidEmail(cleanEmail)) {
       setError("Wpisz poprawny adres e-mail.");
       return;
@@ -652,7 +657,8 @@ const Welcome = () => {
                     type="text"
                     placeholder="Imię i nazwisko"
                     required
-                    maxLength={80}
+                    minLength={2}
+                    maxLength={100}
                     value={name}
                     onChange={(event) => setName(event.target.value)}
                     className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 outline-none"
