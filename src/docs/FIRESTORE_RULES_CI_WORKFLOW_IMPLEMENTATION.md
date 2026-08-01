@@ -152,3 +152,29 @@ The authorized thematic local commits were created and recorded in
 `FIRESTORE_RULES_CI_COMMIT_EXECUTION.md`. `Local commits = completed`; push and
 workflow execution remain pending owner action. No runtime or deployment was
 performed.
+
+## B2.4C-B2 execution evidence
+
+```text
+Manual workflow execution = reported_by_owner_evidence_missing
+Executed SHA = UNKNOWN
+Runtime result = NOT VERIFIED
+Canonical contract = 201 / 82 / 119
+```
+
+The result and missing fields are documented in
+`FIRESTORE_RULES_RUNTIME_EXECUTION_RESULT.md`. No URL or runtime result was
+invented.
+
+## First runtime failure and harness fix
+
+The manual run at commit
+`1e07ac1a43b3b3950360129fe52f9c342e8054b1` failed 201/201 before Rule
+assertions because the shared test environment requested Storage while the
+workflow correctly started Firestore only. The workflow itself remains
+unchanged. B2.4C-B2F1 removes only the Storage configuration from the shared
+harness; corrected runtime execution is pending.
+
+The isolated helper correction is recorded by local commit `ada8931`. The
+workflow and preflight remain byte-identical. Push and corrected manual
+execution remain owner actions.

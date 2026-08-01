@@ -1209,6 +1209,54 @@ SaaS-02C.2G-B2.5 = not started
 The owner must review the commits, push the selected branch manually and
 trigger `workflow_dispatch`.
 
+SaaS-02C.2G-B2.4C-B2 received an owner statement that push and manual dispatch
+occurred, but no completed workflow evidence. Codex only audited the supplied
+placeholders and did not repeat or query the run.
+
+```text
+SaaS-02C.2G-B2 = in_progress
+SaaS-02C.2G-B2.4 = incomplete_runtime_evidence_missing
+SaaS-02C.2G-B2.4C-B1 = completed
+SaaS-02C.2G-B2.4C-B2 = incomplete_requires_runtime_evidence
+SaaS-02C.2G-B2.5 = blocked
+```
+
+No Firebase deployment was performed. B2.5 must not start until complete,
+non-sensitive runtime evidence is supplied and reviewed.
+
+SaaS-02C.2G-B2.4C-B2F1 classified the first runtime as
+`TEST_HARNESS_CONFIGURATION_FAILURE`: Firestore started, but the shared test
+environment also requested Storage, causing 201 setup failures before Rule
+assertions. The helper now configures only Firestore; Storage remains deny-all
+and unstarted.
+
+```text
+SaaS-02C.2G-B2 = in_progress
+SaaS-02C.2G-B2.4 = incomplete_pending_corrected_runtime_execution
+SaaS-02C.2G-B2.4C-B2 = incomplete_test_harness_failure
+SaaS-02C.2G-B2.4C-B2F1 = completed_pending_human_fix_review
+SaaS-02C.2G-B2.5 = blocked
+```
+
+No corrected GitHub Actions execution was started. Human fix review is
+required before any new runtime attempt.
+
+SaaS-02C.2G-B2.4C-B2F2 committed the approved Firestore-only harness
+correction locally as `ada8931` and recorded the failed-run evidence and
+traceability. Codex did not push or execute GitHub Actions.
+
+```text
+SaaS-02C.2G-B2 = in_progress
+SaaS-02C.2G-B2.4 = incomplete_pending_corrected_runtime_execution
+SaaS-02C.2G-B2.4C-B2 = incomplete_pending_corrected_runtime
+SaaS-02C.2G-B2.4C-B2F1 = completed
+SaaS-02C.2G-B2.4C-B2F2 = completed_pending_human_push
+SaaS-02C.2G-B2.5 = blocked
+```
+
+The owner must review and push the corrective commits, then manually trigger
+the Firestore Rules Runtime Validation workflow on `main`.
+
 The local composite baseline preserves the owner-provided legacy compatibility
 semantics and reserves all ten canonical SaaS paths with complete client deny.
 SaaS-02C.2 is not complete. No deployment was performed.

@@ -515,9 +515,31 @@ workflow execution remain pending; credentials and deployment remain absent,
 Storage stays out of scope, FLH states are unchanged and no path is ready for
 removal.
 
+## 31. B2.4C-B2F2 corrective commits
+
+The Firestore-only helper correction is isolated in local commit `ada8931`.
+The first runtime remains classified as a harness failure; Rules correctness
+is not yet evaluated. Owner push and corrected workflow dispatch are pending,
+FLH states are unchanged and no path is ready for removal.
+
+## 30. B2.4C-B2F1 harness correction
+
+The first runtime selected all 201 cases but evaluated no Rule assertion: the
+shared harness incorrectly requested Storage. The helper is now Firestore-only
+with 201/82/119 unchanged. Storage remains deny-all, no emulator or deployment
+was added, FLH states are unchanged and no path is ready for removal.
+
 ## 28. B2.4C-B1 controlled commits
 
 The accumulated approved work was recorded in thematic local commits using
 explicit paths. Ignored local files, lockfile and Storage remained excluded;
 FLH states and removal gates did not change. Push and runtime workflow
 execution remain pending owner action.
+
+## 29. B2.4C-B2 runtime evidence review
+
+The owner reported manual push and workflow dispatch, but no runtime log or
+completed summary was provided. SHA, toolchain, emulator, compilation and
+201 / 82 / 119 results remain unverified. Credentials, deployment and Storage
+remain absent from the local design; no FLH changed and no path is ready for
+removal.

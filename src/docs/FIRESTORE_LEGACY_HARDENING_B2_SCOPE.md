@@ -308,6 +308,46 @@ B2.5 = not started
 
 Push and workflow execution remain owner actions.
 
+## B2.4C-B2 runtime evidence blocker
+
+The owner reports completing push and manual dispatch, but runtime evidence
+was not supplied. The workflow result, executed SHA, emulator, compilation and
+201 / 82 / 119 outcome remain unverified.
+
+```text
+B2.4 = incomplete_runtime_evidence_missing
+B2.4C-B1 = completed
+B2.4C-B2 = incomplete_requires_runtime_evidence
+B2.5 = blocked
+```
+
+## B2.4C-B2F2 controlled corrective commits
+
+The approved helper correction was committed locally as `ada8931`; evidence
+and traceability are recorded separately. Runtime remains unverified pending
+owner push and manual dispatch.
+
+```text
+B2.4 = incomplete_pending_corrected_runtime_execution
+B2.4C-B2 = incomplete_pending_corrected_runtime
+B2.4C-B2F1 = completed
+B2.4C-B2F2 = completed_pending_human_push
+B2.5 = blocked
+```
+
+## B2.4C-B2F1 Firestore-only harness correction
+
+The first runtime failed before Rule assertions: 0 passed / 201 failed due to
+the shared harness declaring Storage. The helper now configures Firestore
+only; no expectations, Rules, workflow or Storage posture changed.
+
+```text
+B2.4 = incomplete_pending_corrected_runtime_execution
+B2.4C-B2 = incomplete_test_harness_failure
+B2.4C-B2F1 = completed_pending_human_fix_review
+B2.5 = blocked
+```
+
 ## B2.3A forensic count resolution
 
 Alternative A was proven: the detailed matrix and static implementation agree

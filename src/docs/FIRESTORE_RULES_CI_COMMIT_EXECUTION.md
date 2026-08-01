@@ -71,3 +71,26 @@ SaaS-02C.2G-B2.4C-B2 = blocked_pending_manual_push_and_workflow
 Codex created only the explicitly authorized local commits. Codex did not push
 any branch and did not execute the workflow. The owner must review the commits,
 push the selected branch manually and trigger `workflow_dispatch`.
+
+## Owner actions and runtime evidence status
+
+```text
+Push = completed by owner (owner statement)
+Workflow dispatch = completed by owner (owner statement)
+Runtime result = not_verified_evidence_missing
+```
+
+The supplied request contained placeholders rather than the workflow log or
+completed summary. Commit history is unchanged by this documentary audit.
+
+## Firestore-only harness corrective commit
+
+```text
+First runtime result = TEST_HARNESS_CONFIGURATION_FAILURE
+Rules correctness = not yet evaluated
+Corrective commit = ada8931
+Corrected workflow execution = pending human push and workflow_dispatch
+```
+
+The commit changes only `tests/rules/helpers/rulesTestEnvironment.mjs` and
+removes the Storage service declaration. No push was performed by Codex.

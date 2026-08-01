@@ -211,3 +211,21 @@ pending. The next intervention is human review and safe handling of the
 ignored local artifacts identified in
 `FIRESTORE_RULES_CI_PRECOMMIT_AUDIT.md`, followed by a repeat precommit audit.
 Codex did not commit, push or execute the workflow.
+
+## B2.4C-B2 evidence review
+
+The owner reported a manual push and workflow dispatch, but supplied no
+completed runtime log or summary values. `Runtime strategy validation =
+pending_runtime_evidence`; GitHub Actions runtime is not verified. See
+`FIRESTORE_RULES_RUNTIME_EXECUTION_RESULT.md`.
+
+## B2.4C-B2F1 harness correction
+
+The first real run proved runner and Firestore startup but failed before Rule
+assertions because the shared environment also declared Storage. The helper is
+now Firestore-only; Storage remains deny-all and is not started. Corrected
+runtime execution remains pending human review.
+
+The Firestore-only harness correction is committed locally as `ada8931`.
+Corrected workflow execution remains pending owner push and manual
+`workflow_dispatch`.
