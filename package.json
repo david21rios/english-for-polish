@@ -10,6 +10,8 @@
     "firebase:version": "firebase --version",
     "emulators:start": "firebase emulators:start --only auth,firestore,storage --project demo-polish-learning",
     "test:rules": "firebase emulators:exec --only firestore,storage --project demo-polish-learning \"node --test tests/rules/*.test.mjs\"",
+    "test:rules:firestore": "firebase emulators:exec --only firestore --project demo-polish-learning \"node --test tests/rules/messagesCreate.test.mjs tests/rules/forumPostCreate.test.mjs tests/rules/forumReplyCreate.test.mjs tests/rules/forumReportCreate.test.mjs tests/rules/supportTicketCreate.test.mjs tests/rules/selectiveHardeningRegression.test.mjs tests/rules/saasRegression.test.mjs\"",
+    "ci:validate:firestore-rules": "node scripts/ci/validate-firestore-rules-ci.mjs",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"

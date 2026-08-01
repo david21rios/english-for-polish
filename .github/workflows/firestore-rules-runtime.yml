@@ -1,0 +1,54 @@
+name: Firestore Rules Runtime Validation
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: firestore-rules-runtime-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate-firestore-rules:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      CI: true
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24.15.0
+          package-manager-cache: false
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Show toolchain versions
+        run: |
+          node --version
+          npm --version
+          java -version
+          echo "Firebase demo project: demo-polish-learning"
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Show local Firebase CLI version
+        run: ./node_modules/.bin/firebase --version
+
+      - name: Run CI security preflight
+        run: npm run ci:validate:firestore-rules
+
+      - name: Run Firestore Rules runtime tests
+        run: npm run test:rules:firestore
