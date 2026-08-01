@@ -27,9 +27,9 @@ equivale por sí sola a acceso efectivo perpetuo.
 
 | Origen | Destino | Actor | Observación |
 |---|---|---|---|
-| pending | approved | tenant_admin | Debe originar conjuntamente exactamente una Membership approved |
-| pending | rejected | tenant_admin | Nunca origina Membership |
-| pending | cancelled | identity_self | Retirada voluntaria |
+| pending | approved | tenant_admin + `registration_request.review` | Debe originar conjuntamente exactamente una Membership approved |
+| pending | rejected | tenant_admin + `registration_request.review` | Nunca origina Membership |
+| pending | cancelled | identity_self + `registration_request.cancel_self` | Retirada voluntaria; exige ownership por uid |
 | pending | expired | platform_system | Vencimiento conceptual no automatizado |
 
 RegistrationRequestStatus es independiente de AccessState.
@@ -43,9 +43,9 @@ terminal y representa eliminación lógica o salida voluntaria.
 
 | Origen | Destino | Actor |
 |---|---|---|
-| approved | suspended | tenant_admin |
+| approved | suspended | tenant_admin (`membership.suspend`) |
 | approved | removed | tenant_admin (`membership.remove`), identity_self (`membership.leave_self`) |
-| suspended | approved | tenant_admin |
+| suspended | approved | tenant_admin (`membership.restore`) |
 | suspended | removed | tenant_admin (`membership.remove`), identity_self (`membership.leave_self`) |
 
 Membership nace exclusivamente en `approved` tras aprobar RegistrationRequest.
@@ -57,10 +57,10 @@ No se modelan progreso, notas, asistencia ni certificaciones.
 
 | Origen | Destino | Actor | Efecto conceptual |
 |---|---|---|---|
-| pending | active | tenant_admin | Habilita participación |
-| pending | cancelled | tenant_admin, identity_self | Cancela antes de activación |
-| active | completed | tenant_admin | Finaliza participación |
-| active | cancelled | tenant_admin, identity_self | Cancela participación |
+| pending | active | tenant_admin (`enrollment.update_status`) | Habilita participación |
+| pending | cancelled | tenant_admin (`enrollment.update_status`), identity_self (`enrollment.cancel_self`) | Cancela antes de activación |
+| active | completed | tenant_admin (`enrollment.update_status`) | Finaliza participación |
+| active | cancelled | tenant_admin (`enrollment.update_status`), identity_self (`enrollment.cancel_self`) | Cancela participación |
 
 Un archivado futuro requeriría revisar EnrollmentStatus; no se inventa ahora.
 
@@ -73,8 +73,8 @@ automáticamente.
 | Origen | Destino | Actor | Efecto conceptual |
 |---|---|---|---|
 | draft | active | tenant_admin + `course.activate` | Publica el curso |
-| draft | archived | tenant_admin | Retira un borrador |
-| active | archived | tenant_admin | Retira operación ordinaria |
+| draft | archived | tenant_admin + `course.archive` | Retira un borrador |
+| active | archived | tenant_admin + `course.archive` | Retira operación ordinaria |
 
 Teacher no recibe `course.activate` por defecto.
 
@@ -87,8 +87,8 @@ terminal y conserva historia.
 
 | Origen | Destino | Actor | Efecto conceptual |
 |---|---|---|---|
-| active | suspended | platform_admin | Suprime operación del tenant |
-| suspended | active | platform_admin | Restaura operación condicionada |
+| active | suspended | platform_admin + `platform.tenant_suspend` | Suprime operación del tenant |
+| suspended | active | platform_admin + `platform.tenant_restore` | Restaura operación condicionada |
 | active | archived | platform_admin + `platform.tenant_archive` | Retira el tenant |
 | suspended | archived | platform_admin + `platform.tenant_archive` | Retira el tenant suspendido |
 
@@ -146,6 +146,19 @@ reconciliación.
 Permanece pendiente la autoridad técnica de `platform_system`, la idempotencia
 tecnológica de creación de Membership y toda implementación de transacciones o
 reglas.
+
+## 10A. Enmienda SaaS-02B.4A
+
+Domain 1.1.0 incorpora de forma aditiva `registration_request.cancel_self` y
+`membership.restore`. La primera explicita ownership self y estado `pending`
+para `pending -> cancelled`; la segunda explicita la autoridad tenant_admin
+para `suspended -> approved`. No cambian actores, estados ni transiciones.
+
+## 10B. Enmienda SaaS-02B.4C
+
+Domain 1.2.0 enlaza todas las transiciones institucionales existentes con sus
+capabilities canónicas. Añade únicamente `platform.tenant_restore` para
+`Tenant suspended -> active`; no añade estados ni transiciones.
 
 ## 11. Reconciliación SaaS-01B.7A
 

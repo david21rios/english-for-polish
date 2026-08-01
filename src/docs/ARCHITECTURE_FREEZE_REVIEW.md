@@ -483,9 +483,32 @@ Ninguno.
 
 ```text
 Architecture Freeze = APPROVED
-Domain Version = 1.0.0
+Domain Version = 1.2.0
 Freeze Phase = SaaS-01B.7D
 ```
+
+### Enmienda controlada SaaS-02B.4A
+
+Domain 1.1.0 conserva `Architecture Freeze = APPROVED`. La evolución es un
+cambio aditivo no disruptivo: añade `registration_request.cancel_self` y
+`membership.restore` para operaciones ya presentes en los workflows. No cambia
+entidades, estados, IDs, ownership, cardinalidades, aggregates ni topología de
+persistencia.
+
+La cancelación self queda vinculada al ownership por uid y al estado `pending`;
+la restauración queda limitada a tenant_admin, al mismo Tenant y a
+`suspended -> approved`. SaaS-02B.4 requiere una revalidación breve antes de
+SaaS-02C; no se reabren los hallazgos cerrados del Freeze.
+
+### Enmienda controlada SaaS-02B.4C
+
+Domain 1.2.0 añade únicamente `platform.tenant_restore`, formaliza
+RestoreTenant, UpdateTenantProfile y PlatformUpdateTenantMetadata, y enlaza los
+workflows existentes con capabilities ya canónicas. Es un cambio aditivo y
+declarativo: no modifica entidades, estados, IDs, ownership, cardinalidades,
+Persistence Roots ni topología Firestore. Las capabilities anteriormente
+huérfanas quedan vinculadas; el Freeze permanece aprobado y SaaS-02B.4 espera la
+revalidación independiente SaaS-02B.4D.
 
 SaaS-01B queda cerrada. Las decisiones transferidas a SaaS-02 no requieren
 modificar el significado contractual congelado. SaaS-02 es la siguiente fase,

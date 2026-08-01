@@ -1,3 +1,4 @@
+import { CAPABILITY_IDS } from "../authorization/capabilities.js";
 import { REGISTRATION_REQUEST_STATUSES } from "../identity/enums.js";
 import { WORKFLOW_ACTORS } from "./actors.js";
 
@@ -15,6 +16,7 @@ export const REGISTRATION_REQUEST_WORKFLOW = Object.freeze({
       from: REGISTRATION_REQUEST_STATUSES.PENDING,
       to: REGISTRATION_REQUEST_STATUSES.APPROVED,
       actors: Object.freeze([WORKFLOW_ACTORS.TENANT_ADMIN]),
+      requiredCapability: CAPABILITY_IDS.REGISTRATION_REQUEST_REVIEW,
       observation:
         "ApproveRegistrationRequest must jointly produce this state and exactly one approved Membership.",
     }),
@@ -22,12 +24,14 @@ export const REGISTRATION_REQUEST_WORKFLOW = Object.freeze({
       from: REGISTRATION_REQUEST_STATUSES.PENDING,
       to: REGISTRATION_REQUEST_STATUSES.REJECTED,
       actors: Object.freeze([WORKFLOW_ACTORS.TENANT_ADMIN]),
+      requiredCapability: CAPABILITY_IDS.REGISTRATION_REQUEST_REVIEW,
       observation: "Institutional rejection never originates a Membership.",
     }),
     Object.freeze({
       from: REGISTRATION_REQUEST_STATUSES.PENDING,
       to: REGISTRATION_REQUEST_STATUSES.CANCELLED,
       actors: Object.freeze([WORKFLOW_ACTORS.IDENTITY_SELF]),
+      requiredCapability: CAPABILITY_IDS.REGISTRATION_REQUEST_CANCEL_SELF,
       observation: "The requesting identity withdraws the unresolved request.",
     }),
     Object.freeze({

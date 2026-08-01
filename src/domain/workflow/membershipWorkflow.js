@@ -7,7 +7,7 @@ export const MEMBERSHIP_WORKFLOW = Object.freeze({
   creationActors: Object.freeze([WORKFLOW_ACTORS.TENANT_ADMIN]),
   terminalStates: Object.freeze([MEMBERSHIP_STATUSES.REMOVED]),
   transitions: Object.freeze([
-    Object.freeze({ from: MEMBERSHIP_STATUSES.APPROVED, to: MEMBERSHIP_STATUSES.SUSPENDED, actors: Object.freeze([WORKFLOW_ACTORS.TENANT_ADMIN]), observation: "Access stops while membership data remains." }),
+    Object.freeze({ from: MEMBERSHIP_STATUSES.APPROVED, to: MEMBERSHIP_STATUSES.SUSPENDED, actors: Object.freeze([WORKFLOW_ACTORS.TENANT_ADMIN]), requiredCapability: CAPABILITY_IDS.MEMBERSHIP_SUSPEND, observation: "Access stops while membership data remains." }),
     Object.freeze({
       from: MEMBERSHIP_STATUSES.APPROVED,
       to: MEMBERSHIP_STATUSES.REMOVED,
@@ -21,7 +21,7 @@ export const MEMBERSHIP_WORKFLOW = Object.freeze({
       }),
       observation: "Logical removal or voluntary exit.",
     }),
-    Object.freeze({ from: MEMBERSHIP_STATUSES.SUSPENDED, to: MEMBERSHIP_STATUSES.APPROVED, actors: Object.freeze([WORKFLOW_ACTORS.TENANT_ADMIN]), observation: "Reactivate institutional access." }),
+    Object.freeze({ from: MEMBERSHIP_STATUSES.SUSPENDED, to: MEMBERSHIP_STATUSES.APPROVED, actors: Object.freeze([WORKFLOW_ACTORS.TENANT_ADMIN]), requiredCapability: CAPABILITY_IDS.MEMBERSHIP_RESTORE, observation: "Reactivate institutional access." }),
     Object.freeze({
       from: MEMBERSHIP_STATUSES.SUSPENDED,
       to: MEMBERSHIP_STATUSES.REMOVED,

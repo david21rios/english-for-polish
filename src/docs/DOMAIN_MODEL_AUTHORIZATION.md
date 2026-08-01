@@ -85,6 +85,7 @@ identity.update_self
 membership.leave_self
 registration_request.create
 registration_request.read_self
+registration_request.cancel_self
 ```
 
 Estas capacidades corresponden conceptualmente a una Identity autenticada,
@@ -107,10 +108,12 @@ contexto y estado aplicable.
 | `membership.leave_self` | self | membership |
 | `membership.list` | tenant | membership |
 | `membership.suspend` | tenant | membership |
+| `membership.restore` | tenant | membership |
 | `membership.remove` | tenant | membership |
 | `membership.change_role` | tenant | membership |
 | `registration_request.create` | self | registration_request |
 | `registration_request.read_self` | self | registration_request |
+| `registration_request.cancel_self` | self | registration_request |
 | `registration_request.list` | tenant | registration_request |
 | `registration_request.review` | tenant | registration_request |
 | `course.list` | tenant | course |
@@ -129,6 +132,7 @@ contexto y estado aplicable.
 | `platform.tenant_create` | platform | platform_tenant |
 | `platform.tenant_update` | platform | platform_tenant |
 | `platform.tenant_suspend` | platform | platform_tenant |
+| `platform.tenant_restore` | platform | tenant |
 | `platform.tenant_archive` | platform | tenant |
 | `platform.identity_read` | platform | platform_identity |
 
@@ -173,6 +177,7 @@ tenant.manage_branding
 membership.read_self
 membership.list
 membership.suspend
+membership.restore
 membership.remove
 membership.change_role
 registration_request.list
@@ -209,6 +214,23 @@ no implementa composición ni evaluación.
 `AuthorizationContext.uid` corresponde a la Identity propietaria de la
 Membership objetivo. No permite actuar sobre Memberships ajenas.
 
+`registration_request.cancel_self` sólo aplica a una Request propia en estado
+`pending`: `AuthorizationContext.uid` debe coincidir con
+`RegistrationRequest.uid`. No deriva de MembershipRole ni permite revisar
+Requests ajenas.
+
+`membership.restore` pertenece exclusivamente a `tenant_admin`, tiene scope
+tenant y sólo autoriza `suspended -> approved` en el Tenant activo.
+
+`tenant.update` autoriza exclusivamente `UpdateTenantProfile`: displayName,
+shortName, country, locale y timezone del Tenant propio. No permite modificar
+status, tenantType, Settings ni Branding.
+
+`platform.tenant_update` autoriza exclusivamente
+`PlatformUpdateTenantMetadata`, limitado inicialmente a tenantType.
+`platform.tenant_restore` autoriza únicamente `suspended -> active`; ambas son
+platform-scoped y no conceden acceso al contenido privado del Tenant.
+
 ### platform_admin
 
 ```text
@@ -217,6 +239,7 @@ platform.tenant_read
 platform.tenant_create
 platform.tenant_update
 platform.tenant_suspend
+platform.tenant_restore
 platform.tenant_archive
 platform.identity_read
 ```

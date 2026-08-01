@@ -1,12 +1,43 @@
 # Domain Version
 
 ```text
-Domain Version: 1.0.0
+Domain Version: 1.2.0
 Status: Frozen
 Architecture Freeze: Approved
 Freeze Phase: SaaS-01B.7D
 Freeze Date: 2026-07-31
 ```
+
+Change Classification: Non-breaking
+
+## Version History
+
+### 1.0.0
+
+- Architecture Freeze inicial.
+- Contratos originales de Organization, Academic, Identity, Authorization,
+  Workflow y Relationship Model.
+
+### 1.1.0
+
+- Non-breaking additive change.
+- Added `registration_request.cancel_self`.
+- Added `membership.restore`.
+- Aligned existing workflows with explicit canonical capabilities.
+- No entity, state, ownership, identifier or persistence topology changed.
+
+### 1.2.0
+
+Change Classification: Non-breaking
+
+- Added `platform.tenant_restore`.
+- Added canonical `RestoreTenant` operation.
+- Linked eight existing workflow transitions to their canonical capabilities.
+- Bound `tenant.update` to `UpdateTenantProfile`.
+- Bound `platform.tenant_update` to `PlatformUpdateTenantMetadata`.
+- Added explicit Tenant field-ownership policy.
+- No entity, state, identifier, ownership, persistence root or Firestore
+  topology changed.
 
 ## 1. Dominios congelados
 
@@ -75,7 +106,7 @@ cardinalidades, ownership, capabilities o invariantes congeladas.
 ## 5. Architecture Review Backlog transferido a SaaS-02
 
 Los siguientes elementos son no bloqueantes porque su resolución técnica no
-cambia el significado del dominio 1.0.0:
+cambia el significado del dominio 1.2.0:
 
 - autoridad técnica de `platform_system`;
 - diseño físico de IDs;
@@ -92,7 +123,7 @@ cambia el significado del dominio 1.0.0:
 
 ```text
 SaaS-01B closed.
-Domain 1.0.0 frozen.
+Domain 1.2.0 frozen.
 Ready to design SaaS-02.
 SaaS-02 not started.
 ```

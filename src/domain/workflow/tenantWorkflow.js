@@ -7,8 +7,8 @@ export const TENANT_WORKFLOW = Object.freeze({
   creationActors: Object.freeze([WORKFLOW_ACTORS.PLATFORM_ADMIN]),
   terminalStates: Object.freeze([TENANT_STATUSES.ARCHIVED]),
   transitions: Object.freeze([
-    Object.freeze({ from: TENANT_STATUSES.ACTIVE, to: TENANT_STATUSES.SUSPENDED, actors: Object.freeze([WORKFLOW_ACTORS.PLATFORM_ADMIN]), observation: "Suppress effective institutional access without mutating child states." }),
-    Object.freeze({ from: TENANT_STATUSES.SUSPENDED, to: TENANT_STATUSES.ACTIVE, actors: Object.freeze([WORKFLOW_ACTORS.PLATFORM_ADMIN]), observation: "Restore effective access subject to each child state." }),
+    Object.freeze({ from: TENANT_STATUSES.ACTIVE, to: TENANT_STATUSES.SUSPENDED, actors: Object.freeze([WORKFLOW_ACTORS.PLATFORM_ADMIN]), requiredCapability: CAPABILITY_IDS.PLATFORM_TENANT_SUSPEND, observation: "Suppress effective institutional access without mutating child states." }),
+    Object.freeze({ from: TENANT_STATUSES.SUSPENDED, to: TENANT_STATUSES.ACTIVE, actors: Object.freeze([WORKFLOW_ACTORS.PLATFORM_ADMIN]), requiredCapability: CAPABILITY_IDS.PLATFORM_TENANT_RESTORE, observation: "Restore effective access subject to each child state." }),
     Object.freeze({ from: TENANT_STATUSES.ACTIVE, to: TENANT_STATUSES.ARCHIVED, actors: Object.freeze([WORKFLOW_ACTORS.PLATFORM_ADMIN]), requiredCapability: CAPABILITY_IDS.PLATFORM_TENANT_ARCHIVE, observation: "Retire the tenant while retaining institutional history." }),
     Object.freeze({ from: TENANT_STATUSES.SUSPENDED, to: TENANT_STATUSES.ARCHIVED, actors: Object.freeze([WORKFLOW_ACTORS.PLATFORM_ADMIN]), requiredCapability: CAPABILITY_IDS.PLATFORM_TENANT_ARCHIVE, observation: "Retire a suspended tenant." }),
   ]),

@@ -21,11 +21,13 @@ export const CAPABILITY_IDS = Object.freeze({
   MEMBERSHIP_LEAVE_SELF: "membership.leave_self",
   MEMBERSHIP_LIST: "membership.list",
   MEMBERSHIP_SUSPEND: "membership.suspend",
+  MEMBERSHIP_RESTORE: "membership.restore",
   MEMBERSHIP_REMOVE: "membership.remove",
   MEMBERSHIP_CHANGE_ROLE: "membership.change_role",
 
   REGISTRATION_REQUEST_CREATE: "registration_request.create",
   REGISTRATION_REQUEST_READ_SELF: "registration_request.read_self",
+  REGISTRATION_REQUEST_CANCEL_SELF: "registration_request.cancel_self",
   REGISTRATION_REQUEST_LIST: "registration_request.list",
   REGISTRATION_REQUEST_REVIEW: "registration_request.review",
 
@@ -47,6 +49,7 @@ export const CAPABILITY_IDS = Object.freeze({
   PLATFORM_TENANT_CREATE: "platform.tenant_create",
   PLATFORM_TENANT_UPDATE: "platform.tenant_update",
   PLATFORM_TENANT_SUSPEND: "platform.tenant_suspend",
+  PLATFORM_TENANT_RESTORE: "platform.tenant_restore",
   PLATFORM_TENANT_ARCHIVE: "platform.tenant_archive",
   PLATFORM_IDENTITY_READ: "platform.identity_read",
 });
@@ -117,6 +120,12 @@ export const CAPABILITIES = Object.freeze({
     "membership",
     "Suspend a membership in the active tenant.",
   ),
+  [CAPABILITY_IDS.MEMBERSHIP_RESTORE]: defineCapability(
+    CAPABILITY_IDS.MEMBERSHIP_RESTORE,
+    CAPABILITY_SCOPES.TENANT,
+    "membership",
+    "Restore a suspended membership in the active tenant.",
+  ),
   [CAPABILITY_IDS.MEMBERSHIP_REMOVE]: defineCapability(
     CAPABILITY_IDS.MEMBERSHIP_REMOVE,
     CAPABILITY_SCOPES.TENANT,
@@ -141,6 +150,12 @@ export const CAPABILITIES = Object.freeze({
     CAPABILITY_SCOPES.SELF,
     "registration_request",
     "Read the current identity's registration requests.",
+  ),
+  [CAPABILITY_IDS.REGISTRATION_REQUEST_CANCEL_SELF]: defineCapability(
+    CAPABILITY_IDS.REGISTRATION_REQUEST_CANCEL_SELF,
+    CAPABILITY_SCOPES.SELF,
+    "registration_request",
+    "Cancel the current identity's own pending registration request.",
   ),
   [CAPABILITY_IDS.REGISTRATION_REQUEST_LIST]: defineCapability(
     CAPABILITY_IDS.REGISTRATION_REQUEST_LIST,
@@ -252,6 +267,12 @@ export const CAPABILITIES = Object.freeze({
     CAPABILITY_SCOPES.PLATFORM,
     "platform_tenant",
     "Suspend a tenant at platform scope.",
+  ),
+  [CAPABILITY_IDS.PLATFORM_TENANT_RESTORE]: defineCapability(
+    CAPABILITY_IDS.PLATFORM_TENANT_RESTORE,
+    CAPABILITY_SCOPES.PLATFORM,
+    "tenant",
+    "Restore a suspended Tenant to active status through an authorized platform operation.",
   ),
   [CAPABILITY_IDS.PLATFORM_TENANT_ARCHIVE]: defineCapability(
     CAPABILITY_IDS.PLATFORM_TENANT_ARCHIVE,
