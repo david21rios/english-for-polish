@@ -7,14 +7,10 @@ const readProjectFile = (fileName) =>
 export const RULES_TEST_PROJECT_ID = "demo-polish-learning";
 
 export const createRulesTestEnvironment = async () => {
-  const [firestoreRules, storageRules] = await Promise.all([
-    readProjectFile("firestore.rules"),
-    readProjectFile("storage.rules"),
-  ]);
+  const firestoreRules = await readProjectFile("firestore.rules");
 
   return initializeTestEnvironment({
     projectId: RULES_TEST_PROJECT_ID,
     firestore: { rules: firestoreRules },
-    storage: { rules: storageRules },
   });
 };
