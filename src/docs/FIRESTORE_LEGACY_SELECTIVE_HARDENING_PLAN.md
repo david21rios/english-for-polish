@@ -543,3 +543,19 @@ completed summary was provided. SHA, toolchain, emulator, compilation and
 201 / 82 / 119 results remain unverified. Credentials, deployment and Storage
 remain absent from the local design; no FLH changed and no path is ready for
 removal.
+
+## 32. B2.4C-B2F4 RT-SEC-003 fixture correction
+
+The second Firestore-only run evaluated 200 cases successfully; RT-SEC-003
+failed before Rules evaluation because its fixture used a three-segment
+document reference. Only that path was corrected to a valid four-segment
+legacy location. Rules failures confirmed remain zero, all FLH states remain
+unchanged, no path is ready for removal, and final runtime remains pending.
+
+## 33. B2.4C-B2F5 controlled fixture-correction commits
+
+The RT-SEC-003 correction is isolated in local commit `3c34e9e`; documentary
+traceability is separate. The first runtime failed in the harness and the
+second reached 200 passed / 1 fixture-path failure. Confirmed Rules failures
+remain zero. Owner push and final corrected runtime remain pending; FLH states
+and legacy removal gates are unchanged.

@@ -366,6 +366,37 @@ B2.5 = not started
 Java is not installed or authorized, so B2.4 requires a separate owner
 decision about a compatible runtime. B2.3 was not started.
 
+## B2.4C-B2F4 RT-SEC-003 path correction
+
+The second Firestore-only runtime passed 200 cases. RT-SEC-003 alone failed
+before Rules evaluation because its document path had three segments. Its path
+is corrected to a valid, non-SaaS legacy document while preserving DENY,
+`assertFails`, 201 / 82 / 119 and all Rules.
+
+```text
+B2 = in_progress
+B2.4 = incomplete_pending_final_corrected_runtime
+B2.4C-B2 = incomplete_single_test_fixture_failure
+B2.4C-B2F3 = incomplete_200_passed_1_fixture_failed
+B2.4C-B2F4 = completed_pending_human_fix_review
+B2.5 = blocked
+```
+
+## B2.4C-B2F5 controlled commits
+
+The RT-SEC-003 path fix is isolated in local commit `3c34e9e`; related
+documentation is committed separately. Rules failures confirmed remain zero.
+
+```text
+B2 = in_progress
+B2.4 = incomplete_pending_final_corrected_runtime
+B2.4C-B2 = incomplete_pending_final_runtime
+B2.4C-B2F3 = incomplete_200_passed_1_fixture_failed
+B2.4C-B2F4 = completed
+B2.4C-B2F5 = completed_pending_human_push
+B2.5 = blocked
+```
+
 ## B2.3 static implementation finding
 
 The 201 unique IDs were materialized and pass static syntax checks, but the

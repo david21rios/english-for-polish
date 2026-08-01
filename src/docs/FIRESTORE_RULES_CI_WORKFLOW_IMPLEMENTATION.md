@@ -178,3 +178,16 @@ harness; corrected runtime execution is pending.
 The isolated helper correction is recorded by local commit `ada8931`. The
 workflow and preflight remain byte-identical. Push and corrected manual
 execution remain owner actions.
+
+## B2.4C-B2F4 status
+
+The second manual run reached all 201 cases: 200 passed and only RT-SEC-003
+failed due to an invalid three-segment fixture document path before Rules
+evaluation. The workflow remains unchanged and Firestore-only. B2F4 corrects
+only that test path; final manual execution remains pending human review.
+
+## B2.4C-B2F5 status
+
+The isolated fixture correction is committed locally as `3c34e9e`. The
+workflow and preflight remain unchanged. Push and a new manual
+`workflow_dispatch` execution on the new HEAD remain owner actions.

@@ -229,3 +229,15 @@ runtime execution remains pending human review.
 The Firestore-only harness correction is committed locally as `ada8931`.
 Corrected workflow execution remains pending owner push and manual
 `workflow_dispatch`.
+
+## B2.4C-B2F4 fixture-path correction
+
+The second Firestore-only run passed 200 of 201 cases. RT-SEC-003 alone failed
+before assertion because its fixture path had three segments. The path is now
+a valid four-segment legacy document path; 201 / 82 / 119 and the
+Firestore-only, zero-credential strategy are unchanged. Final manual runtime
+execution remains required and B2.5 remains blocked.
+
+The B2F4 correction is committed locally as `3c34e9e`; final corrected runtime
+remains pending owner push and a new manual workflow run. Do not rerun the
+failed job against the old commit.

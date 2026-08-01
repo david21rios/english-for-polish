@@ -1257,6 +1257,41 @@ SaaS-02C.2G-B2.5 = blocked
 The owner must review and push the corrective commits, then manually trigger
 the Firestore Rules Runtime Validation workflow on `main`.
 
+SaaS-02C.2G-B2.4C-B2F4 corrects the sole non-Rule failure from the second
+runtime: RT-SEC-003 used an invalid three-segment document path. The second
+run passed 200 cases; the remaining assertion did not execute. No Rule or
+expectation changed.
+
+```text
+SaaS-02C.2G-B2 = in_progress
+SaaS-02C.2G-B2.4 = incomplete_pending_final_corrected_runtime
+SaaS-02C.2G-B2.4C-B2 = incomplete_single_test_fixture_failure
+SaaS-02C.2G-B2.4C-B2F3 = incomplete_200_passed_1_fixture_failed
+SaaS-02C.2G-B2.4C-B2F4 = completed_pending_human_fix_review
+SaaS-02C.2G-B2.5 = blocked
+```
+
+Human review and one final owner-triggered runtime execution are required.
+B2.5 was not started.
+
+SaaS-02C.2G-B2.4C-B2F5 records the isolated local correction commit
+`3c34e9e7960108bf6f9275e009a202b56171e095`. Codex did not push or execute
+GitHub Actions.
+
+```text
+SaaS-02C.2G-B2 = in_progress
+SaaS-02C.2G-B2.4 = incomplete_pending_final_corrected_runtime
+SaaS-02C.2G-B2.4C-B2 = incomplete_pending_final_runtime
+SaaS-02C.2G-B2.4C-B2F3 = incomplete_200_passed_1_fixture_failed
+SaaS-02C.2G-B2.4C-B2F4 = completed
+SaaS-02C.2G-B2.4C-B2F5 = completed_pending_human_push
+SaaS-02C.2G-B2.5 = blocked
+```
+
+The owner must push the new HEAD and start a new manual workflow instance on
+`main`; do not rerun the failed job on the earlier commit. B2.5 remains
+blocked.
+
 The local composite baseline preserves the owner-provided legacy compatibility
 semantics and reserves all ten canonical SaaS paths with complete client deny.
 SaaS-02C.2 is not complete. No deployment was performed.

@@ -109,3 +109,30 @@ Rules correctness = not yet evaluated
 
 The failed first run remains authoritative history. No claim of passing Rules
 is made by the harness commit.
+
+## Second runtime and RT-SEC-003 fixture-path result
+
+After the Firestore-only harness correction, the second owner-triggered run
+selected all seven canonical files and 201 IDs: 200 passed and one failed with
+exit code 1. Only `RT-SEC-003 [DENY]` failed. Its
+`legacy/memberships/sec-003` reference had three segments, so the client SDK
+rejected it before Rules evaluation.
+
+```text
+Second runtime = 200 passed, 1 test fixture path failure
+Failure classification = TEST_FIXTURE_PATH_FAILURE
+Rules failures confirmed = 0
+Rules correctness = not yet fully approved because one assertion did not execute
+```
+
+B2F4 corrects the path to `legacy/root/memberships/sec-003`. See
+`FIRESTORE_RULES_RT_SEC_003_PATH_FIX.md`. A final owner-triggered runtime run
+remains required.
+
+## B2F5 local commit status
+
+The RT-SEC-003 fixture correction is committed locally as
+`3c34e9e7960108bf6f9275e009a202b56171e095`. The first runtime remains a
+Storage harness failure; the second remains 200 passed / 1 fixture-path
+failure with zero confirmed Rules failures. Final corrected runtime is pending
+owner push and a new manual `workflow_dispatch` run.
