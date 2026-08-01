@@ -1,0 +1,433 @@
+/*
+ * Authoritative user-provided legacy Firestore Rules reference.
+ *
+ * Purpose:
+ * - compatibility analysis;
+ * - migration traceability;
+ * - reconstruction of the local composite ruleset.
+ *
+ * This file is evidence only.
+ * It must not be deployed directly.
+ */
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /*
+    |--------------------------------------------------------------------------
+    | Authentication helpers
+    |--------------------------------------------------------------------------
+    */
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated()
+        && request.auth.uid == userId;
+    }
+
+    function userDocumentExists() {
+      return isAuthenticated()
+        && exists(
+          /databases/$(database)/documents/users/$(request.auth.uid)
+        );
+    }
+
+    function currentUserData() {
+      return get(
+        /databases/$(database)/documents/users/$(request.auth.uid)
+      ).data;
+    }
+
+    function isAdmin() {
+      return userDocumentExists()
+        && currentUserData().role == "admin";
+    }
+
+    function isForumAllowed() {
+      return userDocumentExists()
+        && (
+          !currentUserData()
+            .keys()
+            .hasAny(["forumBlocked"])
+          || currentUserData().forumBlocked != true
+        );
+    }
+
+    function isNotChangingRole() {
+      return !request.resource.data
+        .diff(resource.data)
+        .affectedKeys()
+        .hasAny(["role"]);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Progress ownership validation
+    |--------------------------------------------------------------------------
+    */
+
+    function incomingUserMatches(userId) {
+      return !request.resource.data
+          .keys()
+          .hasAny(["userId"])
+        || request.resource.data.userId == userId;
+    }
+
+    function existingUserMatches(userId) {
+      return !resource.data
+          .keys()
+          .hasAny(["userId"])
+        || resource.data.userId == userId;
+    }
+
+    function validOwnedCreate(userId) {
+      return isOwner(userId)
+        && incomingUserMatches(userId);
+    }
+
+    function validOwnedUpdate(userId) {
+      return isOwner(userId)
+        && existingUserMatches(userId)
+        && incomingUserMatches(userId);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | USERS
+    |--------------------------------------------------------------------------
+    */
+
+    match /users/{userId} {
+      allow create: if isOwner(userId);
+
+      allow read: if isOwner(userId)
+        || isAdmin();
+
+      allow update: if isAdmin()
+        || (
+          isOwner(userId)
+          && isNotChangingRole()
+        );
+
+      allow delete: if isAdmin();
+
+      /*
+      |--------------------------------------------------------------------------
+      | Legacy/general progress
+      |--------------------------------------------------------------------------
+      */
+
+      match /progress/{progressId} {
+        allow create: if isAdmin()
+          || validOwnedCreate(userId);
+
+        allow read: if isOwner(userId)
+          || isAdmin();
+
+        allow update: if isAdmin()
+          || validOwnedUpdate(userId);
+
+        allow delete: if isAdmin();
+      }
+
+      /*
+      |--------------------------------------------------------------------------
+      | Topic progress summary
+      |--------------------------------------------------------------------------
+      */
+
+      match /topicProgress/{progressId} {
+        allow create: if isAdmin()
+          || validOwnedCreate(userId);
+
+        allow read: if isOwner(userId)
+          || isAdmin();
+
+        allow update: if isAdmin()
+          || validOwnedUpdate(userId);
+
+        allow delete: if isAdmin();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Mission attempts
+        |--------------------------------------------------------------------------
+        */
+
+        match /attempts/{attemptId} {
+          allow create: if isAdmin()
+            || validOwnedCreate(userId);
+
+          allow read: if isOwner(userId)
+            || isAdmin();
+
+          allow update: if isAdmin()
+            || validOwnedUpdate(userId);
+
+          allow delete: if isAdmin();
+        }
+      }
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | LEVELS, MODULES AND LESSONS
+    |--------------------------------------------------------------------------
+    */
+
+    match /levels/{levelId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+
+      match /lessons/{lessonId} {
+        allow read: if true;
+        allow create, update, delete: if isAdmin();
+      }
+
+      match /modules/{moduleId} {
+        allow read: if true;
+        allow create, update, delete: if isAdmin();
+
+        match /lessons/{lessonId} {
+          allow read: if true;
+          allow create, update, delete: if isAdmin();
+        }
+      }
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | THEMES, LESSONS AND MISSIONS
+    |--------------------------------------------------------------------------
+    */
+
+    match /temas/{temaId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+
+      match /Lessons/{lessonId} {
+        allow read: if true;
+        allow create, update, delete: if isAdmin();
+      }
+
+      match /missions/{missionId} {
+        allow read: if true;
+        allow create, update, delete: if isAdmin();
+      }
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | TEST CONTENT
+    |--------------------------------------------------------------------------
+    */
+
+    match /tests/{testId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+
+      match /sections/{sectionId} {
+        allow read: if true;
+        allow create, update, delete: if isAdmin();
+      }
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | USER TEST RESULTS
+    |--------------------------------------------------------------------------
+    */
+
+    match /userTests/{testId} {
+      allow create: if isAuthenticated()
+        && request.resource.data.userId == request.auth.uid;
+
+      allow read: if isAuthenticated()
+        && (
+          resource.data.userId == request.auth.uid
+          || isAdmin()
+        );
+
+      allow update: if isAuthenticated()
+        && (
+          resource.data.userId == request.auth.uid
+          || isAdmin()
+        )
+        && request.resource.data.userId == resource.data.userId;
+
+      allow delete: if isAdmin();
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | PRESENTATIONS
+    |--------------------------------------------------------------------------
+    */
+
+    match /presentations/{presentationId} {
+      allow read: if true;
+
+      allow create: if isAuthenticated()
+        && request.resource.data.userId == request.auth.uid;
+
+      allow update: if isAuthenticated()
+        && (
+          resource.data.userId == request.auth.uid
+          || isAdmin()
+        )
+        && request.resource.data.userId == resource.data.userId;
+
+      allow delete: if isAuthenticated()
+        && (
+          resource.data.userId == request.auth.uid
+          || isAdmin()
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | FORUMS
+    |--------------------------------------------------------------------------
+    */
+
+    match /forums/{levelId}/posts/{postId} {
+      allow read: if isAuthenticated();
+
+      allow create: if isForumAllowed()
+        && request.resource.data.userId == request.auth.uid;
+
+      allow update: if isAuthenticated()
+        && (
+          isAdmin()
+
+          || (
+            resource.data.userId == request.auth.uid
+            && request.resource.data.userId == resource.data.userId
+            && isForumAllowed()
+          )
+
+          || (
+            isForumAllowed()
+            && request.resource.data
+              .diff(resource.data)
+              .affectedKeys()
+              .hasOnly([
+                "repliesCount",
+                "updatedAt",
+                "likes",
+                "likedBy"
+              ])
+          )
+        );
+
+      allow delete: if isAuthenticated()
+        && (
+          resource.data.userId == request.auth.uid
+          || isAdmin()
+        );
+
+      match /replies/{replyId} {
+        allow read: if isAuthenticated();
+
+        allow create: if isForumAllowed()
+          && request.resource.data.userId == request.auth.uid;
+
+        allow update: if isAuthenticated()
+          && (
+            isAdmin()
+            || (
+              resource.data.userId == request.auth.uid
+              && request.resource.data.userId == resource.data.userId
+              && isForumAllowed()
+            )
+          );
+
+        allow delete: if isAuthenticated()
+          && (
+            resource.data.userId == request.auth.uid
+            || isAdmin()
+          );
+      }
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | FORUM REPORTS
+    |--------------------------------------------------------------------------
+    */
+
+    match /forumReports/{reportId} {
+      allow create: if isForumAllowed()
+        && request.resource.data.reportedBy == request.auth.uid;
+
+      allow read, update, delete: if isAdmin();
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | AI GENERATED LESSONS
+    |--------------------------------------------------------------------------
+    */
+
+    match /aiGeneratedLessons/{lessonId} {
+      allow create, read, update, delete: if isAdmin();
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | PUBLIC CONTACT MESSAGES
+    |--------------------------------------------------------------------------
+    */
+
+    match /messages/{messageId} {
+      allow create: if
+        request.resource.data.name is string
+        && request.resource.data.name.size() >= 2
+        && request.resource.data.name.size() <= 100
+
+        && request.resource.data.email is string
+        && request.resource.data.email.size() >= 5
+        && request.resource.data.email.size() <= 254
+
+        && request.resource.data.message is string
+        && request.resource.data.message.size() >= 10
+        && request.resource.data.message.size() <= 2000;
+
+      allow read, update, delete: if isAdmin();
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | AUTHENTICATED SUPPORT TICKETS
+    |--------------------------------------------------------------------------
+    */
+
+    match /supportTickets/{ticketId} {
+      allow create: if isAuthenticated()
+        && request.resource.data.userId == request.auth.uid;
+
+      allow read: if isAuthenticated()
+        && (
+          resource.data.userId == request.auth.uid
+          || isAdmin()
+        );
+
+      allow update, delete: if isAdmin();
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | DENY EVERYTHING ELSE
+    |--------------------------------------------------------------------------
+    */
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

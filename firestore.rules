@@ -2,9 +2,1081 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // SaaS-01A scaffold only.
-    // The deployed ruleset has not been retrieved or replaced.
-    // Functional rules must be defined in SaaS-02 after SaaS-01B contracts.
+
+    /*
+    |--------------------------------------------------------------------------
+    | ZONE A — LEGACY COMPATIBILITY HELPERS
+    |--------------------------------------------------------------------------
+    */
+
+    /*
+    |--------------------------------------------------------------------------
+    | Authentication helpers
+    |--------------------------------------------------------------------------
+    */
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated()
+        && request.auth.uid == userId;
+    }
+
+    function userDocumentExists() {
+      return isAuthenticated()
+        && exists(
+          /databases/$(database)/documents/users/$(request.auth.uid)
+        );
+    }
+
+    function currentUserData() {
+      return get(
+        /databases/$(database)/documents/users/$(request.auth.uid)
+      ).data;
+    }
+
+    function isAdmin() {
+      return userDocumentExists()
+        && currentUserData().role == "admin";
+    }
+
+    function isForumAllowed() {
+      return userDocumentExists()
+        && (
+          !currentUserData()
+            .keys()
+            .hasAny(["forumBlocked"])
+          || currentUserData().forumBlocked != true
+        );
+    }
+
+    function isNotChangingRole() {
+      return !request.resource.data
+        .diff(resource.data)
+        .affectedKeys()
+        .hasAny(["role"]);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Progress ownership validation
+    |--------------------------------------------------------------------------
+    */
+
+    function incomingUserMatches(userId) {
+      return !request.resource.data
+          .keys()
+          .hasAny(["userId"])
+        || request.resource.data.userId == userId;
+    }
+
+    function existingUserMatches(userId) {
+      return !resource.data
+          .keys()
+          .hasAny(["userId"])
+        || resource.data.userId == userId;
+    }
+
+    function validOwnedCreate(userId) {
+      return isOwner(userId)
+        && incomingUserMatches(userId);
+    }
+
+    function validOwnedUpdate(userId) {
+      return isOwner(userId)
+        && existingUserMatches(userId)
+        && incomingUserMatches(userId);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | ZONE A — LEGACY COMPATIBILITY PATHS
+    |--------------------------------------------------------------------------
+    */
+
+    /*
+    |--------------------------------------------------------------------------
+    | USERS
+    |--------------------------------------------------------------------------
+    */
+
+    match /users/{userId} {
+      allow create: if isOwner(userId);
+
+      allow read: if isOwner(userId)
+        || isAdmin();
+
+      allow update: if isAdmin()
+        || (
+          isOwner(userId)
+          && isNotChangingRole()
+        );
+
+      allow delete: if isAdmin();
+
+      /*
+      |--------------------------------------------------------------------------
+      | Legacy/general progress
+      |--------------------------------------------------------------------------
+      */
+
+      match /progress/{progressId} {
+        allow create: if isAdmin()
+          || validOwnedCreate(userId);
+
+        allow read: if isOwner(userId)
+          || isAdmin();
+
+        allow update: if isAdmin()
+          || validOwnedUpdate(userId);
+
+        allow delete: if isAdmin();
+      }
+
+      /*
+      |--------------------------------------------------------------------------
+      | Topic progress summary
+      |--------------------------------------------------------------------------
+      */
+
+      match /topicProgress/{progressId} {
+        allow create: if isAdmin()
+          || validOwnedCreate(userId);
+
+        allow read: if isOwner(userId)
+          || isAdmin();
+
+        allow update: if isAdmin()
+          || validOwnedUpdate(userId);
+
+        allow delete: if isAdmin();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Mission attempts
+        |--------------------------------------------------------------------------
+        */
+
+        match /attempts/{attemptId} {
+          allow create: if isAdmin()
+            || validOwnedCreate(userId);
+
+          allow read: if isOwner(userId)
+            || isAdmin();
+
+          allow update: if isAdmin()
+            || validOwnedUpdate(userId);
+
+          allow delete: if isAdmin();
+        }
+      }
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | LEVELS, MODULES AND LESSONS
+    |--------------------------------------------------------------------------
+    */
+
+    match /levels/{levelId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+
+      match /lessons/{lessonId} {
+        allow read: if true;
+        allow create, update, delete: if isAdmin();
+      }
+
+      match /modules/{moduleId} {
+        allow read: if true;
+        allow create, update, delete: if isAdmin();
+
+        match /lessons/{lessonId} {
+          allow read: if true;
+          allow create, update, delete: if isAdmin();
+        }
+      }
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | THEMES, LESSONS AND MISSIONS
+    |--------------------------------------------------------------------------
+    */
+
+    match /temas/{temaId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+
+      match /Lessons/{lessonId} {
+        allow read: if true;
+        allow create, update, delete: if isAdmin();
+      }
+
+      match /missions/{missionId} {
+        allow read: if true;
+        allow create, update, delete: if isAdmin();
+      }
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | TEST CONTENT
+    |--------------------------------------------------------------------------
+    */
+
+    match /tests/{testId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+
+      match /sections/{sectionId} {
+        allow read: if true;
+        allow create, update, delete: if isAdmin();
+      }
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | USER TEST RESULTS
+    |--------------------------------------------------------------------------
+    */
+
+    match /userTests/{testId} {
+      allow create: if isAuthenticated()
+        && request.resource.data.userId == request.auth.uid;
+
+      allow read: if isAuthenticated()
+        && (
+          resource.data.userId == request.auth.uid
+          || isAdmin()
+        );
+
+      allow update: if isAuthenticated()
+        && (
+          resource.data.userId == request.auth.uid
+          || isAdmin()
+        )
+        && request.resource.data.userId == resource.data.userId;
+
+      allow delete: if isAdmin();
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | PRESENTATIONS
+    |--------------------------------------------------------------------------
+    */
+
+    match /presentations/{presentationId} {
+      allow read: if true;
+
+      allow create: if isAuthenticated()
+        && request.resource.data.userId == request.auth.uid;
+
+      allow update: if isAuthenticated()
+        && (
+          resource.data.userId == request.auth.uid
+          || isAdmin()
+        )
+        && request.resource.data.userId == resource.data.userId;
+
+      allow delete: if isAuthenticated()
+        && (
+          resource.data.userId == request.auth.uid
+          || isAdmin()
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | FORUMS
+    |--------------------------------------------------------------------------
+    */
+
+    match /forums/{levelId}/posts/{postId} {
+      allow read: if isAuthenticated();
+
+      allow create: if isAuthenticated()
+        && isForumAllowed()
+        && request.resource.data
+          .keys()
+          .hasOnly([
+            "text",
+            "level",
+            "userId",
+            "userName",
+            "userEmail",
+            "repliesCount",
+            "likes",
+            "likedBy",
+            "createdAt",
+            "updatedAt"
+          ])
+        && request.resource.data
+          .keys()
+          .hasAll([
+            "text",
+            "level",
+            "userId",
+            "userName",
+            "userEmail",
+            "repliesCount",
+            "likes",
+            "likedBy",
+            "createdAt",
+            "updatedAt"
+          ])
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.text is string
+        && request.resource.data.text.size() >= 10
+        && request.resource.data.level is string
+        && request.resource.data.level == levelId
+        && request.resource.data.userName is string
+        && request.resource.data.userEmail is string
+        && request.resource.data.likes == 0
+        && request.resource.data.likedBy is list
+        && request.resource.data.likedBy.size() == 0
+        && request.resource.data.repliesCount == 0
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+
+      allow update: if isAuthenticated()
+        && (
+          isAdmin()
+
+          || (
+            resource.data.userId == request.auth.uid
+            && request.resource.data.userId == resource.data.userId
+            && isForumAllowed()
+          )
+
+          || (
+            isForumAllowed()
+            && request.resource.data
+              .diff(resource.data)
+              .affectedKeys()
+              .hasOnly([
+                "repliesCount",
+                "updatedAt",
+                "likes",
+                "likedBy"
+              ])
+          )
+        );
+
+      allow delete: if isAuthenticated()
+        && (
+          resource.data.userId == request.auth.uid
+          || isAdmin()
+        );
+
+      match /replies/{replyId} {
+        allow read: if isAuthenticated();
+
+        allow create: if isAuthenticated()
+          && isForumAllowed()
+          && request.resource.data
+            .keys()
+            .hasOnly([
+              "text",
+              "userId",
+              "userName",
+              "userEmail",
+              "createdAt",
+              "updatedAt"
+            ])
+          && request.resource.data
+            .keys()
+            .hasAll([
+              "text",
+              "userId",
+              "userName",
+              "userEmail",
+              "createdAt",
+              "updatedAt"
+            ])
+          && request.resource.data.userId == request.auth.uid
+          && request.resource.data.text is string
+          && request.resource.data.text.size() >= 5
+          && request.resource.data.userName is string
+          && request.resource.data.userEmail is string
+          && request.resource.data.createdAt == request.time
+          && request.resource.data.updatedAt == request.time;
+
+        allow update: if isAuthenticated()
+          && (
+            isAdmin()
+            || (
+              resource.data.userId == request.auth.uid
+              && request.resource.data.userId == resource.data.userId
+              && isForumAllowed()
+            )
+          );
+
+        allow delete: if isAuthenticated()
+          && (
+            resource.data.userId == request.auth.uid
+            || isAdmin()
+          );
+      }
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | FORUM REPORTS
+    |--------------------------------------------------------------------------
+    */
+
+    match /forumReports/{reportId} {
+      allow create: if isAuthenticated()
+        && isForumAllowed()
+        && request.resource.data
+          .keys()
+          .hasOnly([
+            "postId",
+            "level",
+            "postUserId",
+            "postText",
+            "reportedBy",
+            "reporterEmail",
+            "reason",
+            "details",
+            "status",
+            "createdAt",
+            "updatedAt"
+          ])
+        && request.resource.data
+          .keys()
+          .hasAll([
+            "postId",
+            "level",
+            "postUserId",
+            "postText",
+            "reportedBy",
+            "reporterEmail",
+            "reason",
+            "details",
+            "status",
+            "createdAt",
+            "updatedAt"
+          ])
+        && request.resource.data.reportedBy == request.auth.uid
+        && request.resource.data.reporterEmail is string
+        && request.resource.data.postId is string
+        && request.resource.data.postId.size() > 0
+        && request.resource.data.level is string
+        && request.resource.data.postUserId is string
+        && request.resource.data.postText is string
+        && request.resource.data.reason in [
+          "Inappropriate content",
+          "Spam",
+          "Harassment or offensive language",
+          "Wrong level or irrelevant topic",
+          "Other"
+        ]
+        && request.resource.data.details is string
+        && request.resource.data.details.size() <= 500
+        && request.resource.data.status == "pending"
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+
+      allow read, update, delete: if isAdmin();
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | AI GENERATED LESSONS
+    |--------------------------------------------------------------------------
+    */
+
+    match /aiGeneratedLessons/{lessonId} {
+      allow create, read, update, delete: if isAdmin();
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | PUBLIC CONTACT MESSAGES
+    |--------------------------------------------------------------------------
+    */
+
+    match /messages/{messageId} {
+      allow create: if request.resource.data
+          .keys()
+          .hasOnly([
+            "name",
+            "email",
+            "message",
+            "source",
+            "userId",
+            "status",
+            "createdAt",
+            "updatedAt"
+          ])
+        && request.resource.data
+          .keys()
+          .hasAll([
+            "name",
+            "email",
+            "message",
+            "source",
+            "userId",
+            "status",
+            "createdAt"
+          ])
+
+        && request.resource.data.name is string
+        && request.resource.data.name.size() >= 2
+        && request.resource.data.name.size() <= 100
+
+        && request.resource.data.email is string
+        && request.resource.data.email.size() >= 5
+        && request.resource.data.email.size() <= 254
+
+        && request.resource.data.message is string
+        && request.resource.data.message.size() >= 10
+        && request.resource.data.message.size() <= 2000
+
+        && request.resource.data.source == "welcome"
+        && request.resource.data.userId == "anon"
+        && request.resource.data.status == "new"
+        && request.resource.data.createdAt == request.time
+        && (
+          !request.resource.data
+            .keys()
+            .hasAny(["updatedAt"])
+          || request.resource.data.updatedAt == request.time
+        );
+
+      allow read, update, delete: if isAdmin();
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | AUTHENTICATED SUPPORT TICKETS
+    |--------------------------------------------------------------------------
+    */
+
+    match /supportTickets/{ticketId} {
+      allow create: if isAuthenticated()
+        && request.resource.data
+          .keys()
+          .hasOnly([
+            "userId",
+            "userEmail",
+            "userName",
+            "category",
+            "subject",
+            "message",
+            "priority",
+            "status",
+            "source",
+            "createdAt",
+            "updatedAt"
+          ])
+        && request.resource.data
+          .keys()
+          .hasAll([
+            "userId",
+            "userEmail",
+            "userName",
+            "category",
+            "subject",
+            "message",
+            "priority",
+            "status",
+            "source",
+            "createdAt",
+            "updatedAt"
+          ])
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.userEmail is string
+        && request.resource.data.userName is string
+        && request.resource.data.category in [
+          "technical",
+          "account",
+          "course",
+          "suggestion",
+          "bug",
+          "other"
+        ]
+        && request.resource.data.subject is string
+        && request.resource.data.subject.size() >= 4
+        && request.resource.data.subject.size() <= 120
+        && request.resource.data.message is string
+        && request.resource.data.message.size() >= 20
+        && request.resource.data.message.size() <= 1000
+        && request.resource.data.priority == "normal"
+        && request.resource.data.status == "open"
+        && request.resource.data.source == "authenticated-support"
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+
+      allow read: if isAuthenticated()
+        && (
+          resource.data.userId == request.auth.uid
+          || isAdmin()
+        );
+
+      allow update, delete: if isAdmin();
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | SaaS IDENTITY SELF HELPERS
+    |--------------------------------------------------------------------------
+    */
+
+    function saasIsAuthenticated() {
+      return request.auth != null;
+    }
+
+    function saasIsSelf(uid) {
+      return saasIsAuthenticated()
+        && request.auth.uid == uid;
+    }
+
+    function saasIdentityChangedFieldsAllowed() {
+      return request.resource.data
+        .diff(resource.data)
+        .affectedKeys()
+        .hasOnly([
+          "displayName",
+          "photoURL",
+          "interfaceLocale",
+          "updatedAt"
+        ]);
+    }
+
+    function saasIdentityFieldTypesValid() {
+      return request.resource.data.displayName is string
+        && (
+          request.resource.data.photoURL is string
+          || request.resource.data.photoURL == null
+        )
+        && request.resource.data.interfaceLocale is string;
+    }
+
+    function saasIdentityUpdatedAtValid() {
+      return request.resource.data.updatedAt == request.time;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | SaaS TENANT-AWARE HELPERS
+    |--------------------------------------------------------------------------
+    */
+
+    function saasTenantPath(tenantId) {
+      return /databases/$(database)/documents/tenants/$(tenantId);
+    }
+
+    function saasTenantExists(tenantId) {
+      return exists(saasTenantPath(tenantId));
+    }
+
+    function saasTenantData(tenantId) {
+      return get(saasTenantPath(tenantId)).data;
+    }
+
+    function saasTenantIsActive(tenantId) {
+      return saasTenantData(tenantId).status == "active";
+    }
+
+    function saasTenantIsSuspended(tenantId) {
+      return saasTenantData(tenantId).status == "suspended";
+    }
+
+    function saasTenantIsArchived(tenantId) {
+      return saasTenantData(tenantId).status == "archived";
+    }
+
+    function saasUidKey(uid) {
+      return "u1_" + uid.toUtf8().toBase64().replace("=", "");
+    }
+
+    function saasMembershipKeyPath(tenantId, uid) {
+      return /databases/$(database)/documents/tenants/$(tenantId)/membershipKeys/$(saasUidKey(uid));
+    }
+
+    function saasMembershipKeyExists(tenantId, uid) {
+      return exists(saasMembershipKeyPath(tenantId, uid));
+    }
+
+    function saasMembershipIdForUser(tenantId, uid) {
+      return get(saasMembershipKeyPath(tenantId, uid)).data.membershipId;
+    }
+
+    function saasMembershipPath(tenantId, membershipId) {
+      return /databases/$(database)/documents/tenants/$(tenantId)/memberships/$(membershipId);
+    }
+
+    function saasUserMembershipExists(tenantId) {
+      return saasIsAuthenticated()
+        && saasMembershipKeyExists(tenantId, request.auth.uid)
+        && exists(
+          saasMembershipPath(
+            tenantId,
+            saasMembershipIdForUser(tenantId, request.auth.uid)
+          )
+        );
+    }
+
+    function saasUserMembershipData(tenantId) {
+      return get(
+        saasMembershipPath(
+          tenantId,
+          saasMembershipIdForUser(tenantId, request.auth.uid)
+        )
+      ).data;
+    }
+
+    function saasHasApprovedMembership(tenantId) {
+      return saasUserMembershipExists(tenantId)
+        && get(
+          saasMembershipKeyPath(tenantId, request.auth.uid)
+        ).data.uid == request.auth.uid
+        && get(
+          saasMembershipKeyPath(tenantId, request.auth.uid)
+        ).data.tenantId == tenantId
+        && get(
+          saasMembershipKeyPath(tenantId, request.auth.uid)
+        ).data.status == "approved"
+        && saasUserMembershipData(tenantId).uid == request.auth.uid
+        && saasUserMembershipData(tenantId).tenantId == tenantId
+        && saasUserMembershipData(tenantId).membershipId
+          == saasMembershipIdForUser(tenantId, request.auth.uid)
+        && saasUserMembershipData(tenantId).status == "approved";
+    }
+
+    function saasHasTenantRole(tenantId, role) {
+      return saasHasApprovedMembership(tenantId)
+        && saasUserMembershipData(tenantId).role == role;
+    }
+
+    function saasIsStudent(tenantId) {
+      return saasHasTenantRole(tenantId, "student");
+    }
+
+    function saasIsTeacher(tenantId) {
+      return saasHasTenantRole(tenantId, "teacher");
+    }
+
+    function saasIsTenantAdmin(tenantId) {
+      return saasHasTenantRole(tenantId, "tenant_admin");
+    }
+
+    function saasTenantReadableByApprovedMember(tenantId) {
+      return saasTenantExists(tenantId)
+        && !saasTenantIsArchived(tenantId)
+        && (
+          saasTenantIsActive(tenantId)
+          || saasTenantIsSuspended(tenantId)
+        )
+        && saasHasApprovedMembership(tenantId);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | SaaS SELF MEMBERSHIP AND REGISTRATION REQUEST HELPERS
+    |--------------------------------------------------------------------------
+    */
+
+    function saasResourceBelongsToAuthenticatedUser() {
+      return saasIsAuthenticated()
+        && resource.data.uid == request.auth.uid;
+    }
+
+    function saasResourceBelongsToTenant(tenantId) {
+      return resource.data.tenantId == tenantId;
+    }
+
+    function saasMembershipDocumentIsCanonical(tenantId, membershipId) {
+      return resource.data.membershipId == membershipId
+        && resource['__name__']
+          == /databases/$(database)/documents/tenants/$(tenantId)/memberships/$(membershipId);
+    }
+
+    function saasRegistrationRequestDocumentIsCanonical(tenantId, requestId) {
+      return resource.data.requestId == requestId
+        && resource['__name__']
+          == /databases/$(database)/documents/tenants/$(tenantId)/registrationRequests/$(requestId);
+    }
+
+    function saasCanReadOwnMembership(tenantId, membershipId) {
+      return saasResourceBelongsToAuthenticatedUser()
+        && saasResourceBelongsToTenant(tenantId)
+        && saasMembershipDocumentIsCanonical(tenantId, membershipId);
+    }
+
+    function saasCanReadOwnRegistrationRequest(tenantId, requestId) {
+      return saasResourceBelongsToAuthenticatedUser()
+        && saasResourceBelongsToTenant(tenantId)
+        && saasRegistrationRequestDocumentIsCanonical(tenantId, requestId);
+    }
+
+    function saasCanListOwnResourceInTenant(tenantId) {
+      return saasResourceBelongsToAuthenticatedUser()
+        && saasResourceBelongsToTenant(tenantId);
+    }
+
+    function saasCanListOwnMembershipCollectionGroup() {
+      return saasIsAuthenticated()
+        && resource.data.uid == request.auth.uid;
+    }
+
+    function saasCanListOwnRegistrationRequestCollectionGroup() {
+      return saasIsAuthenticated()
+        && resource.data.uid == request.auth.uid;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | SaaS COURSE READ HELPERS
+    |--------------------------------------------------------------------------
+    */
+
+    function saasCourseStatusIsCanonical() {
+      return resource.data.status == "draft"
+        || resource.data.status == "active"
+        || resource.data.status == "archived";
+    }
+
+    function saasCourseBelongsToTenant(tenantId) {
+      return resource.data.tenantId == tenantId;
+    }
+
+    function saasCourseDocumentIsCanonical(tenantId, courseId) {
+      return saasCourseBelongsToTenant(tenantId)
+        && resource.data.courseId == courseId
+        && resource['__name__']
+          == /databases/$(database)/documents/tenants/$(tenantId)/courses/$(courseId)
+        && saasCourseStatusIsCanonical();
+    }
+
+    function saasCanStudentReadCourse(tenantId) {
+      return saasIsStudent(tenantId)
+        && resource.data.status == "active";
+    }
+
+    function saasCanTeacherReadCourse(tenantId) {
+      return saasIsTeacher(tenantId)
+        && (
+          resource.data.status == "draft"
+          || resource.data.status == "active"
+        );
+    }
+
+    function saasCanTenantAdminReadCourse(tenantId) {
+      return saasIsTenantAdmin(tenantId)
+        && saasCourseStatusIsCanonical();
+    }
+
+    function saasCanReadCourseByRole(tenantId) {
+      return saasTenantExists(tenantId)
+        && saasTenantIsActive(tenantId)
+        && saasCourseBelongsToTenant(tenantId)
+        && (
+          saasCanStudentReadCourse(tenantId)
+          || saasCanTeacherReadCourse(tenantId)
+          || saasCanTenantAdminReadCourse(tenantId)
+        );
+    }
+
+    function saasCanGetCourse(tenantId, courseId) {
+      return saasCourseDocumentIsCanonical(tenantId, courseId)
+        && saasCanReadCourseByRole(tenantId);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | SaaS ENROLLMENT READ HELPERS
+    |--------------------------------------------------------------------------
+    */
+
+    function saasEnrollmentStatusIsCanonical() {
+      return resource.data.status == "pending"
+        || resource.data.status == "active"
+        || resource.data.status == "completed"
+        || resource.data.status == "cancelled";
+    }
+
+    function saasEnrollmentBelongsToTenant(tenantId) {
+      return resource.data.tenantId == tenantId;
+    }
+
+    function saasEnrollmentDocumentIsCanonical(tenantId, enrollmentId) {
+      return saasEnrollmentBelongsToTenant(tenantId)
+        && resource.data.enrollmentId == enrollmentId
+        && resource.data.membershipId is string
+        && resource.data.courseId is string
+        && resource['__name__']
+          == /databases/$(database)/documents/tenants/$(tenantId)/enrollments/$(enrollmentId)
+        && saasEnrollmentStatusIsCanonical();
+    }
+
+    function saasEnrollmentMembershipPath(tenantId) {
+      return /databases/$(database)/documents/tenants/$(tenantId)/memberships/$(resource.data.membershipId);
+    }
+
+    function saasEnrollmentMembershipExists(tenantId) {
+      return resource.data.membershipId is string
+        && exists(saasEnrollmentMembershipPath(tenantId));
+    }
+
+    function saasEnrollmentMembershipData(tenantId) {
+      return get(saasEnrollmentMembershipPath(tenantId)).data;
+    }
+
+    function saasEnrollmentMembershipStatusIsHistorical(tenantId) {
+      return saasEnrollmentMembershipData(tenantId).status == "approved"
+        || saasEnrollmentMembershipData(tenantId).status == "suspended"
+        || saasEnrollmentMembershipData(tenantId).status == "removed";
+    }
+
+    function saasEnrollmentMembershipIsCanonical(tenantId) {
+      return saasEnrollmentMembershipExists(tenantId)
+        && saasEnrollmentMembershipData(tenantId).tenantId == tenantId
+        && saasEnrollmentMembershipData(tenantId).membershipId
+          == resource.data.membershipId
+        && saasEnrollmentMembershipStatusIsHistorical(tenantId);
+    }
+
+    function saasEnrollmentBelongsToAuthenticatedUser(tenantId) {
+      return saasIsAuthenticated()
+        && saasEnrollmentMembershipIsCanonical(tenantId)
+        && saasEnrollmentMembershipData(tenantId).uid == request.auth.uid;
+    }
+
+    function saasTenantAllowsOwnEnrollmentRead(tenantId) {
+      return saasTenantExists(tenantId)
+        && (
+          saasTenantIsActive(tenantId)
+          || saasTenantIsSuspended(tenantId)
+        );
+    }
+
+    function saasCanReadOwnEnrollment(tenantId) {
+      return saasEnrollmentBelongsToTenant(tenantId)
+        && saasEnrollmentStatusIsCanonical()
+        && saasTenantAllowsOwnEnrollmentRead(tenantId)
+        && saasEnrollmentBelongsToAuthenticatedUser(tenantId);
+    }
+
+    function saasCanTenantAdminReadEnrollment(tenantId) {
+      return saasEnrollmentBelongsToTenant(tenantId)
+        && saasEnrollmentStatusIsCanonical()
+        && saasTenantExists(tenantId)
+        && saasTenantIsActive(tenantId)
+        && saasIsTenantAdmin(tenantId);
+    }
+
+    function saasCanGetEnrollment(tenantId, enrollmentId) {
+      return saasEnrollmentDocumentIsCanonical(tenantId, enrollmentId)
+        && (
+          saasCanReadOwnEnrollment(tenantId)
+          || saasCanTenantAdminReadEnrollment(tenantId)
+        );
+    }
+
+    function saasCanListEnrollment(tenantId) {
+      return saasCanReadOwnEnrollment(tenantId)
+        || saasCanTenantAdminReadEnrollment(tenantId);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | SaaS MULTI-TENANT SHADOW RULES
+    |--------------------------------------------------------------------------
+    |
+    | Domain Version: 1.2.0
+    |
+    | These paths are present only to reserve and protect the canonical SaaS
+    | topology during incremental implementation.
+    |
+    | All client access remains denied in SaaS-02C.2A.
+    |
+    | Do not enable any path until its dedicated microphase is approved.
+    |
+    */
+
+    match /identities/{uid} {
+      allow read: if saasIsSelf(uid);
+
+      allow create: if false;
+
+      allow update: if saasIsSelf(uid)
+        && saasIdentityChangedFieldsAllowed()
+        && saasIdentityFieldTypesValid()
+        && saasIdentityUpdatedAtValid();
+
+      allow delete: if false;
+    }
+
+    match /tenants/{tenantId} {
+      allow get: if saasTenantReadableByApprovedMember(tenantId);
+
+      allow list, create, update, delete: if false;
+
+      match /configuration/settings {
+        allow read, create, update, delete: if false;
+      }
+
+      match /configuration/branding {
+        allow read, create, update, delete: if false;
+      }
+
+      match /registrationRequests/{requestId} {
+        allow get: if saasCanReadOwnRegistrationRequest(tenantId, requestId);
+        allow list: if saasCanListOwnResourceInTenant(tenantId);
+        allow create, update, delete: if false;
+      }
+
+      match /registrationRequestKeys/{uidKey} {
+        allow read, create, update, delete: if false;
+      }
+
+      match /memberships/{membershipId} {
+        allow get: if saasCanReadOwnMembership(tenantId, membershipId);
+        allow list: if saasCanListOwnResourceInTenant(tenantId);
+        allow create, update, delete: if false;
+      }
+
+      match /membershipKeys/{uidKey} {
+        allow read, create, update, delete: if false;
+      }
+
+      match /courses/{courseId} {
+        allow get: if saasCanGetCourse(tenantId, courseId);
+        allow list: if saasCanReadCourseByRole(tenantId);
+        allow create, update, delete: if false;
+      }
+
+      match /enrollments/{enrollmentId} {
+        allow get: if saasCanGetEnrollment(tenantId, enrollmentId);
+        allow list: if saasCanListEnrollment(tenantId);
+        allow create, update, delete: if false;
+      }
+    }
+
+    match /{path=**}/memberships/{membershipId} {
+      allow list: if saasCanListOwnMembershipCollectionGroup();
+      allow create, update, delete: if false;
+    }
+
+    match /{path=**}/registrationRequests/{requestId} {
+      allow list: if
+        saasCanListOwnRegistrationRequestCollectionGroup();
+      allow create, update, delete: if false;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | FINAL DENY EVERYTHING ELSE
+    |--------------------------------------------------------------------------
+    */
+
     match /{document=**} {
       allow read, write: if false;
     }
