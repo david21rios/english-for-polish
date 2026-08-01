@@ -409,3 +409,25 @@ B2.3 = incomplete_requires_test_design_correction
 B2.4 = blocked
 B2.5 = not started
 ```
+
+## B2 final closure
+
+The owner-confirmed final GitHub Actions execution passed the canonical
+Firestore-only suite on the latest `main` HEAD: 201 Test IDs, 82 ALLOW and 119
+DENY. Consumer reconciliation, test design, implementation, runtime correction
+and final runtime validation are complete.
+
+```text
+B2 = completed
+B2.1 = completed
+B2.2 = completed
+B2.3 = completed
+B2.4 = completed
+B2.5 = completed
+Runtime = PASS
+Workflow = SUCCESS
+```
+
+Deferred FLH work and residual risks remain listed in
+`FIRESTORE_RULES_PROJECT_FINAL_CLOSURE.md`. Storage remains deny-all, no legacy
+path is removable, and no Firebase deployment was performed.

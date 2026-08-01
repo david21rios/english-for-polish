@@ -559,3 +559,15 @@ traceability is separate. The first runtime failed in the harness and the
 second reached 200 passed / 1 fixture-path failure. Confirmed Rules failures
 remain zero. Owner push and final corrected runtime remain pending; FLH states
 and legacy removal gates are unchanged.
+
+## 34. SaaS-02C.2G final closure
+
+The owner confirmed the final official Firestore-only workflow succeeded on
+the latest `main` HEAD. The canonical 201-case suite (82 ALLOW, 119 DENY) and
+Firestore Emulator passed. B1 and B2 are complete; the five implemented FLH
+remain `revalidated`, the other 18 FLH remain deferred under their existing
+classifications, and no legacy path is ready for removal. See
+`FIRESTORE_RULES_PROJECT_FINAL_CLOSURE.md`.
+
+No Firebase deployment, Rule change, Storage enablement or remote mutation was
+performed. `storage.rules` remains deny-all.

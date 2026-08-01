@@ -1041,7 +1041,7 @@ SaaS-02C.2E = completed
 SaaS-02C.2E-A = completed
 SaaS-02C.2E-B = completed
 SaaS-02C.2F = completed
-SaaS-02C.2G = in_progress
+SaaS-02C.2G = completed
 SaaS-02C.2G-A = completed
 SaaS-02C.2G-B1 = completed
 SaaS-02C.2G-B1.1 = completed
@@ -1052,7 +1052,7 @@ SaaS-02C.2G-B1.4 = completed
 SaaS-02C.2G-B1.5 = completed
 SaaS-02C.2G-B1.6 = completed
 SaaS-02C.2G-B1.7 = completed
-SaaS-02C.2G-B2 = in_progress
+SaaS-02C.2G-B2 = completed
 SaaS-02C.2G-B2.1 = completed
 SaaS-02C.2G-B2.1A = completed
 SaaS-02C.2G-B2.1B = completed
@@ -1060,13 +1060,13 @@ SaaS-02C.2G-B2.2 = completed
 SaaS-02C.2G-B2.3 = completed
 SaaS-02C.2G-B2.3A = completed
 SaaS-02C.2G-B2.3B = not required
-SaaS-02C.2G-B2.4 = in_progress
+SaaS-02C.2G-B2.4 = completed
 SaaS-02C.2G-B2.4A = completed
-SaaS-02C.2G-B2.4B = completed_pending_human_workflow_review
-SaaS-02C.2G-B2.4C = next, not started
-SaaS-02C.2G-B2.5 = not started
-SaaS-02C.2G-B3 = not started
-SaaS-02C.2G-C = not started
+SaaS-02C.2G-B2.4B = completed
+SaaS-02C.2G-B2.4C = completed
+SaaS-02C.2G-B2.5 = completed
+SaaS-02C.2G-B3 = superseded_by_final_B2_scope
+SaaS-02C.2G-C = superseded_by_final_B2_scope
 
 SaaS-02C.2E-A resolved FRD-006 and FRD-007; SaaS-02C.2E-B implemented and
 closed both findings locally. Mandatory human review of implemented Course and
@@ -1295,3 +1295,25 @@ blocked.
 The local composite baseline preserves the owner-provided legacy compatibility
 semantics and reserves all ten canonical SaaS paths with complete client deny.
 SaaS-02C.2 is not complete. No deployment was performed.
+
+## SaaS-02C.2G final closure
+
+The owner confirmed that the official manually triggered Firestore Rules
+Runtime Validation workflow succeeded on the latest `main` HEAD. Firestore
+Emulator runtime passed the canonical 201 Test IDs: 82 expected ALLOW and 119
+expected DENY. No deployment or later change occurred.
+
+```text
+SaaS-02C.2G-B1 = completed
+SaaS-02C.2G-B2 = completed
+SaaS-02C.2G-B2.1 = completed
+SaaS-02C.2G-B2.2 = completed
+SaaS-02C.2G-B2.3 = completed
+SaaS-02C.2G-B2.4 = completed
+SaaS-02C.2G-B2.5 = completed
+SaaS-02C.2G = completed
+```
+
+The final reconciliation, deferred FLH backlog and residual risks are recorded
+in `FIRESTORE_RULES_PROJECT_FINAL_CLOSURE.md`. Domain 1.2.0 and the architecture
+freeze remain intact; Storage remains deny-all.
