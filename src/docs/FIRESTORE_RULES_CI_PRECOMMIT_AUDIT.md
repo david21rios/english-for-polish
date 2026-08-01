@@ -231,3 +231,17 @@ B2.4C-A = completed
 
 Their contents were not inspected. `.env.local` remains local and ignored;
 cleanup of `firebase-debug.log` is optional and owner-controlled.
+
+## B2.4C-B1 controlled local commits
+
+The owner-authorized thematic commit execution is recorded in
+`FIRESTORE_RULES_CI_COMMIT_EXECUTION.md`.
+
+```text
+Local commits = completed
+Push = pending owner action
+Workflow execution = pending owner action
+```
+
+Only explicit reviewed paths were staged. No ignored local file was staged,
+no push occurred and runtime remains pending.

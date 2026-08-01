@@ -145,3 +145,10 @@ unstaged, diff-absent and unused by CI. Their contents were not inspected.
 `Local ignored file reconciliation =
 completed_pending_human_precommit_closure`. The technical workflow remains
 unchanged; commit, push and execution remain manual and pending.
+
+## B2.4C-B1 local commit status
+
+The authorized thematic local commits were created and recorded in
+`FIRESTORE_RULES_CI_COMMIT_EXECUTION.md`. `Local commits = completed`; push and
+workflow execution remain pending owner action. No runtime or deployment was
+performed.

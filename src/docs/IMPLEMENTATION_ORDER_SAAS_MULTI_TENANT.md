@@ -161,9 +161,70 @@ retirada self de Membership, eliminación de `membership.review` y ownership de
 independiente de 01B.7D.
 
 `01B.7D` reaudita directamente contratos y documentos, cierra todos los
-bloqueadores contractuales y aprueba `Architecture Freeze` para Domain 1.0.0.
-SaaS-01B queda finalizada. SaaS-02 es la siguiente fase del plan y todavía no
-ha comenzado.
+bloqueadores contractuales y aprueba `Architecture Freeze` para Domain 1.0.0;
+la enmienda aditiva SaaS-02B.4A lo evoluciona posteriormente a Domain 1.1.0 sin
+revocar el Freeze.
+SaaS-01B queda finalizada.
+
+`02A.1` define los Persistence Roots, referencias y fronteras lógicas sin diseño
+físico. `02A.2` completa invariantes, operaciones, integridad referencial,
+retención, idempotencia y concurrencia conceptual. Con 02A.2, el modelo lógico
+de persistencia queda completo. `02B.1` inicia la fase tecnológica mediante el
+catálogo de patrones de acceso Firestore, todavía sin decidir topología física,
+paths, índices ni reglas. `02B.2` selecciona y documenta la topología híbrida,
+document shapes, referencias, lookups y fronteras atómicas sin implementar
+queries, reglas o índices. `02B.3` define 45 Query Contracts, índices
+documentales, ordenamientos, cursores y límites conceptuales para los 70 Access
+Patterns sin modificar Firebase. `02B.4` define autoridad de escritura,
+transactions, concurrencia, idempotencia, lookups, audit y errores, pero queda
+incompleta hasta revalidar los dos gaps de capability. `02B.4A` aplica una
+enmienda aditiva controlada: incorpora `registration_request.cancel_self` y
+`membership.restore`, evoluciona el dominio congelado a 1.1.0 y queda
+`completed_pending_revalidation`. SaaS-02B.4 sigue incompleta hasta esa
+revalidación. `02B.4B` cierra FWC-001/002 pero detecta FWR-001/002/003.
+`02B.4C` enlaza las transiciones, añade `platform.tenant_restore`, formaliza
+RestoreTenant/UpdateTenantProfile/PlatformUpdateTenantMetadata y evoluciona a
+Domain 1.2.0 con estado `completed_pending_revalidation`. SaaS-02B.4 y SaaS-02B
+siguen incompletas. `02B.4D` revalida esas correcciones y detecta exclusivamente
+FWR-005/006/007. `02B.4E` completa los tres escenarios de concurrencia, las tres
+filas de idempotencia y corrige el conteo vigente a 70 Access Patterns/10 Tenant
+patterns; su estado es `completed_pending_revalidation`. SaaS-02B.4 permanece
+INCOMPLETE hasta SaaS-02B.4F, SaaS-02B permanece INCOMPLETE, SaaS-02C no ha
+comenzado y el Mandatory Firebase Security Review Gate sigue PENDING.
+
+La revalidación independiente `02B.4F` verifica y cierra FWR-005/006/007 sin
+alterar arquitectura. El estado definitivo es:
+
+```text
+SaaS-02B.4A = completed
+SaaS-02B.4B = completed
+SaaS-02B.4C = completed
+SaaS-02B.4D = completed
+SaaS-02B.4E = completed
+SaaS-02B.4F = completed
+
+SaaS-02B.4 = completed
+SaaS-02B = completed
+
+Mandatory Firebase Security Review Gate = REQUIRED
+SaaS-02C = next, not started
+```
+
+El gate no ha sido ejecutado y SaaS-02C no ha comenzado.
+
+El Mandatory Firebase Security Review Gate audita paths, actores, CRUD, campos,
+transiciones, collection groups, backend-only, client candidates y riesgos. El
+informe `FIREBASE_SECURITY_REVIEW_GATE.md` aprueba la preparación para el diseño
+documental de Firestore Rules:
+
+```text
+Mandatory Firebase Security Review Gate = APPROVED
+SaaS-02C = next, not started
+```
+
+SaaS-02C deberá comenzar por diseño documental de Firestore Rules, no por
+implementación directa. Storage continúa deny-all hasta que exista un modelo de
+recursos y ownership aprobado.
 
 ### Crear
 
@@ -936,3 +997,218 @@ producción.
 ### Riesgo y rollback
 
 Consumidor oculto. Release anterior y backups; no destruir datos nuevos.
+
+## SaaS-02C — Security Rules
+
+`02C.1` completa el diseño normativo de Firestore Security Rules sin modificar
+Firebase: deny-by-default, helpers, presupuesto, 10 paths, 45 Query Contracts,
+19 transiciones, dos client writes Identity y backend-only completo.
+
+```text
+Mandatory Firebase Security Review Gate = APPROVED
+SaaS-02C.1 = completed
+SaaS-02C.2 = next, not started
+Storage Rules Design Gate = Not ready
+```
+
+SaaS-02C.2 no ha comenzado. Storage conserva postura deny-all.
+
+### SaaS-02C.1A / SaaS-02C.1B — Legacy Rules reconciliation
+
+```text
+SaaS-02C.1 = completed
+SaaS-02C.1A = completed
+SaaS-02C.1B = completed
+
+SaaS-02C.2A = next, not started (status at SaaS-02C.1B closure)
+
+Storage architecture = not used in current SaaS target
+Storage posture = deny-all
+```
+
+SaaS-02C.2 must begin in shadow deny-by-default mode. Legacy Rules must not be
+removed until their consumers are migrated. The owner-provided legacy Rules are
+a compatibility reference, not the SaaS authorization source.
+
+### SaaS-02C.2A — Composite baseline and SaaS shadow deny-by-default
+
+```text
+SaaS-02C.2A = completed
+SaaS-02C.2B = completed
+SaaS-02C.2C = completed
+SaaS-02C.2D = completed
+SaaS-02C.2E = completed
+SaaS-02C.2E-A = completed
+SaaS-02C.2E-B = completed
+SaaS-02C.2F = completed
+SaaS-02C.2G = in_progress
+SaaS-02C.2G-A = completed
+SaaS-02C.2G-B1 = completed
+SaaS-02C.2G-B1.1 = completed
+SaaS-02C.2G-B1.2 = completed
+SaaS-02C.2G-B1.2A = completed
+SaaS-02C.2G-B1.3 = completed
+SaaS-02C.2G-B1.4 = completed
+SaaS-02C.2G-B1.5 = completed
+SaaS-02C.2G-B1.6 = completed
+SaaS-02C.2G-B1.7 = completed
+SaaS-02C.2G-B2 = in_progress
+SaaS-02C.2G-B2.1 = completed
+SaaS-02C.2G-B2.1A = completed
+SaaS-02C.2G-B2.1B = completed
+SaaS-02C.2G-B2.2 = completed
+SaaS-02C.2G-B2.3 = completed
+SaaS-02C.2G-B2.3A = completed
+SaaS-02C.2G-B2.3B = not required
+SaaS-02C.2G-B2.4 = in_progress
+SaaS-02C.2G-B2.4A = completed
+SaaS-02C.2G-B2.4B = completed_pending_human_workflow_review
+SaaS-02C.2G-B2.4C = next, not started
+SaaS-02C.2G-B2.5 = not started
+SaaS-02C.2G-B3 = not started
+SaaS-02C.2G-C = not started
+
+SaaS-02C.2E-A resolved FRD-006 and FRD-007; SaaS-02C.2E-B implemented and
+closed both findings locally. Mandatory human review of implemented Course and
+Enrollment Rules is required before SaaS-02C.2F. No deployment was performed.
+```
+
+SaaS-02C.2F confirmed exact legacy semantic preservation, isolation between
+legacy and SaaS helpers, safe match overlap, and that no legacy block is ready
+for removal. Mandatory human review of legacy/SaaS compatibility is required
+before any selective legacy hardening in SaaS-02C.2G.
+
+SaaS-02C.2G-B1 is closed documentally and locally after the human joint review
+of B1.6 and the B1.7 baseline comparison. B2.1 reconstructed the current
+consumer contracts but found that Welcome accepts a one-character name while
+the messages Rule requires at least two characters. B2.1 therefore requires a
+separately authorized contract-reconciliation phase and B2.2 is blocked. No
+Rule, consumer or test was changed.
+
+SaaS-02C.2G-B2.1A applied the approved minimal consumer correction: Welcome
+now validates its trimmed name at 2–100 characters before writing the unchanged
+messages payload. Rules and the orphaned public-message service writer remain
+unchanged. Mandatory human review of the Welcome component change is required
+before SaaS-02C.2G-B2.1B. B2.2 remains blocked pending B2.1 closure.
+
+SaaS-02C.2G will address selective hardening of legacy public and
+client-writable blocks without breaking current consumers. No legacy
+permission may be changed before human approval of the exact
+`SAFE_TO_HARDEN_NOW` proposals documented by SaaS-02C.2G-A.
+
+SaaS-02C.2G-B1.1 implemented only the approved `messages` create hardening.
+Mandatory human review of messages create hardening is required before
+SaaS-02C.2G-B1.2. No other hardening proposal is authorized by this status.
+
+SaaS-02C.2G-B1.2 implemented only the approved forum post create hardening.
+SaaS-02C.2G-B1.2A forensically confirmed that only posts create changed and
+that the previously divergent final-response hash was a transcription error.
+Mandatory human forensic review of B1.2A is required before SaaS-02C.2G-B1.3.
+Replies, reports, support, social counters, updates and deletes remain outside
+this authorization.
+
+SaaS-02C.2G-B1.3 implemented only the approved forum reply create hardening.
+Mandatory human review of forum reply create hardening is required before
+SaaS-02C.2G-B1.4. Reports, support, social counters, updates, deletes and forum
+migration remain outside this authorization.
+
+SaaS-02C.2G-B1.4 implemented only the approved `forumReports` create
+hardening. Mandatory human review of forumReports create hardening is required
+before SaaS-02C.2G-B1.5. Support, administrative permissions, social counters,
+updates, deletes and forum migration remain outside this authorization.
+
+At B1.5 closure, SaaS-02C.2G-B1.5 had implemented only the approved
+`supportTickets` create hardening, and B1.6 had not started. B1.6 was designated
+to jointly revalidate messages, forum posts, forum replies, forumReports and
+supportTickets.
+
+SaaS-02C.2G-B1.6 jointly revalidated all five hardenings, consumer payloads,
+userTests restoration, legacy/SaaS isolation, matches, helpers, catch-all and
+Storage posture. Mandatory human joint review is required before
+SaaS-02C.2G-B2. B2 has not started.
+
+SaaS-02C.2G-B2.1B revalidated the Welcome/messages contract, the compatible
+orphaned writer, the absence of new messages writers and the other four B1
+consumer contracts. B2.1 is completed and B2.2 is ready for test design but
+was not started. Mandatory human approval of the B2.1 closure is required
+before SaaS-02C.2G-B2.2.
+
+SaaS-02C.2G-B2.2 designed the 201-case executable Firestore Rules suite for
+the five B1 hardenings without creating or running test files. Mandatory human
+review of the executable test design is required before SaaS-02C.2G-B2.3.
+Runtime execution in SaaS-02C.2G-B2.4 requires a separate owner decision
+because Java installation and Emulator Suite execution are not authorized.
+
+SaaS-02C.2G-B2.3 statically materialized all 201 unique IDs, but validation
+found that the explicit B2.2 expectations total 82 ALLOW / 119 DENY because
+RT-SAS contains 7/3 while its summary states 6/4. B2.4 remains blocked. A
+separately authorized design correction must reconcile the expected-result
+contract; no case expectation was changed silently.
+
+SaaS-02C.2G-B2.3A forensically confirmed Alternative A: the detailed matrix
+and static suite consistently contain 201 cases, 82 ALLOW and 119 DENY. The
+previous 81/120 aggregate was an arithmetic documentation error. No test file
+or expectation changed; B2.3B is not required and B2.4 remains blocked pending
+a separate owner runtime decision.
+
+SaaS-02C.2G-B2.4A determined that demo-only Firestore runtime validation is
+feasible on an isolated hosted runner without local Java, Firebase login,
+credentials, secrets, real-project access or deployment. The current command
+also discovers the separate Storage baseline; B2.4B must create a
+Firestore-only canonical execution boundary before creating the workflow.
+Human approval is required before creating a GitHub Actions workflow. The
+future workflow must use only the demo Firebase project, must not use secrets,
+must not log in to Firebase and must not deploy any resource.
+
+SaaS-02C.2G-B2.4B statically implemented the manual GitHub Actions workflow,
+the exact seven-file Firestore-only package command and a zero-credential
+security preflight. The workflow must not be executed until the owner has
+reviewed the YAML, package scripts and CI preflight. Codex must not commit,
+push or trigger the workflow. The owner will decide when to commit, push and
+manually execute `workflow_dispatch`.
+
+SaaS-02C.2G-B2.4C-A audited the workflow, package boundary, preflight,
+canonical tests and complete worktree. Technical controls passed, but ignored
+local files `.env.local` and `firebase-debug.log` trigger the explicit
+sensitive-file gate. Their contents were not inspected. The phase is
+`incomplete_requires_sensitive_file_owner_review`; B2.4C-B is blocked and
+B2.5 is not started. Codex did not commit, push or execute the workflow.
+
+SaaS-02C.2G-B2.4C-A1 reconciled the two local artifacts through metadata only.
+They are ignored, untracked, unstaged, absent from diffs and unused by CI; no
+sensitive filename is Git-visible. Their contents were not inspected.
+
+```text
+SaaS-02C.2G-B2 = in_progress
+SaaS-02C.2G-B2.4 = in_progress
+SaaS-02C.2G-B2.4A = completed
+SaaS-02C.2G-B2.4B = completed
+SaaS-02C.2G-B2.4C-A = completed
+SaaS-02C.2G-B2.4C-A1 = completed_pending_human_precommit_closure
+SaaS-02C.2G-B2.4C-B = blocked_pending_manual_commit_push_and_workflow
+SaaS-02C.2G-B2.5 = not started
+```
+
+Local ignored files do not form part of the commit. Codex must not inspect
+their contents, stage them, delete them, commit, push or execute the workflow.
+The owner must approve the final commit procedure.
+
+SaaS-02C.2G-B2.4C-B1 created only the explicitly authorized local thematic
+commits. Codex did not push any branch and did not execute the workflow.
+
+```text
+SaaS-02C.2G-B2 = in_progress
+SaaS-02C.2G-B2.4 = in_progress
+SaaS-02C.2G-B2.4C-A = completed
+SaaS-02C.2G-B2.4C-A1 = completed
+SaaS-02C.2G-B2.4C-B1 = completed_pending_human_push
+SaaS-02C.2G-B2.4C-B2 = blocked_pending_manual_push_and_workflow
+SaaS-02C.2G-B2.5 = not started
+```
+
+The owner must review the commits, push the selected branch manually and
+trigger `workflow_dispatch`.
+
+The local composite baseline preserves the owner-provided legacy compatibility
+semantics and reserves all ten canonical SaaS paths with complete client deny.
+SaaS-02C.2 is not complete. No deployment was performed.

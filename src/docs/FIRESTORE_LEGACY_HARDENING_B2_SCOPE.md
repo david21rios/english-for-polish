@@ -293,6 +293,21 @@ B2.5 = not started
 
 No commit, push or workflow execution occurred.
 
+## B2.4C-B1 controlled commits
+
+The approved local thematic commits were created with explicit path staging.
+
+```text
+B2.4 = in_progress
+B2.4C-A = completed
+B2.4C-A1 = completed
+B2.4C-B1 = completed_pending_human_push
+B2.4C-B2 = blocked_pending_manual_push_and_workflow
+B2.5 = not started
+```
+
+Push and workflow execution remain owner actions.
+
 ## B2.3A forensic count resolution
 
 Alternative A was proven: the detailed matrix and static implementation agree

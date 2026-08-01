@@ -514,3 +514,10 @@ so the precommit technical audit is closed pending human approval. Commit and
 workflow execution remain pending; credentials and deployment remain absent,
 Storage stays out of scope, FLH states are unchanged and no path is ready for
 removal.
+
+## 28. B2.4C-B1 controlled commits
+
+The accumulated approved work was recorded in thematic local commits using
+explicit paths. Ignored local files, lockfile and Storage remained excluded;
+FLH states and removal gates did not change. Push and runtime workflow
+execution remain pending owner action.
