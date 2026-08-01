@@ -29,7 +29,7 @@ Six thematic commits preserve review and rollback boundaries:
 | 3 | `8c12e00` | `feat(firestore-rules): add SaaS isolation and harden legacy creates` | `firestore.rules` plus 20 implementation, reconciliation, hardening and legacy-evidence files |
 | 4 | `dc6ceab` | `test(firestore-rules): add emulator test suite and secure CI workflow` | 14 test files, workflow, preflight, package scripts and 8 test/CI/B2 documents |
 | 5 | `be6bc68` | `fix(welcome): align contact name validation with Firestore Rules` | Welcome plus three consumer-contract documents |
-| 6 | pending at document creation | `docs(saas): record Firestore security and CI implementation progress` | this execution record and five transverse status documents |
+| 6 | `b624893` | `docs(saas): record Firestore security and CI implementation progress` | this execution record and five transverse status documents |
 
 Every staging operation used `git add --` followed by explicit paths. Before
 each commit, cached whitespace, names and statistics were reviewed. After each
