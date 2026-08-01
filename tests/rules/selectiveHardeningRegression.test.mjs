@@ -27,7 +27,7 @@ const cases = [
   { id: "RT-REG-006", expected: "DENY", title: "combined cross-resource payload", path: "messages/reg-006", payload: () => ({ ...validWelcomeMessage(), ...validSupportTicket() }) },
   { id: "RT-SEC-001", expected: "DENY", title: "parent post match does not authorize reply", path: "forums/A1/posts/post-x/replies/sec-001", payload: validForumPost },
   { id: "RT-SEC-002", expected: "DENY", title: "child reply match does not authorize post", path: "forums/A1/posts/sec-002", payload: validForumReply },
-  { id: "RT-SEC-003", expected: "DENY", title: "recursive memberships match does not authorize legacy target", path: "legacy/memberships/sec-003", payload: () => ({ uid: TEST_CONTEXTS.FORUM_USER.uid }) },
+  { id: "RT-SEC-003", expected: "DENY", title: "recursive memberships match does not authorize legacy target", path: "legacy/root/memberships/sec-003", payload: () => ({ uid: TEST_CONTEXTS.FORUM_USER.uid }) },
   { id: "RT-SEC-004", expected: "DENY", title: "registrationRequests collection-group match does not authorize create", path: "tenants/t1/registrationRequests/sec-004", payload: () => ({ uid: TEST_CONTEXTS.FORUM_USER.uid, tenantId: "t1", requestId: "sec-004" }) },
   { id: "RT-SEC-005", expected: "DENY", title: "unknown nested forum path catch-all", path: "forums/A1/unknown/sec-005", payload: () => ({ synthetic: true }) },
   { id: "RT-SEC-006", expected: "DENY", title: "unknown root catch-all and no allow true", path: "unknown/sec-006", payload: () => ({ synthetic: true }) },
