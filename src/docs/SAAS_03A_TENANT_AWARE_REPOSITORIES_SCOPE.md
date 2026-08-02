@@ -112,8 +112,10 @@ complete. 03A is ready but not started.
 To keep one responsibility per change, the first repository step is split:
 
 ```text
-SaaS-03A.1A = next, not started
-SaaS-03A.1B = not started
+SaaS-03A = in_progress
+SaaS-03A.1A = completed
+SaaS-03A.1A-C1 = completed_pending_human_push
+SaaS-03A.1B = ready_not_started
 ```
 
 ### SaaS-03A.1A — Shared SaaS Firestore repository infrastructure
@@ -139,4 +141,17 @@ infrastructure: self read plus the Rule-approved self-profile update contract,
 with serializer, error and unit/Emulator coverage. It remains separate because
 Identity is the first concrete repository and the explicit non-tenant root.
 
-Neither microphase is started by this document.
+At design time, neither microphase was started by this document.
+
+## SaaS-03A.1A implementation result
+
+The shared, pure Firestore repository infrastructure is implemented under
+`src/services/saas/shared/` and documented in
+`SAAS_03A_1A_SHARED_REPOSITORY_INFRASTRUCTURE.md`. It provides validated IDs,
+the ten canonical path strings, tenant consistency, ISO timestamp conversion,
+snapshot allowlisting, normalized errors and explicit dependency injection.
+It performs no Firestore operation and implements no functional repository.
+
+The C1 code review passed after strengthening sensitive-key sanitization. The
+51-test contract and all architectural boundaries remain intact. SaaS-03A.1B
+is ready but was not started.

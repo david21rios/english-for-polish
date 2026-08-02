@@ -1353,11 +1353,23 @@ was created and 03A was not started.
 The first implementation step is deliberately split by responsibility:
 
 ```text
-SaaS-03A.1A — Shared SaaS Firestore repository infrastructure = next, not started
-SaaS-03A.1B — IdentityRepository = not started
+SaaS-03A = in_progress
+SaaS-03A.1A — Shared SaaS Firestore repository infrastructure = completed
+SaaS-03A.1A-C1 — Human review and controlled commits = completed_pending_human_push
+SaaS-03A.1B — IdentityRepository = ready_not_started
 ```
 
 `SaaS-03A.1A` may create only shared Firestore dependency, path/ID guard,
 timestamp serialization and repository error primitives with their scoped
 tests. It does not create a concrete repository. `SaaS-03A.1B` subsequently
 implements only `IdentityRepository`. Neither microphase is started here.
+
+SaaS-03A.1A subsequently implemented only pure shared infrastructure under
+`src/services/saas/shared/`: validated opaque IDs, ten canonical path strings,
+exact tenant consistency, ISO timestamp conversion, snapshot allowlisting,
+normalized repository errors and explicit Firestore dependency injection. Its
+51 unit tests require no Emulator and no global Firebase instance. See
+`SAAS_03A_1A_SHARED_REPOSITORY_INFRASTRUCTURE.md`.
+
+The C1 review strengthened compound sensitive-key filtering without changing
+the public contract or test count. SaaS-03A.1B is ready but remains unstarted.
