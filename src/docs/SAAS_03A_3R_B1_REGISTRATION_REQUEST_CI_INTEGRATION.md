@@ -42,7 +42,7 @@ job and prevents later gates from running.
 
 `scripts/validate-registration-request-runtime-tests.mjs` is a read-only ESM
 precheck with no dependencies beyond Node. It verifies file presence, 52 unique
-IDs, 34/18 metadata, the 34/13/4/1 outcome breakdown, executable suite
+IDs, 34/18 metadata, the original 34/13/4/1 outcome breakdown, executable suite
 self-checks, the demo project, and absence of Storage, `src/firebase.js`, and
 absolute workstation paths.
 
@@ -107,3 +107,19 @@ SaaS-03A.3R-B2 = blocked_pending_manual_push_and_workflow
 The owner must push the new HEAD, start a new manual workflow instance on
 `main`, and provide its non-sensitive evidence. Re-running an older job is not
 valid.
+
+## FIX1 runtime correction
+
+The first hosted RegistrationRequest runtime reached the gate but finished
+`43 / 52`. FIX1 resolved four root causes covering nine IDs without changing
+Rules or indexes. The reconciled breakdown is now `34 SUCCESS`,
+`14 RULES_DENY`, `4 CONTRACT_ERROR`, and `0 NOT_FOUND`; total metadata remains
+`34 ALLOW / 18 DENY`. The workflow change is limited to those two declarative
+outcome labels. A new owner-triggered workflow run is required; local `52 / 52`
+success is not hosted CI evidence.
+
+```text
+SaaS-03A.3R-B1-FIX1 = completed
+SaaS-03A.3R-B1-FIX1-C1 = completed_pending_human_push
+SaaS-03A.3R-B2 = blocked_pending_corrected_runtime_evidence
+```

@@ -38,8 +38,10 @@ Cursor v1 binds query kind, Tenant scope, UID, status, order and policy
 `registration_request_standard_v1`. It stores canonical requestedAt and full
 document path, uses canonical JSON UTF-8 and unpadded base64url, and is limited
 to 2048 characters. Malformed input is `INVALID_ARGUMENT`; incompatibility is
-`CONTRACT_VIOLATION`. `startAfter` receives a `Date` and an injected `doc()`
-reference. No SDK object crosses the public API.
+`CONTRACT_VIOLATION`. `startAfter` receives a `Date` plus the simple request ID
+for a Tenant collection query or the canonical full document path for a
+collection-group query. This matches the installed Web SDK field-value cursor
+contract; no SDK object crosses the public API.
 
 ## Dependencies, tests and exclusions
 
@@ -108,3 +110,9 @@ repository remained unchanged and 03A.3R-B is now `ready_not_started`.
 
 03A.3R-B1 integrates the unchanged repository runtime suite into CI as a
 separate Firestore-only gate. Execution remains pending owner action.
+
+FIX1 corrected only the internal `documentId()` cursor projection after the
+first runtime exposed that field-value bounds reject a `DocumentReference`.
+The cursor envelope, bindings, public API, ordering, limit-plus-one behavior,
+ownership, and serialization remain unchanged. Unit coverage is now 59 tests,
+and the corrected local runtime passes `52 / 52`.

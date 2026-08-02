@@ -54,7 +54,7 @@ depend on execution order or retain an environment/process after completion.
 
 | Area | Test IDs | Count | Contract exercised |
 | --- | --- | ---: | --- |
-| Point get | RT-RRQ-REP-001..006 | 6 | owner history, foreign/anonymous denial, NOT_FOUND |
+| Point get | RT-RRQ-REP-001..006 | 6 | owner history, foreign/anonymous denial, protected nonexistence denial |
 | Tenant list, no status | RT-RRQ-REP-010..015 | 6 | UID/Tenant isolation, order, tie-break, empty result |
 | Tenant list, status | RT-RRQ-REP-020..024 | 5 | every canonical status |
 | Collection group, no status | RT-RRQ-REP-030..035 | 6 | cross-Tenant self list, isolation, global order, anonymous denial |
@@ -66,9 +66,10 @@ depend on execution order or retain an environment/process after completion.
 
 The suite defines 52 unique IDs: 34 `ALLOW` and 18 `DENY`. `[ALLOW]` marks an
 expected successful repository/Rules contract. `[DENY]` marks an expected
-rejection outcome; RT-RRQ-REP-006 specifically distinguishes repository
-`NOT_FOUND` from a Rules permission denial. Repository errors are asserted by
-normalized code, while direct Rules denials use `assertFails`.
+rejection outcome. FIX1 confirmed that RT-RRQ-REP-006 is a Rules permission
+denial because the protected missing resource cannot satisfy `resource.data`
+conditions. Repository errors are asserted by normalized code, while direct
+Rules denials use `assertFails`.
 
 ## Index traceability and limitation
 
@@ -143,8 +144,8 @@ All documents use canonical paths and valid serializer lifecycle fields.
 ## C1 assertion matrix
 
 `[DENY]` remains the approved broad metadata for an expected rejection outcome.
-The executable `outcome` classification makes the actual contract reproducible:
-34 `SUCCESS`, 13 `RULES_DENY`, 4 `CONTRACT_ERROR`, and 1 `NOT_FOUND`.
+After FIX1, the executable `outcome` classification matches real Rules behavior:
+34 `SUCCESS`, 14 `RULES_DENY`, 4 `CONTRACT_ERROR`, and 0 `NOT_FOUND`.
 
 | Test ID | Description | Outcome | Assertion | Contract |
 | --- | --- | --- | --- | --- |
@@ -153,7 +154,7 @@ The executable `outcome` classification makes the actual contract reproducible:
 | REP-003 | cancelled history | SUCCESS | lifecycle assertions | serializer |
 | REP-004 | foreign get | RULES_DENY | normalized FORBIDDEN | Rules |
 | REP-005 | anonymous get | RULES_DENY | normalized auth denial | Rules |
-| REP-006 | missing get | NOT_FOUND | normalized NOT_FOUND | repository |
+| REP-006 | missing protected get | RULES_DENY | normalized FORBIDDEN | Rules existence masking |
 | REP-010 | owner-only Tenant list | SUCCESS | every UID | query |
 | REP-011 | exclude foreign UID | SUCCESS | ID absence | query |
 | REP-012 | exclude other Tenant | SUCCESS | every tenantId | query |
@@ -221,3 +222,9 @@ SaaS-03A.3R-B = ready_not_started
 03A.3R-B1 subsequently added a read-only static precheck and a separate,
 sequential Firestore-only workflow gate. The suite itself remains byte-identical
 and unexecuted pending human push and manual workflow dispatch.
+
+FIX1 subsequently executed the suite locally and corrected nine failures:
+existence masking for REP-006, the authenticated UID for REP-015, Web SDK
+field-value cursor projection for six pagination cases, and the direct `getDoc`
+SDK map for SEC-004. The resulting local runtime is `52 / 52`; a new hosted
+workflow run remains mandatory.

@@ -185,7 +185,8 @@ Los índices quedan completados localmente y 03A.3R queda `ready_not_started`.
 
 C1 reviewed the complete implementation, corrected whitespace-only cursor
 validation and explicit path/requestId consistency, and expanded coverage to
-58 passing unit tests.
+58 passing unit tests. FIX1 adds one independent collection-group cursor
+projection test, bringing current coverage to 59.
 
 ```text
 SaaS-03A.3A-R2 = completed
@@ -207,9 +208,19 @@ SaaS-03A.3R-A = completed_pending_human_test_review
 SaaS-03A.3R-B = blocked_pending_3R_A_review
 ```
 
-The C1 review strengthened assertions without changing the repository. Final
-static suite counts are 52 titles, 34 ALLOW and 18 DENY, with outcomes separated
-as 34 SUCCESS, 13 Rules denials, 4 contract errors and 1 NOT_FOUND.
+The C1 review originally recorded 52 titles, 34 ALLOW and 18 DENY, with outcomes
+separated as 34 SUCCESS, 13 Rules denials, 4 contract errors and 1 NOT_FOUND.
+FIX1 supersedes only that outcome breakdown with the observed Rules behavior.
 
 03A.3R-B1 preserves the repository and suite while adding distinct CI precheck,
 Rules runtime, and RegistrationRequest runtime gates. No gate was executed here.
+
+## 12. Runtime correction FIX1
+
+The first RegistrationRequest runtime reported nine failures. FIX1 confirmed
+four causes: protected nonexistence maps to `FORBIDDEN`, one empty-list case
+used a foreign authenticated UID, six cursor cases passed the wrong key-field
+value type to `startAfter`, and one direct key read omitted `getDoc` from its
+test SDK map. The corrected local suite passes `52 / 52` with outcomes
+`34 SUCCESS / 14 RULES_DENY / 4 CONTRACT_ERROR / 0 NOT_FOUND`. Rules, indexes,
+the physical contract, and the repository API are unchanged.

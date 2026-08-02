@@ -225,7 +225,7 @@ The client-safe RegistrationRequest repository is implemented in shadow mode
 under `src/services/saas/registrationRequest/`. It exposes only self point read,
 Tenant-scoped self list and cross-Tenant self collection-group list. Strict
 serialization, closed options, limit-plus-one pagination and portable cursor
-v1 follow R1. After C1 review, its 58 pure tests require no Emulator or
+v1 follow R1. After FIX1, its 59 pure tests require no Emulator or
 Firebase global.
 
 ```text
@@ -289,3 +289,22 @@ SaaS-03A.3R-B1 = completed
 SaaS-03A.3R-B1-C1 = completed_pending_human_push
 SaaS-03A.3R-B2 = blocked_pending_manual_push_and_workflow
 ```
+
+## SaaS-03A.3R-B1-FIX1 runtime correction
+
+The first hosted repository runtime exposed nine failures. FIX1 corrected the
+test expectation for Rules existence masking, one authenticated UID mismatch,
+the Web SDK `documentId()` field-value cursor projection, and the direct test
+SDK map. Local runtime now passes `52 / 52`; Rules, indexes, Domain, public API,
+and repository scope remain unchanged.
+
+```text
+SaaS-03A = in_progress
+SaaS-03A.3 = in_progress
+SaaS-03A.3R = in_progress
+SaaS-03A.3R-B1-FIX1 = completed
+SaaS-03A.3R-B1-FIX1-C1 = completed_pending_human_push
+SaaS-03A.3R-B2 = blocked_pending_corrected_runtime_evidence
+```
+
+MembershipRepository remains unstarted.

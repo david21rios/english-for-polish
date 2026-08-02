@@ -1415,7 +1415,7 @@ fixed documents. SaaS-03A.3 was identified but not started.
 
 SaaS-03A.3A-R2 subsequently implemented the three approved client-safe
 RegistrationRequest reads in expand/shadow mode. Exact lifecycle serialization,
-UID-bound queries, deterministic pagination and cursor v1 are backed by 58 pure
+UID-bound queries, deterministic pagination and cursor v1 are backed by 59 pure
 unit tests.
 
 ```text
@@ -1511,3 +1511,23 @@ SaaS-03A.3R-B2 = blocked_pending_manual_push_and_workflow
 
 Next owner actions are push and a new manual `workflow_dispatch` on `main`.
 MembershipRepository remains unstarted.
+
+### SaaS-03A.3R-B1-FIX1 corrective closure
+
+FIX1 resolved the nine failures from the first RegistrationRequest repository
+runtime without changing Rules, indexes, Domain, Storage, or repository scope.
+The corrected local gate passes all 52 cases. Hosted CI evidence is still
+required before B2 can close the runtime sequence.
+
+```text
+SaaS-03A = in_progress
+SaaS-03A.3 = in_progress
+SaaS-03A.3R = in_progress
+SaaS-03A.3R-B1 = completed
+SaaS-03A.3R-B1-FIX1 = completed
+SaaS-03A.3R-B1-FIX1-C1 = completed_pending_human_push
+SaaS-03A.3R-B2 = blocked_pending_corrected_runtime_evidence
+```
+
+Do not start MembershipRepository before the corrected hosted runtime is
+reviewed.
