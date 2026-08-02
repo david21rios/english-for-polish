@@ -1388,3 +1388,21 @@ SaaS-03A.2 — TenantRepository = ready_not_started
 ```
 
 SaaS-03A.2 was identified but not started.
+
+SaaS-03A.2A subsequently implemented only the client-safe Tenant shell point
+read at `tenants/{tenantId}`. The repository exposes no lists, writes,
+privileged operations or configuration access. Its strict physical serializer
+and 31 pure unit tests are documented in
+`SAAS_03A_2A_TENANT_SHELL_REPOSITORY.md`.
+
+```text
+SaaS-03A = in_progress
+SaaS-03A.2 = in_progress
+SaaS-03A.2A = completed
+SaaS-03A.2A-C1 = completed_pending_human_push
+SaaS-03A.2B = deferred_pending_rules_and_access_policy
+SaaS-03A.3 — RegistrationRequestRepository = ready_not_started
+```
+
+Settings and Branding remain deferred because current client Rules deny their
+fixed documents. SaaS-03A.3 was identified but not started.

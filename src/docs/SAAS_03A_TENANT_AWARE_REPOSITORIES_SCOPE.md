@@ -174,3 +174,24 @@ SaaS-03A.1B = completed
 SaaS-03A.1B-C1 = completed_pending_human_push
 SaaS-03A.2 — TenantRepository = ready_not_started
 ```
+
+## SaaS-03A.2A implementation result
+
+The client-safe Tenant shell repository is implemented under
+`src/services/saas/tenant/`. Its only public operation is the injected point
+read `getTenant(tenantId)`. The strict twelve-field physical serializer covers
+the canonical ten required Tenant fields plus conditional nullable
+`suspendedAt` and `archivedAt` lifecycle timestamps. Thirty-one pure unit tests
+require no Emulator.
+
+Settings and Branding remain unimplemented because current client Rules deny
+both fixed configuration documents.
+
+```text
+SaaS-03A = in_progress
+SaaS-03A.2 = in_progress
+SaaS-03A.2A = completed
+SaaS-03A.2A-C1 = completed_pending_human_push
+SaaS-03A.2B = deferred_pending_rules_and_access_policy
+SaaS-03A.3 — RegistrationRequestRepository = ready_not_started
+```
