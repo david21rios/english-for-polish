@@ -1373,3 +1373,18 @@ normalized repository errors and explicit Firestore dependency injection. Its
 
 The C1 review strengthened compound sensitive-key filtering without changing
 the public contract or test count. SaaS-03A.1B is ready but remains unstarted.
+
+SaaS-03A.1B subsequently implemented only `IdentityRepository` for the global
+`identities/{uid}` root. Its exact serializer, dependency-injected read and two
+Rule-approved field-scoped update operations are documented in
+`SAAS_03A_1B_IDENTITY_REPOSITORY.md`. No UI, legacy service, Rule, index,
+Storage resource or remote Firebase resource was changed.
+
+```text
+SaaS-03A = in_progress
+SaaS-03A.1B = completed
+SaaS-03A.1B-C1 = completed_pending_human_push
+SaaS-03A.2 — TenantRepository = ready_not_started
+```
+
+SaaS-03A.2 was identified but not started.
