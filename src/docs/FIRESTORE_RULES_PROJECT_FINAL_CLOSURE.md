@@ -113,3 +113,23 @@ No code, Rule, test, workflow, package, domain model or Firebase configuration
 was modified during this closure.
 
 **SaaS-02C.2G FINAL CLOSURE = COMPLETE**
+
+## SaaS-02C.2H no-Storage clarification
+
+The owner subsequently resolved the only roadmap gate ambiguity:
+
+```text
+CURRENT_SAAS_STORAGE_POLICY = NO_STORAGE
+Phase 02 current no-storage scope = completed
+03A = ready_not_started
+```
+
+`photoURL`, `logoUrl`, `faviconUrl` and `supportUrl` remain external URLs or
+`null` and never imply Firebase Storage uploads. Legacy `uploadAudio` remains
+deferred under FLH-007 and does not block 03A. Any future binary storage needs
+a separate architecture, ownership, paths, Rules and test phase.
+
+This clarification changes no B1/B2 result, Rule, test, domain contract,
+Firebase file or legacy compatibility guarantee. See
+`SAAS_02H_NO_STORAGE_GATE_RECONCILIATION.md` and
+`SAAS_03A_TENANT_AWARE_REPOSITORIES_SCOPE.md`.

@@ -316,11 +316,14 @@ Implementar reglas definitivas basadas en contratos aprobados.
 
 ```text
 firestore.rules
-storage.rules
 firestore.indexes.json
 tests/rules/firestore.*
-tests/rules/storage.*
 ```
+
+Las referencias históricas de esta fase a `storage.rules` y
+`tests/rules/storage.*` quedan
+`superseded_for_current_no_storage_release`. La versión SaaS actual es
+Firestore-only; `storage.rules` permanece deny-all y fuera del gate.
 
 ### Dependencias
 
@@ -332,7 +335,7 @@ tests/rules/storage.*
 - membership por tenant;
 - capacidades;
 - course/enrollment;
-- Storage tenant-aware;
+- Storage tenant-aware: `superseded_for_current_no_storage_release`;
 - platform role global;
 - invitaciones no legibles por clientes;
 - auditoría append-only mediante backend.
@@ -348,13 +351,15 @@ Ninguna.
 - course/enrollment cruzado;
 - usuario anónimo;
 - platform admin sin acceso tenant implícito;
-- Storage;
+- Storage: excluido del gate vigente no-Storage;
 - campos protegidos;
 - consultas previstas e índices.
 
 ### Aceptación y gate
 
 Suite de reglas verde en emulador y revisión de seguridad. No conectar UI antes.
+Para la versión vigente, esta aceptación se limita a Firestore. Storage requiere
+una fase arquitectónica futura independiente y no bloquea 03A.
 
 ### Riesgo y rollback
 
@@ -367,15 +372,15 @@ al ruleset baseline versionado.
 
 Añadir persistencia en modo expand sin retirar servicios legacy.
 
-### Crear
+### Crear en una fase de implementación posterior
 
 ```text
-src/services/tenants/tenantRepository.js
-src/services/memberships/membershipRepository.js
-src/services/invitations/invitationRepository.js
-src/services/courses/tenantCourseRepository.js
-src/services/enrollments/enrollmentRepository.js
-src/services/audit/auditRepository.js
+src/services/saas/identity/identityRepository.js
+src/services/saas/tenants/tenantRepository.js
+src/services/saas/registrationRequests/registrationRequestRepository.js
+src/services/saas/memberships/membershipRepository.js
+src/services/saas/courses/courseRepository.js
+src/services/saas/enrollments/enrollmentRepository.js
 ```
 
 ### Modificar
@@ -385,7 +390,8 @@ src/services/audit/auditRepository.js
 
 ### Dependencias
 
-Fase 02.
+Fase 02 cerrada bajo la política vigente Firestore-only y aprobación humana de
+SaaS-02C.2H.
 
 ### Modelo/reglas
 
@@ -406,6 +412,9 @@ Sólo fixtures/staging.
 ### Aceptación y gate
 
 Ningún repositorio institucional permite consulta global u omitir tenant.
+Identity es la única raíz global explícita. 03A no contiene Storage/Media,
+AuditLog físico, invitaciones backend, foros, progreso, tests legacy,
+presentations ni soporte.
 
 ### Riesgo y rollback
 
@@ -1317,3 +1326,38 @@ SaaS-02C.2G = completed
 The final reconciliation, deferred FLH backlog and residual risks are recorded
 in `FIRESTORE_RULES_PROJECT_FINAL_CLOSURE.md`. Domain 1.2.0 and the architecture
 freeze remain intact; Storage remains deny-all.
+
+## SaaS-02C.2H no-Storage gate reconciliation
+
+The owner approved the current release as Firestore-only. Historical generic
+Phase 02 Storage requirements are
+`superseded_for_current_no_storage_release`; Storage is not a prerequisite for
+03A. Binary uploads, Media roots, Storage repositories, paths, Rules and
+emulator execution remain excluded, and `storage.rules` remains deny-all.
+
+```text
+CURRENT_SAAS_STORAGE_POLICY = NO_STORAGE
+SaaS-02C.2G = completed
+SaaS-02C.2H = completed
+SaaS-02C.2H-C1 = completed_pending_human_push
+Phase 02 current no-storage scope = completed
+03A — Repositorios tenant-aware = ready_not_started
+04 — Providers en shadow mode = blocked_by_03A
+06 — Activación progresiva de guardas = blocked_by_previous_phases
+```
+
+The exact 03A scope is documented in
+`SAAS_03A_TENANT_AWARE_REPOSITORIES_SCOPE.md`. No repository or functional code
+was created and 03A was not started.
+
+The first implementation step is deliberately split by responsibility:
+
+```text
+SaaS-03A.1A — Shared SaaS Firestore repository infrastructure = next, not started
+SaaS-03A.1B — IdentityRepository = not started
+```
+
+`SaaS-03A.1A` may create only shared Firestore dependency, path/ID guard,
+timestamp serialization and repository error primitives with their scoped
+tests. It does not create a concrete repository. `SaaS-03A.1B` subsequently
+implements only `IdentityRepository`. Neither microphase is started here.
