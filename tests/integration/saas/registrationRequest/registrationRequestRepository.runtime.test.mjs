@@ -57,14 +57,14 @@ runtime("RT-RRQ-REP-003", "ALLOW", "owner cancelled history get", async () => {
 });
 runtime("RT-RRQ-REP-004", "DENY", "foreign point get", async () => assert.rejects(() => repo(USERS.studentB).getOwnRegistrationRequest(TENANTS.a, "request-a05", USERS.studentB), (error) => error.code === "FORBIDDEN"));
 runtime("RT-RRQ-REP-005", "DENY", "anonymous point get", async () => assert.rejects(() => createRuntimeRepository(anonymousDatabase(environment)).getOwnRegistrationRequest(TENANTS.a, "request-a05", USERS.studentA), (error) => error.code === "UNAUTHENTICATED" || error.code === "FORBIDDEN"));
-runtime("RT-RRQ-REP-006", "DENY", "missing point get is NOT_FOUND", async () => assert.rejects(() => repo().getOwnRegistrationRequest(TENANTS.a, "missing", USERS.studentA), (error) => error.code === "NOT_FOUND"), "NOT_FOUND");
+runtime("RT-RRQ-REP-006", "DENY", "missing point get is denied without disclosing existence", async () => assert.rejects(() => repo().getOwnRegistrationRequest(TENANTS.a, "missing", USERS.studentA), (error) => error.code === "FORBIDDEN"));
 
 runtime("RT-RRQ-REP-010", "ALLOW", "tenant list returns owner only", async () => { const items=(await ownTenant()).items; assert(items.length > 0); assert(items.every((item) => item.uid === USERS.studentA)); });
 runtime("RT-RRQ-REP-011", "ALLOW", "tenant list excludes foreign UID", async () => assert(!ids(await ownTenant()).includes("request-a04")));
 runtime("RT-RRQ-REP-012", "ALLOW", "tenant list excludes other Tenant", async () => assert((await ownTenant()).items.every((item) => item.tenantId === TENANTS.a)));
 runtime("RT-RRQ-REP-013", "ALLOW", "tenant list orders requestedAt descending", async () => assertDescending((await ownTenant()).items));
 runtime("RT-RRQ-REP-014", "ALLOW", "tenant list breaks timestamp ties by document ID descending", async () => { const result=ids(await ownTenant()); assert(result.indexOf("request-tie-z") < result.indexOf("request-tie-a")); });
-runtime("RT-RRQ-REP-015", "ALLOW", "tenant list empty result", async () => assert.deepEqual((await repo().listOwnRegistrationRequestsForTenant(TENANTS.c, USERS.teacherA)).items, []));
+runtime("RT-RRQ-REP-015", "ALLOW", "tenant list empty result", async () => assert.deepEqual((await repo(USERS.teacherA).listOwnRegistrationRequestsForTenant(TENANTS.c, USERS.teacherA)).items, []));
 
 for (const [id, status] of [["RT-RRQ-REP-020","pending"],["RT-RRQ-REP-021","approved"],["RT-RRQ-REP-022","rejected"],["RT-RRQ-REP-023","cancelled"],["RT-RRQ-REP-024","expired"]]) {
   runtime(id, "ALLOW", `tenant status ${status}`, async () => assertOwnTenantItems((await ownTenant({ status })).items, status));
@@ -116,6 +116,6 @@ assert.equal(new Set(cases.map(({ id }) => id)).size, 52);
 assert.equal(cases.filter(({ expected }) => expected === "ALLOW").length, 34);
 assert.equal(cases.filter(({ expected }) => expected === "DENY").length, 18);
 assert.equal(cases.filter(({ outcome }) => outcome === "SUCCESS").length, 34);
-assert.equal(cases.filter(({ outcome }) => outcome === "RULES_DENY").length, 13);
+assert.equal(cases.filter(({ outcome }) => outcome === "RULES_DENY").length, 14);
 assert.equal(cases.filter(({ outcome }) => outcome === "CONTRACT_ERROR").length, 4);
-assert.equal(cases.filter(({ outcome }) => outcome === "NOT_FOUND").length, 1);
+assert.equal(cases.filter(({ outcome }) => outcome === "NOT_FOUND").length, 0);

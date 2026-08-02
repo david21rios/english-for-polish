@@ -24,6 +24,6 @@ export const createRuntimeRepository = (database) => createRegistrationRequestRe
 });
 
 export const sdk = Object.freeze({
-  collection, collectionGroup, deleteDoc, doc, documentId, getDocs, limit,
+  collection, collectionGroup, deleteDoc, doc, documentId, getDoc, getDocs, limit,
   orderBy, query, setDoc, updateDoc, where
 });

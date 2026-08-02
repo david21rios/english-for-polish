@@ -65,9 +65,12 @@ export const createRegistrationRequestRepository = (dependencies) => {
       );
       if (parsed.cursor !== null) {
         const position = decodeRegistrationRequestCursor(parsed.cursor, { queryKind, binding });
+        const documentCursor = queryKind === REGISTRATION_REQUEST_QUERY_KINDS.TENANT
+          ? registrationRequestPathContext(position.documentPath).requestId
+          : position.documentPath;
         constraints.push(required.startAfter(
           new Date(position.requestedAt),
-          required.doc(db, position.documentPath)
+          documentCursor
         ));
       }
       constraints.push(required.limit(parsed.pageSize + 1));

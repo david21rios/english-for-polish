@@ -51,15 +51,22 @@ requireCondition(denyCount === 18, `expected 18 DENY cases, found ${denyCount}`)
 const contractErrors = new Set([
   "RT-RRQ-REP-062", "RT-RRQ-REP-063", "RT-RRQ-REP-064", "RT-RRQ-REP-065"
 ]);
-const notFound = new Set(["RT-RRQ-REP-006"]);
+const notFound = new Set();
+const allowedOutcomes = new Set(["SUCCESS", "RULES_DENY", "CONTRACT_ERROR", "NOT_FOUND"]);
+const explicitOutcomes = [...sources.runtime.matchAll(/\},\s*"([A-Z_]+)"\);/g)]
+  .map((match) => match[1]);
+requireCondition(
+  explicitOutcomes.every((outcome) => allowedOutcomes.has(outcome)),
+  "runtime suite contains an unknown outcome"
+);
 const successCount = [...metadata.values()].filter((value) => value === "ALLOW").length;
 const rulesDenyCount = [...metadata].filter(([id, value]) => (
   value === "DENY" && !contractErrors.has(id) && !notFound.has(id)
 )).length;
 requireCondition(successCount === 34, `expected 34 SUCCESS cases, found ${successCount}`);
-requireCondition(rulesDenyCount === 13, `expected 13 RULES_DENY cases, found ${rulesDenyCount}`);
+requireCondition(rulesDenyCount === 14, `expected 14 RULES_DENY cases, found ${rulesDenyCount}`);
 requireCondition(contractErrors.size === 4, "expected 4 CONTRACT_ERROR cases");
-requireCondition(notFound.size === 1, "expected 1 NOT_FOUND case");
+requireCondition(notFound.size === 0, "expected 0 NOT_FOUND cases");
 
 requireCondition(
   sources.harness.includes('RULES_TEST_PROJECT_ID') &&
@@ -71,9 +78,9 @@ requireCondition(
     sources.runtime.includes("expected === \"ALLOW\").length, 34") &&
     sources.runtime.includes("expected === \"DENY\").length, 18") &&
     sources.runtime.includes("outcome === \"SUCCESS\").length, 34") &&
-    sources.runtime.includes("outcome === \"RULES_DENY\").length, 13") &&
+    sources.runtime.includes("outcome === \"RULES_DENY\").length, 14") &&
     sources.runtime.includes("outcome === \"CONTRACT_ERROR\").length, 4") &&
-    sources.runtime.includes("outcome === \"NOT_FOUND\").length, 1"),
+    sources.runtime.includes("outcome === \"NOT_FOUND\").length, 0"),
   "runtime suite self-checks do not match the approved totals"
 );
 
@@ -95,7 +102,7 @@ if (failures.length > 0) {
   console.log("ALLOW: 34");
   console.log("DENY: 18");
   console.log("SUCCESS: 34");
-  console.log("RULES_DENY: 13");
+  console.log("RULES_DENY: 14");
   console.log("CONTRACT_ERROR: 4");
-  console.log("NOT_FOUND: 1");
+  console.log("NOT_FOUND: 0");
 }

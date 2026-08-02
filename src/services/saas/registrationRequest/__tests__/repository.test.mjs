@@ -33,13 +33,22 @@ test("[positive] tenant list enforces self filter, deterministic order and limit
   assert.equal(Object.isFrozen(result.items), true);
 });
 
-test("[positive] tenant list applies status and cursor using Date plus DocumentReference", async () => {
+test("[positive] tenant list applies status and cursor using Date plus document ID", async () => {
   const first = make({ getDocsResult: { docs: [snapshot(), snapshot(requestData({ requestId: "request-2" }), "tenants/tenant-1/registrationRequests/request-2")] } });
   const page = await first.repository.listOwnRegistrationRequestsForTenant("tenant-1", "uid-1", { status: "pending", pageSize: 1 });
   const second = make();
   await second.repository.listOwnRegistrationRequestsForTenant("tenant-1", "uid-1", { status: "pending", cursor: page.nextCursor });
   const call = second.calls.find(([name]) => name === "startAfter");
-  assert(call[1] instanceof Date); assert.equal(call[2].path, "tenants/tenant-1/registrationRequests/request-1");
+  assert(call[1] instanceof Date); assert.equal(call[2], "request-1");
+});
+
+test("[positive] collection-group cursor uses the full document path", async () => {
+  const first = make({ getDocsResult: { docs: [snapshot(), snapshot(requestData({ requestId: "request-2" }), "tenants/tenant-1/registrationRequests/request-2")] } });
+  const page = await first.repository.listOwnRegistrationRequestsAcrossTenants("uid-1", { pageSize: 1 });
+  const second = make();
+  await second.repository.listOwnRegistrationRequestsAcrossTenants("uid-1", { cursor: page.nextCursor });
+  const call = second.calls.find(([name]) => name === "startAfter");
+  assert(call[1] instanceof Date); assert.equal(call[2], "tenants/tenant-1/registrationRequests/request-1");
 });
 
 test("[positive] collection-group list is self-only and supports multiple tenants", async () => {

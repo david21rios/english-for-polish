@@ -59,9 +59,9 @@ jobs:
           echo "REGISTRATION_REQUEST_RUNTIME_EXPECTED_ALLOW=34"
           echo "REGISTRATION_REQUEST_RUNTIME_EXPECTED_DENY=18"
           echo "REGISTRATION_REQUEST_EXPECTED_SUCCESS=34"
-          echo "REGISTRATION_REQUEST_EXPECTED_RULES_DENY=13"
+          echo "REGISTRATION_REQUEST_EXPECTED_RULES_DENY=14"
           echo "REGISTRATION_REQUEST_EXPECTED_CONTRACT_ERROR=4"
-          echo "REGISTRATION_REQUEST_EXPECTED_NOT_FOUND=1"
+          echo "REGISTRATION_REQUEST_EXPECTED_NOT_FOUND=0"
 
       - name: Run RegistrationRequest runtime static precheck
         run: node scripts/validate-registration-request-runtime-tests.mjs
