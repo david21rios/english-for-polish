@@ -151,3 +151,31 @@ SaaS-03A.3A-R1 = completed
 SaaS-03A.3A-R1-C1 = completed_pending_human_push
 SaaS-03A.3A-R2 = ready_not_started
 ```
+
+## 9. Implementación shadow SaaS-03A.3A-R2
+
+R2 implementó el repositorio self read-only con point get, listado por Tenant y
+listado collection-group. Ambos listados aplican UID obligatorio, status
+canónico opcional, orden determinista, limit-plus-one y cursor v1 validado. El
+serializer conserva la allowlist y lifecycle físicos exactos.
+
+Los cuatro índices compuestos continúan sin materializar; la API permanece
+shadow y no está lista para integración funcional. Véase
+`SAAS_03A_3A_R2_REGISTRATION_REQUEST_REPOSITORY_IMPLEMENTATION.md`.
+
+```text
+SaaS-03A.3A-R2 = completed_pending_human_code_review
+SaaS-03A.3I = blocked_pending_R2_review
+SaaS-03A.3R = blocked_by_indexes
+```
+
+C1 reviewed the complete implementation, corrected whitespace-only cursor
+validation and explicit path/requestId consistency, and expanded coverage to
+58 passing unit tests.
+
+```text
+SaaS-03A.3A-R2 = completed
+SaaS-03A.3A-R2-C1 = completed_pending_human_push
+SaaS-03A.3I = ready_not_started
+SaaS-03A.3R = blocked_by_indexes
+```

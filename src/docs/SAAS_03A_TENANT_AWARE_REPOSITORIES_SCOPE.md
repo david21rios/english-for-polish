@@ -218,3 +218,34 @@ SaaS-03A.3R = pending_after_index_materialization
 
 R2 may implement only in expand/shadow mode. Index materialization and
 Firestore-only Emulator validation must precede any Provider or UI consumer.
+
+## SaaS-03A.3A-R2 implementation result
+
+The client-safe RegistrationRequest repository is implemented in shadow mode
+under `src/services/saas/registrationRequest/`. It exposes only self point read,
+Tenant-scoped self list and cross-Tenant self collection-group list. Strict
+serialization, closed options, limit-plus-one pagination and portable cursor
+v1 follow R1. After C1 review, its 58 pure tests require no Emulator or
+Firebase global.
+
+```text
+SaaS-03A = in_progress
+SaaS-03A.3 = in_progress
+SaaS-03A.3A-R2 = completed_pending_human_code_review
+SaaS-03A.3I = blocked_pending_R2_review
+SaaS-03A.3R = blocked_by_indexes
+```
+
+No Provider/UI consumer or write is connected. Index materialization and
+Firestore-only runtime validation remain mandatory before integration.
+
+C1 completed the human review and isolated local commits. The review tightened
+whitespace-only cursor rejection and path/requestId consistency without
+changing R1 or the public API.
+
+```text
+SaaS-03A.3A-R2 = completed
+SaaS-03A.3A-R2-C1 = completed_pending_human_push
+SaaS-03A.3I = ready_not_started
+SaaS-03A.3R = blocked_by_indexes
+```

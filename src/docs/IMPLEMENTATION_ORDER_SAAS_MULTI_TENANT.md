@@ -1412,3 +1412,31 @@ SaaS-03A.3R — RegistrationRequest Firestore Emulator validation = pending_afte
 
 Settings and Branding remain deferred because current client Rules deny their
 fixed documents. SaaS-03A.3 was identified but not started.
+
+SaaS-03A.3A-R2 subsequently implemented the three approved client-safe
+RegistrationRequest reads in expand/shadow mode. Exact lifecycle serialization,
+UID-bound queries, deterministic pagination and cursor v1 are backed by 58 pure
+unit tests.
+
+```text
+SaaS-03A = in_progress
+SaaS-03A.3 = in_progress
+SaaS-03A.3A = incomplete_superseded_by_resolution
+SaaS-03A.3A-R1 = completed
+SaaS-03A.3A-R2 = completed_pending_human_code_review
+SaaS-03A.3I = blocked_pending_R2_review
+SaaS-03A.3R = blocked_by_indexes
+```
+
+The repository remains shadow-only. Human review, local index materialization
+and Firestore-only Emulator validation must precede functional integration.
+
+The R2-C1 review completed with two scoped fail-closed corrections and expanded
+unit coverage. Index materialization is now the next ready, unstarted phase.
+
+```text
+SaaS-03A.3A-R2 = completed
+SaaS-03A.3A-R2-C1 = completed_pending_human_push
+SaaS-03A.3I = ready_not_started
+SaaS-03A.3R = blocked_by_indexes
+```
