@@ -1401,7 +1401,13 @@ SaaS-03A.2 = in_progress
 SaaS-03A.2A = completed
 SaaS-03A.2A-C1 = completed_pending_human_push
 SaaS-03A.2B = deferred_pending_rules_and_access_policy
-SaaS-03A.3 — RegistrationRequestRepository = ready_not_started
+SaaS-03A.3 — RegistrationRequestRepository = in_progress
+SaaS-03A.3A = incomplete_superseded_by_resolution
+SaaS-03A.3A-R1 — RegistrationRequest query, pagination, cursor and index contract resolution = completed
+SaaS-03A.3A-R1-C1 = completed_pending_human_push
+SaaS-03A.3A-R2 — RegistrationRequestRepository shadow implementation = ready_not_started
+SaaS-03A.3I — RegistrationRequest index materialization = pending_after_R2
+SaaS-03A.3R — RegistrationRequest Firestore Emulator validation = pending_after_index_materialization
 ```
 
 Settings and Branding remain deferred because current client Rules deny their

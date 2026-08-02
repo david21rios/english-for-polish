@@ -525,10 +525,10 @@ flowchart TD
 
 | ID | Evidencia | Query/AP | Impacto/severidad | Fase | ¿Bloquea 02B.4? |
 |---|---|---|---|---|---|
-| FQI-001 | Valores numéricos de categorías de página aún no configurados | Todos listados | Coste/UX / Media | Repository config | No |
+| FQI-001 | Valores numéricos de categorías de página aún no configurados | Todos listados; RegistrationRequest resuelto en 03A.3A-R1 con 1/20/50 | Coste/UX / Media | Repository config | Resolved for FQ-RRQ-002/003; abierto para otros roots |
 | FQI-002 | `requestedAt` cutoff requiere política de expiración externa | RRQ-007/RRQ-010 | Workflow background / Alta | 02B.4/product policy | No para diseñar autoridad; sí para activar job |
 | FQI-003 | Variantes opcionales pueden multiplicar índices | MEM-003/004, ENR-007 | Coste/operación / Media | Index implementation review | No |
-| FQI-004 | Cursor opaco necesita integridad/fingerprint y versionado | Todos paginados | Manipulación/compatibilidad / Alta | Repository/API design | No |
+| FQI-004 | Cursor opaco necesita integridad/fingerprint y versionado | Todos paginados; RegistrationRequest cursor v1 resuelto en 03A.3A-R1 | Manipulación/compatibilidad / Alta | Repository/API design | Resolved for FQ-RRQ-002/003; abierto para otros roots |
 | FQI-005 | Collection-group Rules deben probar parent Tenant y uid | MEM-003,RRQ-003 | Fuga cross-tenant / Crítica | Rules + emulator tests | No para 02B.4; sí para deploy |
 
 ## 11. Decisiones aplazadas
@@ -536,8 +536,8 @@ flowchart TD
 - JSON exacto y deployment de índices;
 - Rules y pruebas collection-group;
 - autoridad de expiración/aprobación/escrituras;
-- valores numéricos de límites;
-- encoding/firma del cursor;
+- valores numéricos de límites para roots distintos de RegistrationRequest;
+- encoding/firma del cursor para roots distintos de RegistrationRequest;
 - listeners y cache;
 - política de reinscripción;
 - búsqueda pública/full-text;
@@ -567,6 +567,27 @@ flowchart TD
 **SaaS-02B.3 Firestore query and index model = COMPLETE**
 
 SaaS-02B.4 no se inició.
+
+## 12.1 RegistrationRequest repository specialization
+
+SaaS-03A.3A-R1 specializes, without changing the original query topology:
+
+- Standard page min/default/max: `1/20/50`;
+- FQ-RRQ-002/003 status: omitted or one exact canonical status;
+- order: `requestedAt DESC`, `documentId DESC`;
+- SDK limit: requested page size plus one lookahead;
+- cursor: unsigned, strictly validated, base64url canonical JSON v1;
+- query binding: explicit kind, tenant scope, uid, status, order and policy;
+- cursor position: ISO requestedAt plus canonical full document path;
+- FI-RRQ-001/002 and FI-CG-003/004: required and pending materialization.
+
+For those four future Firebase JSON definitions, only the business fields are
+configured. Firestore appends `__name__` in the direction of the final field;
+the documented `documentId DESC` tie-break is therefore implicit in the index
+representation, but explicit in the query and cursor contract.
+
+These values close FQI-001 and FQI-004 only for RegistrationRequest. Other
+repository roots retain their own unresolved configuration work.
 
 ## 13. Trazabilidad hacia SaaS-02B.4
 

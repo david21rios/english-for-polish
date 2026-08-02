@@ -193,5 +193,28 @@ SaaS-03A.2 = in_progress
 SaaS-03A.2A = completed
 SaaS-03A.2A-C1 = completed_pending_human_push
 SaaS-03A.2B = deferred_pending_rules_and_access_policy
-SaaS-03A.3 — RegistrationRequestRepository = ready_not_started
+SaaS-03A.3 — RegistrationRequestRepository = in_progress
 ```
+
+## SaaS-03A.3A-R1 contract resolution
+
+The first 03A.3A attempt stopped before code because RegistrationRequest page
+sizes, cursor binding/encoding and index readiness were not operationally
+defined. R1 now resolves those contracts for FQ-RRQ-001/002/003: self-only
+filters, deterministic requestedAt/documentId order, 1/20/50 page policy,
+limit-plus-one results, a validated unsigned base64url cursor v1 and four
+required pending composite indexes.
+
+```text
+SaaS-03A = in_progress
+SaaS-03A.3 = in_progress
+SaaS-03A.3A = incomplete_superseded_by_resolution
+SaaS-03A.3A-R1 = completed
+SaaS-03A.3A-R1-C1 = completed_pending_human_push
+SaaS-03A.3A-R2 = ready_not_started
+SaaS-03A.3I = pending_after_R2
+SaaS-03A.3R = pending_after_index_materialization
+```
+
+R2 may implement only in expand/shadow mode. Index materialization and
+Firestore-only Emulator validation must precede any Provider or UI consumer.
