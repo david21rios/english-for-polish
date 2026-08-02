@@ -217,3 +217,7 @@ SaaS-03A.3R-A = completed
 SaaS-03A.3R-A-C1 = completed_pending_human_push
 SaaS-03A.3R-B = ready_not_started
 ```
+
+03A.3R-B1 subsequently added a read-only static precheck and a separate,
+sequential Firestore-only workflow gate. The suite itself remains byte-identical
+and unexecuted pending human push and manual workflow dispatch.

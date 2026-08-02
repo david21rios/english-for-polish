@@ -210,3 +210,6 @@ SaaS-03A.3R-B = blocked_pending_3R_A_review
 The C1 review strengthened assertions without changing the repository. Final
 static suite counts are 52 titles, 34 ALLOW and 18 DENY, with outcomes separated
 as 34 SUCCESS, 13 Rules denials, 4 contract errors and 1 NOT_FOUND.
+
+03A.3R-B1 preserves the repository and suite while adding distinct CI precheck,
+Rules runtime, and RegistrationRequest runtime gates. No gate was executed here.

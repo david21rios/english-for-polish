@@ -95,3 +95,6 @@ SaaS-03A.3R-B = blocked_pending_3R_A_review
 
 The controlled suite review preserved all four index definitions and made
 03A.3R-B `ready_not_started`; no Emulator or deployment was executed.
+
+The B1 workflow gate now traces all four local index variants without changing
+the index file. Runtime and production index availability remain unproven.

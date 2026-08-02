@@ -105,3 +105,6 @@ SaaS-03A.3R-B = blocked_pending_3R_A_review
 
 C1 completed the static runtime-suite review with scoped test corrections. The
 repository remained unchanged and 03A.3R-B is now `ready_not_started`.
+
+03A.3R-B1 integrates the unchanged repository runtime suite into CI as a
+separate Firestore-only gate. Execution remains pending owner action.

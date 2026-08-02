@@ -191,3 +191,13 @@ only that test path; final manual execution remains pending human review.
 The isolated fixture correction is committed locally as `3c34e9e`. The
 workflow and preflight remain unchanged. Push and a new manual
 `workflow_dispatch` execution on the new HEAD remain owner actions.
+
+## SaaS-03A.3R-B1 extension
+
+The same manual, read-only workflow now emits separated expected-count labels,
+runs `scripts/validate-registration-request-runtime-tests.mjs`, preserves the
+canonical Rules runtime unchanged, then starts an independent Firestore-only
+Emulator lifecycle for the explicit RegistrationRequest runtime file. The job
+retains its 20-minute timeout, demo project, local firebase-tools, no artifacts,
+no credentials and no deployment capability. This extension was not executed
+in B1.

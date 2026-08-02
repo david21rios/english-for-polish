@@ -241,3 +241,12 @@ execution remains required and B2.5 remains blocked.
 The B2F4 correction is committed locally as `3c34e9e`; final corrected runtime
 remains pending owner push and a new manual workflow run. Do not rerun the
 failed job against the old commit.
+
+## RegistrationRequest repository runtime gate
+
+SaaS-03A.3R-B1 preserves the canonical 201/82/119 Firestore Rules session and
+adds a second sequential `emulators:exec --only firestore` session for the 52
+RegistrationRequest repository cases. A read-only source precheck validates
+34/18 metadata and the 34/13/4/1 outcome breakdown first. Both runtimes use the
+demo project, remain credential-free, and are mandatory gates. No workflow run
+or deployment occurred during integration.

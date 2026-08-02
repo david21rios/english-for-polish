@@ -1492,3 +1492,22 @@ SaaS-03A.3R-A = completed
 SaaS-03A.3R-A-C1 = completed_pending_human_push
 SaaS-03A.3R-B = ready_not_started
 ```
+
+### SaaS-03A.3R-B1 — RegistrationRequest runtime CI integration
+
+The existing manual workflow now contains a deterministic RegistrationRequest
+precheck and a second, independent Firestore-only runtime session after the
+unchanged canonical Rules runtime. No workflow run occurred in B1.
+
+```text
+SaaS-03A = in_progress
+SaaS-03A.3 = in_progress
+SaaS-03A.3R = in_progress
+SaaS-03A.3R-B = in_progress
+SaaS-03A.3R-B1 = completed
+SaaS-03A.3R-B1-C1 = completed_pending_human_push
+SaaS-03A.3R-B2 = blocked_pending_manual_push_and_workflow
+```
+
+Next owner actions are push and a new manual `workflow_dispatch` on `main`.
+MembershipRepository remains unstarted.
