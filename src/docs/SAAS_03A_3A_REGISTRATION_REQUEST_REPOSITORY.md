@@ -169,6 +169,20 @@ SaaS-03A.3I = blocked_pending_R2_review
 SaaS-03A.3R = blocked_by_indexes
 ```
 
+## 10. Materialización local SaaS-03A.3I
+
+FI-RRQ-001/002 y FI-CG-003/004 fueron materializados localmente con los scopes
+y campos aprobados. `__name__ DESC` permanece implícito en la definición del
+índice y explícito en la query. No hubo deploy ni ejecución de Emulator.
+
+```text
+SaaS-03A.3I = completed_pending_human_index_review
+SaaS-03A.3R = blocked_pending_3I_review_and_commit
+```
+
+La revisión 03A.3I-C1 confirmó el formato y el suffix `__name__ DESC` implícito.
+Los índices quedan completados localmente y 03A.3R queda `ready_not_started`.
+
 C1 reviewed the complete implementation, corrected whitespace-only cursor
 validation and explicit path/requestId consistency, and expanded coverage to
 58 passing unit tests.

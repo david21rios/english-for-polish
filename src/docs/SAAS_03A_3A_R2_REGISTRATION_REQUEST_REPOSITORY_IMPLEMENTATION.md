@@ -77,3 +77,18 @@ Coverage was expanded from 21 to 58 independently named tests for roles,
 lifecycle inversions, page-size boundaries, closed options, deterministic
 cursor encoding, unsupported versions, canonical paths, path/ID consistency
 and empty/final/lookahead pagination. No contract or public API changed.
+
+## Local index materialization
+
+SaaS-03A.3I locally materialized FI-RRQ-001/002 and FI-CG-003/004 in
+`firestore.indexes.json`. The repository remains disconnected from consumers;
+index review/commit and Firestore-only runtime validation are still required.
+
+```text
+SaaS-03A.3I = completed_pending_human_index_review
+SaaS-03A.3R = blocked_pending_3I_review_and_commit
+```
+
+The 03A.3I-C1 review confirmed the four local index definitions and implicit
+descending `__name__` suffix against installed Firebase tooling. 03A.3R is now
+`ready_not_started`; no runtime validation was started here.

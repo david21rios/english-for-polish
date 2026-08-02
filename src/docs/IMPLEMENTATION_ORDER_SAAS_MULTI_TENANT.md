@@ -1428,6 +1428,28 @@ SaaS-03A.3I = blocked_pending_R2_review
 SaaS-03A.3R = blocked_by_indexes
 ```
 
+SaaS-03A.3I locally materialized FI-RRQ-001/002 and FI-CG-003/004 without
+deploying them. Human index review and a controlled commit must complete before
+the Firestore-only runtime phase.
+
+```text
+SaaS-03A = in_progress
+SaaS-03A.3 = in_progress
+SaaS-03A.3I = completed_pending_human_index_review
+SaaS-03A.3R = blocked_pending_3I_review_and_commit
+```
+
+The 03A.3I-C1 review confirmed the local index file against installed Firebase
+tooling and created isolated technical/documentary commits.
+
+```text
+SaaS-03A = in_progress
+SaaS-03A.3 = in_progress
+SaaS-03A.3I = completed
+SaaS-03A.3I-C1 = completed_pending_human_push
+SaaS-03A.3R = ready_not_started
+```
+
 The repository remains shadow-only. Human review, local index materialization
 and Firestore-only Emulator validation must precede functional integration.
 

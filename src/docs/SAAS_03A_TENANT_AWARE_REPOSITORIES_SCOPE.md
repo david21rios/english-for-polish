@@ -236,6 +236,18 @@ SaaS-03A.3I = blocked_pending_R2_review
 SaaS-03A.3R = blocked_by_indexes
 ```
 
+SaaS-03A.3I subsequently materialized the four approved RegistrationRequest
+composite definitions locally. No repository consumer, Rule or remote resource
+was changed.
+
+```text
+SaaS-03A.3I = completed_pending_human_index_review
+SaaS-03A.3R = blocked_pending_3I_review_and_commit
+```
+
+The controlled 03A.3I-C1 review confirmed the four definitions without
+correction. SaaS-03A.3I is completed and 03A.3R is ready but not started.
+
 No Provider/UI consumer or write is connected. Index materialization and
 Firestore-only runtime validation remain mandatory before integration.
 
