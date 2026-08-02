@@ -1462,3 +1462,33 @@ SaaS-03A.3A-R2-C1 = completed_pending_human_push
 SaaS-03A.3I = ready_not_started
 SaaS-03A.3R = blocked_by_indexes
 ```
+
+### SaaS-03A.3R-A — RegistrationRequest runtime suite
+
+The Firestore-only integration suite is implemented with 52 isolated cases and
+the fixed demo project. It remains unexecuted until human review; the canonical
+201 Rules IDs remain a separate runtime suite and count.
+
+```text
+SaaS-03A = in_progress
+SaaS-03A.3 = in_progress
+SaaS-03A.3R = in_progress
+SaaS-03A.3R-A = completed_pending_human_test_review
+SaaS-03A.3R-B = blocked_pending_3R_A_review
+```
+
+Next: `SaaS-03A.3R-A-C1 — RegistrationRequest runtime suite review and
+controlled commits`. 03A.3R-B remains blocked and no MembershipRepository work
+starts here.
+
+The controlled C1 review completed the static audit and isolated commits. The
+next phase may integrate and execute the runtime suite, but is not started here.
+
+```text
+SaaS-03A = in_progress
+SaaS-03A.3 = in_progress
+SaaS-03A.3R = in_progress
+SaaS-03A.3R-A = completed
+SaaS-03A.3R-A-C1 = completed_pending_human_push
+SaaS-03A.3R-B = ready_not_started
+```

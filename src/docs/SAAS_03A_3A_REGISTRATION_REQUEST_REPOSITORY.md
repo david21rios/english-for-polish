@@ -193,3 +193,20 @@ SaaS-03A.3A-R2-C1 = completed_pending_human_push
 SaaS-03A.3I = ready_not_started
 SaaS-03A.3R = blocked_by_indexes
 ```
+
+## 11. Suite runtime SaaS-03A.3R-A
+
+The Firestore-only integration suite is implemented outside product code with
+52 unique cases (34 ALLOW, 18 DENY). It covers the real repository, modular SDK,
+Rules, four indexed query variants, pagination/cursors, and explicit denial
+shapes. It has not been executed; human test review precedes Emulator runtime.
+
+```text
+SaaS-03A.3R = in_progress
+SaaS-03A.3R-A = completed_pending_human_test_review
+SaaS-03A.3R-B = blocked_pending_3R_A_review
+```
+
+The C1 review strengthened assertions without changing the repository. Final
+static suite counts are 52 titles, 34 ALLOW and 18 DENY, with outcomes separated
+as 34 SUCCESS, 13 Rules denials, 4 contract errors and 1 NOT_FOUND.

@@ -82,3 +82,16 @@ SaaS-03A.3I = completed
 SaaS-03A.3I-C1 = completed_pending_human_push
 SaaS-03A.3R = ready_not_started
 ```
+
+03A.3R-A now provides 52 unexecuted integration cases that trace all four local
+index definitions to real repository queries. Emulator execution does not prove
+remote index deployment and remains blocked until human suite review.
+
+```text
+SaaS-03A.3R = in_progress
+SaaS-03A.3R-A = completed_pending_human_test_review
+SaaS-03A.3R-B = blocked_pending_3R_A_review
+```
+
+The controlled suite review preserved all four index definitions and made
+03A.3R-B `ready_not_started`; no Emulator or deployment was executed.

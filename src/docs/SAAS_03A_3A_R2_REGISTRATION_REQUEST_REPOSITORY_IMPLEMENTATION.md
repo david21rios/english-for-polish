@@ -92,3 +92,16 @@ SaaS-03A.3R = blocked_pending_3I_review_and_commit
 The 03A.3I-C1 review confirmed the four local index definitions and implicit
 descending `__name__` suffix against installed Firebase tooling. 03A.3R is now
 `ready_not_started`; no runtime validation was started here.
+
+SaaS-03A.3R-A subsequently implemented a separate Firestore-only integration
+suite for the real repository, modular SDK, Rules, and four query variants. The
+52 cases remain unexecuted pending human test review; no product code changed.
+
+```text
+SaaS-03A.3R = in_progress
+SaaS-03A.3R-A = completed_pending_human_test_review
+SaaS-03A.3R-B = blocked_pending_3R_A_review
+```
+
+C1 completed the static runtime-suite review with scoped test corrections. The
+repository remained unchanged and 03A.3R-B is now `ready_not_started`.

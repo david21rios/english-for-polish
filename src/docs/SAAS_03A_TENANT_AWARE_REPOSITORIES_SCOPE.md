@@ -261,3 +261,21 @@ SaaS-03A.3A-R2-C1 = completed_pending_human_push
 SaaS-03A.3I = ready_not_started
 SaaS-03A.3R = blocked_by_indexes
 ```
+
+## SaaS-03A.3R-A runtime suite result
+
+A separate integration suite now defines 52 Firestore-only cases for the real
+RegistrationRequest repository, modular SDK, Rules, local query shapes,
+pagination, cursors, and denials. It is not a UI integration and was not run in
+this phase.
+
+```text
+SaaS-03A = in_progress
+SaaS-03A.3 = in_progress
+SaaS-03A.3R = in_progress
+SaaS-03A.3R-A = completed_pending_human_test_review
+SaaS-03A.3R-B = blocked_pending_3R_A_review
+```
+
+Human static review is complete. The suite remains unexecuted and disconnected
+from consumers; 03A.3R-B is `ready_not_started`.
