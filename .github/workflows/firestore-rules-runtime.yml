@@ -50,5 +50,24 @@ jobs:
       - name: Run CI security preflight
         run: npm run ci:validate:firestore-rules
 
+      - name: Show separated runtime contracts
+        run: |
+          echo "RULES_RUNTIME_EXPECTED_TOTAL=201"
+          echo "RULES_RUNTIME_EXPECTED_ALLOW=82"
+          echo "RULES_RUNTIME_EXPECTED_DENY=119"
+          echo "REGISTRATION_REQUEST_RUNTIME_EXPECTED_TOTAL=52"
+          echo "REGISTRATION_REQUEST_RUNTIME_EXPECTED_ALLOW=34"
+          echo "REGISTRATION_REQUEST_RUNTIME_EXPECTED_DENY=18"
+          echo "REGISTRATION_REQUEST_EXPECTED_SUCCESS=34"
+          echo "REGISTRATION_REQUEST_EXPECTED_RULES_DENY=13"
+          echo "REGISTRATION_REQUEST_EXPECTED_CONTRACT_ERROR=4"
+          echo "REGISTRATION_REQUEST_EXPECTED_NOT_FOUND=1"
+
+      - name: Run RegistrationRequest runtime static precheck
+        run: node scripts/validate-registration-request-runtime-tests.mjs
+
       - name: Run Firestore Rules runtime tests
         run: npm run test:rules:firestore
+
+      - name: Run RegistrationRequest repository runtime tests
+        run: ./node_modules/.bin/firebase emulators:exec --only firestore --project demo-polish-learning "node --test tests/integration/saas/registrationRequest/registrationRequestRepository.runtime.test.mjs"
