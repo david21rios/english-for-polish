@@ -54,7 +54,7 @@ export const createCourseRepository = (dependencies) => {
         : "list_active_courses_for_tenant";
     try {
       const source = required.collection(db, coursesCollectionPath(expectedTenantId));
-      const constraints = [];
+      const constraints = [required.where("tenantId", "==", expectedTenantId)];
       if (admin) constraints.push(required.where("status", parsed.status === null ? "in" : "==",
         parsed.status === null ? ["draft", "active", "archived"] : parsed.status));
       else constraints.push(required.where("status", queryKind === COURSE_QUERY_KINDS.TEACHER ? "in" : "==",

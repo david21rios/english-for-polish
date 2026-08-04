@@ -9,6 +9,10 @@ const make = (config) => {
   return { ...doubles, repository: createCourseRepository({ db, sdk: doubles.sdk }) };
 };
 const whereCalls = (calls) => calls.filter(([name]) => name === "where").map(([, ...args]) => args);
+const assertTenantFirst = (calls, tenantId = "tenant-1") => {
+  const filters = whereCalls(calls);
+  assert.deepEqual(filters[0], ["tenantId", "==", tenantId]);
+};
 
 test("[positive] point get uses canonical path and exactly one read", async () => {
   const { repository, calls } = make();
@@ -43,26 +47,39 @@ test("[positive] active list fixes active status and four language combinations"
     { learningLanguageCode: "en", supportLanguageCode: "pl" }]) {
     const { repository, calls } = make(); await repository.listActiveCoursesForTenant("tenant-1", options);
     const filters = whereCalls(calls);
+    assertTenantFirst(calls);
     assert(filters.some(([field, operator, value]) => field === "status" && operator === "==" && value === "active"));
     assert.equal(filters.some(([field]) => field === "learningLanguage.languageCode"), Object.hasOwn(options, "learningLanguageCode"));
     assert.equal(filters.some(([field]) => field === "supportLanguageCode"), Object.hasOwn(options, "supportLanguageCode"));
   }
 });
 test("[positive] teacher list fixes draft-active status and catalog order", async () => {
-  const { repository, calls } = make(); await repository.listTeacherCoursesForTenant("tenant-1", { learningLanguageCode: "en" });
-  assert(whereCalls(calls).some(([field, operator, value]) => field === "status" && operator === "in" &&
-    JSON.stringify(value) === JSON.stringify(["draft", "active"])));
-  assert(calls.some((call) => call[0] === "orderBy" && call[1] === "displayName" && call[2] === "asc"));
-  assert(!JSON.stringify(calls).includes("archived"));
+  for (const options of [{}, { learningLanguageCode: "en" }, { supportLanguageCode: "pl" },
+    { learningLanguageCode: "en", supportLanguageCode: "pl" }]) {
+    const { repository, calls } = make();
+    await repository.listTeacherCoursesForTenant("tenant-1", options);
+    const filters = whereCalls(calls);
+    assertTenantFirst(calls);
+    assert(filters.some(([field, operator, value]) => field === "status" && operator === "in" &&
+      JSON.stringify(value) === JSON.stringify(["draft", "active"])));
+    assert.equal(filters.some(([field]) => field === "learningLanguage.languageCode"),
+      Object.hasOwn(options, "learningLanguageCode"));
+    assert.equal(filters.some(([field]) => field === "supportLanguageCode"),
+      Object.hasOwn(options, "supportLanguageCode"));
+    assert(calls.some((call) => call[0] === "orderBy" && call[1] === "displayName" && call[2] === "asc"));
+    assert(!JSON.stringify(calls).includes("archived"));
+  }
 });
 test("[positive] admin omitted status uses fixed canonical set", async () => {
   const { repository, calls } = make(); await repository.listTenantAdminCoursesForTenant("tenant-1");
+  assertTenantFirst(calls);
   assert(whereCalls(calls).some(([field, operator, value]) => field === "status" && operator === "in" &&
     JSON.stringify(value) === JSON.stringify(["draft", "active", "archived"])));
 });
 test("[positive] admin exact statuses use equality and administrative order", async () => {
   for (const status of ["draft", "active", "archived"]) {
     const { repository, calls } = make(); await repository.listTenantAdminCoursesForTenant("tenant-1", { status });
+    assertTenantFirst(calls);
     assert(whereCalls(calls).some(([field, operator, value]) => field === "status" && operator === "==" && value === status));
     assert(calls.some((call) => call[0] === "orderBy" && call[1] === "updatedAt" && call[2] === "desc"));
   }

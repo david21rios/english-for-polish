@@ -274,7 +274,7 @@ for (const [id, uid] of [["110", USERS.student], ["111", null]])
 for (const [id, uid, constraints] of [
   ["088", USERS.student, []], ["089", USERS.student, [sdk.where("status", "==", "draft")]],
   ["090", USERS.teacher, [sdk.where("status", "in", ["draft", "active", "archived"])]],
-  ["091", USERS.foreign, [sdk.where("status", "==", "active")]],
+  ["091", USERS.foreign, [sdk.where("tenantId", "==", TENANTS.b), sdk.where("status", "==", "active")]],
   ["092", USERS.suspended, [sdk.where("status", "==", "active")]],
   ["093", USERS.removed, [sdk.where("status", "==", "active")]]
 ]) runtime(`RT-CRS-SEC-${id}`, "DENY", "unsafe tenant query denied", async () => {
@@ -301,7 +301,8 @@ for (const [id, uid, status] of [
 ]) runtime(`RT-CRS-SEC-${id}`, "DENY", "student unsafe status or foreign-Tenant query denied", async () => {
   const db = authenticatedFirestore(environment, uid);
   await assertFails(sdk.getDocs(sdk.query(sdk.collection(db, `tenants/${TENANTS.a}/courses`),
-    sdk.where("status", "==", status), sdk.orderBy("displayName", "asc"), sdk.orderBy(sdk.documentId(), "asc"))));
+    sdk.where("tenantId", "==", TENANTS.a), sdk.where("status", "==", status),
+    sdk.orderBy("displayName", "asc"), sdk.orderBy(sdk.documentId(), "asc"))));
 });
 
 test("Course runtime metadata self-control", () => {

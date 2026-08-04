@@ -213,6 +213,10 @@
       "queryScope": "COLLECTION",
       "fields": [
         {
+          "fieldPath": "tenantId",
+          "order": "ASCENDING"
+        },
+        {
           "fieldPath": "status",
           "order": "ASCENDING"
         },
@@ -227,6 +231,10 @@
       "queryScope": "COLLECTION",
       "fields": [
         {
+          "fieldPath": "tenantId",
+          "order": "ASCENDING"
+        },
+        {
           "fieldPath": "status",
           "order": "ASCENDING"
         },
@@ -240,6 +248,10 @@
       "collectionGroup": "courses",
       "queryScope": "COLLECTION",
       "fields": [
+        {
+          "fieldPath": "tenantId",
+          "order": "ASCENDING"
+        },
         {
           "fieldPath": "status",
           "order": "ASCENDING"
@@ -259,6 +271,10 @@
       "queryScope": "COLLECTION",
       "fields": [
         {
+          "fieldPath": "tenantId",
+          "order": "ASCENDING"
+        },
+        {
           "fieldPath": "status",
           "order": "ASCENDING"
         },
@@ -276,6 +292,10 @@
       "collectionGroup": "courses",
       "queryScope": "COLLECTION",
       "fields": [
+        {
+          "fieldPath": "tenantId",
+          "order": "ASCENDING"
+        },
         {
           "fieldPath": "status",
           "order": "ASCENDING"
