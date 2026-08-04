@@ -348,3 +348,9 @@ Production deployment and Emulator validation were not performed. 5I is
 C1 subsequently accepted the five exact definitions without correction:
 `SaaS-03A.5I = completed`, `SaaS-03A.5I-C1 =
 completed_pending_human_push`, and `SaaS-03A.5R-A = ready_not_started`.
+
+## 21. Runtime-suite preparation trace
+
+5R-A-C1 reviewed and strengthened 114 Firestore-only cases (32 ALLOW, 82 DENY;
+outcomes 32/56/26/0) without executing Emulator. CourseRepository and this
+contract stay unchanged; B1 CI integration is ready but not started.

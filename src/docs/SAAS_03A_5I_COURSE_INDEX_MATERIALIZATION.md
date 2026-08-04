@@ -107,6 +107,15 @@ SaaS-03A.5R-A = blocked_pending_5I_review_and_commit
 CourseRepository = implemented_shadow
 ```
 
+## Runtime trace
+
+Prepared 5R-A cases trace FI-CRS-001..005 across student, teacher and admin
+queries. No Emulator validation occurred, so local materialization remains
+configuration evidence rather than runtime or production evidence.
+
+The 5R-A-C1 review strengthens that trace across 114 IDs while preserving all
+five index definitions. Emulator and production validation remain unperformed.
+
 Next is `SaaS-03A.5I-C1 — Course index review and controlled commits`; it is
 not started. `SaaS-03A.5I Course index materialization = COMPLETE` if all local
 validations and immutability checks pass.

@@ -625,6 +625,12 @@ The 5I-C1 review accepted all five signatures with zero duplicates or
 conflicts. The preceding twelve signatures and fieldOverrides remain unchanged;
 5R-A is ready but not started.
 
+5R-A prepares explicit runtime trace IDs for FI-CRS-001..005 without changing
+the index model or executing the Emulator.
+
+5R-A-C1 reviews 114 runtime IDs and preserves the same five Course index
+contracts. No Emulator run, index deployment or index-file change is claimed.
+
 ## 13. Trazabilidad hacia SaaS-02B.4
 
 `FIRESTORE_WRITE_AUTHORITY_AND_CONCURRENCY.md` usa estos read sets y contratos

@@ -140,3 +140,9 @@ Deployment and Emulator validation were not performed. CourseRepository remains
 C1 accepted the index materialization without modifying CourseRepository.
 `SaaS-03A.5I = completed`, `SaaS-03A.5I-C1 =
 completed_pending_human_push`, and `SaaS-03A.5R-A = ready_not_started`.
+
+## 12. Runtime-suite preparation
+
+The consumer-free repository is now targeted by a reviewed 114-ID Firestore-only
+suite. The suite has not run; the repository remains `implemented_shadow` and
+intact. C1 is complete pending human push.

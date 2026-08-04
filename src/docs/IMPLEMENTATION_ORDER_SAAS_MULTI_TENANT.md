@@ -1824,3 +1824,17 @@ SaaS-03A.5R-A = ready_not_started
 ```
 
 Next: `SaaS-03A.5R-A — Course repository runtime test suite`. It is not started.
+
+## SaaS-03A.5R-A Course repository runtime test suite
+
+The 114-ID Firestore-only suite is reviewed but has not been executed.
+
+```text
+SaaS-03A.5R = in_progress
+SaaS-03A.5R-A = completed
+SaaS-03A.5R-A-C1 = completed_pending_human_push
+SaaS-03A.5R-B1 = ready_not_started
+```
+
+Next: `SaaS-03A.5R-B1 — Course runtime CI integration`. It is ready but not
+started.

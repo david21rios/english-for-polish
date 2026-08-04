@@ -568,3 +568,16 @@ SaaS-03A.5I-C1 = completed_pending_human_push
 SaaS-03A.5R-A = ready_not_started
 CourseRepository = implemented_shadow
 ```
+
+## SaaS-03A.5R-A Course runtime suite preparation
+
+The Firestore-only suite is reviewed with 114 IDs and isolated tenant,
+Membership and Course fixtures. Runtime was not executed.
+
+```text
+SaaS-03A.5R = in_progress
+SaaS-03A.5R-A = completed
+SaaS-03A.5R-A-C1 = completed_pending_human_push
+SaaS-03A.5R-B1 = ready_not_started
+CourseRepository = implemented_shadow
+```
