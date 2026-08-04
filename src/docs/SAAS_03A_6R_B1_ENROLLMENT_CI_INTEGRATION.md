@@ -126,3 +126,11 @@ EnrollmentRepository = implemented_shadow
 All B1 closure criteria are met when the precheck, workflow integration,
 security audit, protected-file integrity, validations, isolated commits and
 clean worktree are confirmed. B2 is not initiated.
+
+## SaaS-03A.6R-F1 runtime correction
+
+The first external Enrollment runtime exposed four expectation defects. F1
+preserves all 111 IDs, corrects operation/resource assertions for 090, 091 and
+113, and correctly reclassifies the Rules-compatible bounded admin query 137.
+Metadata is now 42 ALLOW, 69 DENY and outcomes 42/41/28/0. Local runtime is
+112/112 including metadata; a new external workflow remains required.

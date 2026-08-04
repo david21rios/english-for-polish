@@ -195,3 +195,11 @@ precheck and wired as the fifth independent Firestore-only runtime session in
 the manual workflow. Counts remain 111/41/70 with outcomes 41/42/28/0.
 Integration did not execute the Emulator or workflow and does not claim runtime
 PASS. B1 is completed; B1-C1 awaits human push and B2 awaits a new manual run.
+
+## F1 correction after first runtime
+
+The first runtime demonstrated that IDs 090/091/113 asserted the wrong emitting
+operation and ID 137 treated an API-deferred but Rules-compatible bounded query
+as DENY. F1 corrects only those expectations. The registry remains 111 IDs and
+now records 42/69 with outcomes 42/41/28/0; local execution passes 112/112
+including metadata.

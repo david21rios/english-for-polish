@@ -269,6 +269,10 @@ read-only precheck validates 32 ALLOW, 82 DENY and outcomes 32/56/26/0. All four
 sessions remain sequential, fail-fast, demo-only and credential-free. No
 runtime, deployment or remote access occurs during integration.
 
+The first Enrollment execution later reconciled three assertion taxonomies and
+one bounded admin-query classification. The gate remains 111 IDs, now 42 ALLOW,
+69 DENY and outcomes 42/41/28/0; Rules and the other four gates are unchanged.
+
 ## Enrollment repository runtime gate
 
 SaaS-03A.6R-B1 preserves the first four gates and adds a fifth sequential,

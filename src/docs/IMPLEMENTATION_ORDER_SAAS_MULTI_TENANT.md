@@ -2015,6 +2015,14 @@ EnrollmentRepository = implemented_shadow
 The next action is owner push followed by a new manual workflow run on `main`;
 B2 is not initiated.
 
+## SaaS-03A.6R-F1 Enrollment runtime failure correction
+
+The first external Enrollment gate failed four expectation assertions. F1
+corrects only the runtime registry and its expected metadata: 111 IDs,
+42 ALLOW, 69 DENY and outcomes 42/41/28/0. Local Firestore-only execution passes
+all 112 Node tests including metadata. Repository, Rules and indexes are intact.
+F1 awaits owner push and a new external workflow; B2 remains blocked.
+
 `SaaS-03A.5R-B1-FIX4` resolves the third runtime's sole failure by changing
 `RT-CRS-REP-120` from a duplicate canonical cross-Tenant mutation into a real
 noncanonical path guarantee. FIX2 and FIX3 are completed; FIX4 is

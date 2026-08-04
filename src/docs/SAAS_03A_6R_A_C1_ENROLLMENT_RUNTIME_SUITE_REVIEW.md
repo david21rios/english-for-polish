@@ -153,3 +153,10 @@ B1 adds a read-only precheck for the accepted 111 IDs and a fifth, explicit,
 independent Firestore-only runtime gate. The suite reviewed here remains byte
 intact. B1 is `completed`, B1-C1 is `completed_pending_human_push`, and B2 is
 `blocked_pending_manual_push_and_workflow`; no runtime PASS is claimed.
+
+## F1 evidence
+
+External execution superseded the static expectation for four IDs. The accepted
+suite mechanics remain intact; F1 corrects three error-operation assertions and
+one access classification. Inventory is 111 IDs, 42 ALLOW, 69 DENY, outcomes
+42/41/28/0. Corrected local runtime passes 112/112 including self-control.

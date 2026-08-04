@@ -232,3 +232,7 @@ outcomes 41/42/28/0. The 20-minute timeout, read-only permissions, disabled
 checkout credentials, demo project, local firebase-tools and absence of
 artifacts, secrets and deployment remain unchanged. This extension was not
 executed in B1.
+
+F1 updates only the Enrollment expected labels to 111/42/69 and 42/41/28/0
+after real runtime evidence. The workflow structure, five isolated sessions,
+security posture, timeout and prior gates remain unchanged.

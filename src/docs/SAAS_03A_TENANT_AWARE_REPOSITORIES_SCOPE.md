@@ -742,3 +742,10 @@ EnrollmentRepository = implemented_shadow
 ```
 
 Runtime has not been executed and B2 is not initiated.
+
+## SaaS-03A.6R-F1 Enrollment runtime correction
+
+The first external gate found four suite-expectation defects. F1 preserves 111
+IDs, reconciles metadata to 42/69 and 42/41/28/0, and obtains 112/112 locally
+including self-control. EnrollmentRepository, Rules and indexes remain intact.
+F1 is `completed_pending_human_push_and_external_runtime`; B2 remains blocked.
