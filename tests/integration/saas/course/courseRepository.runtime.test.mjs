@@ -222,7 +222,7 @@ for (const [id, tokenFactory] of [
   ["117", async () => "_w"],
   ["118", async () => changed(await firstCursor(active), (value) => { value.extra = true; })],
   ["119", async () => changed(await firstCursor(active), (value) => { delete value.position; })],
-  ["120", async () => changed(await firstCursor(active), (value) => { value.position.documentPath = `tenants/${TENANTS.b}/courses/course-active-a1`; })],
+  ["120", async () => changed(await firstCursor(active), (value) => { value.position.documentPath = `tenants/${TENANTS.a}/courses/nested/course-active-a1`; })],
   ["121", async () => changed(await firstCursor(active), (value) => { value.position.documentPath = `tenants/${TENANTS.a}/lessons/course-active-a1`; })],
   ["122", async () => changed(await firstCursor(admin), (value) => { value.position.updatedAt = "not-a-timestamp"; })],
   ["123", async () => changed(await firstCursor(active), (value) => { value.position = { displayName: value.position.displayName }; })]

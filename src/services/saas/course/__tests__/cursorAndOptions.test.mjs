@@ -134,3 +134,31 @@ test("[negative] canonical cross-Tenant documentPath is CONTRACT_VIOLATION", () 
     error.operation === "decode_course_cursor" && error.resource === "course_cursor" &&
     error.message === "Course cursor position is outside its Tenant binding.");
 });
+test("[negative] structurally invalid documentPath is INVALID_ARGUMENT", () => {
+  const token = mutateToken(catalogToken(), (value) => {
+    value.position.documentPath = "tenants/tenant-1/courses/nested/course-1";
+  });
+  assert.throws(() => decodeCourseCursor(token, {
+    queryKind: COURSE_QUERY_KINDS.ACTIVE,
+    binding: catalogBinding()
+  }), (error) => error.code === "INVALID_ARGUMENT" &&
+    error.operation === "decode_course_cursor" && error.resource === "course_cursor" &&
+    error.message === "Course cursor path is not canonical.");
+});
+test("[positive] canonical same-Tenant documentPath is valid", () => {
+  const binding = catalogBinding();
+  const token = catalogToken(COURSE_QUERY_KINDS.ACTIVE, binding);
+  assert.deepEqual(decodeCourseCursor(token, {
+    queryKind: COURSE_QUERY_KINDS.ACTIVE,
+    binding
+  }), { displayName: "English", documentPath: "tenants/tenant-1/courses/course-1" });
+});
+test("[positive] canonical same-Tenant alternate courseId remains valid", () => {
+  const token = mutateToken(catalogToken(), (value) => {
+    value.position.documentPath = "tenants/tenant-1/courses/course-2";
+  });
+  assert.deepEqual(decodeCourseCursor(token, {
+    queryKind: COURSE_QUERY_KINDS.ACTIVE,
+    binding: catalogBinding()
+  }), { displayName: "English", documentPath: "tenants/tenant-1/courses/course-2" });
+});
