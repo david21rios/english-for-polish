@@ -224,3 +224,20 @@ value type to `startAfter`, and one direct key read omitted `getDoc` from its
 test SDK map. The corrected local suite passes `52 / 52` with outcomes
 `34 SUCCESS / 14 RULES_DENY / 4 CONTRACT_ERROR / 0 NOT_FOUND`. Rules, indexes,
 the physical contract, and the repository API are unchanged.
+
+## 13. Corrected runtime closure
+
+The owner published FIX1 and confirmed a new successful workflow on corrected
+`main`. Rules passed `201 / 201`; RegistrationRequest passed `52 / 52`, including
+all nine former failures. SaaS-03A.3 and 03A.3R are closed. The repository is
+complete in shadow mode only; indexes remain locally materialized and
+undeployed, and no consumer or lifecycle write is enabled.
+
+```text
+SaaS-03A.3 = completed
+SaaS-03A.3R = completed
+SaaS-03A.3R-B2 = completed
+SaaS-03A.3R-B2-C1 = completed_pending_human_push
+RegistrationRequestRepository = completed_in_shadow_mode
+SaaS-03A.4 = ready_not_started
+```

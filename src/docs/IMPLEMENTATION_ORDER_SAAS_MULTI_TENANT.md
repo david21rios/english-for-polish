@@ -1531,3 +1531,28 @@ SaaS-03A.3R-B2 = blocked_pending_corrected_runtime_evidence
 
 Do not start MembershipRepository before the corrected hosted runtime is
 reviewed.
+
+### SaaS-03A.3R-B2 corrected runtime closure
+
+The owner confirmed a new corrected `main` workflow succeeded with Rules
+`201 / 201` and RegistrationRequest `52 / 52`. All nine former failures pass.
+No Rule, index, Storage, repository, test, workflow, package, or Domain file
+changed in B2.
+
+```text
+SaaS-03A = in_progress
+SaaS-03A.3 = completed
+SaaS-03A.3A-R1 = completed
+SaaS-03A.3A-R2 = completed
+SaaS-03A.3I = completed
+SaaS-03A.3R = completed
+SaaS-03A.3R-A = completed
+SaaS-03A.3R-B1 = completed
+SaaS-03A.3R-B1-FIX1 = completed
+SaaS-03A.3R-B2 = completed
+SaaS-03A.3R-B2-C1 = completed_pending_human_push
+RegistrationRequestRepository = completed_in_shadow_mode
+SaaS-03A.4 = ready_not_started
+```
+
+Next: SaaS-03A.4 — MembershipRepository. It is not started here.

@@ -99,3 +99,17 @@ SaaS-03A.3R-B1-FIX1 = completed
 SaaS-03A.3R-B1-FIX1-C1 = completed_pending_human_push
 SaaS-03A.3R-B2 = blocked_pending_corrected_runtime_evidence
 ```
+
+## B2 hosted closure evidence
+
+The owner published the two FIX1 commits and confirmed a new successful
+workflow run on corrected `main`: Rules `201 / 201` and RegistrationRequest
+`52 / 52`, including all nine formerly failing IDs. Local `HEAD` and
+`origin/main` both resolve to `851d51b42a642478f9bd5ffc6628ce25f3c90c4e`.
+See `SAAS_03A_3R_B2_REGISTRATION_REQUEST_RUNTIME_CLOSURE.md`.
+
+```text
+SaaS-03A.3R-B1-FIX1 = completed
+SaaS-03A.3R-B2 = completed
+SaaS-03A.3R-B2-C1 = completed_pending_human_push
+```

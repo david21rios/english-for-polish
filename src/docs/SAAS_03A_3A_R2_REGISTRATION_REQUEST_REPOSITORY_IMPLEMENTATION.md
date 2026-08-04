@@ -116,3 +116,16 @@ first runtime exposed that field-value bounds reject a `DocumentReference`.
 The cursor envelope, bindings, public API, ordering, limit-plus-one behavior,
 ownership, and serialization remain unchanged. Unit coverage is now 59 tests,
 and the corrected local runtime passes `52 / 52`.
+
+The corrected hosted workflow subsequently passed `52 / 52` repository runtime
+cases and the independent `201 / 201` Rules suite. RegistrationRequestRepository
+is therefore `completed_in_shadow_mode`; it still has no UI/Provider consumer,
+legacy replacement, migration, dual-write, or deployment.
+
+```text
+SaaS-03A.3 = completed
+SaaS-03A.3R = completed
+SaaS-03A.3R-B2 = completed
+SaaS-03A.3R-B2-C1 = completed_pending_human_push
+SaaS-03A.4 = ready_not_started
+```

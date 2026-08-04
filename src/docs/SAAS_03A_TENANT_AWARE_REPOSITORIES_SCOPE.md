@@ -308,3 +308,22 @@ SaaS-03A.3R-B2 = blocked_pending_corrected_runtime_evidence
 ```
 
 MembershipRepository remains unstarted.
+
+## SaaS-03A.3 corrected runtime closure
+
+The corrected hosted workflow passed Rules `201 / 201` and
+RegistrationRequest `52 / 52`. RegistrationRequestRepository is complete in
+shadow mode with no consumer, Provider, legacy replacement, migration,
+dual-write, or deployment.
+
+```text
+SaaS-03A = in_progress
+SaaS-03A.3 = completed
+SaaS-03A.3R = completed
+SaaS-03A.3R-B2 = completed
+SaaS-03A.3R-B2-C1 = completed_pending_human_push
+RegistrationRequestRepository = completed_in_shadow_mode
+SaaS-03A.4 = ready_not_started
+```
+
+SaaS-03A.4 — MembershipRepository is the next phase and remains unstarted.

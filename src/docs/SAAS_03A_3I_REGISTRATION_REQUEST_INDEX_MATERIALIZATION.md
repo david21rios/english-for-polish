@@ -98,3 +98,14 @@ The controlled suite review preserved all four index definitions and made
 
 The B1 workflow gate now traces all four local index variants without changing
 the index file. Runtime and production index availability remain unproven.
+
+B2 confirms all four query variants passed in the corrected Firestore Emulator
+workflow. This validates local query execution only: FI-RRQ-001/002 and
+FI-CG-003/004 remain undeployed to any production project.
+
+```text
+SaaS-03A.3I = completed
+SaaS-03A.3R = completed
+SaaS-03A.3R-B2 = completed
+SaaS-03A.3R-B2-C1 = completed_pending_human_push
+```

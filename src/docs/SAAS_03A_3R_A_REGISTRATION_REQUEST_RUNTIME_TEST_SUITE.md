@@ -228,3 +228,14 @@ existence masking for REP-006, the authenticated UID for REP-015, Web SDK
 field-value cursor projection for six pagination cases, and the direct `getDoc`
 SDK map for SEC-004. The resulting local runtime is `52 / 52`; a new hosted
 workflow run remains mandatory.
+
+B2 now records that the owner-triggered corrected workflow passed all 52
+repository cases, including the nine FIX1 IDs. The canonical Rules suite also
+passed `201 / 201`. The suite remains Firestore-only and separate from Rules
+test counts.
+
+```text
+SaaS-03A.3R = completed
+SaaS-03A.3R-B2 = completed
+SaaS-03A.3R-B2-C1 = completed_pending_human_push
+```

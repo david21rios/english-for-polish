@@ -123,3 +123,16 @@ SaaS-03A.3R-B1-FIX1 = completed
 SaaS-03A.3R-B1-FIX1-C1 = completed_pending_human_push
 SaaS-03A.3R-B2 = blocked_pending_corrected_runtime_evidence
 ```
+
+## Corrected hosted workflow result
+
+The owner confirmed the newly dispatched corrected `main` workflow completed
+successfully: canonical Rules `201 / 201`, RegistrationRequest `52 / 52`, and
+zero failures. B1 and FIX1 are closed; B2 records the final evidence without
+changing the workflow.
+
+```text
+SaaS-03A.3R-B2 = completed
+SaaS-03A.3R-B2-C1 = completed_pending_human_push
+SaaS-03A.4 = ready_not_started
+```
