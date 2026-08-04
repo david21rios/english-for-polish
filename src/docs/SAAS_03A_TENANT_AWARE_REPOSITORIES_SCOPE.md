@@ -571,6 +571,11 @@ FIX3 records the second Course runtime at 113/114 IDs with metadata self-control
 passing. The sole cursor classification defect is corrected statically; Course
 remains shadow and B2 remains blocked pending external 114/114 evidence.
 
+FIX4 preserves Course shadow mode after a third runtime reached 113/114 IDs:
+`RT-CRS-REP-063` passed and only the duplicated fixture semantics of
+`RT-CRS-REP-120` failed. Case 120 is now an independent malformed-path test;
+B2 remains blocked pending corrected external evidence.
+
 ## SaaS-03A.5I-C1 Course index review
 
 The five Course indexes passed structural and contract review without technical

@@ -115,3 +115,11 @@ The post-FIX2 workflow passed 113/114 Course IDs and metadata self-control.
 was classified as `INVALID_ARGUMENT` instead of R1's `CONTRACT_VIOLATION`.
 FIX3 applies the minimal cursor taxonomy correction. CI gates and counts remain
 unchanged, and a new manual run is required before B2 can close.
+
+## FIX4 status
+
+The next workflow passed `RT-CRS-REP-063` and metadata self-control but left
+`RT-CRS-REP-120` as the sole Course failure. Its fixture accidentally produced
+another canonical cross-Tenant cursor. FIX4 makes 120 a genuinely malformed
+five-segment path while preserving all CI counts and gates. Another new manual
+workflow is required; B2 remains blocked.

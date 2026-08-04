@@ -1868,3 +1868,9 @@ Next: human push and new manual workflow execution; B2 is not started.
 `RT-CRS-REP-063`, without changing runtime counts, Rules, indexes or query
 shapes. It is `completed_pending_external_runtime`; `SaaS-03A.5R-B2` remains
 `blocked_pending_corrected_runtime_evidence` and is not started.
+
+`SaaS-03A.5R-B1-FIX4` resolves the third runtime's sole failure by changing
+`RT-CRS-REP-120` from a duplicate canonical cross-Tenant mutation into a real
+noncanonical path guarantee. FIX2 and FIX3 are completed; FIX4 is
+`completed_pending_external_runtime`. B2 and EnrollmentRepository are not
+started.

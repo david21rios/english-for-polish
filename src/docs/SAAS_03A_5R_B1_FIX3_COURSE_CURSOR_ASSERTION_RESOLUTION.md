@@ -74,3 +74,11 @@ SaaS-03A.5R-B2 = blocked_pending_corrected_runtime_evidence
 
 Next is human push followed by a new manual workflow on `main`. B2 is not
 started. No Firebase remote access, deploy or index deployment occurs here.
+
+## External confirmation and FIX4 handoff
+
+The post-FIX3 workflow confirms `RT-CRS-REP-063` now passes. Course again
+reached 113/114 IDs; the sole new failure was `RT-CRS-REP-120`, whose supposed
+malformed-path fixture was actually another canonical cross-Tenant path. FIX3
+is therefore completed. FIX4 isolates case 120 as a noncanonical five-segment
+path without changing the production cursor classification.

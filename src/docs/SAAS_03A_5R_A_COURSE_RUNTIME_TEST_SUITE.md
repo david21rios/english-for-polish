@@ -194,3 +194,11 @@ The second external run passed 113 of 114 Course IDs and left only
 expected to be `CONTRACT_VIOLATION`, while the implementation emitted
 `INVALID_ARGUMENT`. FIX3 corrects that single taxonomic branch and preserves
 all 114 IDs and outcomes. Corrected external runtime evidence remains pending.
+
+## FIX4 case 120 isolation
+
+The post-FIX3 run proved `RT-CRS-REP-063` and reached 113/114 Course IDs. The
+only failure, `RT-CRS-REP-120`, used a canonical tenant-b Course path while its
+binding remained tenant-a, duplicating 063 but expecting malformed syntax.
+FIX4 changes only case 120's mutation to a five-segment noncanonical path. The
+114-ID registry and 32/56/26/0 outcomes remain unchanged.
