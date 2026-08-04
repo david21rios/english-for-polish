@@ -95,3 +95,17 @@ MembershipRepository = implemented_shadow
 ```
 
 The next phase is SaaS-03A.4R-B2, Membership runtime execution and closure. It was not started. The owner must first push the two B1 commits, create a new manual workflow run on `main`, and return the complete Rules, RegistrationRequest and Membership evidence.
+
+## FIX1 runtime correction
+
+The first Membership gate reached 81 tests but failed 16 because the deliberate
+`platform_admin` serializer fixture reused `uid-student-a` and was returned by
+broad, approved and full-pagination self queries. FIX1 isolates it under
+`uid-incompatible` and preserves RT-MEM-REP-012 as a permitted self read that
+must fail serialization with `CONTRACT_VIOLATION`. Counts, workflow and
+precheck remain unchanged. Corrected runtime evidence is still required before
+B2.
+
+FIX1 and its controlled review are complete pending human push. B2 remains
+`blocked_pending_corrected_runtime_evidence`; no corrected workflow execution
+has yet been claimed.

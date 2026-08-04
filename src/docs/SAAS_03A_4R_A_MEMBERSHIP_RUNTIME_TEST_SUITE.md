@@ -280,3 +280,12 @@ RegistrationRequest gates. Neither the Emulator nor the workflow was executed.
 `SaaS-03A.4R-B1 = completed`; `SaaS-03A.4R-B1-C1 =
 completed_pending_human_push`; `SaaS-03A.4R-B2 =
 blocked_pending_manual_push_and_workflow`.
+
+## FIX1 fixture isolation
+
+The first hosted execution exposed a shared-fixture defect: the intentionally
+invalid role document belonged to the canonical student and contaminated 16
+self-list cases. It now uses `uid-incompatible`; only RT-MEM-REP-012 queries
+that identity. The 81 IDs and 44/37, 44/26/11/0 classifications are unchanged.
+The corrected runtime remains pending a new GitHub Actions execution; no
+81/81 claim is made during C1.

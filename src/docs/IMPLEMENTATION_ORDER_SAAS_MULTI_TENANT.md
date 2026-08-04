@@ -1681,3 +1681,14 @@ MembershipRepository = implemented_shadow
 
 Next: `SaaS-03A.4R-B2 — Membership runtime execution and closure`. It was not
 started; owner push and a new manual workflow execution are required first.
+
+## SaaS-03A.4R-B1-FIX1
+
+The first Membership runtime reported 65/81 passed and 16 fixture-contamination
+failures. FIX1 assigns the incompatible serializer fixture to a dedicated UID
+and updates only RT-MEM-REP-012 to read it as self. Counts remain 81/44/37 and
+44/26/11/0. Static correction and controlled review are complete; corrected
+runtime remains pending GitHub Actions because Java is unavailable locally.
+`SaaS-03A.4R-B1-FIX1 = completed`,
+`SaaS-03A.4R-B1-FIX1-C1 = completed_pending_human_push`, and
+`SaaS-03A.4R-B2 = blocked_pending_corrected_runtime_evidence`.
