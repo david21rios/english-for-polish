@@ -617,6 +617,14 @@ unmaterialized and undeployed.
 The 5B-C1 implementation review preserved these five exact Course index
 contracts and introduced no materialization or `firestore.indexes.json` change.
 
+SaaS-03A.5I subsequently materializes FI-CRS-001..005 locally with COLLECTION
+scope and the exact field sequences above. Firebase Tools supplies the implicit
+`__name__` suffix. Neither deployment nor Emulator validation occurs in 5I.
+
+The 5I-C1 review accepted all five signatures with zero duplicates or
+conflicts. The preceding twelve signatures and fieldOverrides remain unchanged;
+5R-A is ready but not started.
+
 ## 13. Trazabilidad hacia SaaS-02B.4
 
 `FIRESTORE_WRITE_AUTHORITY_AND_CONCURRENCY.md` usa estos read sets y contratos

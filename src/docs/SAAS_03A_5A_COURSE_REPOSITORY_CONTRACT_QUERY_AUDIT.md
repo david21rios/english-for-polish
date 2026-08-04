@@ -338,3 +338,13 @@ SaaS-03A.5I = ready_not_started
 C1 reconciled the implementation against this audit and R1 without changing
 the physical model, Rules policy, client-safe surface, legacy coexistence or
 future five-index contract.
+
+## 20. Local index materialization trace
+
+FI-CRS-001 through FI-CRS-005 are now materialized locally exactly as audited.
+Production deployment and Emulator validation were not performed. 5I is
+`completed_pending_human_index_review`; 5I-C1 is `next_not_started`.
+
+C1 subsequently accepted the five exact definitions without correction:
+`SaaS-03A.5I = completed`, `SaaS-03A.5I-C1 =
+completed_pending_human_push`, and `SaaS-03A.5R-A = ready_not_started`.

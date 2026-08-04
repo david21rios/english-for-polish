@@ -406,3 +406,14 @@ SaaS-03A.5I = ready_not_started
 The C1 review confirmed that the implementation preserves every closed R1
 query, pagination, cursor, nested serialization and index contract. No Rule or
 index was changed, and 5I was not started.
+
+## 18. Local index materialization trace
+
+The five closed COLLECTION definitions FI-CRS-001..005 are materialized in
+`firestore.indexes.json`. This is local configuration only:
+`production_deployment = not_performed` and
+`emulator_validation = not_performed`. No query contract changed.
+
+C1 revalidated and accepted the material entries with zero defects, duplicates
+or conflicts. 5I is completed, C1 awaits human push, and 5R-A is ready but not
+started.

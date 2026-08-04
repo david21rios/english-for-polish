@@ -130,3 +130,13 @@ SaaS-03A.5I = ready_not_started
 
 `SaaS-03A.5B-C1 CourseRepository implementation review and controlled commits = COMPLETE`.
 The next phase is index materialization; it is not started here.
+
+## 11. 5I trace
+
+FI-CRS-001..005 are locally materialized without changing this repository.
+Deployment and Emulator validation were not performed. CourseRepository remains
+`implemented_shadow`; 5I awaits human index review and 5I-C1 is not started.
+
+C1 accepted the index materialization without modifying CourseRepository.
+`SaaS-03A.5I = completed`, `SaaS-03A.5I-C1 =
+completed_pending_human_push`, and `SaaS-03A.5R-A = ready_not_started`.

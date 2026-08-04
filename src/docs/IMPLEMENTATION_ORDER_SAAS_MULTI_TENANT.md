@@ -1796,3 +1796,31 @@ SaaS-03A.5I = ready_not_started
 ```
 
 Next: `SaaS-03A.5I — Course index materialization`. It remains not started.
+
+## SaaS-03A.5I Course index materialization
+
+The five contracted Course COLLECTION indexes are materialized locally without
+deploy or Emulator validation. CourseRepository remains shadow-only.
+
+```text
+SaaS-03A.5I = completed_pending_human_index_review
+SaaS-03A.5I-C1 = next_not_started
+SaaS-03A.5R-A = blocked_pending_5I_review_and_commit
+```
+
+Next: `SaaS-03A.5I-C1 — Course index review and controlled commits`. It is not
+started.
+
+## SaaS-03A.5I-C1 Course index review and controlled commits
+
+The five Course index definitions were accepted without technical correction;
+the twelve preceding indexes remain structurally identical.
+
+```text
+SaaS-03A.5I = completed
+SaaS-03A.5I-C1 = completed_pending_human_push
+CourseRepository = implemented_shadow
+SaaS-03A.5R-A = ready_not_started
+```
+
+Next: `SaaS-03A.5R-A — Course repository runtime test suite`. It is not started.

@@ -543,3 +543,28 @@ SaaS-03A.5I = ready_not_started
 ```
 
 Next: `SaaS-03A.5I — Course index materialization`. It is not started here.
+
+## SaaS-03A.5I Course index materialization
+
+FI-CRS-001..005 are locally present with COLLECTION scope; the prior twelve
+RegistrationRequest/Membership indexes remain intact. No deploy, Emulator,
+consumer or repository change occurred.
+
+```text
+SaaS-03A.5I = completed_pending_human_index_review
+SaaS-03A.5I-C1 = next_not_started
+SaaS-03A.5R-A = blocked_pending_5I_review_and_commit
+CourseRepository = implemented_shadow
+```
+
+## SaaS-03A.5I-C1 Course index review
+
+The five Course indexes passed structural and contract review without technical
+correction. No deploy or Emulator occurred.
+
+```text
+SaaS-03A.5I = completed
+SaaS-03A.5I-C1 = completed_pending_human_push
+SaaS-03A.5R-A = ready_not_started
+CourseRepository = implemented_shadow
+```
