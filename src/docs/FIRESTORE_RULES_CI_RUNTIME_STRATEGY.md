@@ -268,3 +268,11 @@ Firestore-only session for the explicit 114-case Course runtime file. Its
 read-only precheck validates 32 ALLOW, 82 DENY and outcomes 32/56/26/0. All four
 sessions remain sequential, fail-fast, demo-only and credential-free. No
 runtime, deployment or remote access occurs during integration.
+
+## Enrollment repository runtime gate
+
+SaaS-03A.6R-B1 preserves the first four gates and adds a fifth sequential,
+independent Firestore-only session for the explicit 111-case Enrollment runtime
+file. Its read-only precheck validates 41 ALLOW, 70 DENY and outcomes
+41/42/28/0. All sessions remain fail-fast, demo-only and credential-free. No
+runtime, deployment or remote access occurs during integration.

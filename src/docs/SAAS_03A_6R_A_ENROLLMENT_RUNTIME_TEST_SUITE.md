@@ -187,3 +187,11 @@ SaaS-03A.6R-A-C1 = completed_pending_human_push
 SaaS-03A.6R-B1 = ready_not_started
 EnrollmentRepository = implemented_shadow
 ```
+
+## SaaS-03A.6R-B1 CI integration
+
+The reviewed 111-ID suite is now guarded by the deterministic Enrollment static
+precheck and wired as the fifth independent Firestore-only runtime session in
+the manual workflow. Counts remain 111/41/70 with outcomes 41/42/28/0.
+Integration did not execute the Emulator or workflow and does not claim runtime
+PASS. B1 is completed; B1-C1 awaits human push and B2 awaits a new manual run.

@@ -1998,6 +1998,23 @@ EnrollmentRepository = implemented_shadow
 The next phase is `SaaS-03A.6R-B1 — Enrollment runtime CI integration`; it is
 not initiated.
 
+## SaaS-03A.6R-B1 Enrollment runtime CI integration
+
+The manual workflow now validates the Enrollment runtime registry statically
+and, after the four preserved gates, runs its explicit test file in a fifth
+independent Firestore-only Emulator lifecycle. Metadata remains 111/41/70 and
+41/42/28/0. This integration was not executed locally or remotely.
+
+```text
+SaaS-03A.6R-B1 = completed
+SaaS-03A.6R-B1-C1 = completed_pending_human_push
+SaaS-03A.6R-B2 = blocked_pending_manual_push_and_workflow
+EnrollmentRepository = implemented_shadow
+```
+
+The next action is owner push followed by a new manual workflow run on `main`;
+B2 is not initiated.
+
 `SaaS-03A.5R-B1-FIX4` resolves the third runtime's sole failure by changing
 `RT-CRS-REP-120` from a duplicate canonical cross-Tenant mutation into a real
 noncanonical path guarantee. FIX2 and FIX3 are completed; FIX4 is

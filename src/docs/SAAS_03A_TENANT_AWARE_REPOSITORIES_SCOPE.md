@@ -727,4 +727,18 @@ SaaS-03A.6R-B1 = ready_not_started
 EnrollmentRepository = implemented_shadow
 ```
 
-Runtime has not been executed and B1 is not initiated.
+## SaaS-03A.6R-B1 Enrollment runtime CI integration
+
+The manual Firestore Rules workflow now contains an Enrollment static precheck
+and a fifth isolated Firestore-only runtime gate. The accepted inventory remains
+111/41/70 with outcomes 41/42/28/0. Existing Rules, RegistrationRequest,
+Membership and Course gates are preserved. No Emulator or workflow was run.
+
+```text
+SaaS-03A.6R-B1 = completed
+SaaS-03A.6R-B1-C1 = completed_pending_human_push
+SaaS-03A.6R-B2 = blocked_pending_manual_push_and_workflow
+EnrollmentRepository = implemented_shadow
+```
+
+Runtime has not been executed and B2 is not initiated.

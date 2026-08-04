@@ -221,3 +221,14 @@ fourth explicit Firestore-only lifecycle for
 `tests/integration/saas/course/courseRepository.runtime.test.mjs`. Earlier
 counts remain separated; Course is 114/32/82 with outcomes 32/56/26/0. Timeout,
 read-only security, demo project and local firebase-tools remain unchanged.
+
+## SaaS-03A.6R-B1 extension
+
+The manual workflow adds `scripts/validate-enrollment-runtime-tests.mjs` and a
+fifth explicit Firestore-only lifecycle for
+`tests/integration/saas/enrollment/enrollmentRepository.runtime.test.mjs`.
+Earlier gates and counts remain separated; Enrollment is 111/41/70 with
+outcomes 41/42/28/0. The 20-minute timeout, read-only permissions, disabled
+checkout credentials, demo project, local firebase-tools and absence of
+artifacts, secrets and deployment remain unchanged. This extension was not
+executed in B1.

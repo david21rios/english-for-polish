@@ -146,3 +146,10 @@ EnrollmentRepository = implemented_shadow
 
 Decision: `SaaS-03A.6R-A-C1 COMPLETE`. The next phase is
 `SaaS-03A.6R-B1 — Enrollment runtime CI integration`; it is not initiated.
+
+## Subsequent B1 integration
+
+B1 adds a read-only precheck for the accepted 111 IDs and a fifth, explicit,
+independent Firestore-only runtime gate. The suite reviewed here remains byte
+intact. B1 is `completed`, B1-C1 is `completed_pending_human_push`, and B2 is
+`blocked_pending_manual_push_and_workflow`; no runtime PASS is claimed.
