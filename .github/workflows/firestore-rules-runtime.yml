@@ -62,12 +62,25 @@ jobs:
           echo "REGISTRATION_REQUEST_EXPECTED_RULES_DENY=14"
           echo "REGISTRATION_REQUEST_EXPECTED_CONTRACT_ERROR=4"
           echo "REGISTRATION_REQUEST_EXPECTED_NOT_FOUND=0"
+          echo "MEMBERSHIP_RUNTIME_EXPECTED_TOTAL=81"
+          echo "MEMBERSHIP_RUNTIME_EXPECTED_ALLOW=44"
+          echo "MEMBERSHIP_RUNTIME_EXPECTED_DENY=37"
+          echo "MEMBERSHIP_EXPECTED_SUCCESS=44"
+          echo "MEMBERSHIP_EXPECTED_RULES_DENY=26"
+          echo "MEMBERSHIP_EXPECTED_CONTRACT_ERROR=11"
+          echo "MEMBERSHIP_EXPECTED_NOT_FOUND=0"
 
       - name: Run RegistrationRequest runtime static precheck
         run: node scripts/validate-registration-request-runtime-tests.mjs
+
+      - name: Run Membership runtime static precheck
+        run: node scripts/validate-membership-runtime-tests.mjs
 
       - name: Run Firestore Rules runtime tests
         run: npm run test:rules:firestore
 
       - name: Run RegistrationRequest repository runtime tests
         run: ./node_modules/.bin/firebase emulators:exec --only firestore --project demo-polish-learning "node --test tests/integration/saas/registrationRequest/registrationRequestRepository.runtime.test.mjs"
+
+      - name: Run Membership repository runtime tests
+        run: ./node_modules/.bin/firebase emulators:exec --only firestore --project demo-polish-learning "node --test tests/integration/saas/membership/membershipRepository.runtime.test.mjs"
