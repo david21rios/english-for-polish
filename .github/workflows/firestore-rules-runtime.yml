@@ -52,9 +52,9 @@ jobs:
 
       - name: Show separated runtime contracts
         run: |
-          echo "RULES_RUNTIME_EXPECTED_TOTAL=201"
-          echo "RULES_RUNTIME_EXPECTED_ALLOW=82"
-          echo "RULES_RUNTIME_EXPECTED_DENY=119"
+          echo "RULES_RUNTIME_EXPECTED_TOTAL=222"
+          echo "RULES_RUNTIME_EXPECTED_ALLOW=88"
+          echo "RULES_RUNTIME_EXPECTED_DENY=134"
           echo "REGISTRATION_REQUEST_RUNTIME_EXPECTED_TOTAL=52"
           echo "REGISTRATION_REQUEST_RUNTIME_EXPECTED_ALLOW=34"
           echo "REGISTRATION_REQUEST_RUNTIME_EXPECTED_DENY=18"
