@@ -88,7 +88,15 @@ SaaS-03A.6A-R1 = completed
 SaaS-03A.6B = completed
 SaaS-03A.6B-C1 = completed_pending_human_push
 EnrollmentRepository = implemented_shadow
-SaaS-03A.6R-A = ready_not_started
+SaaS-03A.6I = completed_pending_human_index_review
+SaaS-03A.6I-C1 = next_not_started
+SaaS-03A.6R-A = blocked_pending_6I_review_and_commit
 ```
 
-Decision: `SaaS-03A.6B-C1 COMPLETE`. Runtime phase 6R-A is not started.
+Decision: `SaaS-03A.6B-C1 COMPLETE`. 03A.6I locally materializes only
+FI-ENR-002 and FI-ENR-005; no Emulator validation or production deployment is
+claimed. Runtime phase 6R-A is not started.
+
+The later 6I-C1 review confirms FI-ENR-002/FI-ENR-005 match the unchanged
+repository. 6I is completed, 6I-C1 is `completed_pending_human_push`, and 6R-A
+is `ready_not_started` but not initiated.

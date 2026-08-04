@@ -1929,7 +1929,44 @@ EnrollmentRepository = implemented_shadow
 SaaS-03A.6R-A = ready_not_started
 ```
 
-SaaS-03A.6R-A has not started.
+SaaS-03A.6R-A has not started. Its earlier readiness is superseded by the
+required local index materialization and controlled review sequence.
+
+## SaaS-03A.6I Enrollment index materialization
+
+FI-ENR-002 and FI-ENR-005 are materialized locally with the exact R1 field
+orders. The other 17 indexes and `fieldOverrides` remain unchanged. Emulator
+validation and production deployment are not performed.
+
+```text
+SaaS-03A = in_progress
+SaaS-03A.6 = in_progress
+SaaS-03A.6A-R1 = completed
+SaaS-03A.6B = completed
+SaaS-03A.6B-C1 = completed_pending_human_push
+SaaS-03A.6I = completed_pending_human_index_review
+SaaS-03A.6I-C1 = next_not_started
+SaaS-03A.6R-A = blocked_pending_6I_review_and_commit
+EnrollmentRepository = implemented_shadow
+```
+
+The next microphase is `SaaS-03A.6I-C1 — Enrollment index review and
+controlled commits` (`next_not_started`). It is not initiated.
+
+## SaaS-03A.6I-C1 Enrollment index review
+
+The final review accepts both Enrollment index signatures without technical
+correction and preserves all previous indexes.
+
+```text
+SaaS-03A.6I = completed
+SaaS-03A.6I-C1 = completed_pending_human_push
+EnrollmentRepository = implemented_shadow
+SaaS-03A.6R-A = ready_not_started
+```
+
+The next phase is `SaaS-03A.6R-A — Enrollment repository runtime test suite`.
+It is ready but not initiated.
 
 `SaaS-03A.5R-B1-FIX4` resolves the third runtime's sole failure by changing
 `RT-CRS-REP-120` from a duplicate canonical cross-Tenant mutation into a real

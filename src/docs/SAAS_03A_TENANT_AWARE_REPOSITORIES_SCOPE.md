@@ -665,3 +665,37 @@ SaaS-03A.5R-B1-C1 = completed_pending_human_push
 SaaS-03A.5R-B2 = blocked_pending_manual_push_and_workflow
 CourseRepository = implemented_shadow
 ```
+
+## SaaS-03A.6I Enrollment index materialization
+
+The two EnrollmentRepository query signatures approved by R1 are now locally
+materialized as FI-ENR-002 and FI-ENR-005. The work preserves every preceding
+index and does not change Rules or repository code.
+
+```text
+SaaS-03A = in_progress
+SaaS-03A.6 = in_progress
+SaaS-03A.6A-R1 = completed
+SaaS-03A.6B = completed
+SaaS-03A.6B-C1 = completed_pending_human_push
+SaaS-03A.6I = completed_pending_human_index_review
+SaaS-03A.6I-C1 = next_not_started
+SaaS-03A.6R-A = blocked_pending_6I_review_and_commit
+EnrollmentRepository = implemented_shadow
+```
+
+`emulator_validation = not_performed` and
+`production_deployment = not_performed`. 6I-C1 is not started.
+
+## SaaS-03A.6I-C1 Enrollment index review
+
+The controlled review accepts FI-ENR-002 and FI-ENR-005 without correction.
+
+```text
+SaaS-03A.6I = completed
+SaaS-03A.6I-C1 = completed_pending_human_push
+SaaS-03A.6R-A = ready_not_started
+EnrollmentRepository = implemented_shadow
+```
+
+No Emulator, deploy or push occurs; 6R-A is not initiated.

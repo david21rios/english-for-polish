@@ -681,6 +681,27 @@ contracts. No Emulator run, index deployment or index-file change is claimed.
 B1 adds an explicit Course runtime gate that consumes these local definitions;
 it does not deploy or modify them.
 
+## Enrollment local index materialization (SaaS-03A.6I)
+
+The implemented EnrollmentRepository has exactly two tenant-scoped list
+families. SaaS-03A.6I materializes only their frozen R1 signatures:
+
+- FI-ENR-002: `tenantId ASC`, `membershipId ASC`, `status ASC`,
+  `enrolledAt DESC`;
+- FI-ENR-005: `tenantId ASC`, `status ASC`, `updatedAt DESC`.
+
+Both use collection group name `enrollments` with `queryScope = COLLECTION`.
+Exact status and the fixed all-canonical-status `in` share each signature. The
+explicit `documentId() DESC` query order is represented by Firebase Tools as an
+implicit `__name__ DESC` suffix inherited from the final timestamp field; it is
+not written explicitly. The preceding 17 indexes and `fieldOverrides` are
+preserved. Local materialization is complete; Emulator validation and
+production deployment are not performed.
+
+SaaS-03A.6I-C1 accepts these two Enrollment signatures with zero duplicates,
+conflicts, equivalents or technical corrections. The prior 17 signatures and
+empty `fieldOverrides` remain intact. 6R-A is ready but not started.
+
 ## 13. Trazabilidad hacia SaaS-02B.4
 
 `FIRESTORE_WRITE_AUTHORITY_AND_CONCURRENCY.md` usa estos read sets y contratos

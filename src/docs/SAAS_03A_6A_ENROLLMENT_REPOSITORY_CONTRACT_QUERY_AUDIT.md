@@ -343,5 +343,14 @@ SaaS-03A.6B-C1 = next_not_started
 ```
 
 The controlled C1 review accepted the implementation without technical changes.
-03A.6B is completed, 03A.6B-C1 is `completed_pending_human_push`, and 03A.6R-A
-is `ready_not_started`.
+03A.6B is completed and 03A.6B-C1 is `completed_pending_human_push`.
+
+SaaS-03A.6I subsequently materializes the two R1-required local indexes,
+FI-ENR-002 and FI-ENR-005, without changing the repository. Both are
+`local_materialization_completed`; Emulator validation and production
+deployment remain `not_performed`. 03A.6I awaits human index review and 03A.6R-A
+is blocked until 6I-C1 review and commit.
+
+6I-C1 accepts both local index signatures without divergence or correction.
+6I and 6I-C1 are complete; 6I-C1 awaits human push and 6R-A is now
+`ready_not_started`.

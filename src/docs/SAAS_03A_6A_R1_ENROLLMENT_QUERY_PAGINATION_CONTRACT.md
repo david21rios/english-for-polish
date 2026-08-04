@@ -270,5 +270,13 @@ EnrollmentRepository = implemented_shadow
 ```
 
 C1 confirms the implementation matches this contract without divergence.
-03A.6B is completed; 03A.6B-C1 awaits human push and 03A.6R-A is ready but not
-started.
+03A.6B is completed and 03A.6B-C1 awaits human push.
+
+03A.6I materializes FI-ENR-002 and FI-ENR-005 locally with the exact tenant,
+Membership, status and timestamp field sequences frozen here. No additional
+query family is indexed. Emulator validation and production deployment are not
+performed; 03A.6R-A is blocked pending 6I-C1 review and commit.
+
+The 6I-C1 controlled review confirms the two materialized signatures exactly
+match R1. No additional Enrollment index is authorized. 6R-A is
+`ready_not_started` after the isolated commits.

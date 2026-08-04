@@ -143,5 +143,16 @@ separately; no push, Emulator or runtime is performed.
 SaaS-03A.6B = completed
 SaaS-03A.6B-C1 = completed_pending_human_push
 EnrollmentRepository = implemented_shadow
-SaaS-03A.6R-A = ready_not_started
+SaaS-03A.6I = completed_pending_human_index_review
+SaaS-03A.6I-C1 = next_not_started
+SaaS-03A.6R-A = blocked_pending_6I_review_and_commit
 ```
+
+03A.6I adds only the two R1-required local index definitions (FI-ENR-002 and
+FI-ENR-005). The repository remains unchanged. Emulator validation and
+production deployment are not performed.
+
+6I-C1 finds no repository/index divergence and accepts both definitions without
+technical correction. EnrollmentRepository remains `implemented_shadow`; 6I is
+completed, 6I-C1 is `completed_pending_human_push`, and 6R-A is
+`ready_not_started`.
