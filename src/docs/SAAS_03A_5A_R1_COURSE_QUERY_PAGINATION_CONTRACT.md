@@ -435,3 +435,8 @@ not claimed; C1 is complete pending human push and B1 remains unstarted.
 
 B1 now statically validates these 114 trace IDs and adds their explicit future
 runtime gate. Query, pagination, cursor and index contracts remain unchanged.
+
+B2 definitive runtime evidence validates the corrected R1 query/cursor shapes
+locally: Course 114/114, including distinct canonical cross-Tenant and
+malformed-path classifications. This does not deploy indexes or activate
+consumers.

@@ -82,3 +82,7 @@ reached 113/114 IDs; the sole new failure was `RT-CRS-REP-120`, whose supposed
 malformed-path fixture was actually another canonical cross-Tenant path. FIX3
 is therefore completed. FIX4 isolates case 120 as a noncanonical five-segment
 path without changing the production cursor classification.
+
+Definitive evidence later confirmed RT-CRS-REP-063 PASS with the intended
+CONTRACT_VIOLATION classification. FIX3 is completed; Course ultimately passed
+114/114 after the independent FIX4 fixture correction.

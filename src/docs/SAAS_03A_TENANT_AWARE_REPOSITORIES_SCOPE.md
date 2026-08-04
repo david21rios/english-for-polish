@@ -1,14 +1,9 @@
 # 03A — Tenant-aware repositories scope
 
-> Course runtime: 03A.5R-B1 completed with runtime failure; B1-FIX1 is
-> incomplete pending separate Rules and query/index contract authorization;
-> B2 is blocked. CourseRepository remains `implemented_shadow`.
-
-> FIX2 is implemented but `incomplete_pending_runtime_validation`; FIX1 is
-> superseded and B2 remains blocked.
-
-> C1 accepted FIX2: `completed_pending_external_runtime`; FIX2-C1 is
-> `completed_pending_human_push`; B2 remains blocked pending corrected evidence.
+> Course runtime definitive status: Rules 222/222, RegistrationRequest 52/52,
+> Membership 81/81 and Course 114/114; metadata self-control PASS. 03A.5 and
+> 03A.5R are completed, CourseRepository is `completed_in_shadow_mode`, and
+> 03A.6A EnrollmentRepository audit is `ready_not_started`.
 
 ## Status and purpose
 
@@ -566,6 +561,16 @@ SaaS-03A.5I-C1 = next_not_started
 SaaS-03A.5R-A = blocked_pending_5I_review_and_commit
 CourseRepository = implemented_shadow
 ```
+
+## SaaS-03A.5 CourseRepository definitive closure
+
+The fresh post-FIX4 workflow passed Rules 222/222, RegistrationRequest 52/52,
+Membership 81/81 and Course 114/114 with metadata self-control PASS and no
+failed Course IDs. SaaS-03A.5 and 03A.5R are completed. CourseRepository is
+`completed_in_shadow_mode`; no consumers or deployment are introduced.
+
+Next is `SaaS-03A.6A - EnrollmentRepository contract and query audit`,
+`ready_not_started`. It is not started.
 
 FIX3 records the second Course runtime at 113/114 IDs with metadata self-control
 passing. The sole cursor classification defect is corrected statically; Course

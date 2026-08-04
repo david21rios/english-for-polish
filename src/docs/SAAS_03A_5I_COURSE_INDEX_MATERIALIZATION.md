@@ -111,6 +111,11 @@ SaaS-03A.5R-A = blocked_pending_5I_review_and_commit
 CourseRepository = implemented_shadow
 ```
 
+Definitive B2 evidence updates FI-CRS-001..005 to
+`emulator_query_validation = passed`. Local materialization remains completed;
+production deployment remains not performed. Emulator success is not evidence
+of production index deployment, build or availability.
+
 ## Runtime trace
 
 Prepared 5R-A cases trace FI-CRS-001..005 across student, teacher and admin

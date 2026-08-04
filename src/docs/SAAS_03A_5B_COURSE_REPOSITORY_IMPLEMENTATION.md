@@ -153,3 +153,8 @@ intact. C1 is complete pending human push.
 
 B1 integrates its unchanged 114-case runtime suite as a fourth manual CI gate.
 CourseRepository remains `implemented_shadow`; runtime PASS is not yet claimed.
+
+Definitive B2 evidence records Course runtime 114/114 with metadata
+self-control PASS. CourseRepository is `completed_in_shadow_mode`: technical
+repository validation is complete, but no consumer, UI, migration, dual-write,
+legacy replacement, deployment or production index activation exists.

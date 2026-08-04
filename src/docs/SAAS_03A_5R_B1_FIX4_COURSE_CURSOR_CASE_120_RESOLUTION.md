@@ -103,3 +103,10 @@ SaaS-03A.5R-B2 = blocked_pending_corrected_runtime_evidence
 
 B2 and EnrollmentRepository are not started. The next action is human push and
 a new manual workflow run on `main`, not a rerun of an earlier job.
+
+## Definitive external result
+
+The fresh post-FIX4 workflow passed globally: Rules 222/222,
+RegistrationRequest 52/52, Membership 81/81 and Course 114/114. Metadata
+self-control passed, RT-CRS-REP-063 and RT-CRS-REP-120 passed, and failed Course
+IDs are NONE. FIX4 is completed and B2 closes in its dedicated record.

@@ -361,3 +361,7 @@ contract stay unchanged; B1 CI integration is ready but not started.
 
 B1 preserves that audit and integrates an explicit Course precheck/runtime gate
 without changing CourseRepository, Rules, indexes or the runtime suite.
+
+B2 closure preserves this historical audit while recording the final outcome:
+resolved contracts, implementation, local indexes and runtime are complete;
+CourseRepository is `completed_in_shadow_mode` and Course passes 114/114.

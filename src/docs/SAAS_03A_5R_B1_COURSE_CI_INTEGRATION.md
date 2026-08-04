@@ -123,3 +123,10 @@ The next workflow passed `RT-CRS-REP-063` and metadata self-control but left
 another canonical cross-Tenant cursor. FIX4 makes 120 a genuinely malformed
 five-segment path while preserving all CI counts and gates. Another new manual
 workflow is required; B2 remains blocked.
+
+## Definitive CI result
+
+A fresh post-FIX4 run completed globally with Rules 222/222,
+RegistrationRequest 52/52, Membership 81/81 and Course 114/114. Course metadata
+self-control passed and failed IDs are NONE. The four-session CI gate is
+validated; B2 records the formal closure.

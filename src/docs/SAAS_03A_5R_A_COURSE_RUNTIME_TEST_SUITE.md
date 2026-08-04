@@ -202,3 +202,9 @@ only failure, `RT-CRS-REP-120`, used a canonical tenant-b Course path while its
 binding remained tenant-a, duplicating 063 but expecting malformed syntax.
 FIX4 changes only case 120's mutation to a five-segment noncanonical path. The
 114-ID registry and 32/56/26/0 outcomes remain unchanged.
+
+## Definitive runtime result
+
+The fresh post-FIX4 workflow passed all 114 Course IDs plus metadata
+self-control. RT-CRS-REP-063 and RT-CRS-REP-120 pass with their distinct
+CONTRACT_VIOLATION and INVALID_ARGUMENT contracts. No Course IDs failed.

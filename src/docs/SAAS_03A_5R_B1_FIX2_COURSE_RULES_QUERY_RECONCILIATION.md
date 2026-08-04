@@ -145,3 +145,6 @@ pagination and cursor families passed. Course reached 113/114 IDs; only
 `RT-CRS-REP-063` remained. FIX3 reclassifies its canonical cross-Tenant
 position from `INVALID_ARGUMENT` to `CONTRACT_VIOLATION`. FIX2 is recorded as
 `completed_with_single_runtime_assertion_failure`; B2 remains blocked.
+
+Definitive post-FIX4 evidence confirms the FIX2 Rules/query reconciliation:
+Rules pass 222/222 and Course passes 114/114. FIX2 is completed.
