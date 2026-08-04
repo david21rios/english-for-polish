@@ -631,6 +631,9 @@ the index model or executing the Emulator.
 5R-A-C1 reviews 114 runtime IDs and preserves the same five Course index
 contracts. No Emulator run, index deployment or index-file change is claimed.
 
+B1 adds an explicit Course runtime gate that consumes these local definitions;
+it does not deploy or modify them.
+
 ## 13. Trazabilidad hacia SaaS-02B.4
 
 `FIRESTORE_WRITE_AUTHORITY_AND_CONCURRENCY.md` usa estos read sets y contratos

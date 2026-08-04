@@ -423,3 +423,6 @@ started.
 5R-A maps the closed point/list, pagination, cursor, serialization and security
 contracts to 114 reviewed runtime IDs. Emulator execution and runtime PASS are
 not claimed; C1 is complete pending human push and B1 remains unstarted.
+
+B1 now statically validates these 114 trace IDs and adds their explicit future
+runtime gate. Query, pagination, cursor and index contracts remain unchanged.

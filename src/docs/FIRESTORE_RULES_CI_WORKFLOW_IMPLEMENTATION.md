@@ -213,3 +213,11 @@ unchanged; Membership is reported as 81/44/37 with outcomes 44/26/11/0. The
 20-minute timeout, read-only permissions, disabled checkout credentials, demo
 project, local firebase-tools, and absence of artifacts, secrets and deployment
 remain unchanged. This extension was not executed in B1.
+
+## SaaS-03A.5R-B1 extension
+
+The manual workflow adds `scripts/validate-course-runtime-tests.mjs` and a
+fourth explicit Firestore-only lifecycle for
+`tests/integration/saas/course/courseRepository.runtime.test.mjs`. Earlier
+counts remain separated; Course is 114/32/82 with outcomes 32/56/26/0. Timeout,
+read-only security, demo project and local firebase-tools remain unchanged.

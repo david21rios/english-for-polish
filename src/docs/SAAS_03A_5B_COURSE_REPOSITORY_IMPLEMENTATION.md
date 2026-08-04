@@ -146,3 +146,6 @@ completed_pending_human_push`, and `SaaS-03A.5R-A = ready_not_started`.
 The consumer-free repository is now targeted by a reviewed 114-ID Firestore-only
 suite. The suite has not run; the repository remains `implemented_shadow` and
 intact. C1 is complete pending human push.
+
+B1 integrates its unchanged 114-case runtime suite as a fourth manual CI gate.
+CourseRepository remains `implemented_shadow`; runtime PASS is not yet claimed.

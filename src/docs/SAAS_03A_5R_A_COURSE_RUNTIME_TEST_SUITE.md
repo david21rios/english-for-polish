@@ -172,3 +172,10 @@ CourseRepository = implemented_shadow
 Next is `SaaS-03A.5R-B1 — Course runtime CI integration`; it is ready but not
 started. Static preparation and C1 review meet their closure criteria, but no
 runtime PASS or Emulator index validation is asserted.
+
+## B1 CI integration
+
+B1 adds a read-only 114/32/82 static precheck and a fourth independent Course
+Firestore runtime gate. The suite itself is unchanged; neither gate was run in
+this phase. B1 is completed pending human push and B2 remains blocked pending a
+new manual workflow execution.

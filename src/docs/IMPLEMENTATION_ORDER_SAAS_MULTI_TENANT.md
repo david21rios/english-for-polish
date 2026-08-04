@@ -1838,3 +1838,18 @@ SaaS-03A.5R-B1 = ready_not_started
 
 Next: `SaaS-03A.5R-B1 — Course runtime CI integration`. It is ready but not
 started.
+
+## SaaS-03A.5R-B1 Course runtime CI integration
+
+The workflow now prepares an independent 114-case Course gate after Rules,
+RegistrationRequest and Membership. It has not been executed.
+
+```text
+SaaS-03A.5R-B = in_progress
+SaaS-03A.5R-B1 = completed
+SaaS-03A.5R-B1-C1 = completed_pending_human_push
+SaaS-03A.5R-B2 = blocked_pending_manual_push_and_workflow
+CourseRepository = implemented_shadow
+```
+
+Next: human push and new manual workflow execution; B2 is not started.

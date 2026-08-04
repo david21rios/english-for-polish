@@ -116,6 +116,9 @@ configuration evidence rather than runtime or production evidence.
 The 5R-A-C1 review strengthens that trace across 114 IDs while preserving all
 five index definitions. Emulator and production validation remain unperformed.
 
+B1 references FI-CRS-001..005 from the explicit Course runtime gate without
+changing the index file. Emulator and production validation remain unperformed.
+
 Next is `SaaS-03A.5I-C1 — Course index review and controlled commits`; it is
 not started. `SaaS-03A.5I Course index materialization = COMPLETE` if all local
 validations and immutability checks pass.

@@ -260,3 +260,11 @@ runtime file. Its read-only precheck validates 44 ALLOW, 37 DENY and outcomes
 44/26/11/0. All sessions use `demo-polish-learning`, separate logs and cleanup,
 and natural fail-fast behavior. No runtime, deployment or remote access occurs
 during integration.
+
+## Course repository runtime gate
+
+SaaS-03A.5R-B1 preserves the first three gates and adds a fourth independent
+Firestore-only session for the explicit 114-case Course runtime file. Its
+read-only precheck validates 32 ALLOW, 82 DENY and outcomes 32/56/26/0. All four
+sessions remain sequential, fail-fast, demo-only and credential-free. No
+runtime, deployment or remote access occurs during integration.

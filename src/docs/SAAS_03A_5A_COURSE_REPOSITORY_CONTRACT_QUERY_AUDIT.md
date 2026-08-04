@@ -354,3 +354,6 @@ completed_pending_human_push`, and `SaaS-03A.5R-A = ready_not_started`.
 5R-A-C1 reviewed and strengthened 114 Firestore-only cases (32 ALLOW, 82 DENY;
 outcomes 32/56/26/0) without executing Emulator. CourseRepository and this
 contract stay unchanged; B1 CI integration is ready but not started.
+
+B1 preserves that audit and integrates an explicit Course precheck/runtime gate
+without changing CourseRepository, Rules, indexes or the runtime suite.
