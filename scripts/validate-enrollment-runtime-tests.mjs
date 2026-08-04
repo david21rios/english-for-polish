@@ -45,8 +45,8 @@ const denyCount = [...metadata.values()].filter((value) => value === "DENY").len
 requireCondition(ids.length === 111, `expected 111 Test IDs, found ${ids.length}`);
 requireCondition(new Set(ids).size === 111, `expected 111 unique Test IDs, found ${new Set(ids).size}`);
 requireCondition(ids.every((id) => /^RT-ENR-(?:REP|SEC)-\d{3}$/u.test(id)), "invalid Enrollment Test ID prefix");
-requireCondition(allowCount === 41, `expected 41 ALLOW cases, found ${allowCount}`);
-requireCondition(denyCount === 70, `expected 70 DENY cases, found ${denyCount}`);
+requireCondition(allowCount === 42, `expected 42 ALLOW cases, found ${allowCount}`);
+requireCondition(denyCount === 69, `expected 69 DENY cases, found ${denyCount}`);
 
 const contractErrors = new Set([
   "RT-ENR-REP-021", "RT-ENR-REP-113",
@@ -57,8 +57,8 @@ requireCondition(contractErrors.size === 28, `expected 28 CONTRACT_ERROR IDs, fo
 requireCondition([...contractErrors].every((id) => metadata.get(id) === "DENY"), "CONTRACT_ERROR IDs must be DENY");
 const successCount = allowCount;
 const rulesDenyCount = [...metadata].filter(([id, access]) => access === "DENY" && !contractErrors.has(id)).length;
-requireCondition(successCount === 41, `expected 41 SUCCESS cases, found ${successCount}`);
-requireCondition(rulesDenyCount === 42, `expected 42 RULES_DENY cases, found ${rulesDenyCount}`);
+requireCondition(successCount === 42, `expected 42 SUCCESS cases, found ${successCount}`);
+requireCondition(rulesDenyCount === 41, `expected 41 RULES_DENY cases, found ${rulesDenyCount}`);
 requireCondition(notFound.size === 0, "expected 0 NOT_FOUND cases");
 requireCondition(allowCount === successCount, "ALLOW must equal SUCCESS");
 requireCondition(denyCount === rulesDenyCount + contractErrors.size + notFound.size, "DENY outcome invariant failed");
@@ -67,8 +67,8 @@ requireCondition(ids.length === successCount + rulesDenyCount + contractErrors.s
 
 for (const fragment of [
   "assert.equal(cases.length, 111)",
-  'count("access", "ALLOW"), 41', 'count("access", "DENY"), 70',
-  'count("outcome", "SUCCESS"), 41', 'count("outcome", "RULES_DENY"), 42',
+  'count("access", "ALLOW"), 42', 'count("access", "DENY"), 69',
+  'count("outcome", "SUCCESS"), 42', 'count("outcome", "RULES_DENY"), 41',
   'count("outcome", "CONTRACT_ERROR"), 28', 'count("outcome", "NOT_FOUND"), 0',
   "new Set(allIds).size", "new Set(titles).size", "const uniqueTitle", "test(`${id} [${access}]"
 ]) requireCondition(sources.runtime.includes(fragment), `missing runtime self-control: ${fragment}`);
@@ -111,10 +111,10 @@ if (failures.length > 0) {
   process.exitCode = 1;
 } else {
   console.log("Enrollment runtime tests: 111");
-  console.log("ALLOW: 41");
-  console.log("DENY: 70");
-  console.log("SUCCESS: 41");
-  console.log("RULES_DENY: 42");
+  console.log("ALLOW: 42");
+  console.log("DENY: 69");
+  console.log("SUCCESS: 42");
+  console.log("RULES_DENY: 41");
   console.log("CONTRACT_ERROR: 28");
   console.log("NOT_FOUND: 0");
 }

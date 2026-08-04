@@ -215,8 +215,12 @@ for (const [number, mutate] of [
   const cursor = changed(await firstCursor(self()), mutate);
   await assert.rejects(() => self()({ cursor }), matches("CONTRACT_VIOLATION", "decode_enrollment_cursor", "enrollment_cursor"));
 }, "CONTRACT_ERROR");
+for (const [number, cursor] of [["090", ""], ["091", "   "]])
+  runtime(`RT-ENR-REP-${number}`, "DENY", "empty cursor is rejected by option validation", () => assert.rejects(
+    () => self()({ cursor }), matches("INVALID_ARGUMENT", "validate_enrollment_options", "enrollment_collection")
+  ), "CONTRACT_ERROR");
 for (const [number, factory] of [
-  ["090", async () => ""], ["091", async () => "   "], ["092", async () => "***"],
+  ["092", async () => "***"],
   ["093", async () => `${await firstCursor(self())}=`], ["094", async () => "_w"],
   ["095", async () => encode("not-json")], ["096", async () => "a".repeat(2049)],
   ["097", async () => changed(await firstCursor(self()), (value) => { value.extra = true; })],
@@ -260,7 +264,7 @@ runtime("RT-ENR-REP-113", "DENY", "isolated unknown physical field fails seriali
   ));
   await assert.rejects(
     () => repository(USERS.incompatible).getEnrollment(TENANTS.incompatible, "enr-incompatible"),
-    matches("CONTRACT_VIOLATION", "serialize_enrollment", "enrollment")
+    matches("CONTRACT_VIOLATION", "serialize_snapshot", "enrollment")
   );
 }, "CONTRACT_ERROR");
 
@@ -285,7 +289,6 @@ for (const [number, uid, constraints] of [
   ["134", USERS.student, [sdk.where("tenantId", "==", TENANTS.a), sdk.where("status", "==", "active")]],
   ["135", USERS.admin, [sdk.where("status", "==", "active")]],
   ["136", USERS.teacher, [sdk.where("tenantId", "==", TENANTS.a), sdk.where("courseId", "==", "course-a"), sdk.where("status", "==", "active")]],
-  ["137", USERS.admin, [sdk.where("tenantId", "==", TENANTS.a), sdk.where("courseId", "==", "course-a"), sdk.where("status", "==", "active")]],
   ["138", USERS.student, []],
   ["139", USERS.tenantBStudent, [sdk.where("tenantId", "==", TENANTS.a), sdk.where("membershipId", "==", ownMembership), sdk.where("status", "==", "active")]],
   ["140", USERS.platform, [sdk.where("tenantId", "==", TENANTS.a), sdk.where("status", "==", "active")]]
@@ -293,6 +296,15 @@ for (const [number, uid, constraints] of [
   const db = authenticatedFirestore(environment, uid);
   await assertFails(sdk.getDocs(sdk.query(sdk.collection(db, `tenants/${TENANTS.a}/enrollments`), ...constraints,
     sdk.orderBy(uid === USERS.admin ? "updatedAt" : "enrolledAt", "desc"), sdk.orderBy(sdk.documentId(), "desc"))));
+});
+runtime("RT-ENR-SEC-137", "ALLOW", "bounded admin Course filter is Rules-compatible but API-deferred", async () => {
+  const db = authenticatedFirestore(environment, USERS.admin);
+  const result = await sdk.getDocs(sdk.query(sdk.collection(db, `tenants/${TENANTS.a}/enrollments`),
+    sdk.where("tenantId", "==", TENANTS.a), sdk.where("courseId", "==", "course-a"),
+    sdk.where("status", "==", "active"), sdk.orderBy("updatedAt", "desc"), sdk.orderBy(sdk.documentId(), "desc")));
+  assert(result.size > 0);
+  assert(result.docs.every((snapshot) => snapshot.data().tenantId === TENANTS.a &&
+    snapshot.data().courseId === "course-a" && snapshot.data().status === "active"));
 });
 
 test("Enrollment runtime metadata self-control", () => {
@@ -305,7 +317,7 @@ test("Enrollment runtime metadata self-control", () => {
   const count = (field, value) => cases.filter((item) => item[field] === value).length;
   assert.equal(count("access", "ALLOW"), count("outcome", "SUCCESS"));
   assert.equal(count("access", "DENY"), count("outcome", "RULES_DENY") + count("outcome", "CONTRACT_ERROR") + count("outcome", "NOT_FOUND"));
-  assert.equal(cases.length, 111); assert.equal(count("access", "ALLOW"), 41); assert.equal(count("access", "DENY"), 70);
-  assert.equal(count("outcome", "SUCCESS"), 41); assert.equal(count("outcome", "RULES_DENY"), 42);
+  assert.equal(cases.length, 111); assert.equal(count("access", "ALLOW"), 42); assert.equal(count("access", "DENY"), 69);
+  assert.equal(count("outcome", "SUCCESS"), 42); assert.equal(count("outcome", "RULES_DENY"), 41);
   assert.equal(count("outcome", "CONTRACT_ERROR"), 28); assert.equal(count("outcome", "NOT_FOUND"), 0);
 });
