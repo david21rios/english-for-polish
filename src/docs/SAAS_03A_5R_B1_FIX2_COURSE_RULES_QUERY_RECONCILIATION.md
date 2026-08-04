@@ -136,3 +136,12 @@ CourseRepository = implemented_shadow
 
 C1 accepted the implementation after two objective test-coverage corrections.
 Controlled commits are created in C1; no push, deploy or B2 execution occurs.
+
+## Post-FIX2 runtime evidence
+
+The subsequent run demonstrated that the Rules authorization and tenant-aware
+query reconciliation succeeded: formerly affected point gets, lists,
+pagination and cursor families passed. Course reached 113/114 IDs; only
+`RT-CRS-REP-063` remained. FIX3 reclassifies its canonical cross-Tenant
+position from `INVALID_ARGUMENT` to `CONTRACT_VIOLATION`. FIX2 is recorded as
+`completed_with_single_runtime_assertion_failure`; B2 remains blocked.

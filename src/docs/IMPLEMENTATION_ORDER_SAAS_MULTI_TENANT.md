@@ -1863,3 +1863,8 @@ CourseRepository = implemented_shadow
 ```
 
 Next: human push and new manual workflow execution; B2 is not started.
+
+`SaaS-03A.5R-B1-FIX3` corrects the sole post-FIX2 failure,
+`RT-CRS-REP-063`, without changing runtime counts, Rules, indexes or query
+shapes. It is `completed_pending_external_runtime`; `SaaS-03A.5R-B2` remains
+`blocked_pending_corrected_runtime_evidence` and is not started.

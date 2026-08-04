@@ -567,6 +567,10 @@ SaaS-03A.5R-A = blocked_pending_5I_review_and_commit
 CourseRepository = implemented_shadow
 ```
 
+FIX3 records the second Course runtime at 113/114 IDs with metadata self-control
+passing. The sole cursor classification defect is corrected statically; Course
+remains shadow and B2 remains blocked pending external 114/114 evidence.
+
 ## SaaS-03A.5I-C1 Course index review
 
 The five Course indexes passed structural and contract review without technical

@@ -107,3 +107,11 @@ CourseRepository = implemented_shadow
 
 The B1 closure criteria are met locally. B2 is not started and Course runtime
 PASS or production index availability is not claimed.
+
+## FIX3 status
+
+The post-FIX2 workflow passed 113/114 Course IDs and metadata self-control.
+`RT-CRS-REP-063` alone failed because a canonical cross-Tenant position path
+was classified as `INVALID_ARGUMENT` instead of R1's `CONTRACT_VIOLATION`.
+FIX3 applies the minimal cursor taxonomy correction. CI gates and counts remain
+unchanged, and a new manual run is required before B2 can close.

@@ -186,3 +186,11 @@ B1 adds a read-only 114/32/82 static precheck and a fourth independent Course
 Firestore runtime gate. The suite itself is unchanged; neither gate was run in
 this phase. B1 is completed pending human push and B2 remains blocked pending a
 new manual workflow execution.
+
+## FIX3 cursor classification
+
+The second external run passed 113 of 114 Course IDs and left only
+`RT-CRS-REP-063`. Its canonical cross-Tenant cursor position was correctly
+expected to be `CONTRACT_VIOLATION`, while the implementation emitted
+`INVALID_ARGUMENT`. FIX3 corrects that single taxonomic branch and preserves
+all 114 IDs and outcomes. Corrected external runtime evidence remains pending.

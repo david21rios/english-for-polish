@@ -70,3 +70,12 @@ SaaS-03A.5R-B2 = blocked_pending_push_and_corrected_runtime
 ```
 
 Next: human `git push origin main`, then a new manual workflow run on main.
+
+## External result and FIX3 handoff
+
+The new run passed 113/114 Course IDs and metadata self-control. The sole
+failure, `RT-CRS-REP-063`, exposed a narrow cursor error-taxonomy mismatch: the
+runtime assertion followed R1, while `validatePosition()` returned
+`INVALID_ARGUMENT` for a canonical path outside its Tenant binding. FIX3
+changes that branch to `CONTRACT_VIOLATION` and adds independent unit coverage.
+No FIX2 Rules, query or index decision is reopened.
