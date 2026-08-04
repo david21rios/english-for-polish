@@ -70,7 +70,7 @@ const validatePosition = (queryKind, position, tenantId) => {
   if (catalog) validateNonBlankString(position.displayName, "displayName", { input: true });
   else canonicalIso(position.updatedAt);
   const [, pathTenantId] = pathParts(position.documentPath);
-  if (pathTenantId !== tenantId) throw invalid("Course cursor position is outside its Tenant binding.");
+  if (pathTenantId !== tenantId) throw incompatible("Course cursor position is outside its Tenant binding.");
 };
 
 export const encodeCourseCursor = ({ queryKind, binding, position }) => {

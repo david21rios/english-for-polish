@@ -115,11 +115,22 @@ test("[negative] supported schema with incompatible version or policy is CONTRAC
 test("[negative] cursor positions reject invalid path and timestamp", () => {
   const binding = catalogBinding();
   for (const documentPath of ["/tenants/tenant-1/courses/course-1", "groups/tenant-1/courses/course-1",
-    "tenants/tenant-2/courses/course-1", "tenants/tenant-1/nested/x/courses/course-1"]) {
+    "tenants/tenant-1/nested/x/courses/course-1"]) {
     assert.throws(() => encodeCourseCursor({ queryKind: COURSE_QUERY_KINDS.ACTIVE, binding,
       position: { displayName: "English", documentPath } }));
   }
   const admin = createCourseBinding({ queryKind: COURSE_QUERY_KINDS.ADMIN, tenantId: "tenant-1", status: null });
   assert.throws(() => encodeCourseCursor({ queryKind: COURSE_QUERY_KINDS.ADMIN, binding: admin,
     position: { updatedAt: "2026-08-02", documentPath: "tenants/tenant-1/courses/course-1" } }));
+});
+test("[negative] canonical cross-Tenant documentPath is CONTRACT_VIOLATION", () => {
+  const token = mutateToken(catalogToken(), (value) => {
+    value.position.documentPath = "tenants/tenant-2/courses/course-1";
+  });
+  assert.throws(() => decodeCourseCursor(token, {
+    queryKind: COURSE_QUERY_KINDS.ACTIVE,
+    binding: catalogBinding()
+  }), (error) => error.code === "CONTRACT_VIOLATION" &&
+    error.operation === "decode_course_cursor" && error.resource === "course_cursor" &&
+    error.message === "Course cursor position is outside its Tenant binding.");
 });
