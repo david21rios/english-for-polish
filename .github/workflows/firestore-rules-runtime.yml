@@ -69,12 +69,22 @@ jobs:
           echo "MEMBERSHIP_EXPECTED_RULES_DENY=26"
           echo "MEMBERSHIP_EXPECTED_CONTRACT_ERROR=11"
           echo "MEMBERSHIP_EXPECTED_NOT_FOUND=0"
+          echo "COURSE_RUNTIME_EXPECTED_TOTAL=114"
+          echo "COURSE_RUNTIME_EXPECTED_ALLOW=32"
+          echo "COURSE_RUNTIME_EXPECTED_DENY=82"
+          echo "COURSE_EXPECTED_SUCCESS=32"
+          echo "COURSE_EXPECTED_RULES_DENY=56"
+          echo "COURSE_EXPECTED_CONTRACT_ERROR=26"
+          echo "COURSE_EXPECTED_NOT_FOUND=0"
 
       - name: Run RegistrationRequest runtime static precheck
         run: node scripts/validate-registration-request-runtime-tests.mjs
 
       - name: Run Membership runtime static precheck
         run: node scripts/validate-membership-runtime-tests.mjs
+
+      - name: Run Course runtime static precheck
+        run: node scripts/validate-course-runtime-tests.mjs
 
       - name: Run Firestore Rules runtime tests
         run: npm run test:rules:firestore
@@ -84,3 +94,6 @@ jobs:
 
       - name: Run Membership repository runtime tests
         run: ./node_modules/.bin/firebase emulators:exec --only firestore --project demo-polish-learning "node --test tests/integration/saas/membership/membershipRepository.runtime.test.mjs"
+
+      - name: Run Course repository runtime tests
+        run: ./node_modules/.bin/firebase emulators:exec --only firestore --project demo-polish-learning "node --test tests/integration/saas/course/courseRepository.runtime.test.mjs"
