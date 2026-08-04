@@ -11,7 +11,8 @@ export const USERS = Object.freeze({
   studentB: "uid-student-b",
   teacherA: "uid-teacher-a",
   adminA: "uid-admin-a",
-  foreign: "uid-foreign"
+  foreign: "uid-foreign",
+  incompatible: "uid-incompatible"
 });
 export const TENANTS = Object.freeze({ a: "tenant-a", b: "tenant-b", c: "tenant-c" });
 

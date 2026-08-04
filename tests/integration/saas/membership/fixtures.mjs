@@ -50,7 +50,12 @@ export const MEMBERSHIP_FIXTURES = Object.freeze([
 ]);
 
 export const INCOMPATIBLE_MEMBERSHIP = Object.freeze({
-  ...membership({ tenantId: TENANTS.a, membershipId: "membership-invalid", minute: 7 }),
+  ...membership({
+    tenantId: TENANTS.a,
+    membershipId: "membership-invalid",
+    uid: USERS.incompatible,
+    minute: 7
+  }),
   role: "platform_admin"
 });
 

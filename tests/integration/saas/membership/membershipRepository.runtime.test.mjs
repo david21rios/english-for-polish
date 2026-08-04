@@ -126,8 +126,11 @@ runtime("RT-MEM-REP-011", "DENY", "protected missing document maps to forbidden"
 });
 runtime("RT-MEM-REP-012", "DENY", "incompatible physical document fails serialization", async () => {
   await assert.rejects(
-    () => repository().getOwnMembership(TENANTS.a, "membership-invalid", USERS.studentA),
-    (error) => error.code === "CONTRACT_VIOLATION"
+    () => repository(USERS.incompatible).getOwnMembership(
+      TENANTS.a, "membership-invalid", USERS.incompatible
+    ),
+    (error) => error.code === "CONTRACT_VIOLATION" &&
+      error.operation === "serialize_membership" && error.resource === "membership"
   );
 }, "CONTRACT_ERROR");
 
