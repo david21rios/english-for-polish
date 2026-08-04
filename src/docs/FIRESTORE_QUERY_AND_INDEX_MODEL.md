@@ -702,6 +702,13 @@ SaaS-03A.6I-C1 accepts these two Enrollment signatures with zero duplicates,
 conflicts, equivalents or technical corrections. The prior 17 signatures and
 empty `fieldOverrides` remain intact. 6R-A is ready but not started.
 
+6R-A prepares runtime traceability for FI-ENR-002 and FI-ENR-005 across exact,
+fixed-`in` and paginated self/admin queries. It does not modify indexes or run
+the Emulator.
+
+The 6R-A-C1 review adds explicit default and empty pagination guarantees while
+preserving both Enrollment index shapes. Runtime remains pending.
+
 ## 13. Trazabilidad hacia SaaS-02B.4
 
 `FIRESTORE_WRITE_AUTHORITY_AND_CONCURRENCY.md` usa estos read sets y contratos

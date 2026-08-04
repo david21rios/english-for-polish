@@ -156,3 +156,10 @@ production deployment are not performed.
 technical correction. EnrollmentRepository remains `implemented_shadow`; 6I is
 completed, 6I-C1 is `completed_pending_human_push`, and 6R-A is
 `ready_not_started`.
+
+6R-A adds only the isolated runtime suite and documentation. The repository is
+unchanged. Static preparation contains 111 classified IDs; no Emulator or
+workflow runs, and runtime PASS is not claimed.
+
+6R-A-C1 reviews and corrects only runtime tests. The repository remains intact;
+the final 111-ID suite awaits later CI integration and execution.

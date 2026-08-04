@@ -138,3 +138,10 @@ SaaS-03A.6R-A = ready_not_started
 Decision: `SaaS-03A.6I-C1 COMPLETE`. The next phase is
 `SaaS-03A.6R-A — Enrollment repository runtime test suite`, intended to prepare
 Firestore-only runtime coverage. It is not initiated.
+
+6R-A prepares that coverage with 111 classified Enrollment IDs. Both accepted
+indexes have explicit trace cases, but Emulator validation remains pending the
+later reviewed execution flow.
+
+6R-A-C1 preserves FI-ENR-002/FI-ENR-005 traceability in the corrected 111-ID
+suite. No index change or Emulator execution occurs.

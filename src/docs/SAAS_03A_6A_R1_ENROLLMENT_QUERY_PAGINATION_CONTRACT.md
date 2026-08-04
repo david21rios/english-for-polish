@@ -280,3 +280,10 @@ performed; 03A.6R-A is blocked pending 6I-C1 review and commit.
 The 6I-C1 controlled review confirms the two materialized signatures exactly
 match R1. No additional Enrollment index is authorized. 6R-A is
 `ready_not_started` after the isolated commits.
+
+6R-A translates this contract into 111 Firestore-only runtime Test IDs covering
+self/admin queries, both indexes, pagination, cursor and denial shapes. Runtime
+is not executed; 6R-A-C1 is the next unstarted review phase.
+
+6R-A-C1 reconciles the suite to 111 IDs by adding direct default and empty-page
+guarantees. R1 remains unchanged; B1 is ready but not started.

@@ -100,3 +100,10 @@ claimed. Runtime phase 6R-A is not started.
 The later 6I-C1 review confirms FI-ENR-002/FI-ENR-005 match the unchanged
 repository. 6I is completed, 6I-C1 is `completed_pending_human_push`, and 6R-A
 is `ready_not_started` but not initiated.
+
+6R-A subsequently prepares the isolated Enrollment runtime suite without
+changing the reviewed implementation. Its 111 IDs await controlled human test
+review; no Emulator execution is claimed.
+
+6R-A-C1 finds no productive repository defect. It accepts the corrected 111-ID
+suite and leaves EnrollmentRepository `implemented_shadow`.

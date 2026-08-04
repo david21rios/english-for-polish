@@ -354,3 +354,10 @@ is blocked until 6I-C1 review and commit.
 6I-C1 accepts both local index signatures without divergence or correction.
 6I and 6I-C1 are complete; 6I-C1 awaits human push and 6R-A is now
 `ready_not_started`.
+
+6R-A now prepares a Firestore-only Enrollment runtime suite with 111 classified
+IDs and an additional metadata self-control. No Emulator is executed.
+EnrollmentRepository remains shadow-only; 6R-A awaits human test review.
+
+6R-A-C1 accepts the corrected 111-ID suite. Runtime remains unexecuted;
+EnrollmentRepository is unchanged and B1 is `ready_not_started`.

@@ -1968,6 +1968,36 @@ SaaS-03A.6R-A = ready_not_started
 The next phase is `SaaS-03A.6R-A — Enrollment repository runtime test suite`.
 It is ready but not initiated.
 
+## SaaS-03A.6R-A Enrollment runtime suite
+
+The Firestore-only runtime suite is statically prepared with 111 classified
+Enrollment IDs and one metadata self-control. It is not executed.
+
+```text
+SaaS-03A.6R = in_progress
+SaaS-03A.6R-A = completed_pending_human_test_review
+SaaS-03A.6R-A-C1 = next_not_started
+SaaS-03A.6R-B = blocked_pending_6R_A_review
+EnrollmentRepository = implemented_shadow
+```
+
+The next phase is `SaaS-03A.6R-A-C1 — Enrollment runtime suite review and
+controlled commits`. It is not initiated.
+
+## SaaS-03A.6R-A-C1 Enrollment runtime suite review
+
+The review accepts 111 final Test IDs after correcting only test-suite gaps.
+
+```text
+SaaS-03A.6R-A = completed
+SaaS-03A.6R-A-C1 = completed_pending_human_push
+SaaS-03A.6R-B1 = ready_not_started
+EnrollmentRepository = implemented_shadow
+```
+
+The next phase is `SaaS-03A.6R-B1 — Enrollment runtime CI integration`; it is
+not initiated.
+
 `SaaS-03A.5R-B1-FIX4` resolves the third runtime's sole failure by changing
 `RT-CRS-REP-120` from a duplicate canonical cross-Tenant mutation into a real
 noncanonical path guarantee. FIX2 and FIX3 are completed; FIX4 is

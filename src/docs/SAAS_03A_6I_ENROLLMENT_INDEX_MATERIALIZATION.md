@@ -156,6 +156,13 @@ SaaS-03A.6R-A = blocked_pending_6I_review_and_commit
 EnrollmentRepository = implemented_shadow
 ```
 
+6R-A traces FI-ENR-002 and FI-ENR-005 through self/admin exact, all-status and
+paginated cases. The suite is statically prepared only; Emulator validation and
+production deployment remain not performed.
+
+6R-A-C1 confirms both index trace families remain complete after test review.
+Neither the index JSON nor its deployment state changes.
+
 Decision: `SaaS-03A.6I COMPLETE`.
 
 The next microphase is `SaaS-03A.6I-C1 — Enrollment index review and

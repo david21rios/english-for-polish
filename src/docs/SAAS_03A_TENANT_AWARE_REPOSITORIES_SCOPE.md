@@ -699,3 +699,32 @@ EnrollmentRepository = implemented_shadow
 ```
 
 No Emulator, deploy or push occurs; 6R-A is not initiated.
+
+## SaaS-03A.6R-A Enrollment runtime suite preparation
+
+The isolated Firestore-only suite contains 111 Enrollment Test IDs plus one
+metadata self-control. It covers historical self ownership, tenant-admin,
+pagination, cursors, serialization, denied writes/queries and both indexes.
+
+```text
+SaaS-03A.6R = in_progress
+SaaS-03A.6R-A = completed_pending_human_test_review
+SaaS-03A.6R-A-C1 = next_not_started
+SaaS-03A.6R-B = blocked_pending_6R_A_review
+EnrollmentRepository = implemented_shadow
+```
+
+No Emulator, workflow, commit, push or deploy occurs.
+
+## SaaS-03A.6R-A-C1 Enrollment runtime suite review
+
+The corrected suite has 111 classified IDs and no productive divergence.
+
+```text
+SaaS-03A.6R-A = completed
+SaaS-03A.6R-A-C1 = completed_pending_human_push
+SaaS-03A.6R-B1 = ready_not_started
+EnrollmentRepository = implemented_shadow
+```
+
+Runtime has not been executed and B1 is not initiated.
