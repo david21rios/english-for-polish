@@ -76,6 +76,13 @@ jobs:
           echo "COURSE_EXPECTED_RULES_DENY=56"
           echo "COURSE_EXPECTED_CONTRACT_ERROR=26"
           echo "COURSE_EXPECTED_NOT_FOUND=0"
+          echo "ENROLLMENT_RUNTIME_EXPECTED_TOTAL=111"
+          echo "ENROLLMENT_RUNTIME_EXPECTED_ALLOW=41"
+          echo "ENROLLMENT_RUNTIME_EXPECTED_DENY=70"
+          echo "ENROLLMENT_EXPECTED_SUCCESS=41"
+          echo "ENROLLMENT_EXPECTED_RULES_DENY=42"
+          echo "ENROLLMENT_EXPECTED_CONTRACT_ERROR=28"
+          echo "ENROLLMENT_EXPECTED_NOT_FOUND=0"
 
       - name: Run RegistrationRequest runtime static precheck
         run: node scripts/validate-registration-request-runtime-tests.mjs
@@ -85,6 +92,9 @@ jobs:
 
       - name: Run Course runtime static precheck
         run: node scripts/validate-course-runtime-tests.mjs
+
+      - name: Run Enrollment runtime static precheck
+        run: node scripts/validate-enrollment-runtime-tests.mjs
 
       - name: Run Firestore Rules runtime tests
         run: npm run test:rules:firestore
@@ -97,3 +107,6 @@ jobs:
 
       - name: Run Course repository runtime tests
         run: ./node_modules/.bin/firebase emulators:exec --only firestore --project demo-polish-learning "node --test tests/integration/saas/course/courseRepository.runtime.test.mjs"
+
+      - name: Run Enrollment repository runtime tests
+        run: ./node_modules/.bin/firebase emulators:exec --only firestore --project demo-polish-learning "node --test tests/integration/saas/enrollment/enrollmentRepository.runtime.test.mjs"
