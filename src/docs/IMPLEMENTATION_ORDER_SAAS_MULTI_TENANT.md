@@ -7,7 +7,8 @@ cumplir su gate.
 
 > Course gate definitive status: `SaaS-03A.5R-B2 = completed`, Course runtime
 > 114/114 and CourseRepository `completed_in_shadow_mode`. The next ordered
-> phase is `SaaS-03A.6A`, `ready_not_started`.
+> phase `SaaS-03A.6A-R1` completed its contract resolution. `SaaS-03A.6B` is
+> `ready_not_started`; EnrollmentRepository remains uncreated.
 
 ## Convenciones transversales
 
@@ -1825,6 +1826,15 @@ completed. CourseRepository is `completed_in_shadow_mode`.
 The next ordered phase is `SaaS-03A.6A - EnrollmentRepository contract and
 query audit`, `ready_not_started`. It is not started.
 
+SaaS-03A.6A subsequently completed the EnrollmentRepository contract and query
+audit. The canonical root is tenant-owned and read-only for the future client
+repository. Query shapes must prove embedded `tenantId`; self lists must also
+prove the referenced own `membershipId`. Teacher cohort access, writes,
+uniqueness and cross-Tenant aggregation remain deferred/backend-only. The
+bounded query, pagination, cursor and tenant-aware index blockers are assigned
+to `SaaS-03A.6A-R1`, `required_ready_not_started`. `SaaS-03A.6B` is blocked and
+EnrollmentRepository remains `not_created`.
+
 ## SaaS-03A.5I-C1 Course index review and controlled commits
 
 The five Course index definitions were accepted without technical correction;
@@ -1872,6 +1882,54 @@ Next: human push and new manual workflow execution; B2 is not started.
 `RT-CRS-REP-063`, without changing runtime counts, Rules, indexes or query
 shapes. It is `completed_pending_external_runtime`; `SaaS-03A.5R-B2` remains
 `blocked_pending_corrected_runtime_evidence` and is not started.
+
+## SaaS-03A.6A-R1 Enrollment contract resolution
+
+R1 freezes a read-only EnrollmentRepository contract with neutral point get,
+explicit own-Membership list and distinct tenant-admin list. Canonical queries
+bind tenant and status; self also binds Membership. Pagination, two cursor
+families and tenant-aware FI-ENR-002/FI-ENR-005 are closed. Teacher cohorts,
+global aggregation, uniqueness and writes remain excluded.
+
+```text
+SaaS-03A.6A = incomplete_superseded_by_resolution
+SaaS-03A.6A-R1 = completed_pending_human_contract_review
+SaaS-03A.6B = ready_not_started
+EnrollmentRepository = not_created
+```
+
+SaaS-03A.6B has not started.
+
+## SaaS-03A.6B EnrollmentRepository implementation
+
+EnrollmentRepository is implemented read-only in shadow mode. The exact
+nine-field physical serializer, point get, own-Membership and tenant-admin list
+families, pagination and cursors have 46 passing unit tests. No Rules, indexes,
+consumers, migration, runtime or deployment is included.
+
+```text
+SaaS-03A.6A-R1 = completed
+SaaS-03A.6B = completed_pending_human_code_review
+EnrollmentRepository = implemented_shadow
+SaaS-03A.6B-C1 = next_not_started
+```
+
+SaaS-03A.6B-C1 has not started.
+
+## SaaS-03A.6B-C1 Enrollment implementation review
+
+The controlled review accepted the read-only EnrollmentRepository and its 46
+tests without technical correction. Technical and documentary changes are kept
+in separate commits.
+
+```text
+SaaS-03A.6B = completed
+SaaS-03A.6B-C1 = completed_pending_human_push
+EnrollmentRepository = implemented_shadow
+SaaS-03A.6R-A = ready_not_started
+```
+
+SaaS-03A.6R-A has not started.
 
 `SaaS-03A.5R-B1-FIX4` resolves the third runtime's sole failure by changing
 `RT-CRS-REP-120` from a duplicate canonical cross-Tenant mutation into a real

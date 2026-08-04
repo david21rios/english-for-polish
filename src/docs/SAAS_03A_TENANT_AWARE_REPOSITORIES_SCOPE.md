@@ -3,7 +3,8 @@
 > Course runtime definitive status: Rules 222/222, RegistrationRequest 52/52,
 > Membership 81/81 and Course 114/114; metadata self-control PASS. 03A.5 and
 > 03A.5R are completed, CourseRepository is `completed_in_shadow_mode`, and
-> 03A.6A EnrollmentRepository audit is `ready_not_started`.
+> 03A.6A EnrollmentRepository audit is complete with bounded query, pagination,
+> cursor, index and authorization contracts resolved by 03A.6A-R1.
 
 ## Status and purpose
 
@@ -51,6 +52,15 @@ depends on Tenant; Enrollment depends on Tenant, Membership and Course.
 | MembershipRepository | `tenants/{tenantId}/memberships/{membershipId}` and read-only lookup/collection-group flows | own point/list reads and authorized tenant reads | approval, role/status transitions, key writes/repair | FQ-MEM-001–007; MEM-001–005/010–011 |
 | CourseRepository | `tenants/{tenantId}/courses/{courseId}` | authorized point/list/catalog reads | create/update/activate/archive and CAS writes | FQ-CRS-001–007; CRS-001–007/012–013 |
 | EnrollmentRepository | `tenants/{tenantId}/enrollments/{enrollmentId}` | authorized self/tenant point and bounded list reads | create and administrative transitions; self mutation only when a later Rule/contract explicitly enables it | FQ-ENR-001–008; ENR-001–007/012–013 |
+
+The 03A.6A audit confirms Tenant ownership and a nine-field physical contract.
+Current Rules support historical self point/list reads (including suspended or
+removed Membership ownership), active-Tenant tenant-admin reads, and deny broad
+teacher, platform, anonymous, collection-group and client-write access. Every
+client list contract must explicitly constrain embedded `tenantId`; self lists
+must additionally constrain the selected own `membershipId`. Exact APIs,
+pagination, cursors and tenant-aware FI-ENR definitions remain assigned to
+03A.6A-R1. EnrollmentRepository is not created.
 
 03A repository methods must not expose a client write merely because a domain
 operation exists. Current Firestore Rules and the write-authority matrix are
@@ -561,6 +571,42 @@ SaaS-03A.5I-C1 = next_not_started
 SaaS-03A.5R-A = blocked_pending_5I_review_and_commit
 CourseRepository = implemented_shadow
 ```
+
+## SaaS-03A.6A-R1 Enrollment contract resolution
+
+The Enrollment read-only API is frozen as `getEnrollment`,
+`listOwnEnrollmentsForMembership` and `listTenantEnrollmentsForAdmin`. Lists
+always constrain embedded `tenantId` and canonical status; self additionally
+constrains the explicit own `membershipId`. Pagination is 1/20/50 with
+limit-plus-one and separate versioned self/admin cursors. FI-ENR-002 and
+FI-ENR-005 are the only indexes required by 03A.6B. Teacher cohorts, global self
+composition, uniqueness and writes remain deferred/backend-only.
+
+```text
+SaaS-03A.6A = incomplete_superseded_by_resolution
+SaaS-03A.6A-R1 = completed_pending_human_contract_review
+SaaS-03A.6B = ready_not_started
+EnrollmentRepository = not_created
+```
+
+## SaaS-03A.6B EnrollmentRepository implementation
+
+The frozen read-only repository is implemented in shadow mode with neutral
+point get, explicit own-Membership list and distinct tenant-admin list. Its
+nine-field serializer, closed options, limit-plus-one pagination and separate
+portable cursors are covered by 46 passing unit tests. It performs no writes,
+collection-group query or Membership/Course authorization read.
+
+```text
+SaaS-03A.6A-R1 = completed
+SaaS-03A.6B = completed_pending_human_code_review
+EnrollmentRepository = implemented_shadow
+SaaS-03A.6B-C1 = next_not_started
+```
+
+The C1 review accepts EnrollmentRepository without technical correction.
+03A.6B is completed, C1 is `completed_pending_human_push`, and the repository
+remains shadow-only. The next phase is 03A.6R-A, `ready_not_started`.
 
 ## SaaS-03A.5 CourseRepository definitive closure
 

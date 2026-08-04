@@ -395,6 +395,49 @@ Cursor: lastCreatedAt + lastFullDocumentPath
 
 - Memberships/Requests collection group sin uid self o autoridad platform expresa.
 - Courses o Enrollments globales para filtrar Tenant en cliente.
+
+## 10. SaaS-03A.6A-R1 — normative Enrollment reconciliation
+
+This section supersedes earlier Enrollment rows where they omit the embedded
+Tenant predicate or leave actor/index variants ambiguous.
+
+Every client list uses `tenantId == tenantId` plus a canonical status predicate.
+When the consumer omits status, the repository uses the fixed internal predicate
+`status in [pending, active, completed, cancelled]`; when provided, it uses one
+exact canonical status. Self additionally uses `membershipId == membershipId`.
+
+| ID | Final classification | Executable family |
+| --- | --- | --- |
+| FQ-ENR-001 | CLIENT_SELF / CLIENT_TENANT_ADMIN | neutral point get |
+| FQ-ENR-002 | CLIENT_SELF | own Membership list |
+| FQ-ENR-003 | DEFERRED / BACKEND_ONLY | Course cohort; no teacher client policy |
+| FQ-ENR-004 | CLIENT_TENANT_ADMIN | Tenant admin list |
+| FQ-ENR-005 | BACKEND_ONLY | membership/course lookup, not uniqueness |
+| FQ-ENR-006 | CLIENT_SELF | same family as FQ-ENR-002 |
+| FQ-ENR-007 | DEFERRED | explicit owner/course variants required later |
+| FQ-ENR-008 | SYSTEM_ONLY | CreateEnrollment validation |
+
+Self ordering is `enrolledAt DESC, __name__ DESC`; admin ordering is
+`updatedAt DESC, __name__ DESC`. Pagination is 1/20/50 with limit-plus-one.
+Cursor kinds are `enrollment_self_membership` and
+`enrollment_tenant_admin`, version 1, policy `enrollment_standard_v1`.
+
+The tenant-aware index catalog is:
+
+| ID | Fields | State |
+| --- | --- | --- |
+| FI-ENR-001 | tenantId ASC, membershipId ASC, enrolledAt DESC | deferred |
+| FI-ENR-002 | tenantId ASC, membershipId ASC, status ASC, enrolledAt DESC | required by 03A.6B |
+| FI-ENR-003 | tenantId ASC, courseId ASC, enrolledAt DESC | deferred |
+| FI-ENR-004 | tenantId ASC, courseId ASC, status ASC, enrolledAt DESC | deferred |
+| FI-ENR-005 | tenantId ASC, status ASC, updatedAt DESC | required by 03A.6B |
+| FI-ENR-006 | tenantId ASC, membershipId ASC, courseId ASC, enrolledAt DESC | backend-only |
+| FI-ENR-007 | no single definition | replaced by deferred explicit variants |
+
+Only FI-ENR-002 and FI-ENR-005 are required for the initial repository. Both
+use collection scope. Enrollment collection-group remains denied and no
+collection-group index is approved. `__name__` remains the implicit DESC suffix.
+No index is materialized by R1.
 - Query tenant-scoped fuera de `tenants/{tenantId}`.
 - Identity por email como identificador.
 - Query `tenantId+uid` como reemplazo de membershipId; usar lookup y point read.
