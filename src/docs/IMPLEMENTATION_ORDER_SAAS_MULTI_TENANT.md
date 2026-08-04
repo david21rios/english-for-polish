@@ -1642,3 +1642,24 @@ MembershipRepository = implemented_shadow
 
 Next: 03A.4R-A Membership repository runtime test suite. It is ready but not
 started here; no workflow change or runtime execution occurs in C1.
+
+### SaaS-03A.4R-A — Membership repository runtime test suite
+
+The Firestore-only suite is prepared with 81 statically reconciled cases: 44
+ALLOW and 37 DENY, classified as 44 SUCCESS, 26 RULES_DENY, 11 CONTRACT_ERROR,
+and 0 NOT_FOUND. It uses the demo project, real modular SDK and repository,
+isolated fixtures, and all eight Membership query shapes. No Emulator or CI
+change occurs in this phase.
+
+```text
+SaaS-03A = in_progress
+SaaS-03A.4 = in_progress
+SaaS-03A.4R = in_progress
+SaaS-03A.4R-A = completed
+SaaS-03A.4R-A-C1 = completed_pending_human_push
+SaaS-03A.4R-B = ready_not_started
+MembershipRepository = implemented_shadow
+```
+
+Next: `SaaS-03A.4R-B1 — Membership runtime CI integration`; it remains
+unstarted.

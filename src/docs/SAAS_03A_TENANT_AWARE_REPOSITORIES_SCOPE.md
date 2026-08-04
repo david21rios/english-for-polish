@@ -417,3 +417,21 @@ MembershipRepository = implemented_shadow
 
 C1 found no technical index defect. Runtime 03A.4R-A is ready but is not
 started here; MembershipRepository remains shadow-only and indexes undeployed.
+
+## SaaS-03A.4R-A Membership runtime suite
+
+An isolated 81-case Firestore-only suite is prepared under
+`tests/integration/saas/membership/`. It covers the real repository, all eight
+self-query shapes, pagination, cursor binding, serializer/lifecycle contracts,
+ownership isolation, denied writes, membershipKeys, and unsafe queries. It has
+not yet been executed with the Emulator and adds no consumer or write surface.
+
+```text
+SaaS-03A = in_progress
+SaaS-03A.4 = in_progress
+SaaS-03A.4R = in_progress
+SaaS-03A.4R-A = completed
+SaaS-03A.4R-A-C1 = completed_pending_human_push
+SaaS-03A.4R-B = ready_not_started
+MembershipRepository = implemented_shadow
+```

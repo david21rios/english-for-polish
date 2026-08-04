@@ -124,3 +124,15 @@ C1 confirms all eight index signatures, the exact preservation of the four
 RegistrationRequest indexes and `fieldOverrides`, and the implicit descending
 `__name__` behavior. No technical correction was required. Next is
 `SaaS-03A.4R-A — Membership repository runtime test suite`; it is not started.
+
+## Runtime trace
+
+03A.4R-A prepares one real-repository query case for every FI-MEM and FI-CG
+variant, with additional pagination and cursor coverage. This preparation does
+not run the Emulator and therefore does not yet runtime-validate the indexes.
+
+```text
+SaaS-03A.4R-A = completed
+SaaS-03A.4R-A-C1 = completed_pending_human_push
+SaaS-03A.4R-B = ready_not_started
+```

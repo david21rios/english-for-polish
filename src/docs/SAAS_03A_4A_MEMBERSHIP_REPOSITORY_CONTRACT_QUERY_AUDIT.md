@@ -324,3 +324,15 @@ SaaS-03A.4I = completed
 SaaS-03A.4I-C1 = completed_pending_human_push
 SaaS-03A.4R-A = ready_not_started
 ```
+
+## 15. Runtime suite preparation outcome
+
+The 03A.4R-A suite statically covers the approved CLIENT_SELF surface and
+directly exercises DENY-only Membership writes, key access, and unsafe query
+shapes. It adds no administrative API and changes no Rules or indexes.
+
+```text
+SaaS-03A.4R-A = completed
+SaaS-03A.4R-A-C1 = completed_pending_human_push
+SaaS-03A.4R-B = ready_not_started
+```

@@ -312,3 +312,16 @@ SaaS-03A.4I = completed
 SaaS-03A.4I-C1 = completed_pending_human_push
 SaaS-03A.4R-A = ready_not_started
 ```
+
+## 13. Runtime contract coverage prepared
+
+03A.4R-A translates the frozen point, filter, ordering, lookahead, result, and
+cursor contracts into 81 isolated Firestore-only cases. All four filter
+combinations in both scopes are represented; contract-error cases remain
+separate from Rules denials. No contract or implementation changes here.
+
+```text
+SaaS-03A.4R-A = completed
+SaaS-03A.4R-A-C1 = completed_pending_human_push
+SaaS-03A.4R-B = ready_not_started
+```

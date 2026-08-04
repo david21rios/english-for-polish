@@ -138,3 +138,17 @@ SaaS-03A.4I = completed
 SaaS-03A.4I-C1 = completed_pending_human_push
 SaaS-03A.4R-A = ready_not_started
 ```
+
+## Runtime suite preparation
+
+03A.4R-A adds an isolated 81-case Firestore-only runtime suite without changing
+the repository. It statically covers point reads, eight query variants,
+pagination, cursors, serializer contracts, Rules denials, and membershipKeys.
+The Emulator is not executed in this phase.
+
+```text
+SaaS-03A.4R-A = completed
+SaaS-03A.4R-A-C1 = completed_pending_human_push
+SaaS-03A.4R-B = ready_not_started
+MembershipRepository = implemented_shadow
+```
