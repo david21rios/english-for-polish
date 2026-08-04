@@ -395,3 +395,25 @@ C1 corrected explicit tenant-list result-path consistency and expanded focused
 coverage to 23 passing tests. The repository remains shadow-only; no consumer,
 write, key access, migration, Rule, or index materialization was added. Next is
 03A.4I Membership index materialization, which is not started here.
+
+## SaaS-03A.4I Membership index materialization
+
+The four tenant-scoped and four collection-group Membership self-query indexes
+are now materialized locally. Existing RegistrationRequest indexes and
+`fieldOverrides` remain intact; no admin/key index, deploy, Emulator run, or
+repository change occurred.
+
+```text
+SaaS-03A = in_progress
+SaaS-03A.4 = in_progress
+SaaS-03A.4A-R1 = completed
+SaaS-03A.4B = completed
+SaaS-03A.4B-C1 = completed
+SaaS-03A.4I = completed
+SaaS-03A.4I-C1 = completed_pending_human_push
+SaaS-03A.4R-A = ready_not_started
+MembershipRepository = implemented_shadow
+```
+
+C1 found no technical index defect. Runtime 03A.4R-A is ready but is not
+started here; MembershipRepository remains shadow-only and indexes undeployed.

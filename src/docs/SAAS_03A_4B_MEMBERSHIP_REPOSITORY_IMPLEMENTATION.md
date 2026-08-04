@@ -125,3 +125,16 @@ SaaS-03A.4I = ready_not_started
 Residual risks are the eight unmaterialized indexes, unsigned cursor position
 movement under concurrent writes, and shadow-mode absence of runtime/consumer
 integration. No subsequent phase is initiated here.
+
+## Index materialization trace
+
+03A.4I locally materializes all eight R1 self-query indexes without changing
+this repository. FI-MEM-005–008 use COLLECTION scope and FI-CG-001/002/006/007
+use COLLECTION_GROUP scope. They remain undeployed and untested by Emulator.
+
+```text
+SaaS-03A.4B-C1 = completed
+SaaS-03A.4I = completed
+SaaS-03A.4I-C1 = completed_pending_human_push
+SaaS-03A.4R-A = ready_not_started
+```

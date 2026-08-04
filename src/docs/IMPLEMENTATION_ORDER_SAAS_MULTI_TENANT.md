@@ -1621,3 +1621,24 @@ SaaS-03A.4I = ready_not_started
 C1 confirms the contract and corrects one fail-closed tenant result-path check;
 23 focused unit tests pass. Next: `SaaS-03A.4I — Membership index
 materialization`. It remains unstarted and no index JSON changes here.
+
+### SaaS-03A.4I — Membership index materialization
+
+Eight R1 indexes are materialized in local configuration: FI-MEM-005–008 and
+FI-CG-001/002/006/007. The four RegistrationRequest indexes remain unchanged,
+`fieldOverrides` remains empty, and no deployment or runtime execution occurs.
+
+```text
+SaaS-03A = in_progress
+SaaS-03A.4 = in_progress
+SaaS-03A.4A-R1 = completed
+SaaS-03A.4B = completed
+SaaS-03A.4B-C1 = completed
+SaaS-03A.4I = completed
+SaaS-03A.4I-C1 = completed_pending_human_push
+SaaS-03A.4R-A = ready_not_started
+MembershipRepository = implemented_shadow
+```
+
+Next: 03A.4R-A Membership repository runtime test suite. It is ready but not
+started here; no workflow change or runtime execution occurs in C1.

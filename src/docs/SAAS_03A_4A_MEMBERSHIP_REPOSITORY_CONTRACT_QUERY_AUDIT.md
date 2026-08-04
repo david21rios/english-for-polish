@@ -311,3 +311,16 @@ SaaS-03A.4B-C1 = completed_pending_human_push
 MembershipRepository = implemented_shadow
 SaaS-03A.4I = ready_not_started
 ```
+
+## 14. Index materialization outcome
+
+The eight self-query indexes resolved by R1 are now present locally in
+`firestore.indexes.json`: FI-MEM-005–008 and FI-CG-001/002/006/007. The four
+pre-existing RegistrationRequest indexes and `fieldOverrides` are preserved.
+No administrative Membership index was added and no deploy or runtime occurred.
+
+```text
+SaaS-03A.4I = completed
+SaaS-03A.4I-C1 = completed_pending_human_push
+SaaS-03A.4R-A = ready_not_started
+```

@@ -299,3 +299,16 @@ SaaS-03A.4B = completed
 SaaS-03A.4B-C1 = completed_pending_human_push
 SaaS-03A.4I = ready_not_started
 ```
+
+## 12. Local index materialization trace
+
+03A.4I materializes exactly the eight index definitions from section 7. The
+four COLLECTION and four COLLECTION_GROUP entries preserve equality-field
+order and `createdAt DESC`; firebase-tools 15.24.0 supplies the matching
+implicit descending `__name__` suffix. No administrative index is included.
+
+```text
+SaaS-03A.4I = completed
+SaaS-03A.4I-C1 = completed_pending_human_push
+SaaS-03A.4R-A = ready_not_started
+```
