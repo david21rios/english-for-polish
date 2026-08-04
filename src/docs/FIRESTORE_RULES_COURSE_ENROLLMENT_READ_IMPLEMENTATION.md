@@ -1,5 +1,9 @@
 # SaaS-02C.2E — Course and Enrollment read Rules assessment
 
+> FIX2 superseding correction: Course authorization now evaluates one approved
+> Membership graph before its role/status branch. Course lists require explicit
+> embedded tenantId equality. Enrollment semantics are unchanged.
+
 ## 1. Result
 
 ```text

@@ -1,5 +1,9 @@
 # Arquitectura de consultas, índices y cursores de Firestore
 
+> Course FIX2 amendment: FQ-CRS list shapes prepend exact tenantId equality and
+> FI-CRS-001..005 prepend `tenantId ASCENDING`. Cursor v1 remains compatible;
+> no collection-group query or index is introduced.
+
 ## 1. Alcance y fuentes
 
 SaaS-02B.3 define contratos declarativos de consulta para los 70 Access Patterns

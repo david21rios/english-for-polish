@@ -1,5 +1,9 @@
 # Diseño normativo de Firestore Security Rules — SaaS-02C.1
 
+> Course FIX2 preserves the normative role/status matrix while resolving the
+> approved Membership graph once before branching on role. Canonical Rules
+> coverage becomes 222/88/134.
+
 ## 1. Alcance, fuentes y principios
 
 Especificación conceptual previa a sintaxis ejecutable. Se auditaron los veinte

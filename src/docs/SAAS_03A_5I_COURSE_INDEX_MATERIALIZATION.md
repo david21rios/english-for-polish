@@ -1,5 +1,9 @@
 # SaaS-03A.5I — Course index materialization
 
+> FIX2 replacement: FI-CRS-001..005 now prepend `tenantId ASCENDING` to
+> satisfy the explicit Rules ownership proof. Total remains 17; no deployment
+> or corrected Emulator validation is claimed.
+
 ## Purpose and scope
 
 This phase materializes locally the five COLLECTION composite indexes required

@@ -1,5 +1,15 @@
 # 03A — Tenant-aware repositories scope
 
+> Course runtime: 03A.5R-B1 completed with runtime failure; B1-FIX1 is
+> incomplete pending separate Rules and query/index contract authorization;
+> B2 is blocked. CourseRepository remains `implemented_shadow`.
+
+> FIX2 is implemented but `incomplete_pending_runtime_validation`; FIX1 is
+> superseded and B2 remains blocked.
+
+> C1 accepted FIX2: `completed_pending_external_runtime`; FIX2-C1 is
+> `completed_pending_human_push`; B2 remains blocked pending corrected evidence.
+
 ## Status and purpose
 
 ```text

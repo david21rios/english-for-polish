@@ -1,5 +1,14 @@
 # SaaS-03A.5A-R1 — Course query, pagination, cursor and index contract
 
+> Runtime reopening notice: FIX1 demonstrated that the list shapes below do not
+> prove the Rules predicate `resource.data.tenantId == tenantId`. A separately
+> authorized correction is required; no silent query or index change is made.
+
+> FIX2 correction: every client-safe Course list now begins with
+> `where("tenantId", "==", tenantId)`. Constraint order is tenantId, status,
+> learning language, support language, primary order, documentId, cursor, limit.
+> Cursor v1/policy remain compatible because tenantId was already bound.
+
 ## 1. Purpose, authority and readiness
 
 This document specializes `FQ-CRS-001..007` into the complete read-only

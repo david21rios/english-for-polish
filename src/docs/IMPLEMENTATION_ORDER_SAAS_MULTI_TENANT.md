@@ -5,6 +5,16 @@
 **Regla:** ninguna fase activa enforcement ni elimina compatibilidad antes de
 cumplir su gate.
 
+> Course gate: `SaaS-03A.5R-B1 = completed_with_runtime_failure`;
+> `SaaS-03A.5R-B1-FIX1 = incomplete_pending_separate_rules_and_query_contract_authorization`;
+> `SaaS-03A.5R-B2 = blocked_pending_corrected_runtime_evidence`.
+
+> FIX2 implementation reconciles Course Rules, tenant query proofs and indexes.
+> Its state is `incomplete_pending_runtime_validation`; no later phase starts.
+
+> C1 accepted the reconciliation for controlled commits. FIX2 awaits external
+> runtime, FIX2-C1 awaits human push, and B2 remains blocked.
+
 ## Convenciones transversales
 
 - `tenantId` es la frontera técnica.

@@ -1,5 +1,13 @@
 # SaaS-03A.5R-B1 - Course runtime CI integration
 
+> FIX1 evidence: the first Course execution produced 68 passed / 47 failed
+> across 115 Node tests (114 Course IDs plus metadata self-control). Diagnosis
+> found a tenant-admin Rules-evaluation divergence and a missing tenant-equality
+> proof in every list contract. B2 is blocked; no Course PASS is claimed.
+
+> FIX2 reconciliation updates the canonical Rules gate to 222/88/134 and
+> corrects Course tenant query proofs and indexes. Runtime remains pending.
+
 ## Purpose, scope and sources
 
 This phase integrates the reviewed CourseRepository runtime suite into the

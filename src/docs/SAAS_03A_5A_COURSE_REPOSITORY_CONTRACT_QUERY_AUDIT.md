@@ -1,5 +1,9 @@
 # SaaS-03A.5A — CourseRepository contract and query audit
 
+> Runtime reconciliation: FIX2 makes embedded tenant ownership explicit in all
+> Course list queries and refactors Rules role evaluation without widening the
+> approved actor/status matrix.
+
 ## 1. Purpose and decision
 
 This document audits the frozen Course domain, its physical Firestore shape,

@@ -1,5 +1,12 @@
 # SaaS-03A.5R-A — CourseRepository runtime test suite
 
+> Runtime evidence: the first CI execution produced 68/115 passed and 47
+> failed. The suite still contains 114 unique Course IDs plus one metadata
+> self-control. FIX1 found integration divergences; no corrected PASS is recorded.
+
+> FIX2 preserves all 114 Course IDs and their 32/82 metadata split while
+> reconciling Rules and tenant-aware query shapes. Corrected runtime is pending.
+
 ## Purpose and scope
 
 This phase prepares, but does not execute, a Firestore-only runtime suite for

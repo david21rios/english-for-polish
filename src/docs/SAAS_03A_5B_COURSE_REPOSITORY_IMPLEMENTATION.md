@@ -1,5 +1,9 @@
 # SaaS-03A.5B — CourseRepository shadow implementation
 
+> FIX2 correction: every Course list now emits
+> `where("tenantId", "==", tenantId)` as its first constraint. API, point get,
+> pagination, serializer and cursor envelope remain unchanged.
+
 ## 1. Purpose and scope
 
 This phase implements the read-only CourseRepository frozen by 5A-R1 under

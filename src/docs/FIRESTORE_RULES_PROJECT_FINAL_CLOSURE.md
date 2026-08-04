@@ -1,5 +1,9 @@
 # SaaS-02C.2G final project closure
 
+> Post-closure Course amendment: FIX2 adds 21 canonical Course authorization
+> cases, changing the Rules inventory to 222/88/134. Corrected runtime evidence
+> remains pending and does not rewrite the historical closure evidence.
+
 ## Purpose and evidence boundary
 
 This document closes SaaS-02C.2G after the owner confirmed that the official
