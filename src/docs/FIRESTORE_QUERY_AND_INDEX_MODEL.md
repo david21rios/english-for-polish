@@ -589,6 +589,34 @@ representation, but explicit in the query and cursor contract.
 These values close FQI-001 and FQI-004 only for RegistrationRequest. Other
 repository roots retain their own unresolved configuration work.
 
+### 12.2 Course repository specialization
+
+SaaS-03A.5A-R1 specializes FQ-CRS-001..007 without changing their topology:
+
+- public methods are point get plus separate active, teacher and tenant-admin
+  tenant-scoped lists; no generic role/accessMode or collection group;
+- active uses `status == active`; teacher uses the fixed
+  `status in [draft,active]`; admin uses exact status or the fixed all-canonical
+  `status in [draft,active,archived]` proof;
+- active/teacher catalogs allow zero or one exact learning/support language
+  filter independently or together;
+- catalog order is displayName/documentId ASC; admin is
+  updatedAt/documentId DESC;
+- Standard page is specialized to min/default/max `1/20/50` plus one lookahead;
+- Course cursor v1 uses policy `course_standard_v1`, exact query binding,
+  catalog position displayName/path or admin position updatedAt/path, canonical
+  UTF-8 JSON and unpadded Base64URL, maximum 2048 characters;
+- tenant-scoped documentId cursor values use the simple courseId string;
+- FI-CRS-001..005 are exactly the five COLLECTION composite definitions already
+  listed; equality and `in` share them, with implicit `__name__` direction from
+  the final ordered field.
+
+This closes FQI-001 and FQI-004 for Course only. The indexes remain
+unmaterialized and undeployed.
+
+The 5B-C1 implementation review preserved these five exact Course index
+contracts and introduced no materialization or `firestore.indexes.json` change.
+
 ## 13. Trazabilidad hacia SaaS-02B.4
 
 `FIRESTORE_WRITE_AUTHORITY_AND_CONCURRENCY.md` usa estos read sets y contratos

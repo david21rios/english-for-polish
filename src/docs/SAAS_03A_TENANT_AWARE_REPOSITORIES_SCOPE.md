@@ -465,3 +465,81 @@ SaaS-03A.4R = completed
 SaaS-03A.4R-B2 = completed
 SaaS-03A.5A = ready_not_started
 ```
+
+## SaaS-03A.5A CourseRepository contract and query audit
+
+The Course path, twelve-field physical shape, draft/active/archived lifecycle,
+role/status Rules matrix, FQ-CRS-001..007, FI-CRS-001..005 and legacy
+coexistence are audited. Course has no approved collection-group read and every
+client write remains backend-only. Exact list APIs/options, numeric pagination,
+the Course cursor envelope and the final implemented index variants require a
+separate resolution contract; no Course code exists.
+
+```text
+SaaS-03A = in_progress
+SaaS-03A.5 = in_progress
+SaaS-03A.5A = incomplete_pending_contract_resolution
+SaaS-03A.5A-R1 = required_not_started
+SaaS-03A.5B = blocked
+CourseRepository = not_created
+```
+
+Next: `SaaS-03A.5A-R1 — Course query, pagination, cursor and index contract
+resolution`. It is not started here.
+
+## SaaS-03A.5A-R1 Course contract resolution
+
+R1 freezes the point read and three separate tenant list APIs for active,
+teacher and tenant-admin shapes. It closes status/language options, 1/20/50
+pagination, Course cursor v1, deep nested serialization and FI-CRS-001..005.
+Rules remain authoritative; collection-group and every write stay excluded.
+
+```text
+SaaS-03A = in_progress
+SaaS-03A.5 = in_progress
+SaaS-03A.5A = incomplete_superseded_by_resolution
+SaaS-03A.5A-R1 = completed_pending_human_contract_review
+SaaS-03A.5B = ready_not_started
+CourseRepository = not_created
+```
+
+Next is human contract review and then 5B. Neither is started here.
+
+## SaaS-03A.5B CourseRepository shadow implementation
+
+The R1 read-only repository now exists with point get, active catalog, teacher
+catalog and tenant-admin list methods; strict nested serialization, closed
+options, deterministic pagination and Course cursor v1. It has no consumer,
+write, collection-group, index materialization, migration or legacy adapter.
+
+```text
+SaaS-03A = in_progress
+SaaS-03A.5 = in_progress
+SaaS-03A.5A = incomplete_superseded_by_resolution
+SaaS-03A.5A-R1 = completed
+SaaS-03A.5B = completed_pending_human_code_review
+CourseRepository = implemented_shadow
+SaaS-03A.5B-C1 = next_not_started
+```
+
+C1 technical review is next and is not started here.
+
+## SaaS-03A.5B-C1 CourseRepository implementation review
+
+The complete code and test review confirms the minimal read-only factory,
+twelve-field deep serializer, actor-specific tenant queries, pagination and
+Course cursor v1. Focused coverage is 47/47 (21 positive, 26 negative). Rules,
+indexes, previous repositories, legacy services and consumers remain intact.
+
+```text
+SaaS-03A = in_progress
+SaaS-03A.5 = in_progress
+SaaS-03A.5A = incomplete_superseded_by_resolution
+SaaS-03A.5A-R1 = completed
+SaaS-03A.5B = completed
+SaaS-03A.5B-C1 = completed_pending_human_push
+CourseRepository = implemented_shadow
+SaaS-03A.5I = ready_not_started
+```
+
+Next: `SaaS-03A.5I — Course index materialization`. It is not started here.

@@ -1717,3 +1717,82 @@ SaaS-03A.5A = ready_not_started
 Next: `SaaS-03A.5A — CourseRepository contract and query audit`. It will audit
 the physical model, Rules-compatible client reads, query/pagination/cursor
 contracts, and conceptual indexes before implementation. It is not started.
+
+## SaaS-03A.5A CourseRepository audit result
+
+The audit confirms the tenant Course path, exact physical shape, lifecycle,
+current role/status read policy, FQ-CRS-001..007 and conceptual
+FI-CRS-001..005. It also confirms no Course collection-group, client write,
+consumer, migration or legacy replacement. The generic query model does not
+freeze Course numeric page sizes, a Course-specific cursor envelope, or the
+minimum final list API/index variants, so implementation remains blocked.
+
+```text
+SaaS-03A = in_progress
+SaaS-03A.5 = in_progress
+SaaS-03A.5A = incomplete_pending_contract_resolution
+SaaS-03A.5A-R1 = required_not_started
+SaaS-03A.5B = blocked
+CourseRepository = not_created
+```
+
+Next: `SaaS-03A.5A-R1 — Course query, pagination, cursor and index contract
+resolution`. No implementation, index materialization or runtime work starts.
+
+## SaaS-03A.5A-R1 Course contract resolution
+
+The resolution defines the minimal read-only API, distinct actor query shapes,
+closed options, deterministic 1/20/50 pagination, Course cursor v1, exact nested
+serialization and the five later Course indexes. No Rule, index JSON, code,
+consumer or legacy service changes in R1.
+
+```text
+SaaS-03A = in_progress
+SaaS-03A.5 = in_progress
+SaaS-03A.5A = incomplete_superseded_by_resolution
+SaaS-03A.5A-R1 = completed_pending_human_contract_review
+SaaS-03A.5B = ready_not_started
+CourseRepository = not_created
+```
+
+Next: human review of R1 followed by `SaaS-03A.5B — CourseRepository
+implementation`. 5B is not started here.
+
+## SaaS-03A.5B CourseRepository implementation
+
+CourseRepository is implemented in shadow mode with the exact R1 point/list
+surface, deep serializer, actor-shaped query contracts, closed pagination and
+Course cursor v1. Forty-two focused tests cover positive and negative contracts.
+No index, Rule, consumer, legacy service, migration or remote resource changes.
+
+```text
+SaaS-03A = in_progress
+SaaS-03A.5 = in_progress
+SaaS-03A.5A = incomplete_superseded_by_resolution
+SaaS-03A.5A-R1 = completed
+SaaS-03A.5B = completed_pending_human_code_review
+CourseRepository = implemented_shadow
+SaaS-03A.5B-C1 = next_not_started
+```
+
+Next: `SaaS-03A.5B-C1 — CourseRepository implementation review and controlled
+commits`. It is not started here.
+
+## SaaS-03A.5B-C1 CourseRepository review and controlled commits
+
+The implementation and its focused coverage were reconciled with 5A/R1 and
+current Rules. Course remains consumer-free shadow code; no index was
+materialized and no runtime phase was started.
+
+```text
+SaaS-03A = in_progress
+SaaS-03A.5 = in_progress
+SaaS-03A.5A = incomplete_superseded_by_resolution
+SaaS-03A.5A-R1 = completed
+SaaS-03A.5B = completed
+SaaS-03A.5B-C1 = completed_pending_human_push
+CourseRepository = implemented_shadow
+SaaS-03A.5I = ready_not_started
+```
+
+Next: `SaaS-03A.5I — Course index materialization`. It remains not started.
