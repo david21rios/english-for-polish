@@ -58,3 +58,75 @@ for (const item of cases) {
     await (item.expected === "ALLOW" ? assertSucceeds(request) : assertFails(request));
   });
 }
+
+const courseTenantId = "tenant-course-auth-01";
+const foreignCourseTenantId = "tenant-course-auth-02";
+const courseActorUid = "course-rules-actor-01";
+const courseMembershipId = "membership-course-rules-01";
+const courseUidKey = `u1_${Buffer.from(courseActorUid, "utf8").toString("base64").replaceAll("=", "")}`;
+
+const courseAuthorizationCases = [
+  { id: "RT-SAS-011", expected: "ALLOW", title: "student gets active Course", role: "student", courseStatus: "active" },
+  { id: "RT-SAS-012", expected: "DENY", title: "student cannot get draft Course", role: "student", courseStatus: "draft" },
+  { id: "RT-SAS-013", expected: "DENY", title: "student cannot get archived Course", role: "student", courseStatus: "archived" },
+  { id: "RT-SAS-014", expected: "ALLOW", title: "teacher gets draft Course", role: "teacher", courseStatus: "draft" },
+  { id: "RT-SAS-015", expected: "ALLOW", title: "teacher gets active Course", role: "teacher", courseStatus: "active" },
+  { id: "RT-SAS-016", expected: "DENY", title: "teacher cannot get archived Course", role: "teacher", courseStatus: "archived" },
+  { id: "RT-SAS-017", expected: "ALLOW", title: "tenant admin gets draft Course", role: "tenant_admin", courseStatus: "draft" },
+  { id: "RT-SAS-018", expected: "ALLOW", title: "tenant admin gets active Course", role: "tenant_admin", courseStatus: "active" },
+  { id: "RT-SAS-019", expected: "ALLOW", title: "tenant admin gets archived Course", role: "tenant_admin", courseStatus: "archived" },
+  { id: "RT-SAS-020", expected: "DENY", title: "suspended Membership cannot get Course", role: "student", membershipStatus: "suspended" },
+  { id: "RT-SAS-021", expected: "DENY", title: "removed Membership cannot get Course", role: "student", membershipStatus: "removed" },
+  { id: "RT-SAS-022", expected: "DENY", title: "suspended Tenant denies Course", role: "student", tenantStatus: "suspended" },
+  { id: "RT-SAS-023", expected: "DENY", title: "archived Tenant denies Course", role: "student", tenantStatus: "archived" },
+  { id: "RT-SAS-024", expected: "DENY", title: "foreign Tenant Membership denies Course", role: "student", membershipTenantId: foreignCourseTenantId },
+  { id: "RT-SAS-025", expected: "DENY", title: "anonymous cannot get Course", anonymous: true, omitMembership: true },
+  { id: "RT-SAS-026", expected: "DENY", title: "platform client has no Course bypass", omitMembership: true, platform: true },
+  { id: "RT-SAS-027", expected: "DENY", title: "invalid tenant role denies Course", role: "platform_admin" },
+  { id: "RT-SAS-028", expected: "DENY", title: "missing membershipKey denies Course", role: "student", omitKey: true },
+  { id: "RT-SAS-029", expected: "DENY", title: "broken membershipKey denies Course", role: "student", keyMembershipId: "membership-missing" },
+  { id: "RT-SAS-030", expected: "DENY", title: "Membership UID mismatch denies Course", role: "student", membershipUid: "different-course-user" },
+  { id: "RT-SAS-031", expected: "DENY", title: "Membership tenant mismatch denies Course", role: "student", membershipDataTenantId: foreignCourseTenantId },
+];
+
+assert.equal(courseAuthorizationCases.length, 21);
+for (const item of courseAuthorizationCases) {
+  test(`${item.id} [${item.expected}] - ${item.title}`, async () => {
+    await clearRulesTestData(environment);
+    const tenantStatus = item.tenantStatus ?? "active";
+    const membershipStatus = item.membershipStatus ?? "approved";
+    const membershipTenantId = item.membershipTenantId ?? courseTenantId;
+    const entries = [
+      [`tenants/${courseTenantId}`, { tenantId: courseTenantId, status: tenantStatus }],
+      [`tenants/${foreignCourseTenantId}`, { tenantId: foreignCourseTenantId, status: "active" }],
+      [`tenants/${courseTenantId}/courses/course-course-rules-01`, {
+        courseId: "course-course-rules-01", tenantId: courseTenantId,
+        status: item.courseStatus ?? "active", createdAt: stableTimestamp(), updatedAt: stableTimestamp(),
+      }],
+    ];
+    if (!item.omitMembership) {
+      entries.push([`tenants/${membershipTenantId}/memberships/${courseMembershipId}`, {
+        membershipId: courseMembershipId,
+        tenantId: item.membershipDataTenantId ?? membershipTenantId,
+        uid: item.membershipUid ?? courseActorUid,
+        role: item.role,
+        status: membershipStatus,
+        createdAt: stableTimestamp(), updatedAt: stableTimestamp(),
+      }]);
+      if (!item.omitKey) entries.push([`tenants/${membershipTenantId}/membershipKeys/${courseUidKey}`, {
+        uid: courseActorUid, tenantId: membershipTenantId,
+        membershipId: item.keyMembershipId ?? courseMembershipId, status: membershipStatus,
+      }]);
+    }
+    await seedDocuments(environment, entries);
+    const definition = item.anonymous
+      ? TEST_CONTEXTS.ANON
+      : { uid: courseActorUid, email: "course-rules-actor-01@example.test" };
+    const context = item.platform
+      ? environment.authenticatedContext(courseActorUid, { email: definition.email, role: "platform_admin" })
+      : testContext(environment, definition);
+    const database = context.firestore();
+    const request = getDoc(doc(database, "tenants", courseTenantId, "courses", "course-course-rules-01"));
+    await (item.expected === "ALLOW" ? assertSucceeds(request) : assertFails(request));
+  });
+}

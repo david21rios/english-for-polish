@@ -855,33 +855,32 @@ service cloud.firestore {
         && saasCourseStatusIsCanonical();
     }
 
-    function saasCanStudentReadCourse(tenantId) {
-      return saasIsStudent(tenantId)
-        && resource.data.status == "active";
-    }
-
-    function saasCanTeacherReadCourse(tenantId) {
-      return saasIsTeacher(tenantId)
+    function saasCanApprovedRoleReadCourse(tenantId) {
+      return saasHasApprovedMembership(tenantId)
         && (
-          resource.data.status == "draft"
-          || resource.data.status == "active"
+          (
+            saasUserMembershipData(tenantId).role == "student"
+            && resource.data.status == "active"
+          )
+          || (
+            saasUserMembershipData(tenantId).role == "teacher"
+            && (
+              resource.data.status == "draft"
+              || resource.data.status == "active"
+            )
+          )
+          || (
+            saasUserMembershipData(tenantId).role == "tenant_admin"
+            && saasCourseStatusIsCanonical()
+          )
         );
-    }
-
-    function saasCanTenantAdminReadCourse(tenantId) {
-      return saasIsTenantAdmin(tenantId)
-        && saasCourseStatusIsCanonical();
     }
 
     function saasCanReadCourseByRole(tenantId) {
       return saasTenantExists(tenantId)
         && saasTenantIsActive(tenantId)
         && saasCourseBelongsToTenant(tenantId)
-        && (
-          saasCanStudentReadCourse(tenantId)
-          || saasCanTeacherReadCourse(tenantId)
-          || saasCanTenantAdminReadCourse(tenantId)
-        );
+        && saasCanApprovedRoleReadCourse(tenantId);
     }
 
     function saasCanGetCourse(tenantId, courseId) {

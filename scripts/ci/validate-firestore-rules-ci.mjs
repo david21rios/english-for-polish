@@ -63,10 +63,10 @@ const uniqueIds = new Set(ids);
 const uniqueMetadata = new Map(metadata.map((match) => [match[1], match[2]]));
 const allowCount = [...uniqueMetadata.values()].filter((value) => value === "ALLOW").length;
 const denyCount = [...uniqueMetadata.values()].filter((value) => value === "DENY").length;
-requireCondition(uniqueIds.size === 201, `expected 201 unique Test IDs, found ${uniqueIds.size}`);
-requireCondition(uniqueMetadata.size === 201, `expected metadata for 201 Test IDs, found ${uniqueMetadata.size}`);
-requireCondition(allowCount === 82, `expected 82 ALLOW cases, found ${allowCount}`);
-requireCondition(denyCount === 119, `expected 119 DENY cases, found ${denyCount}`);
+requireCondition(uniqueIds.size === 222, `expected 222 unique Test IDs, found ${uniqueIds.size}`);
+requireCondition(uniqueMetadata.size === 222, `expected metadata for 222 Test IDs, found ${uniqueMetadata.size}`);
+requireCondition(allowCount === 88, `expected 88 ALLOW cases, found ${allowCount}`);
+requireCondition(denyCount === 134, `expected 134 DENY cases, found ${denyCount}`);
 
 const normalizedWorkflow = workflowText.replace(/\r\n/g, "\n");
 requireCondition(/^on:\n  workflow_dispatch:\s*$/m.test(normalizedWorkflow), "workflow_dispatch must be the only trigger");
@@ -113,5 +113,5 @@ if (failures.length > 0) {
   process.exitCode = 1;
 } else {
   console.log("Firestore Rules CI preflight passed.");
-  console.log("Project: demo-polish-learning; tests: 201; ALLOW: 82; DENY: 119.");
+  console.log("Project: demo-polish-learning; tests: 222; ALLOW: 88; DENY: 134.");
 }
