@@ -327,3 +327,71 @@ SaaS-03A.4 = ready_not_started
 ```
 
 SaaS-03A.4 — MembershipRepository is the next phase and remains unstarted.
+
+## SaaS-03A.4A Membership contract and query audit
+
+The physical 12-field Membership projection, canonical roles/statuses,
+ownership, client self point read, and collection-group self Rules boundary are
+audited. Implementation cannot start because Membership-specific query options,
+tenant-scoped self shape, numeric pagination, cursor binding, role/status index
+variants, and tenant-admin client policy are not closed. Current Rules permit
+self history reads but deny tenant-admin foreign reads and all client writes.
+
+```text
+SaaS-03A = in_progress
+SaaS-03A.4 = in_progress
+SaaS-03A.4A = incomplete_pending_contract_resolution
+SaaS-03A.4A-R1 = required_not_started
+SaaS-03A.4B = blocked
+MembershipRepository = not_created
+```
+
+Next: `SaaS-03A.4A-R1 — Membership query, pagination, cursor, admin-policy and
+index contract resolution`. It is not started here.
+
+## SaaS-03A.4A-R1 Membership contract resolution
+
+The client-self boundary is now frozen: owner point get, self tenant history
+list, and self collection-group list. Status and role each allow zero or one
+exact canonical equality, including their four combinations. Both list scopes
+use `createdAt DESC`, document-ID DESC, page sizes 1/20/50, limit-plus-one, and
+the Membership Standard v1 cursor. Eight self indexes are defined for later
+materialization. Tenant-admin, platform, key, write, and lifecycle operations
+remain excluded.
+
+```text
+SaaS-03A = in_progress
+SaaS-03A.4 = in_progress
+SaaS-03A.4A = incomplete_superseded_by_resolution
+SaaS-03A.4A-R1 = completed_pending_human_contract_review
+SaaS-03A.4B = ready_not_started
+MembershipRepository = not_created
+```
+
+Next: human contract review of R1, followed by 03A.4B implementation. Neither
+is started here.
+
+## SaaS-03A.4B MembershipRepository implementation
+
+The approved client-self MembershipRepository is implemented in shadow mode.
+It exposes only owner point get, tenant-scoped self list, and collection-group
+self list. Strict twelve-field serialization, all four status/role filter
+combinations, 1/20/50 limit-plus-one pagination, and Membership cursor v1 are
+implemented without Firebase globals, writes, keys, admin APIs, consumers, or
+legacy replacement. The eight approved indexes remain pending 03A.4I.
+
+```text
+SaaS-03A = in_progress
+SaaS-03A.4 = in_progress
+SaaS-03A.4A = incomplete_superseded_by_resolution
+SaaS-03A.4A-R1 = completed
+SaaS-03A.4B = completed
+MembershipRepository = implemented_shadow
+SaaS-03A.4B-C1 = completed_pending_human_push
+SaaS-03A.4I = ready_not_started
+```
+
+C1 corrected explicit tenant-list result-path consistency and expanded focused
+coverage to 23 passing tests. The repository remains shadow-only; no consumer,
+write, key access, migration, Rule, or index materialization was added. Next is
+03A.4I Membership index materialization, which is not started here.

@@ -1556,3 +1556,68 @@ SaaS-03A.4 = ready_not_started
 ```
 
 Next: SaaS-03A.4 — MembershipRepository. It is not started here.
+
+### SaaS-03A.4A — MembershipRepository contract and query audit
+
+The audit confirms the canonical Membership root, 12-field physical projection,
+three statuses, three tenant roles, owner history reads, client-denied keys and
+writes, and collection-group self Rules. It also identifies blockers that make
+repository implementation premature: tenant-self and history query shapes are
+not closed, Standard pagination has no Membership numeric policy, no
+Membership-specific cursor exists, index variants/materialization are pending,
+and current Rules deny the documented tenant-admin read contracts.
+
+```text
+SaaS-03A = in_progress
+SaaS-03A.4 = in_progress
+SaaS-03A.4A = incomplete_pending_contract_resolution
+SaaS-03A.4A-R1 = required_not_started
+SaaS-03A.4B = blocked
+MembershipRepository = not_created
+```
+
+Next: `SaaS-03A.4A-R1 — Membership query, pagination, cursor, admin-policy and
+index contract resolution`. Do not create MembershipRepository before that
+contract review is complete.
+
+### SaaS-03A.4A-R1 — Membership query, pagination, cursor and index resolution
+
+R1 freezes the three client-self APIs and explicitly excludes all admin,
+platform, key, lifecycle, and write operations. Both list scopes support the
+four omitted/single-status/single-role/status-plus-role combinations, order by
+`createdAt DESC` and document ID DESC, use page sizes 1/20/50 with lookahead,
+and share a query-bound Membership Standard v1 cursor. Four COLLECTION and four
+COLLECTION_GROUP indexes are specified for later 03A.4I materialization.
+
+```text
+SaaS-03A = in_progress
+SaaS-03A.4 = in_progress
+SaaS-03A.4A = incomplete_superseded_by_resolution
+SaaS-03A.4A-R1 = completed_pending_human_contract_review
+SaaS-03A.4B = ready_not_started
+MembershipRepository = not_created
+```
+
+Next: R1 human contract review. Do not implement 03A.4B before that review.
+
+### SaaS-03A.4B — MembershipRepository implementation
+
+After R1 approval, the client-self repository is implemented in shadow mode
+with the three frozen APIs, strict serializer, closed options, deterministic
+pagination, and portable Membership v1 cursor. Admin, platform, key, write,
+lifecycle, consumer, migration, and deployment surfaces remain absent. Eight
+Membership indexes are still pending later local materialization.
+
+```text
+SaaS-03A = in_progress
+SaaS-03A.4 = in_progress
+SaaS-03A.4A-R1 = completed
+SaaS-03A.4B = completed
+MembershipRepository = implemented_shadow
+SaaS-03A.4B-C1 = completed_pending_human_push
+SaaS-03A.4I = ready_not_started
+```
+
+C1 confirms the contract and corrects one fail-closed tenant result-path check;
+23 focused unit tests pass. Next: `SaaS-03A.4I — Membership index
+materialization`. It remains unstarted and no index JSON changes here.
