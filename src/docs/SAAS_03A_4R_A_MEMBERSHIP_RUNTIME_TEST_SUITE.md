@@ -289,3 +289,10 @@ self-list cases. It now uses `uid-incompatible`; only RT-MEM-REP-012 queries
 that identity. The 81 IDs and 44/37, 44/26/11/0 classifications are unchanged.
 The corrected runtime remains pending a new GitHub Actions execution; no
 81/81 claim is made during C1.
+
+## Final runtime result
+
+After FIX1 publication, the owner confirmed a new GitHub Actions execution with
+all 81 Membership cases passing and zero failures. All sixteen historically
+contaminated list/pagination IDs now pass. Suite structure and classifications
+remain 81/44/37 and 44/26/11/0.

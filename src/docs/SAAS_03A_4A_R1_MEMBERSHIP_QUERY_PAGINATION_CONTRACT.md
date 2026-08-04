@@ -332,3 +332,9 @@ The 81-case runtime contract is now statically gated as 44 ALLOW and 37 DENY,
 with 44 SUCCESS, 26 RULES_DENY, 11 CONTRACT_ERROR and 0 NOT_FOUND. The CI
 integration changes neither query, pagination, cursor nor index contracts and
 does not execute runtime validation in this microphase.
+
+## Runtime contract closure
+
+The corrected hosted suite confirms all 81 cases, including pagination,
+cursor binding, all filter combinations, and RT-MEM-REP-012 fail-closed
+serialization. Runtime is 81 passed / 0 failed; the contract remains unchanged.

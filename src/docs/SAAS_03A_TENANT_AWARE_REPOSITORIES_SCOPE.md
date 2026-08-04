@@ -449,3 +449,19 @@ self listings without changing MembershipRepository or its client-safe scope.
 Corrected runtime evidence remains required; B2 is blocked and not started.
 FIX1 is completed, C1 is `completed_pending_human_push`, and
 MembershipRepository remains `implemented_shadow`.
+
+## MembershipRepository final shadow closure
+
+The corrected manual workflow passed Rules 201/201, RegistrationRequest 52/52,
+and Membership 81/81. SaaS-03A.4 and 03A.4R are completed;
+`MembershipRepository = completed_in_shadow_mode`. No consumer, Provider, UI,
+migration, dual-write, legacy replacement, remote validation, or deployment was
+introduced. The next ordered repository is CourseRepository.
+
+```text
+SaaS-03A = in_progress
+SaaS-03A.4 = completed
+SaaS-03A.4R = completed
+SaaS-03A.4R-B2 = completed
+SaaS-03A.5A = ready_not_started
+```

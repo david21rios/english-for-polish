@@ -160,3 +160,10 @@ Firestore-only runtime gate for the existing 81 Membership tests. The
 repository, its public API and its 23 unit tests remain unchanged;
 `MembershipRepository = implemented_shadow`. Runtime evidence is pending the
 owner's push and a new `workflow_dispatch` execution.
+
+## Runtime closure
+
+The corrected hosted runtime passes 81/81 with zero failures. The repository is
+therefore `completed_in_shadow_mode`: implementation and local validation are
+complete, while consumers, UI, migration, dual-write, legacy replacement and
+deployment remain absent.

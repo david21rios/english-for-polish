@@ -109,3 +109,10 @@ B2.
 FIX1 and its controlled review are complete pending human push. B2 remains
 `blocked_pending_corrected_runtime_evidence`; no corrected workflow execution
 has yet been claimed.
+
+## B2 final evidence
+
+The subsequent new `workflow_dispatch` run on corrected `main` completed
+successfully: Rules 201/201, RegistrationRequest 52/52, and Membership 81/81.
+No Membership IDs failed. The owner-confirmed result closes the three-gate
+runtime sequence; the workflow itself remains unchanged.

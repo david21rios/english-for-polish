@@ -343,3 +343,10 @@ SaaS-03A.4R-B1 preserves the audited CLIENT_SELF surface and backend-only
 boundaries. It adds a separated static precheck and an explicit Firestore-only
 Membership runtime gate; no repository, Rules, index, administrative API or
 functional consumer changed. Execution evidence remains pending.
+
+## Runtime closure
+
+Corrected owner-confirmed runtime evidence is now complete: 81/81 Membership
+cases pass, with zero failed IDs. The audited client-safe surface and all
+backend-only boundaries remain unchanged. MembershipRepository is
+`completed_in_shadow_mode`.

@@ -89,3 +89,11 @@ SaaS-03A.4R-B1-FIX1-C1 = completed_pending_human_push
 SaaS-03A.4R-B2 = blocked_pending_corrected_runtime_evidence
 MembershipRepository = implemented_shadow
 ```
+
+## Corrected runtime closure
+
+The owner published FIX1 and confirmed a new manual workflow on corrected
+`main`: Rules 201/201, RegistrationRequest 52/52, and Membership 81/81, all
+with zero failures. The sixteen historical Membership failures are resolved;
+RT-MEM-REP-012 remains a CONTRACT_VIOLATION serializer case. B2 closes the
+runtime without changing technical files.

@@ -144,3 +144,10 @@ the local `firestore.indexes.json` through a Firestore-only demo-project
 session. B1 did not execute the Emulator and did not deploy indexes. Future
 Emulator success will validate local query forms only, not production index
 availability.
+
+## Runtime query validation closure
+
+The owner-confirmed corrected Firestore Emulator run passes all 81 Membership
+cases and exercises the eight indexed query shapes. Each Membership index now
+has `emulator_query_validation = passed`; production deployment remains
+`not_performed`, and no productive availability is implied.

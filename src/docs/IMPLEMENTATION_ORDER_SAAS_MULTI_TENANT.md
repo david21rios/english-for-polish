@@ -1692,3 +1692,28 @@ runtime remains pending GitHub Actions because Java is unavailable locally.
 `SaaS-03A.4R-B1-FIX1 = completed`,
 `SaaS-03A.4R-B1-FIX1-C1 = completed_pending_human_push`, and
 `SaaS-03A.4R-B2 = blocked_pending_corrected_runtime_evidence`.
+
+## SaaS-03A.4 final runtime closure
+
+The owner published FIX1 and confirmed a new successful manual workflow on
+corrected `main`: Rules 201/201, RegistrationRequest 52/52, and Membership
+81/81. All sixteen historical fixture-contamination IDs pass. Membership is
+complete in shadow mode; indexes remain undeployed and no functional consumer
+or migration is activated.
+
+```text
+SaaS-03A = in_progress
+SaaS-03A.4 = completed
+SaaS-03A.4R = completed
+SaaS-03A.4R-B = completed
+SaaS-03A.4R-B1 = completed
+SaaS-03A.4R-B1-FIX1 = completed
+SaaS-03A.4R-B1-FIX1-C1 = completed
+SaaS-03A.4R-B2 = completed
+MembershipRepository = completed_in_shadow_mode
+SaaS-03A.5A = ready_not_started
+```
+
+Next: `SaaS-03A.5A — CourseRepository contract and query audit`. It will audit
+the physical model, Rules-compatible client reads, query/pagination/cursor
+contracts, and conceptual indexes before implementation. It is not started.
