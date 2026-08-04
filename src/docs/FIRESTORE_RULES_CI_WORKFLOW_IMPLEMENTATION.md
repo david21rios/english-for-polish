@@ -201,3 +201,15 @@ Emulator lifecycle for the explicit RegistrationRequest runtime file. The job
 retains its 20-minute timeout, demo project, local firebase-tools, no artifacts,
 no credentials and no deployment capability. This extension was not executed
 in B1.
+
+## SaaS-03A.4R-B1 extension
+
+The same manual workflow now adds
+`scripts/validate-membership-runtime-tests.mjs` and a third explicit
+Firestore-only Emulator lifecycle for
+`tests/integration/saas/membership/membershipRepository.runtime.test.mjs`.
+Rules 201/82/119 and RegistrationRequest 52/34/18 remain separated and
+unchanged; Membership is reported as 81/44/37 with outcomes 44/26/11/0. The
+20-minute timeout, read-only permissions, disabled checkout credentials, demo
+project, local firebase-tools, and absence of artifacts, secrets and deployment
+remain unchanged. This extension was not executed in B1.

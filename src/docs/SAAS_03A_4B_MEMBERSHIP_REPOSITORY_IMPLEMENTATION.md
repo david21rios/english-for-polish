@@ -152,3 +152,11 @@ SaaS-03A.4R-A-C1 = completed_pending_human_push
 SaaS-03A.4R-B = ready_not_started
 MembershipRepository = implemented_shadow
 ```
+
+## Runtime CI integration trace
+
+SaaS-03A.4R-B1 adds only a static source precheck and an independent manual
+Firestore-only runtime gate for the existing 81 Membership tests. The
+repository, its public API and its 23 unit tests remain unchanged;
+`MembershipRepository = implemented_shadow`. Runtime evidence is pending the
+owner's push and a new `workflow_dispatch` execution.

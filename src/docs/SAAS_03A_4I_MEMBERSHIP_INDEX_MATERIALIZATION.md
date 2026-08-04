@@ -136,3 +136,11 @@ SaaS-03A.4R-A = completed
 SaaS-03A.4R-A-C1 = completed_pending_human_push
 SaaS-03A.4R-B = ready_not_started
 ```
+
+## Runtime CI integration trace
+
+The prepared Membership gate exercises all eight indexed query shapes using
+the local `firestore.indexes.json` through a Firestore-only demo-project
+session. B1 did not execute the Emulator and did not deploy indexes. Future
+Emulator success will validate local query forms only, not production index
+availability.

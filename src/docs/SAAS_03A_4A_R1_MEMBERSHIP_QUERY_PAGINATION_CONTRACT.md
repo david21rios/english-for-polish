@@ -325,3 +325,10 @@ SaaS-03A.4R-A = completed
 SaaS-03A.4R-A-C1 = completed_pending_human_push
 SaaS-03A.4R-B = ready_not_started
 ```
+
+## Runtime CI integration trace
+
+The 81-case runtime contract is now statically gated as 44 ALLOW and 37 DENY,
+with 44 SUCCESS, 26 RULES_DENY, 11 CONTRACT_ERROR and 0 NOT_FOUND. The CI
+integration changes neither query, pagination, cursor nor index contracts and
+does not execute runtime validation in this microphase.

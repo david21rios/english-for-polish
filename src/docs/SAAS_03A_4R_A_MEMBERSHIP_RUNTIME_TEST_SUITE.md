@@ -268,3 +268,15 @@ MembershipRepository = implemented_shadow
 The review found two assertion-granularity defects and corrected them without
 changing production code. Next is `SaaS-03A.4R-B1 — Membership runtime CI
 integration`; it is not started here.
+
+## SaaS-03A.4R-B1 CI trace
+
+The reviewed 81-case suite remains byte-identical and is now represented by a
+read-only CI precheck: 44 ALLOW, 37 DENY, with outcomes 44 SUCCESS,
+26 RULES_DENY, 11 CONTRACT_ERROR and 0 NOT_FOUND. A third explicit,
+Firestore-only runtime gate was prepared after the preserved Rules and
+RegistrationRequest gates. Neither the Emulator nor the workflow was executed.
+
+`SaaS-03A.4R-B1 = completed`; `SaaS-03A.4R-B1-C1 =
+completed_pending_human_push`; `SaaS-03A.4R-B2 =
+blocked_pending_manual_push_and_workflow`.

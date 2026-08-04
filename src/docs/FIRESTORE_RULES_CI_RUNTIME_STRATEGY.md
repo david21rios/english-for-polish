@@ -250,3 +250,13 @@ RegistrationRequest repository cases. A read-only source precheck validates
 34/18 metadata and the 34/13/4/1 outcome breakdown first. Both runtimes use the
 demo project, remain credential-free, and are mandatory gates. No workflow run
 or deployment occurred during integration.
+
+## Membership repository runtime gate
+
+SaaS-03A.4R-B1 preserves the Rules 201/82/119 gate and RegistrationRequest
+52/34/18 gate, then adds a third sequential and independent
+`emulators:exec --only firestore` session for the explicit 81-case Membership
+runtime file. Its read-only precheck validates 44 ALLOW, 37 DENY and outcomes
+44/26/11/0. All sessions use `demo-polish-learning`, separate logs and cleanup,
+and natural fail-fast behavior. No runtime, deployment or remote access occurs
+during integration.

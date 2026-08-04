@@ -1663,3 +1663,21 @@ MembershipRepository = implemented_shadow
 
 Next: `SaaS-03A.4R-B1 — Membership runtime CI integration`; it remains
 unstarted.
+
+## SaaS-03A.4R-B1 CI integration result
+
+```text
+SaaS-03A = in_progress
+SaaS-03A.4 = in_progress
+SaaS-03A.4R = in_progress
+SaaS-03A.4R-A = completed
+SaaS-03A.4R-A-C1 = completed
+SaaS-03A.4R-B = in_progress
+SaaS-03A.4R-B1 = completed
+SaaS-03A.4R-B1-C1 = completed_pending_human_push
+SaaS-03A.4R-B2 = blocked_pending_manual_push_and_workflow
+MembershipRepository = implemented_shadow
+```
+
+Next: `SaaS-03A.4R-B2 — Membership runtime execution and closure`. It was not
+started; owner push and a new manual workflow execution are required first.

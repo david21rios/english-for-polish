@@ -336,3 +336,10 @@ SaaS-03A.4R-A = completed
 SaaS-03A.4R-A-C1 = completed_pending_human_push
 SaaS-03A.4R-B = ready_not_started
 ```
+
+## Runtime CI integration trace
+
+SaaS-03A.4R-B1 preserves the audited CLIENT_SELF surface and backend-only
+boundaries. It adds a separated static precheck and an explicit Firestore-only
+Membership runtime gate; no repository, Rules, index, administrative API or
+functional consumer changed. Execution evidence remains pending.

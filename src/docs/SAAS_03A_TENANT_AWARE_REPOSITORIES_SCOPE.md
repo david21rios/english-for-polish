@@ -435,3 +435,11 @@ SaaS-03A.4R-A-C1 = completed_pending_human_push
 SaaS-03A.4R-B = ready_not_started
 MembershipRepository = implemented_shadow
 ```
+
+## Membership runtime CI status
+
+The manual workflow now keeps three independent contracts: Rules 201/82/119,
+RegistrationRequest 52/34/18, and Membership 81/44/37. Membership outcomes are
+44 SUCCESS, 26 RULES_DENY, 11 CONTRACT_ERROR and 0 NOT_FOUND. B1 is completed,
+B1-C1 awaits human push, and B2 remains blocked pending a new manual workflow
+run. MembershipRepository remains in shadow mode.
