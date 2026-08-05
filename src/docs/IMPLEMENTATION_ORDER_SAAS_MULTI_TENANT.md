@@ -1874,6 +1874,22 @@ SaaS-03A.5R-A = blocked_pending_5I_review_and_commit
 Next: `SaaS-03A.5I-C1 — Course index review and controlled commits`. It is not
 started.
 
+## SaaS-03B-B0-I-R3-B foundational enum/status migration
+
+Seven foundational contracts now have package physical authority at version
+`0.2.0`; Domain paths reexport identical frozen objects. Values, Rules parity,
+Functions isolation and artifact reproducibility pass.
+
+```text
+SaaS-03B-B0-I-R3-B = completed_pending_human_review_and_push
+SaaS-03B-B0-I-R3-C = ready_not_started
+SaaS-03B-B = blocked_pending_B0_I_R3_R4
+PURE_CONTRACT_PHYSICAL_EXTRACTION = foundational_statuses_migrated
+Privileged Backend = not_created
+```
+
+Next: `SaaS-03B-B0-I-R3-C — Roles and authority contracts`. Not started.
+
 ## SaaS-03A.5R-B2 Course runtime closure
 
 Definitive fresh workflow evidence is SUCCESS: Rules 222/222,

@@ -565,3 +565,6 @@ bloqueando 03B-B.
 R3-A inventoried Domain authority and preserved the backend boundary: commands,
 authority and audit contracts already in the package are future-only and are
 not confused with the 40 Domain migration contracts.
+
+R3-B migrated only foundational statuses/types. Commands, authority, audit,
+capabilities and executable backend remain untouched.

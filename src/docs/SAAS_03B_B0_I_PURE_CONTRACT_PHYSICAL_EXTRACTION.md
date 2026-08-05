@@ -175,3 +175,6 @@ residual extraída. R2-C1 queda pendiente de push; R3 está `ready_not_started`.
 
 R3-A completed the Domain inventory and consumer/duplication graph without
 technical changes. The next planned slice is foundational enums/statuses R3-B.
+
+R3-B completed that slice using package `0.2.0`; seven definitions moved while
+Domain paths and repository behavior remained compatible.

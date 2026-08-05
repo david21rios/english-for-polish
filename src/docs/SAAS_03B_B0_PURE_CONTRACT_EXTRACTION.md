@@ -337,3 +337,6 @@ sigue pendiente sólo por R3 y R4.
 
 R3-A now divides the remaining Domain authority migration into reversible
 families B–H plus final C1. This planning does not change the B0 package API.
+
+R3-B expands `./domain` with seven foundational contracts and removes their
+local physical copies through reference-identical reexports.

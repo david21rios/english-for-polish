@@ -257,3 +257,9 @@ Privileged Backend = not_created
 
 Next: `SaaS-03B-B0-I-R3-B — Foundational enums and status contracts`,
 `ready_not_started`. It is not initiated here.
+
+## R3-B execution
+
+R3-B migrated exactly seven foundational contracts to package `0.2.0` with
+reference-identical Domain reexports. Values, Rules parity, Functions isolation
+and artifact reproducibility pass. R3-C is `ready_not_started`.

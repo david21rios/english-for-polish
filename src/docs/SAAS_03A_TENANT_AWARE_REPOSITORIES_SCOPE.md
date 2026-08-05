@@ -812,3 +812,7 @@ pasaron. R2-C1 queda pendiente de push; R3 está `ready_not_started`.
 
 R3-A later inventoried Domain authority without reopening 03A. Repository APIs,
 queries, Rules, indexes, runtime suites and shadow states remain unchanged.
+
+R3-B later changed only the physical source of seven frozen enums/statuses.
+Repository APIs, persisted values, Rules, indexes, runtime counts and shadow
+states remain unchanged through Domain compatibility reexports.

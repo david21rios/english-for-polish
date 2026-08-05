@@ -159,3 +159,6 @@ R2-C1 queda `completed_pending_human_push`; R3 queda `ready_not_started`.
 
 R3-A subsequently completed the read-only Domain authority inventory. It found
 40 Domain contracts and defined phased migration without reopening R2.
+
+R3-B is the first physical Domain slice: seven foundational objects now use
+identical package instances through explicit Domain reexports.

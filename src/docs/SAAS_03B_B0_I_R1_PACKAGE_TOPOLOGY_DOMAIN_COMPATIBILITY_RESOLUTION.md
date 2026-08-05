@@ -297,3 +297,6 @@ push humano, R3 queda `ready_not_started`.
 R3-A later made the R1 authority split actionable: 27 executable contracts need
 package extraction with Domain reexports; 13 structural/cross-aggregate
 contracts remain temporary Domain authority pending later review.
+
+R3-B validates the authority split: Domain adapters reexport seven package-owned
+objects, with no package-to-Domain edge and strict reference parity.

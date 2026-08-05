@@ -159,3 +159,6 @@ workflow, Firebase remote access or deploy is required for this closure.
 R3-A inventoried 40 Domain contracts across 24 files and froze an incremental
 B–H/C1 migration plan. No technical file changed. R3-A is pending human plan
 review; R3-B is `ready_not_started` and has not begun.
+
+R3-B later exercised the topology with package `0.2.0` and seven Domain exports.
+Root/Functions resolution and the vendored artifact remain verified.
