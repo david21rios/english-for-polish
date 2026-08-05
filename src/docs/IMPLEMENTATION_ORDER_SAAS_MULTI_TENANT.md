@@ -2028,3 +2028,27 @@ F1 awaits owner push and a new external workflow; B2 remains blocked.
 noncanonical path guarantee. FIX2 and FIX3 are completed; FIX4 is
 `completed_pending_external_runtime`. B2 and EnrollmentRepository are not
 started.
+
+## SaaS-03A.6R-B2 definitive Enrollment closure
+
+The owner published F1 and a completely new workflow run succeeded: Rules
+222/222, RegistrationRequest 52/52, Membership 81/81, Course 114/114 and
+Enrollment 111/111 plus metadata. SaaS-03A.6 and its runtime track are complete;
+EnrollmentRepository remains completed in shadow mode.
+
+```text
+SaaS-03A = in_progress
+SaaS-03A.6 = completed
+SaaS-03A.6R = completed
+SaaS-03A.6R-B1 = completed
+SaaS-03A.6R-F1 = completed
+SaaS-03A.6R-B2 = completed
+EnrollmentRepository = completed_in_shadow_mode
+SaaS-03B = ready_not_started
+```
+
+The next ordered phase is `SaaS-03B — Backend privilegiado y bootstrap`. It
+creates server-only privileged operations, invitation lifecycle, Tenant and
+first-admin bootstrap, out-of-band platform-admin bootstrap and audit. Phase 02
+is its documented dependency; coordination with the completed 03A schemas is
+required. It is not initiated.

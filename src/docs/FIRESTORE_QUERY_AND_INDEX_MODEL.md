@@ -714,3 +714,11 @@ preserving both Enrollment index shapes. Runtime remains pending.
 `FIRESTORE_WRITE_AUTHORITY_AND_CONCURRENCY.md` usa estos read sets y contratos
 para transactions y validaciones. No modifica queries ni índices. SaaS-02C no se
 inició.
+
+## SaaS-03A.6R-B2 Enrollment runtime closure
+
+The definitive corrected workflow validates FI-ENR-002 and FI-ENR-005 in the
+local Firestore Emulator. Their status is local materialization completed,
+Emulator query validation passed and production deployment not performed.
+FI-ENR-001/003/004/006/007 remain deferred. EnrollmentRepository is
+`completed_in_shadow_mode`; no query or index definition changes in B2.

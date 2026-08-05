@@ -236,3 +236,10 @@ executed in B1.
 F1 updates only the Enrollment expected labels to 111/42/69 and 42/41/28/0
 after real runtime evidence. The workflow structure, five isolated sessions,
 security posture, timeout and prior gates remain unchanged.
+
+## SaaS-03A.6R-B2 definitive execution
+
+The new post-F1 `workflow_dispatch` execution on published `main` completed
+globally SUCCESS. Rules, RegistrationRequest, Membership, Course and Enrollment
+all passed; Enrollment was 111/111 plus metadata. B2 changes documentation only
+and does not alter the implemented workflow.

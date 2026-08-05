@@ -280,3 +280,12 @@ independent Firestore-only session for the explicit 111-case Enrollment runtime
 file. Its read-only precheck validates 41 ALLOW, 70 DENY and outcomes
 41/42/28/0. All sessions remain fail-fast, demo-only and credential-free. No
 runtime, deployment or remote access occurs during integration.
+
+## Definitive Enrollment gate result
+
+The preceding block records the original B1 contract. After the first failed
+Enrollment execution and F1 correction, a new manual run on published `main`
+succeeded. The final Enrollment contract is 111 IDs, 42 ALLOW, 69 DENY and
+outcomes 42/41/28/0; all 111 IDs and metadata passed. Rules 222/222 and the
+RegistrationRequest, Membership and Course gates also passed. Five isolated
+Firestore sessions remain the approved strategy.

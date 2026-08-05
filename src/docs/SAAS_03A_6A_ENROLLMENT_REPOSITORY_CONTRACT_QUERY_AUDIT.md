@@ -361,3 +361,10 @@ EnrollmentRepository remains shadow-only; 6R-A awaits human test review.
 
 6R-A-C1 accepts the corrected 111-ID suite. Runtime remains unexecuted;
 EnrollmentRepository is unchanged and B1 is `ready_not_started`.
+
+## Definitive status after SaaS-03A.6R-B2
+
+The corrected external workflow passed all 111 Enrollment IDs plus metadata.
+The audit is superseded by R1, all implementation/runtime phases are complete,
+and `EnrollmentRepository = completed_in_shadow_mode`. Historical blockers and
+the first failed run remain preserved; no technical contract is changed here.

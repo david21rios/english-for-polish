@@ -145,3 +145,9 @@ later reviewed execution flow.
 
 6R-A-C1 preserves FI-ENR-002/FI-ENR-005 traceability in the corrected 111-ID
 suite. No index change or Emulator execution occurs.
+
+## Definitive status after SaaS-03A.6R-B2
+
+The post-F1 workflow supplies successful local Emulator query evidence for both
+accepted indexes. FI-ENR-002/FI-ENR-005 are locally materialized and validated;
+productive deployment remains unperformed. 6I and 6I-C1 are `completed`.

@@ -76,3 +76,9 @@ EnrollmentRepository = implemented_shadow
 Decision: `SaaS-03A.6R-F1 COMPLETE` for diagnosis, minimal correction and local
 runtime validation. Owner push and a new workflow execution are required; B2 is
 not initiated.
+
+## Definitive external confirmation
+
+F1 was published and a new workflow run on the reconciled `main` HEAD succeeded.
+Enrollment passed 111/111 IDs plus metadata; 090, 091, 113 and 137 all passed.
+F1 is now `completed`; B2 provides the definitive documentary closure.

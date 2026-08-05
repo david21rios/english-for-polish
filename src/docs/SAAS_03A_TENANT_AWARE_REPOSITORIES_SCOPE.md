@@ -749,3 +749,21 @@ The first external gate found four suite-expectation defects. F1 preserves 111
 IDs, reconciles metadata to 42/69 and 42/41/28/0, and obtains 112/112 locally
 including self-control. EnrollmentRepository, Rules and indexes remain intact.
 F1 is `completed_pending_human_push_and_external_runtime`; B2 remains blocked.
+
+## SaaS-03A.6R-B2 definitive Enrollment closure
+
+The new post-F1 workflow is globally successful: Enrollment 111/111 plus
+metadata, with all four historical IDs passing. SaaS-03A.6 and 6R are completed;
+EnrollmentRepository is `completed_in_shadow_mode`. No consumer, Provider, UI,
+migration, dual-write, write API, remote access or deployment is introduced.
+
+```text
+SaaS-03A = in_progress
+SaaS-03A.6 = completed
+SaaS-03A.6R = completed
+SaaS-03A.6R-B1 = completed
+SaaS-03A.6R-F1 = completed
+SaaS-03A.6R-B2 = completed
+EnrollmentRepository = completed_in_shadow_mode
+SaaS-03B = ready_not_started
+```

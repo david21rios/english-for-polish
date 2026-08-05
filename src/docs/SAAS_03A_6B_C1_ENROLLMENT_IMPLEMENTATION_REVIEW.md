@@ -107,3 +107,9 @@ review; no Emulator execution is claimed.
 
 6R-A-C1 finds no productive repository defect. It accepts the corrected 111-ID
 suite and leaves EnrollmentRepository `implemented_shadow`.
+
+## Definitive status after SaaS-03A.6R-B2
+
+C1 remains accepted without productive changes. Corrected runtime and CI are
+now successful, so 6B and 6B-C1 are `completed` and EnrollmentRepository is
+`completed_in_shadow_mode`.

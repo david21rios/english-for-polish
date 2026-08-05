@@ -163,3 +163,10 @@ workflow runs, and runtime PASS is not claimed.
 
 6R-A-C1 reviews and corrects only runtime tests. The repository remains intact;
 the final 111-ID suite awaits later CI integration and execution.
+
+## Definitive status after SaaS-03A.6R-B2
+
+The new post-F1 workflow succeeded with Enrollment 111/111 and metadata PASS.
+Implementation, unit/runtime validation and CI gate are complete. The repository
+is `completed_in_shadow_mode`, with no consumer, UI, Provider, migration,
+dual-write, client write or deployment.

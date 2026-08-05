@@ -160,3 +160,9 @@ External execution superseded the static expectation for four IDs. The accepted
 suite mechanics remain intact; F1 corrects three error-operation assertions and
 one access classification. Inventory is 111 IDs, 42 ALLOW, 69 DENY, outcomes
 42/41/28/0. Corrected local runtime passes 112/112 including self-control.
+
+## Definitive B2 runtime result
+
+The reviewed F1 suite passed 111/111 Enrollment IDs plus its additional metadata
+self-control in the new successful workflow. 6R-A-C1 is `completed`; the suite
+history and its first failed execution remain documented.

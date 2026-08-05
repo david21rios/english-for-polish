@@ -181,3 +181,9 @@ SaaS-03A.6I-C1 = completed_pending_human_push
 SaaS-03A.6R-A = ready_not_started
 EnrollmentRepository = implemented_shadow
 ```
+
+## Definitive runtime evidence
+
+B2 records `emulator_query_validation = passed` for FI-ENR-002 and FI-ENR-005.
+Both remain locally materialized and `production_deployment = not_performed`.
+FI-ENR-001/003/004/006/007 remain deferred; no index is changed by B2.

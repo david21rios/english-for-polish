@@ -203,3 +203,9 @@ operation and ID 137 treated an API-deferred but Rules-compatible bounded query
 as DENY. F1 corrects only those expectations. The registry remains 111 IDs and
 now records 42/69 with outcomes 42/41/28/0; local execution passes 112/112
 including metadata.
+
+## Definitive B2 runtime result
+
+After owner push, a completely new workflow run succeeded: all 111 Enrollment
+IDs passed, metadata self-control passed and no ID failed. IDs 090, 091, 113 and
+137 all pass with the F1 classifications. 6R-A is `completed`.

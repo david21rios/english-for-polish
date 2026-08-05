@@ -287,3 +287,10 @@ is not executed; 6R-A-C1 is the next unstarted review phase.
 
 6R-A-C1 reconciles the suite to 111 IDs by adding direct default and empty-page
 guarantees. R1 remains unchanged; B1 is ready but not started.
+
+## Definitive status after SaaS-03A.6R-B2
+
+R1 is fully validated by the successful corrected runtime: 111/111 Enrollment
+IDs and metadata PASS. FI-ENR-002/FI-ENR-005 passed local Emulator query
+validation; productive deployment remains unperformed. R1 is `completed` and
+EnrollmentRepository is `completed_in_shadow_mode`.

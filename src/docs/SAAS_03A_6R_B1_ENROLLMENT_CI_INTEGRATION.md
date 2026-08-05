@@ -134,3 +134,11 @@ preserves all 111 IDs, corrects operation/resource assertions for 090, 091 and
 113, and correctly reclassifies the Rules-compatible bounded admin query 137.
 Metadata is now 42 ALLOW, 69 DENY and outcomes 42/41/28/0. Local runtime is
 112/112 including metadata; a new external workflow remains required.
+
+## Definitive B2 workflow result
+
+The owner published F1 and started a completely new manual run on `main`. The
+workflow succeeded globally; Rules 222/222, RegistrationRequest 52/52,
+Membership 81/81, Course 114/114 and Enrollment 111/111 all passed. Enrollment
+metadata also passed. B1 is `completed`; no deployment or remote project access
+is introduced.
