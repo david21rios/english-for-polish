@@ -9,12 +9,7 @@ import {
   validateRequestId,
   validateUid
 } from "../shared/index.js";
-
-export const MEMBERSHIP_FIELDS = Object.freeze([
-  "membershipId", "tenantId", "uid", "role", "status", "originRequestId",
-  "createdAt", "approvedAt", "approvedBy", "updatedAt", "suspendedAt", "removedAt"
-]);
-export const MEMBERSHIP_REQUIRED_FIELDS = MEMBERSHIP_FIELDS;
+export { MEMBERSHIP_FIELDS, MEMBERSHIP_REQUIRED_FIELDS } from "@mipymetic/saas-contracts/persistence";
 export const MEMBERSHIP_STATUS_VALUES = Object.freeze(Object.values(MEMBERSHIP_STATUSES));
 export const MEMBERSHIP_ROLE_VALUES = Object.freeze(Object.values(MEMBERSHIP_ROLES));
 

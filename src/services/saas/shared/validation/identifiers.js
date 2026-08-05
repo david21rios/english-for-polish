@@ -2,6 +2,7 @@ import {
   REPOSITORY_ERROR_CODES,
   RepositoryError
 } from "../errors/repositoryError.js";
+import { isDocumentIdentifier } from "@mipymetic/saas-contracts/validation";
 
 const IDENTIFIER_NAMES = Object.freeze([
   "uid",
@@ -22,9 +23,7 @@ export const validateIdentifier = (value, identifierName = "identifier") => {
     });
   }
 
-  const trimmedValue = value.trim();
-
-  if (!trimmedValue || value.includes("/") || trimmedValue === "." || trimmedValue === "..") {
+  if (!isDocumentIdentifier(value)) {
     throw new RepositoryError({
       code: REPOSITORY_ERROR_CODES.INVALID_ARGUMENT,
       message: `${identifierName} is not a valid Firestore document identifier.`,

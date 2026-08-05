@@ -7,34 +7,7 @@ import {
   RepositoryError,
   validateTenantId
 } from "../shared/index.js";
-
-export const TENANT_FIELDS = Object.freeze([
-  "tenantId",
-  "tenantType",
-  "displayName",
-  "shortName",
-  "country",
-  "locale",
-  "timezone",
-  "status",
-  "createdAt",
-  "updatedAt",
-  "suspendedAt",
-  "archivedAt"
-]);
-
-export const TENANT_REQUIRED_FIELDS = Object.freeze([
-  "tenantId",
-  "tenantType",
-  "displayName",
-  "shortName",
-  "country",
-  "locale",
-  "timezone",
-  "status",
-  "createdAt",
-  "updatedAt"
-]);
+export { TENANT_FIELDS, TENANT_REQUIRED_FIELDS } from "@mipymetic/saas-contracts/persistence";
 
 const TENANT_TYPE_VALUES = Object.freeze(Object.values(TENANT_TYPES));
 const TENANT_STATUS_VALUES = Object.freeze(Object.values(TENANT_STATUSES));

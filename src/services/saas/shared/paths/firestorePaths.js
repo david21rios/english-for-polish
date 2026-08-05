@@ -6,31 +6,43 @@ import {
   validateTenantId,
   validateUid
 } from "../validation/identifiers.js";
+import {
+  courseDocumentPath,
+  enrollmentDocumentPath,
+  identityDocumentPath,
+  membershipDocumentPath,
+  membershipKeyDocumentPath,
+  registrationRequestDocumentPath,
+  registrationRequestKeyDocumentPath,
+  tenantBrandingDocumentPath,
+  tenantDocumentPath,
+  tenantSettingsDocumentPath
+} from "@mipymetic/saas-contracts/persistence";
 
-export const identityPath = (uid) => `identities/${validateUid(uid)}`;
+export const identityPath = (uid) => identityDocumentPath(validateUid(uid));
 
-export const tenantPath = (tenantId) => `tenants/${validateTenantId(tenantId)}`;
+export const tenantPath = (tenantId) => tenantDocumentPath(validateTenantId(tenantId));
 
 export const tenantSettingsPath = (tenantId) =>
-  `${tenantPath(tenantId)}/configuration/settings`;
+  tenantSettingsDocumentPath(validateTenantId(tenantId));
 
 export const tenantBrandingPath = (tenantId) =>
-  `${tenantPath(tenantId)}/configuration/branding`;
+  tenantBrandingDocumentPath(validateTenantId(tenantId));
 
 export const registrationRequestPath = (tenantId, requestId) =>
-  `${tenantPath(tenantId)}/registrationRequests/${validateRequestId(requestId)}`;
+  registrationRequestDocumentPath(validateTenantId(tenantId), validateRequestId(requestId));
 
 export const registrationRequestKeyPath = (tenantId, uidKey) =>
-  `${tenantPath(tenantId)}/registrationRequestKeys/${validateUid(uidKey)}`;
+  registrationRequestKeyDocumentPath(validateTenantId(tenantId), validateUid(uidKey));
 
 export const membershipPath = (tenantId, membershipId) =>
-  `${tenantPath(tenantId)}/memberships/${validateMembershipId(membershipId)}`;
+  membershipDocumentPath(validateTenantId(tenantId), validateMembershipId(membershipId));
 
 export const membershipKeyPath = (tenantId, uidKey) =>
-  `${tenantPath(tenantId)}/membershipKeys/${validateUid(uidKey)}`;
+  membershipKeyDocumentPath(validateTenantId(tenantId), validateUid(uidKey));
 
 export const coursePath = (tenantId, courseId) =>
-  `${tenantPath(tenantId)}/courses/${validateCourseId(courseId)}`;
+  courseDocumentPath(validateTenantId(tenantId), validateCourseId(courseId));
 
 export const enrollmentPath = (tenantId, enrollmentId) =>
-  `${tenantPath(tenantId)}/enrollments/${validateEnrollmentId(enrollmentId)}`;
+  enrollmentDocumentPath(validateTenantId(tenantId), validateEnrollmentId(enrollmentId));

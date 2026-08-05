@@ -6,15 +6,7 @@ import {
   validateMembershipId,
   validateUid
 } from "../shared/index.js";
-
-export const REGISTRATION_REQUEST_FIELDS = Object.freeze([
-  "requestId", "tenantId", "uid", "requestedRole", "status", "requestedAt",
-  "reviewedAt", "reviewedBy", "approvedMembershipId", "cancelledAt", "expiredAt"
-]);
-
-export const REGISTRATION_REQUEST_REQUIRED_FIELDS = Object.freeze([
-  "requestId", "tenantId", "uid", "requestedRole", "status", "requestedAt"
-]);
+export { REGISTRATION_REQUEST_FIELDS, REGISTRATION_REQUEST_REQUIRED_FIELDS } from "@mipymetic/saas-contracts/persistence";
 
 export const REGISTRATION_REQUEST_STATUS_VALUES = Object.freeze(
   Object.values(REGISTRATION_REQUEST_STATUSES)

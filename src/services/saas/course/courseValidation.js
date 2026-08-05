@@ -1,12 +1,6 @@
 import { COURSE_STATUSES, CEFR_LEVELS } from "../../../domain/academic/enums.js";
 import { REPOSITORY_ERROR_CODES, RepositoryError, validateCourseId } from "../shared/index.js";
-
-export const COURSE_FIELDS = Object.freeze([
-  "courseId", "tenantId", "displayName", "description", "learningLanguage",
-  "supportLanguageCode", "interfaceLanguages", "cefrLevel", "status",
-  "createdAt", "updatedAt", "archivedAt"
-]);
-export const COURSE_REQUIRED_FIELDS = COURSE_FIELDS;
+export { COURSE_FIELDS, COURSE_REQUIRED_FIELDS } from "@mipymetic/saas-contracts/persistence";
 export const COURSE_STATUS_VALUES = Object.freeze(Object.values(COURSE_STATUSES));
 export const COURSE_CEFR_VALUES = Object.freeze(Object.values(CEFR_LEVELS));
 

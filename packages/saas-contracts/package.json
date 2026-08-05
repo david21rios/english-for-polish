@@ -1,0 +1,24 @@
+{
+  "name": "@mipymetic/saas-contracts",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "engines": {
+    "node": ">=20"
+  },
+  "exports": {
+    ".": "./src/index.js",
+    "./domain": "./src/domain/index.js",
+    "./persistence": "./src/persistence/index.js",
+    "./validation": "./src/validation/index.js",
+    "./commands": "./src/commands/index.js",
+    "./authority": "./src/authority/index.js",
+    "./audit": "./src/audit/index.js",
+    "./errors": "./src/errors/index.js"
+  },
+  "files": [
+    "src",
+    "README.md"
+  ]
+}

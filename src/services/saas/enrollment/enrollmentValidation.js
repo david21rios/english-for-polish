@@ -1,11 +1,6 @@
 import { ENROLLMENT_STATUSES } from "../../../domain/academic/enums.js";
 import { REPOSITORY_ERROR_CODES, RepositoryError } from "../shared/index.js";
-
-export const ENROLLMENT_FIELDS = Object.freeze([
-  "enrollmentId", "tenantId", "membershipId", "courseId", "status",
-  "enrolledAt", "updatedAt", "completedAt", "cancelledAt"
-]);
-export const ENROLLMENT_REQUIRED_FIELDS = ENROLLMENT_FIELDS;
+export { ENROLLMENT_FIELDS, ENROLLMENT_REQUIRED_FIELDS } from "@mipymetic/saas-contracts/persistence";
 export const ENROLLMENT_STATUS_VALUES = Object.freeze(Object.values(ENROLLMENT_STATUSES));
 
 const issue = (message, input = false) => new RepositoryError({

@@ -3,24 +3,8 @@ import {
   RepositoryError,
   validateUid
 } from "../shared/index.js";
-
-export const IDENTITY_FIELDS = Object.freeze([
-  "uid",
-  "email",
-  "displayName",
-  "photoURL",
-  "emailVerified",
-  "interfaceLocale",
-  "createdAt",
-  "updatedAt"
-]);
-
-export const IDENTITY_REQUIRED_FIELDS = IDENTITY_FIELDS;
-
-export const IDENTITY_PROFILE_UPDATE_FIELDS = Object.freeze([
-  "displayName",
-  "photoURL"
-]);
+export { IDENTITY_FIELDS, IDENTITY_PROFILE_UPDATE_FIELDS, IDENTITY_REQUIRED_FIELDS } from "@mipymetic/saas-contracts/persistence";
+import { IDENTITY_PROFILE_UPDATE_FIELDS } from "@mipymetic/saas-contracts/persistence";
 
 const invalidArgument = (message, operation, details) => new RepositoryError({
   code: REPOSITORY_ERROR_CODES.INVALID_ARGUMENT,

@@ -3,6 +3,9 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "workspaces": [
+    "packages/saas-contracts"
+  ],
   "scripts": {
     "dev": "vite",
     "test": "node --test tests/*.test.mjs",
@@ -14,9 +17,12 @@
     "ci:validate:firestore-rules": "node scripts/ci/validate-firestore-rules-ci.mjs",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:saas-contracts": "node --test packages/saas-contracts/__tests__/*.test.mjs",
+    "pack:saas-contracts:dry-run": "npm pack --workspace @mipymetic/saas-contracts --dry-run"
   },
   "dependencies": {
+    "@mipymetic/saas-contracts": "0.1.0",
     "chart.js": "^4.4.9",
     "fastest-levenshtein": "^1.0.16",
     "firebase": "^11.10.0",
