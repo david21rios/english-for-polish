@@ -427,6 +427,64 @@ Coexistencia temporal de capas. Mitigar con flags y fecha de retiro.
 
 ## 03B — Backend privilegiado y bootstrap
 
+### Estado de auditoría contractual (2026-08-05)
+
+`SaaS-03B-A` completed the architecture, authority, security and persistence
+audit. It did not create backend code. The next required microphase is
+`SaaS-03B-A-R1 — privileged backend, bootstrap, command, audit and environment
+contract resolution`, with state `required_not_started`.
+
+Implementation is not ready until R1 freezes the persistent platform authority,
+audit and command-record paths, platform and Tenant bootstrap ceremonies,
+invitation contract, transaction boundaries, secrets/environments and deployment
+topology. The provisional MVP recommendation is Firebase Cloud Functions 2nd
+gen on Node for ordinary commands, while initial platform bootstrap remains an
+out-of-band one-use Admin SDK ceremony. Neither is implemented or deployed.
+
+R1 subsequently resolved every mandatory foundation blocker. The approved
+sequence is now `03B-B0` (pure contract extraction), then `03B-B` (Functions
+foundation). Current state is:
+
+```text
+SaaS-03B-A-R1 = completed_pending_human_contract_review
+SaaS-03B-B0 = ready_not_started
+SaaS-03B-B = blocked_pending_03B_B0
+Privileged Backend = not_created
+```
+
+R1 freezes Firebase Cloud Functions 2nd gen, TypeScript/Node 22, callable human
+transport, persistent `platformAuthorities`, global privileged command records,
+separate platform/tenant audit roots, out-of-band platform bootstrap and atomic
+Tenant/first-admin creation. No implementation or deployment has started.
+
+B0 completed the design-only inventory for pure contracts. Because physical
+movement was not authorized, the ordered next microphase is
+`SaaS-03B-B0-I — pure contract physical extraction and compatibility adapters`.
+
+```text
+SaaS-03B-A-R1 = completed
+SaaS-03B-B0 = completed_design_only
+SaaS-03B-B0-I = ready_not_started
+SaaS-03B-B = blocked_pending_03B_B0_I
+```
+
+B0-I must create a dependency-free local contract package and preserve every
+existing Domain/Shared/repository import through compatibility adapters. It may
+not start Functions foundation behavior.
+
+B0-I materialized a partial pure tree and safe adapters, then stopped at the
+explicit package gate: package/workspace changes and Domain compatibility files
+were outside its authority. Current state:
+
+```text
+SaaS-03B-B0-I = incomplete_package_topology_blocker
+SaaS-03B-B0-I-R1 = required_not_started
+SaaS-03B-B = blocked
+```
+
+R1 must approve a deployable local package topology and mechanical Domain
+reexports before extraction can close.
+
 ### Objetivo
 
 Crear operaciones que nunca deben ejecutarse desde el navegador.
@@ -2052,3 +2110,46 @@ creates server-only privileged operations, invitation lifecycle, Tenant and
 first-admin bootstrap, out-of-band platform-admin bootstrap and audit. Phase 02
 is its documented dependency; coordination with the completed 03A schemas is
 required. It is not initiated.
+
+## SaaS-03B-B0-I-R1 package topology resolution
+
+R1 selecciona un package npm workspace privado para frontend/tests y un artifact
+`npm pack` versionado dentro del futuro `functions/` deploy source. Domain 1.2.0
+permanece normativo; su implementación portable se mueve al package en R3 con
+compatibility reexports. El bloqueo queda resuelto contractualmente, no
+implementado.
+
+```text
+SaaS-03A = completed
+SaaS-03B = in_progress
+SaaS-03B-A = completed
+SaaS-03B-A-R1 = completed
+SaaS-03B-B0 = completed_design_only
+SaaS-03B-B0-I = incomplete_superseded_by_resolution
+SaaS-03B-B0-I-R1 = completed_pending_human_architecture_review
+SaaS-03B-B0-I-R2 = ready_not_started
+SaaS-03B-B = blocked_pending_B0_I_R2_R3_R4
+PURE_CONTRACT_PHYSICAL_EXTRACTION = partial_uncommitted
+PACKAGE_TOPOLOGY_BLOCKER = resolved
+Privileged Backend = not_created
+```
+
+Next: `SaaS-03B-B0-I-R2 — package topology implementation`, no iniciada.
+
+## SaaS-03B-B0-I-R2 package topology implementation
+
+R2 implementa `@mipymetic/saas-contracts@0.1.0`, workspace/export maps, dos
+lockfiles, artifact Functions contenido y ocho compatibility package imports.
+Domain permanece intacto. Todas las validaciones pasan.
+
+```text
+SaaS-03B-B0-I-R2 = completed
+SaaS-03B-B0-I-R2-C1 = next_not_started
+SaaS-03B-B0-I-R3 = blocked_pending_R2_C1
+SaaS-03B-B = blocked_pending_B0_I_R2_R3_R4
+PURE_CONTRACT_PHYSICAL_EXTRACTION = topology_implemented_pending_domain_migration
+Privileged Backend = not_created
+```
+
+Next: `SaaS-03B-B0-I-R2-C1 — package topology review and controlled commits`.
+No iniciada.

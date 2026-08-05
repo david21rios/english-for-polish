@@ -767,3 +767,41 @@ SaaS-03A.6R-B2 = completed
 EnrollmentRepository = completed_in_shadow_mode
 SaaS-03B = ready_not_started
 ```
+
+## Transition to SaaS-03B (2026-08-05)
+
+SaaS-03A is complete. Identity, Tenant, RegistrationRequest, Membership, Course
+and Enrollment repository work remains shadow/read-only with no consumers,
+migration, dual-write or UI activation. `SaaS-03B-A` audited the privileged
+write/bootstrap boundary without changing any repository or technical file.
+
+The audit is complete but found contract blockers. `SaaS-03B-A-R1` is
+`required_not_started`; privileged backend, platform_admin bootstrap and atomic
+Tenant/first-tenant_admin bootstrap remain uncreated/not started. This note does
+not reopen or extend the 03A repository scope.
+
+R1 later resolved those contracts without changing 03A artifacts. Its current
+state is `completed_pending_human_contract_review`; `03B-B0` is
+`ready_not_started`, `03B-B` is `blocked_pending_03B_B0`, and all privileged
+backend/bootstrap artifacts remain uncreated. The historical transition above
+is intentionally preserved.
+
+After human approval, R1 became `completed`. B0 subsequently completed only the
+shared-contract design. `03B-B0-I` is `ready_not_started` for the separately
+authorized physical extraction; 03A artifacts remain unchanged and 03B-B is
+blocked until that extraction passes compatibility review.
+
+B0-I later stopped with `incomplete_package_topology_blocker`: its partial
+contract tree and adapters preserve repository behavior, but Domain/package
+topology requires a separately authorized R1. This does not reopen 03A or alter
+its frozen contracts.
+
+B0-I-R1 resuelve la distribución del package sin reabrir ningún repositorio
+03A. Workspace, export maps y artifact Functions afectan sólo la distribución
+de contratos. APIs, queries, Rules, índices, runtimes y shadow status permanecen
+intactos. R2 está `ready_not_started`; 03B-B sigue bloqueado hasta R4.
+
+R2 implementó posteriormente la distribución sin cambiar ningún contrato 03A:
+los ocho adapters ahora resuelven el package por nombre, preservando APIs,
+queries, Rules, índices y runtimes. Domain permanece intacto; R2-C1 y R3 no han
+comenzado.
