@@ -26,7 +26,16 @@ test("export map subpaths resolve through the workspace package", () => {
   assert.strictEqual(authorityContracts.PLATFORM_AUTHORITY, contracts.PLATFORM_AUTHORITY);
   assert.strictEqual(auditContracts.AUDIT_LEVELS, contracts.AUDIT_LEVELS);
   assert.strictEqual(errorContracts.COMMON_ERROR_CODES, contracts.COMMON_ERROR_CODES);
-  assert.deepEqual(Object.keys(domainContracts), []);
+  assert.deepEqual(Object.keys(domainContracts), [
+    "ACCESS_STATES",
+    "COURSE_STATUSES",
+    "ENROLLMENT_STATUSES",
+    "MEMBERSHIP_STATUSES",
+    "REGISTRATION_REQUEST_STATUSES",
+    "TENANT_STATUSES",
+    "TENANT_TYPES",
+  ]);
+  assert.strictEqual(domainContracts.TENANT_STATUSES, contracts.TENANT_STATUSES);
 });
 
 test("physical field contracts preserve exact values and freezing", () => {

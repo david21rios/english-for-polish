@@ -5,29 +5,18 @@
  * @typedef {"approved" | "suspended" | "removed"} MembershipStatus
  */
 
-export const TENANT_TYPES = Object.freeze({
-  UNIVERSITY: "university",
-  ACADEMY: "academy",
-  SCHOOL: "school",
-  COMPANY: "company",
-});
+import { MEMBERSHIP_STATUSES } from "@mipymetic/saas-contracts/domain";
 
-export const TENANT_STATUSES = Object.freeze({
-  ACTIVE: "active",
-  SUSPENDED: "suspended",
-  ARCHIVED: "archived",
-});
+export {
+  MEMBERSHIP_STATUSES,
+  TENANT_STATUSES,
+  TENANT_TYPES,
+} from "@mipymetic/saas-contracts/domain";
 
 export const MEMBERSHIP_ROLES = Object.freeze({
   STUDENT: "student",
   TEACHER: "teacher",
   TENANT_ADMIN: "tenant_admin",
-});
-
-export const MEMBERSHIP_STATUSES = Object.freeze({
-  APPROVED: "approved",
-  SUSPENDED: "suspended",
-  REMOVED: "removed",
 });
 
 /**

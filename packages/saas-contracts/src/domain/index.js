@@ -1,2 +1,6 @@
-// The export boundary is reserved by the approved package contract.
-// Domain 1.2.0 remains physically authoritative until SaaS-03B-B0-I-R3.
+export { ACCESS_STATES } from "./access.js";
+export { COURSE_STATUSES } from "./course.js";
+export { ENROLLMENT_STATUSES } from "./enrollment.js";
+export { MEMBERSHIP_STATUSES } from "./membership.js";
+export { REGISTRATION_REQUEST_STATUSES } from "./registrationRequest.js";
+export { TENANT_STATUSES, TENANT_TYPES } from "./tenant.js";

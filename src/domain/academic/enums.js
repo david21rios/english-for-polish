@@ -13,18 +13,12 @@ export const CEFR_LEVELS = Object.freeze({
   C2: "C2",
 });
 
-export const COURSE_STATUSES = Object.freeze({
-  DRAFT: "draft",
-  ACTIVE: "active",
-  ARCHIVED: "archived",
-});
+import { ENROLLMENT_STATUSES } from "@mipymetic/saas-contracts/domain";
 
-export const ENROLLMENT_STATUSES = Object.freeze({
-  PENDING: "pending",
-  ACTIVE: "active",
-  COMPLETED: "completed",
-  CANCELLED: "cancelled",
-});
+export {
+  COURSE_STATUSES,
+  ENROLLMENT_STATUSES,
+} from "@mipymetic/saas-contracts/domain";
 
 /**
  * Declarative lifecycle contract. It does not execute transitions or grant

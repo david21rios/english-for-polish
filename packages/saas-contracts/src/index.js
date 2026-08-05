@@ -69,3 +69,12 @@ export {
   AUDIT_SCHEMA_VERSION,
 } from "./audit/index.js";
 export { BACKEND_ERROR_CODES, COMMON_ERROR_CODES } from "./errors/index.js";
+export {
+  ACCESS_STATES,
+  COURSE_STATUSES,
+  ENROLLMENT_STATUSES,
+  MEMBERSHIP_STATUSES,
+  REGISTRATION_REQUEST_STATUSES,
+  TENANT_STATUSES,
+  TENANT_TYPES,
+} from "./domain/index.js";
