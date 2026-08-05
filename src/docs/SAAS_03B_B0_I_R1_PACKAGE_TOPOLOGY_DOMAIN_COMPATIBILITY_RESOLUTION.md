@@ -300,3 +300,6 @@ contracts remain temporary Domain authority pending later review.
 
 R3-B validates the authority split: Domain adapters reexport seven package-owned
 objects, with no package-to-Domain edge and strict reference parity.
+
+R3-C confirms the same authority direction for roles, scopes and workflow
+actors; the package still has no edge to Domain.

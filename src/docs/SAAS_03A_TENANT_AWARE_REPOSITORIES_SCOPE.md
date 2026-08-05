@@ -816,3 +816,6 @@ queries, Rules, indexes, runtime suites and shadow states remain unchanged.
 R3-B later changed only the physical source of seven frozen enums/statuses.
 Repository APIs, persisted values, Rules, indexes, runtime counts and shadow
 states remain unchanged through Domain compatibility reexports.
+
+R3-C likewise changes only shared role/scope/actor authority. All completed 03A
+repositories, Rules, indexes, queries, cursors and runtime contracts are intact.

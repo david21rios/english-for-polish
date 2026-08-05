@@ -162,3 +162,6 @@ R3-A subsequently completed the read-only Domain authority inventory. It found
 
 R3-B is the first physical Domain slice: seven foundational objects now use
 identical package instances through explicit Domain reexports.
+
+R3-C adds four compatible Domain exports at package `0.3.0` without changing
+the workspace or Functions topology.

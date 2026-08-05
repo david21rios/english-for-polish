@@ -162,3 +162,6 @@ review; R3-B is `ready_not_started` and has not begun.
 
 R3-B later exercised the topology with package `0.2.0` and seven Domain exports.
 Root/Functions resolution and the vendored artifact remain verified.
+
+R3-C reused the verified topology and advanced the compatible package artifact
+to `0.3.0`; isolation and reproducibility remain verified.

@@ -263,3 +263,6 @@ Next: `SaaS-03B-B0-I-R3-B — Foundational enums and status contracts`,
 R3-B migrated exactly seven foundational contracts to package `0.2.0` with
 reference-identical Domain reexports. Values, Rules parity, Functions isolation
 and artifact reproducibility pass. R3-C is `ready_not_started`.
+
+R3-C subsequently completed its planned role/scope/actor slice; lifecycle and
+transition migration remains unstarted.

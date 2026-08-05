@@ -140,3 +140,8 @@ Privileged Backend = not_created
 
 Next: `SaaS-03B-B0-I-R3-C — Roles and authority contracts`,
 `ready_not_started`. It is not initiated.
+
+## Subsequent R3-C trace
+
+R3-C migrated roles, capability scopes and workflow actors without changing
+the seven R3-B contracts. R3-C is pending human review and push.

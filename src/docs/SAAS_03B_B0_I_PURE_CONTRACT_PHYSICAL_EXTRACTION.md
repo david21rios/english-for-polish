@@ -178,3 +178,6 @@ technical changes. The next planned slice is foundational enums/statuses R3-B.
 
 R3-B completed that slice using package `0.2.0`; seven definitions moved while
 Domain paths and repository behavior remained compatible.
+
+Current extraction state after R3-C is `roles_scopes_actors_migrated`; backend
+creation and later R3/R4 slices remain pending.

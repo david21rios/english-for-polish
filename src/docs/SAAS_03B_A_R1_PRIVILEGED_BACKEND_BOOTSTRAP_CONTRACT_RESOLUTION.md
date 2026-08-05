@@ -568,3 +568,6 @@ not confused with the 40 Domain migration contracts.
 
 R3-B migrated only foundational statuses/types. Commands, authority, audit,
 capabilities and executable backend remain untouched.
+
+R3-C centralizes only declarative role/scope/actor identifiers; it does not
+implement authorization, commands, audit, claims or backend code.

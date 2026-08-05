@@ -1874,6 +1874,11 @@ SaaS-03A.5R-A = blocked_pending_5I_review_and_commit
 Next: `SaaS-03A.5I-C1 — Course index review and controlled commits`. It is not
 started.
 
+## Current R3-C checkpoint
+
+`SaaS-03B-B0-I-R3-C = completed_pending_human_review_and_push` and
+`SaaS-03B-B0-I-R3-D = ready_not_started`. Privileged backend remains blocked.
+
 ## SaaS-03B-B0-I-R3-B foundational enum/status migration
 
 Seven foundational contracts now have package physical authority at version
