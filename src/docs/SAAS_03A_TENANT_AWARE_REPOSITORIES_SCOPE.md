@@ -809,3 +809,6 @@ comenzado.
 R2-C1 verificó después la topología sin reabrir 03A ni modificar Domain: clean
 installs, Functions aislado, artifact reproducible, adapters y regresiones
 pasaron. R2-C1 queda pendiente de push; R3 está `ready_not_started`.
+
+R3-A later inventoried Domain authority without reopening 03A. Repository APIs,
+queries, Rules, indexes, runtime suites and shadow states remain unchanged.

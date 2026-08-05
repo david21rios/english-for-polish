@@ -293,3 +293,7 @@ repositorios, prechecks, Rules y build pasan. R2 queda `completed`; R2-C1 es
 La revisión confirmó conformidad R1→R2, clean installs, Functions aislado,
 lockfiles, artifact reproducible y adapters. No hubo corrección técnica. Tras el
 push humano, R3 queda `ready_not_started`.
+
+R3-A later made the R1 authority split actionable: 27 executable contracts need
+package extraction with Domain reexports; 13 structural/cross-aggregate
+contracts remain temporary Domain authority pending later review.

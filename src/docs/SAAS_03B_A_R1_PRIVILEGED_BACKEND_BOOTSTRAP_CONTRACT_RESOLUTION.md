@@ -561,3 +561,7 @@ exports ejecutables. R3/R4 siguen siendo dependencias obligatorias de 03B-B.
 R2-C1 verificó clean installs y consumo Functions sin workspace raíz. La
 topología queda cerrada pendiente de push; no se creó backend y R3/R4 siguen
 bloqueando 03B-B.
+
+R3-A inventoried Domain authority and preserved the backend boundary: commands,
+authority and audit contracts already in the package are future-only and are
+not confused with the 40 Domain migration contracts.

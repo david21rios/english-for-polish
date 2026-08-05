@@ -153,3 +153,9 @@ Privileged Backend = not_created
 Next: `SaaS-03B-B0-I-R3 — Domain authority migration`, `ready_not_started`.
 It was not initiated. Human action is `git push origin main`; no Emulator,
 workflow, Firebase remote access or deploy is required for this closure.
+
+## Subsequent R3-A inventory
+
+R3-A inventoried 40 Domain contracts across 24 files and froze an incremental
+B–H/C1 migration plan. No technical file changed. R3-A is pending human plan
+review; R3-B is `ready_not_started` and has not begun.

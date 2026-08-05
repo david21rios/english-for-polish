@@ -334,3 +334,6 @@ valores permanecen intactos para R3.
 R2-C1 confirmó con clean installs, Functions aislado, pack dry-run y comparación
 reproducible que la topología no depende accidentalmente de Vite. La extracción
 sigue pendiente sólo por R3 y R4.
+
+R3-A now divides the remaining Domain authority migration into reversible
+families B–H plus final C1. This planning does not change the B0 package API.

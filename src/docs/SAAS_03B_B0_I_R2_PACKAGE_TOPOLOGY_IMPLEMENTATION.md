@@ -156,3 +156,6 @@ R2-C1 auditó commits, manifests, exports, workspace, lockfiles, artifact y ocho
 adapters. Instalaciones limpias raíz/Functions pasaron; el tarball regenerado
 fue byte-idéntico al versionado. No hubo defecto técnico ni commit técnico C1.
 R2-C1 queda `completed_pending_human_push`; R3 queda `ready_not_started`.
+
+R3-A subsequently completed the read-only Domain authority inventory. It found
+40 Domain contracts and defined phased migration without reopening R2.

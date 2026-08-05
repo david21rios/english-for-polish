@@ -2170,3 +2170,22 @@ Privileged Backend = not_created
 ```
 
 Next: `SaaS-03B-B0-I-R3 — Domain authority migration`. No iniciada.
+
+## SaaS-03B-B0-I-R3-A Domain authority inventory
+
+The read-only inventory identified 40 Domain contracts and approved an
+incremental B–H/C1 plan. Twenty-seven executable contracts require package
+authority plus Domain reexports; thirteen structural/cross-aggregate contracts
+remain temporary Domain authority.
+
+```text
+SaaS-03B-B0-I-R3 = in_progress
+SaaS-03B-B0-I-R3-A = completed_pending_human_plan_review
+SaaS-03B-B0-I-R3-B = ready_not_started
+SaaS-03B-B = blocked_pending_B0_I_R3_R4
+PURE_CONTRACT_PHYSICAL_EXTRACTION = domain_inventory_completed
+Privileged Backend = not_created
+```
+
+Next: `SaaS-03B-B0-I-R3-B — Foundational enums and status contracts`. Not
+started.
