@@ -166,3 +166,9 @@ R2 convirtió este árbol en `@mipymetic/saas-contracts@0.1.0`, añadió export 
 y workspace root, reemplazó los ocho imports relativos y creó el artifact
 Functions contenido. La topología y lockfiles están implementados; Domain no se
 migra hasta R3. Las 12 pruebas del package y toda la regresión pasan.
+
+## 14. Revisión R2-C1
+
+La topología pasó clean installs raíz/Functions y el artifact coincide byte por
+byte con el package. No hay dependencias prohibidas, ciclos ni duplicación
+residual extraída. R2-C1 queda pendiente de push; R3 está `ready_not_started`.

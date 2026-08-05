@@ -328,3 +328,9 @@ La topología aprobada quedó materializada: package privado versionado, workspa
 root, subpath exports, lockfile root, Functions lockfile y tarball verificado
 dentro de `functions/vendor`. Los adapters usan package imports. Domain y sus
 valores permanecen intactos para R3.
+
+## 16. Cierre de topología
+
+R2-C1 confirmó con clean installs, Functions aislado, pack dry-run y comparación
+reproducible que la topología no depende accidentalmente de Vite. La extracción
+sigue pendiente sólo por R3 y R4.

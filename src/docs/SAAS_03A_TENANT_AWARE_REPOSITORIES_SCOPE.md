@@ -805,3 +805,7 @@ R2 implementó posteriormente la distribución sin cambiar ningún contrato 03A:
 los ocho adapters ahora resuelven el package por nombre, preservando APIs,
 queries, Rules, índices y runtimes. Domain permanece intacto; R2-C1 y R3 no han
 comenzado.
+
+R2-C1 verificó después la topología sin reabrir 03A ni modificar Domain: clean
+installs, Functions aislado, artifact reproducible, adapters y regresiones
+pasaron. R2-C1 queda pendiente de push; R3 está `ready_not_started`.

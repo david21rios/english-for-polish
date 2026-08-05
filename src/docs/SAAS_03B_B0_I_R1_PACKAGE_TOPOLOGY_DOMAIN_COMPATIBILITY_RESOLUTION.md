@@ -287,3 +287,9 @@ privado contenido en `functions/vendor` y los ocho package imports. Domain sigue
 intacto. Las pruebas de package, clean install Functions, pack inventory,
 repositorios, prechecks, Rules y build pasan. R2 queda `completed`; R2-C1 es
 `next_not_started` y R3 continúa bloqueada.
+
+## 19. Verificación R2-C1
+
+La revisión confirmó conformidad R1→R2, clean installs, Functions aislado,
+lockfiles, artifact reproducible y adapters. No hubo corrección técnica. Tras el
+push humano, R3 queda `ready_not_started`.

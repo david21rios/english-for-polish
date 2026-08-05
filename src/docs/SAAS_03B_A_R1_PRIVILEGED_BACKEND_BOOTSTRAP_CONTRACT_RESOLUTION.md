@@ -557,3 +557,7 @@ bloqueado hasta cerrar R2, R3 y R4.
 R2 implementó esa frontera sin crear backend: Functions contiene sólo su
 manifest/lockfile y el artifact contracts; no existen Admin SDK, handlers ni
 exports ejecutables. R3/R4 siguen siendo dependencias obligatorias de 03B-B.
+
+R2-C1 verificó clean installs y consumo Functions sin workspace raíz. La
+topología queda cerrada pendiente de push; no se creó backend y R3/R4 siguen
+bloqueando 03B-B.
