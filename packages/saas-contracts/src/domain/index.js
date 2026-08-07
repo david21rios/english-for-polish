@@ -5,6 +5,7 @@ export {
   NULL_ACCESS_STATE_CASES,
 } from "./access.js";
 export { CAPABILITY_SCOPES, PLATFORM_ROLES } from "./authorization.js";
+export { CAPABILITIES, CAPABILITY_IDS } from "./capabilities.js";
 export { COURSE_STATUSES } from "./course.js";
 export { ENROLLMENT_STATUSES, ENROLLMENT_STATUS_TRANSITIONS } from "./enrollment.js";
 export {
@@ -13,5 +14,7 @@ export {
   MEMBERSHIP_STATUS_TRANSITIONS,
 } from "./membership.js";
 export { REGISTRATION_REQUEST_STATUSES } from "./registrationRequest.js";
+export { IDENTITY_SELF_CAPABILITIES } from "./identitySelfCapabilities.js";
+export { ROLE_CAPABILITY_MATRIX } from "./roleCapabilityMatrix.js";
 export { TENANT_STATUSES, TENANT_TYPES } from "./tenant.js";
 export { WORKFLOW_ACTORS } from "./workflowActors.js";

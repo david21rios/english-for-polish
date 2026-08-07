@@ -3,7 +3,8 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import * as packageDomain from "@mipymetic/saas-contracts/domain";
 import * as academicDomain from "../../../src/domain/academic/enums.js";
-import { CAPABILITIES } from "../../../src/domain/authorization/capabilities.js";
+import { CAPABILITIES, CAPABILITY_IDS } from "../../../src/domain/authorization/capabilities.js";
+import { IDENTITY_SELF_CAPABILITIES } from "../../../src/domain/authorization/identitySelfCapabilities.js";
 import * as authorizationDomain from "../../../src/domain/authorization/enums.js";
 import { ROLE_CAPABILITY_MATRIX } from "../../../src/domain/authorization/roleCapabilityMatrix.js";
 import * as identityDomain from "../../../src/domain/identity/enums.js";
@@ -128,6 +129,81 @@ test("capability descriptors and role matrices use only migrated roles and scope
   for (const capability of Object.values(CAPABILITIES)) assert.equal(scopes.has(capability.scope), true, capability.id);
   assert.deepEqual(Object.keys(ROLE_CAPABILITY_MATRIX.membershipRoles), Object.values(packageDomain.MEMBERSHIP_ROLES));
   assert.deepEqual(Object.keys(ROLE_CAPABILITY_MATRIX.platformRoles), Object.values(packageDomain.PLATFORM_ROLES));
+});
+
+test("capability catalog preserves exact IDs, order, descriptors and reference identity", () => {
+  const expectedIds = [
+    "identity.read_self", "identity.update_self",
+    "tenant.read", "tenant.update", "tenant.manage_settings", "tenant.manage_branding",
+    "membership.read_self", "membership.leave_self", "membership.list", "membership.suspend",
+    "membership.restore", "membership.remove", "membership.change_role",
+    "registration_request.create", "registration_request.read_self",
+    "registration_request.cancel_self", "registration_request.list", "registration_request.review",
+    "course.list", "course.read", "course.create", "course.update", "course.activate", "course.archive",
+    "enrollment.read_self", "enrollment.list", "enrollment.create", "enrollment.update_status",
+    "enrollment.cancel_self", "platform.tenant_list", "platform.tenant_read",
+    "platform.tenant_create", "platform.tenant_update", "platform.tenant_suspend",
+    "platform.tenant_restore", "platform.tenant_archive", "platform.identity_read",
+  ];
+  assert.deepEqual(Object.values(packageDomain.CAPABILITY_IDS), expectedIds);
+  assert.deepEqual(Object.keys(packageDomain.CAPABILITIES), expectedIds);
+  assert.equal(new Set(expectedIds).size, 37);
+  assert.equal(Object.isFrozen(packageDomain.CAPABILITY_IDS), true);
+  assert.equal(Object.isFrozen(packageDomain.CAPABILITIES), true);
+  for (const [id, descriptor] of Object.entries(packageDomain.CAPABILITIES)) {
+    assert.deepEqual(Object.keys(descriptor), ["id", "scope", "resource", "description"]);
+    assert.equal(descriptor.id, id);
+    assert.equal(Object.values(packageDomain.CAPABILITY_SCOPES).includes(descriptor.scope), true, id);
+    assert.equal(Object.isFrozen(descriptor), true, id);
+  }
+  assert.strictEqual(CAPABILITY_IDS, packageDomain.CAPABILITY_IDS);
+  assert.strictEqual(CAPABILITIES, packageDomain.CAPABILITIES);
+});
+
+test("self capabilities and role matrix preserve exact assignments and deep freezing", () => {
+  assert.deepEqual(packageDomain.IDENTITY_SELF_CAPABILITIES, [
+    "identity.read_self", "identity.update_self", "membership.leave_self",
+    "registration_request.create", "registration_request.read_self",
+    "registration_request.cancel_self",
+  ]);
+  assert.deepEqual(
+    Object.fromEntries(Object.entries(packageDomain.ROLE_CAPABILITY_MATRIX.membershipRoles).map(([role, ids]) => [role, ids.length])),
+    { student: 5, teacher: 8, tenant_admin: 23 },
+  );
+  assert.deepEqual(
+    Object.fromEntries(Object.entries(packageDomain.ROLE_CAPABILITY_MATRIX.platformRoles).map(([role, ids]) => [role, ids.length])),
+    { platform_admin: 8 },
+  );
+  assert.equal(Object.isFrozen(packageDomain.IDENTITY_SELF_CAPABILITIES), true);
+  assert.equal(Object.isFrozen(packageDomain.ROLE_CAPABILITY_MATRIX), true);
+  for (const family of Object.values(packageDomain.ROLE_CAPABILITY_MATRIX)) {
+    assert.equal(Object.isFrozen(family), true);
+    for (const ids of Object.values(family)) assert.equal(Object.isFrozen(ids), true);
+  }
+  assert.strictEqual(IDENTITY_SELF_CAPABILITIES, packageDomain.IDENTITY_SELF_CAPABILITIES);
+  assert.strictEqual(ROLE_CAPABILITY_MATRIX, packageDomain.ROLE_CAPABILITY_MATRIX);
+});
+
+test("all assignments and workflow capability references resolve to the exact catalog", () => {
+  const known = new Set(Object.values(packageDomain.CAPABILITY_IDS));
+  const sources = [
+    packageDomain.IDENTITY_SELF_CAPABILITIES,
+    ...Object.values(packageDomain.ROLE_CAPABILITY_MATRIX.membershipRoles),
+    ...Object.values(packageDomain.ROLE_CAPABILITY_MATRIX.platformRoles),
+  ];
+  for (const source of sources) {
+    assert.equal(new Set(source).size, source.length);
+    for (const id of source) assert.equal(known.has(id), true, id);
+  }
+  assert.deepEqual(Object.keys(packageDomain.ROLE_CAPABILITY_MATRIX.membershipRoles), ["student", "teacher", "tenant_admin"]);
+  assert.deepEqual(Object.keys(packageDomain.ROLE_CAPABILITY_MATRIX.platformRoles), ["platform_admin"]);
+  const workflows = [TENANT_WORKFLOW, REGISTRATION_REQUEST_WORKFLOW, MEMBERSHIP_WORKFLOW, COURSE_WORKFLOW, ENROLLMENT_WORKFLOW];
+  for (const workflow of workflows) {
+    for (const transition of workflow.transitions) {
+      if (transition.requiredCapability) assert.equal(known.has(transition.requiredCapability), true, transition.requiredCapability);
+      for (const id of Object.values(transition.requiredCapabilities ?? {})) assert.equal(known.has(id), true, id);
+    }
+  }
 });
 
 test("all workflow actor references belong to the migrated actor contract", () => {
