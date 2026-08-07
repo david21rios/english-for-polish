@@ -1879,6 +1879,23 @@ started.
 `SaaS-03B-B0-I-R3-C = completed_pending_human_review_and_push` and
 `SaaS-03B-B0-I-R3-D = ready_not_started`. Privileged backend remains blocked.
 
+## SaaS-03B-B0-I-R3-D-R1 scope reconciliation
+
+R3-D-R1 resolves the broad R3-A workflow classification. Future R3-D may
+migrate only the five existing pure symbols `ACCESS_STATE_CONTEXT`,
+`ACCESS_STATE_PRECEDENCE`, `NULL_ACCESS_STATE_CASES`,
+`MEMBERSHIP_STATUS_TRANSITIONS`, and `ENROLLMENT_STATUS_TRANSITIONS`.
+`TENANT_WORKFLOW`, `REGISTRATION_REQUEST_WORKFLOW`, `MEMBERSHIP_WORKFLOW`,
+`COURSE_WORKFLOW`, and `ENROLLMENT_WORKFLOW` remain Domain-owned and are parity
+consumers, not R3-D migration targets. No replacement symbols were invented.
+
+```text
+SaaS-03B-B0-I-R3-D-R1 = completed_pending_human_review_and_push
+SaaS-03B-B0-I-R3-D = blocked_pending_R1_push
+SaaS-03B-B0-I-R3-E = blocked
+SaaS-03B-B = blocked_pending_B0_I_R3_R4
+```
+
 ## SaaS-03B-B0-I-R3-B foundational enum/status migration
 
 Seven foundational contracts now have package physical authority at version
