@@ -1896,6 +1896,30 @@ SaaS-03B-B0-I-R3-E = blocked
 SaaS-03B-B = blocked_pending_B0_I_R3_R4
 ```
 
+## SaaS-03B-B0-I-R3-D lifecycle and transition migration
+
+After publication of R3-D-R1, R3-D moved exactly the five existing pure
+contracts `ACCESS_STATE_CONTEXT`, `ACCESS_STATE_PRECEDENCE`,
+`NULL_ACCESS_STATE_CASES`, `MEMBERSHIP_STATUS_TRANSITIONS` and
+`ENROLLMENT_STATUS_TRANSITIONS` to physical package authority. Domain remains
+normative and provides reference-identical compatibility reexports. The five
+complete workflow descriptors remain Domain-owned; no lifecycle API was
+invented. Package `0.4.0`, its vendored Functions artifact, all parity gates and
+all project regressions pass.
+
+```text
+SaaS-03B-B0-I-R3-D-R1 = completed
+SaaS-03B-B0-I-R3-D = completed_pending_human_review_and_push
+SaaS-03B-B0-I-R3 = in_progress
+SaaS-03B-B0-I-R3-E = ready_not_started
+SaaS-03B-B = blocked_pending_B0_I_R3_R4
+PURE_CONTRACT_PHYSICAL_EXTRACTION = lifecycle_transition_contracts_migrated
+Privileged Backend = not_created
+```
+
+Next after human review and push: `SaaS-03B-B0-I-R3-E — Capabilities and
+Authorization Matrices`. It is not started.
+
 ## SaaS-03B-B0-I-R3-B foundational enum/status migration
 
 Seven foundational contracts now have package physical authority at version

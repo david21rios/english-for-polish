@@ -77,3 +77,11 @@ pure symbols above. Rollback is documentation-only: restore the prior R3-A
 workflow rows and R3-D summary, remove this resolution, and restore the prior
 roadmap checkpoint. No code, package, Domain, Rules, Firebase, tests, artifact,
 or data migration is involved.
+
+## Subsequent execution
+
+The owner published this resolution as commit
+`5e660a0c8537728eb6445531dbc630ac0185cd47`. R3-D subsequently migrated exactly
+the five authorized pure symbols with zero value, order, freezing, reference,
+workflow or Rules drift. Complete workflows remain Domain-owned. R3-D is now
+`completed_pending_human_review_and_push`; R3-E is `ready_not_started`.
