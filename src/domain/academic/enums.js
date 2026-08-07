@@ -13,26 +13,8 @@ export const CEFR_LEVELS = Object.freeze({
   C2: "C2",
 });
 
-import { ENROLLMENT_STATUSES } from "@mipymetic/saas-contracts/domain";
-
 export {
   COURSE_STATUSES,
   ENROLLMENT_STATUSES,
+  ENROLLMENT_STATUS_TRANSITIONS,
 } from "@mipymetic/saas-contracts/domain";
-
-/**
- * Declarative lifecycle contract. It does not execute transitions or grant
- * access.
- */
-export const ENROLLMENT_STATUS_TRANSITIONS = Object.freeze({
-  [ENROLLMENT_STATUSES.PENDING]: Object.freeze([
-    ENROLLMENT_STATUSES.ACTIVE,
-    ENROLLMENT_STATUSES.CANCELLED,
-  ]),
-  [ENROLLMENT_STATUSES.ACTIVE]: Object.freeze([
-    ENROLLMENT_STATUSES.COMPLETED,
-    ENROLLMENT_STATUSES.CANCELLED,
-  ]),
-  [ENROLLMENT_STATUSES.COMPLETED]: Object.freeze([]),
-  [ENROLLMENT_STATUSES.CANCELLED]: Object.freeze([]),
-});

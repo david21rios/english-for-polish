@@ -7,6 +7,7 @@ import { CAPABILITIES } from "../../../src/domain/authorization/capabilities.js"
 import * as authorizationDomain from "../../../src/domain/authorization/enums.js";
 import { ROLE_CAPABILITY_MATRIX } from "../../../src/domain/authorization/roleCapabilityMatrix.js";
 import * as identityDomain from "../../../src/domain/identity/enums.js";
+import * as accessStateDomain from "../../../src/domain/identity/accessStatePrecedence.js";
 import * as organizationDomain from "../../../src/domain/organization/enums.js";
 import * as workflowActorDomain from "../../../src/domain/workflow/actors.js";
 import { COURSE_WORKFLOW } from "../../../src/domain/workflow/courseWorkflow.js";
@@ -41,6 +42,75 @@ const domainAdapters = Object.freeze({
   PLATFORM_ROLES: authorizationDomain.PLATFORM_ROLES,
   CAPABILITY_SCOPES: authorizationDomain.CAPABILITY_SCOPES,
   WORKFLOW_ACTORS: workflowActorDomain.WORKFLOW_ACTORS,
+});
+
+const expectedAccessPrecedence = Object.freeze([
+  [1, "email_unverified", "pending_email_verification"],
+  [2, "institutional_suspension", "suspended"],
+  [3, "approved_membership", "active"],
+  [4, "pending_request", "pending_tenant_approval"],
+  [5, "rejected_request", "rejected"],
+]);
+
+test("access-state contracts preserve context, precedence, order and deep freezing", () => {
+  assert.deepEqual(packageDomain.ACCESS_STATE_CONTEXT, {
+    scope: "tenant", key: "uid + tenantId", requiresTenantId: true, outsideTenantResult: null,
+  });
+  assert.deepEqual(
+    packageDomain.ACCESS_STATE_PRECEDENCE.map(({ priority, key, result }) => [priority, key, result]),
+    expectedAccessPrecedence,
+  );
+  assert.deepEqual(packageDomain.NULL_ACCESS_STATE_CASES, [
+    "any_identity_without_tenant_context",
+    "verified_identity_without_registration_request",
+    "cancelled_registration_request",
+    "expired_registration_request",
+    "removed_membership",
+    "archived_tenant",
+  ]);
+  assert.equal(Object.isFrozen(packageDomain.ACCESS_STATE_CONTEXT), true);
+  assert.equal(Object.isFrozen(packageDomain.ACCESS_STATE_PRECEDENCE), true);
+  for (const rule of packageDomain.ACCESS_STATE_PRECEDENCE) assert.equal(Object.isFrozen(rule), true);
+  assert.equal(Object.isFrozen(packageDomain.NULL_ACCESS_STATE_CASES), true);
+  assert.strictEqual(accessStateDomain.ACCESS_STATE_CONTEXT, packageDomain.ACCESS_STATE_CONTEXT);
+  assert.strictEqual(accessStateDomain.ACCESS_STATE_PRECEDENCE, packageDomain.ACCESS_STATE_PRECEDENCE);
+  assert.strictEqual(accessStateDomain.NULL_ACCESS_STATE_CASES, packageDomain.NULL_ACCESS_STATE_CASES);
+});
+
+test("Membership and Enrollment transition maps preserve exact allowed and denied semantics", () => {
+  assert.deepEqual(packageDomain.MEMBERSHIP_STATUS_TRANSITIONS, {
+    approved: ["suspended", "removed"], suspended: ["approved", "removed"], removed: [],
+  });
+  assert.deepEqual(packageDomain.ENROLLMENT_STATUS_TRANSITIONS, {
+    pending: ["active", "cancelled"], active: ["completed", "cancelled"], completed: [], cancelled: [],
+  });
+  for (const transitions of [
+    packageDomain.MEMBERSHIP_STATUS_TRANSITIONS,
+    packageDomain.ENROLLMENT_STATUS_TRANSITIONS,
+  ]) {
+    assert.equal(Object.isFrozen(transitions), true);
+    for (const targets of Object.values(transitions)) assert.equal(Object.isFrozen(targets), true);
+  }
+  assert.strictEqual(organizationDomain.MEMBERSHIP_STATUS_TRANSITIONS, packageDomain.MEMBERSHIP_STATUS_TRANSITIONS);
+  assert.strictEqual(academicDomain.ENROLLMENT_STATUS_TRANSITIONS, packageDomain.ENROLLMENT_STATUS_TRANSITIONS);
+  assert.equal(packageDomain.MEMBERSHIP_STATUS_TRANSITIONS.removed.includes("approved"), false);
+  assert.equal(packageDomain.ENROLLMENT_STATUS_TRANSITIONS.completed.includes("active"), false);
+});
+
+test("complete workflow descriptors remain Domain-owned and semantically unchanged", () => {
+  const summaries = [
+    [TENANT_WORKFLOW, "active", ["archived"], [["active", "suspended"], ["suspended", "active"], ["active", "archived"], ["suspended", "archived"]]],
+    [REGISTRATION_REQUEST_WORKFLOW, "pending", ["approved", "rejected", "cancelled", "expired"], [["pending", "approved"], ["pending", "rejected"], ["pending", "cancelled"], ["pending", "expired"]]],
+    [MEMBERSHIP_WORKFLOW, "approved", ["removed"], [["approved", "suspended"], ["approved", "removed"], ["suspended", "approved"], ["suspended", "removed"]]],
+    [COURSE_WORKFLOW, "draft", ["archived"], [["draft", "active"], ["draft", "archived"], ["active", "archived"]]],
+    [ENROLLMENT_WORKFLOW, "pending", ["completed", "cancelled"], [["pending", "active"], ["pending", "cancelled"], ["active", "completed"], ["active", "cancelled"]]],
+  ];
+  for (const [workflow, initial, terminal, transitions] of summaries) {
+    assert.equal(workflow.initialState, initial);
+    assert.deepEqual(workflow.terminalStates, terminal);
+    assert.deepEqual(workflow.transitions.map(({ from, to }) => [from, to]), transitions);
+    assert.equal(Object.isFrozen(workflow), true);
+  }
 });
 
 test("Membership and platform roles remain separate and match Rules literals", async () => {

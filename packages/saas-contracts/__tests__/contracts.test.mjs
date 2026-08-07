@@ -28,11 +28,16 @@ test("export map subpaths resolve through the workspace package", () => {
   assert.strictEqual(errorContracts.COMMON_ERROR_CODES, contracts.COMMON_ERROR_CODES);
   assert.deepEqual(Object.keys(domainContracts), [
     "ACCESS_STATES",
+    "ACCESS_STATE_CONTEXT",
+    "ACCESS_STATE_PRECEDENCE",
     "CAPABILITY_SCOPES",
     "COURSE_STATUSES",
     "ENROLLMENT_STATUSES",
+    "ENROLLMENT_STATUS_TRANSITIONS",
     "MEMBERSHIP_ROLES",
     "MEMBERSHIP_STATUSES",
+    "MEMBERSHIP_STATUS_TRANSITIONS",
+    "NULL_ACCESS_STATE_CASES",
     "PLATFORM_ROLES",
     "REGISTRATION_REQUEST_STATUSES",
     "TENANT_STATUSES",
