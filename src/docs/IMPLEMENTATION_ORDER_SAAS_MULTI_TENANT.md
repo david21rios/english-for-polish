@@ -1920,6 +1920,28 @@ Privileged Backend = not_created
 Next after human review and push: `SaaS-03B-B0-I-R3-E — Capabilities and
 Authorization Matrices`. It is not started.
 
+## SaaS-03B-B0-I-R3-E capability authorization migration
+
+R3-E migrated the published 37 capability IDs and descriptors, six explicit
+self assignments, and the unchanged Membership/platform role matrix to package
+physical authority. Domain remains normative and exposes reference-identical
+compatibility reexports. The historical R3-A count of 35 was reconciled to the
+two capability contracts already added before R3-E. No permission, evaluator,
+workflow or Rules behavior changed. Package `0.5.0`, isolated Functions import,
+artifact reproducibility and all regressions pass.
+
+```text
+SaaS-03B-B0-I-R3-E = completed_pending_human_review_and_push
+SaaS-03B-B0-I-R3 = in_progress
+SaaS-03B-B0-I-R3-F = ready_not_started
+SaaS-03B-B = blocked_pending_B0_I_R3_R4
+PURE_CONTRACT_PHYSICAL_EXTRACTION = capability_authorization_contracts_migrated
+Privileged Backend = not_created
+```
+
+Next after human review and push: `SaaS-03B-B0-I-R3-F — CEFR and Language
+Contracts`. It is not started.
+
 ## SaaS-03B-B0-I-R3-B foundational enum/status migration
 
 Seven foundational contracts now have package physical authority at version
