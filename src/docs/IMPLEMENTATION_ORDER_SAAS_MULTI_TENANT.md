@@ -1942,6 +1942,27 @@ Privileged Backend = not_created
 Next after human review and push: `SaaS-03B-B0-I-R3-F — CEFR and Language
 Contracts`. It is not started.
 
+## SaaS-03B-B0-I-R3-F CEFR and language reconciliation
+
+R3-F selected `RESULT_A`: the exact frozen A1–C2 `CEFR_LEVELS` contract moved
+to package physical authority, while the JSDoc-only `LearningLanguage` and
+`InterfaceLanguage` shapes remain Domain-owned pending R3-H. Canonical BCP 47
+validation was already package-owned and was not duplicated. Legacy CEFR
+arrays/sets were audited but not functionally migrated. Package `0.6.0`, its
+vendored artifact and all regressions pass.
+
+```text
+SaaS-03B-B0-I-R3-F = completed_pending_human_review_and_push
+SaaS-03B-B0-I-R3 = in_progress
+SaaS-03B-B0-I-R3-G = ready_not_started
+SaaS-03B-B = blocked_pending_B0_I_R3_R4
+PURE_CONTRACT_PHYSICAL_EXTRACTION = cefr_contract_migrated_languages_reconciled
+Privileged Backend = not_created
+```
+
+Next after human review and push: `SaaS-03B-B0-I-R3-G — Errors / Results
+Reconciliation`. It is not started.
+
 ## SaaS-03B-B0-I-R3-B foundational enum/status migration
 
 Seven foundational contracts now have package physical authority at version
