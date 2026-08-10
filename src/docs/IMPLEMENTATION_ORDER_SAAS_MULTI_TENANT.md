@@ -5,6 +5,29 @@
 **Regla:** ninguna fase activa enforcement ni elimina compatibilidad antes de
 cumplir su gate.
 
+## Current checkpoint — SaaS-03B-B-R1 package topology reconciliation and foundation completion
+
+The resumed 03B-B worktree consumes the canonical
+`@mipymetic/saas-contracts@0.6.1` artifact exclusively. R1 corrected the single
+stale, fail-closed topology-test expectation from 0.6.0 to 0.6.1; package tests
+pass 28/28 without runtime, type-surface, export or SemVer changes. The existing
+Functions foundation compiles under strict TypeScript, passes 18/18 tests,
+preserves the Admin/transport boundaries, and contains no business command or
+deployed handler.
+
+```text
+SaaS-03B-B0-I = completed
+SaaS-03B-B-R1 = completed
+SaaS-03B-B = completed_pending_human_review_and_push
+SaaS-03B-B-C1 = ready_not_started
+SaaS-03B-C = blocked_pending_03B_B_C1
+Privileged Backend Foundation = implemented
+Privileged business commands = not_started
+```
+
+Next after human review and push: execute the independent `SaaS-03B-B-C1`
+foundation review. Do not begin SaaS-03B-C before that gate.
+
 ## Current checkpoint — SaaS-03B-B0-I-R4-C1-R2 post-repair revalidation
 
 The independent post-repair review confirms package `0.6.1` is runtime-correct,
