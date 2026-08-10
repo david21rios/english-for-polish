@@ -1,10 +1,10 @@
 {
   "packageName": "@mipymetic/saas-contracts",
-  "version": "0.5.0",
-  "filename": "mipymetic-saas-contracts-0.5.0.tgz",
-  "sha256": "83c29b8913f7a902c3b51cf566982592ec1c3a5c22a9cd959ffb59423556e57b",
-  "npmShasum": "683cc750042764ff49a7210c8eb81402924be128",
-  "npmIntegrity": "sha512-Q9jJoOcL1C7bKxJVkTESRgntS8JCzcfEgrxaf1LRNHPs+XQeA4B7nck7EvO9VustcK3PB9c+bjG8VEUyJ5ylRw==",
+  "version": "0.6.0",
+  "filename": "mipymetic-saas-contracts-0.6.0.tgz",
+  "sha256": "6fda40da4fb2467c40b48e32a35030a9801a2a5d79756658eddf556eb78a44b2",
+  "npmShasum": "a4a6580a36ce66d139aa3362354a18d8e1c2d4fc",
+  "npmIntegrity": "sha512-TRNmDHBGJhlBsDHAt7VI2BWlgU0hZelGAetdguk8S1zTZAWH0X1f/JfbytUtNtQLkYZVEq4tx6iH16nMDZSLvA==",
   "entryCount": 30,
   "files": [
     "README.md",

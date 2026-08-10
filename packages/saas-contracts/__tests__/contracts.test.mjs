@@ -33,6 +33,7 @@ test("export map subpaths resolve through the workspace package", () => {
     "CAPABILITIES",
     "CAPABILITY_IDS",
     "CAPABILITY_SCOPES",
+    "CEFR_LEVELS",
     "COURSE_STATUSES",
     "ENROLLMENT_STATUSES",
     "ENROLLMENT_STATUS_TRANSITIONS",

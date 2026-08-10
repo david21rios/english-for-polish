@@ -18,6 +18,7 @@ import { REGISTRATION_REQUEST_WORKFLOW } from "../../../src/domain/workflow/regi
 import { TENANT_WORKFLOW } from "../../../src/domain/workflow/tenantWorkflow.js";
 
 const expected = Object.freeze({
+  CEFR_LEVELS: ["A1", "A2", "B1", "B2", "C1", "C2"],
   ACCESS_STATES: ["pending_email_verification", "pending_tenant_approval", "active", "suspended", "rejected"],
   REGISTRATION_REQUEST_STATUSES: ["pending", "approved", "rejected", "cancelled", "expired"],
   TENANT_TYPES: ["university", "academy", "school", "company"],
@@ -32,6 +33,7 @@ const expected = Object.freeze({
 });
 
 const domainAdapters = Object.freeze({
+  CEFR_LEVELS: academicDomain.CEFR_LEVELS,
   ACCESS_STATES: identityDomain.ACCESS_STATES,
   REGISTRATION_REQUEST_STATUSES: identityDomain.REGISTRATION_REQUEST_STATUSES,
   TENANT_TYPES: organizationDomain.TENANT_TYPES,
@@ -225,6 +227,21 @@ test("foundational Domain contracts preserve exact values, order and freezing", 
     assert.deepEqual(Object.values(packageDomain[name]), values, name);
     assert.equal(Object.isFrozen(packageDomain[name]), true, name);
   }
+});
+
+test("CEFR is executable while language value objects remain independent structural contracts", async () => {
+  assert.deepEqual(Object.values(packageDomain.CEFR_LEVELS), ["A1", "A2", "B1", "B2", "C1", "C2"]);
+  assert.equal(Object.isFrozen(packageDomain.CEFR_LEVELS), true);
+  assert.strictEqual(academicDomain.CEFR_LEVELS, packageDomain.CEFR_LEVELS);
+  const learning = await readFile("src/domain/academic/learningLanguage.js", "utf8");
+  const interfaceLanguage = await readFile("src/domain/academic/interfaceLanguage.js", "utf8");
+  assert.match(learning, /@typedef \{object\} LearningLanguage/);
+  assert.match(learning, /languageCode Canonical BCP 47/);
+  assert.doesNotMatch(learning, /InterfaceLanguage/);
+  assert.match(interfaceLanguage, /@typedef \{object\} InterfaceLanguage/);
+  assert.match(interfaceLanguage, /locale BCP 47/);
+  assert.match(interfaceLanguage, /does not identify the language taught/);
+  assert.doesNotMatch(interfaceLanguage, /export const/);
 });
 
 test("Domain adapters preserve package reference identity", () => {
