@@ -5,6 +5,28 @@
 **Regla:** ninguna fase activa enforcement ni elimina compatibilidad antes de
 cumplir su gate.
 
+## Current checkpoint — SaaS-03B-B0-I-R4-C1-R2 post-repair revalidation
+
+The independent post-repair review confirms package `0.6.1` is runtime-correct,
+strict-TypeScript-consumable, pure and byte-reproducible. JavaScript/JSDoc stays
+authoritative; 28 generated declarations cover all eight public subpaths with
+zero `any`. Published clean checkouts with opposite EOL settings reproduce the
+canonical artifact exactly. The 21-file partial 03B-B worktree remains intact.
+
+```text
+SaaS-03B-B0-I-R4-C1-R1 = completed
+SaaS-03B-B0-I-R4-C1-R2 = completed_pending_human_review_and_push
+B0_I_TYPESCRIPT_DECLARATION_SURFACE = validated
+SaaS-03B-B0-I = completed
+PURE_CONTRACT_PHYSICAL_EXTRACTION = completed
+SaaS-03B-B = ready_to_resume_partial_implementation_after_R2_push
+Privileged Backend = partial_uncommitted_not_completed
+```
+
+Next after human review and push: resume the existing partial 03B-B foundation,
+cut over its vendored dependency from 0.6.0 to 0.6.1, retire 0.6.0 when safe,
+and resolve the five remaining foundation-local TypeScript errors.
+
 ## Current checkpoint — SaaS-03B-B0-I-R4-C1-R1 TypeScript declaration repair
 
 The first strict TypeScript consumer exposed a post-R4-C1 packaging defect: the
