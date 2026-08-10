@@ -44,6 +44,13 @@ test("payload authority spoofing is rejected exhaustively", () => {
     assert.throws(() => rejectActorAuthorityPayload({ [key]: "spoofed" }), BackendError);
   }
   assert.doesNotThrow(() => rejectActorAuthorityPayload({ displayName: "safe" }));
+  for (const payload of [
+    { actor: { uid: "descriptive-business-data" } },
+    { identity: { uid: "descriptive-business-data" } },
+    { authorityContext: { capabilities: ["descriptive-business-data"] } },
+    { profile: { role: "descriptive-business-data" } },
+  ]) assert.doesNotThrow(() => rejectActorAuthorityPayload(payload));
+  assert.throws(() => rejectActorAuthorityPayload({ authority: { role: "spoofed" } }), BackendError);
 });
 
 test("capability resolution uses the shared matrices", () => {
@@ -105,5 +112,11 @@ test("configuration is closed, environment-aware and secret-free", () => {
   });
   assert.throws(() => loadBackendConfig({ BACKEND_ENVIRONMENT: "unknown" }), BackendError);
   assert.throws(() => loadBackendConfig({ BACKEND_ENVIRONMENT: "production", GCLOUD_PROJECT: "project" }), BackendError);
+  assert.deepEqual(loadBackendConfig({ BACKEND_ENVIRONMENT: "development", GCLOUD_PROJECT: "development-project" }).environment, "development");
+  assert.deepEqual(loadBackendConfig({ BACKEND_ENVIRONMENT: "staging", GCLOUD_PROJECT: "staging-project", DEPLOYMENT_REGION: "region" }).environment, "staging");
+  assert.deepEqual(loadBackendConfig({ BACKEND_ENVIRONMENT: "production", GCLOUD_PROJECT: "production-project", DEPLOYMENT_REGION: "region" }).environment, "production");
+  assert.throws(() => loadBackendConfig({ BACKEND_ENVIRONMENT: "local", UNKNOWN: "value" }), BackendError);
+  assert.throws(() => loadBackendConfig({ BACKEND_ENVIRONMENT: "local", UNKNOWN: "value", OTHER: "value" }), BackendError);
+  assert.throws(() => loadBackendConfig({ BACKEND_ENVIRONMENT: "local", backend_environment: "local" }), BackendError);
   assert.throws(() => loadBackendConfig({ BACKEND_ENVIRONMENT: "local", API_TOKEN: "secret" }), BackendError);
 });

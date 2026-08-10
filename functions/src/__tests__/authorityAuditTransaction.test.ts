@@ -30,7 +30,7 @@ class Transaction implements TransactionPort {
 
 const platformReader = (status: string = PLATFORM_AUTHORITY_STATUSES.ACTIVE): Reader => new Reader(new Map([
   [identityDocumentPath(actor.uid), snapshot({ uid: actor.uid })],
-  [platformAuthorityDocumentPath(actor.uid), snapshot({ status, authority: PLATFORM_ROLES.PLATFORM_ADMIN })],
+  [platformAuthorityDocumentPath(actor.uid), snapshot({ uid: actor.uid, status, authority: PLATFORM_ROLES.PLATFORM_ADMIN })],
 ]));
 
 test("platform authority requires Identity plus active persisted authority", async () => {
@@ -42,11 +42,28 @@ test("platform authority requires Identity plus active persisted authority", asy
   await assert.rejects(resolvePlatformAuthority(new Reader(new Map()), actor), BackendError);
 });
 
+test("authority resolution rejects missing, malformed and mismatched Identity", async () => {
+  const platformAuthority = snapshot({ uid: actor.uid, status: PLATFORM_AUTHORITY_STATUSES.ACTIVE, authority: PLATFORM_ROLES.PLATFORM_ADMIN });
+  const invalidIdentities: readonly unknown[] = [null, [], "actor-1", {}, { uid: null }, { uid: 1 }, { uid: "" }, { uid: "   " }, { uid: "other" }];
+  for (const identity of invalidIdentities) {
+    const values = new Map<string, DocumentSnapshotPort>([
+      [identityDocumentPath(actor.uid), snapshot(identity as Readonly<Record<string, JsonValue>> | null)],
+      [platformAuthorityDocumentPath(actor.uid), platformAuthority],
+    ]);
+    await assert.rejects(resolvePlatformAuthority(new Reader(values), actor), BackendError);
+  }
+  const mismatchedAuthority = new Reader(new Map([
+    [identityDocumentPath(actor.uid), snapshot({ uid: actor.uid })],
+    [platformAuthorityDocumentPath(actor.uid), snapshot({ uid: "other", status: PLATFORM_AUTHORITY_STATUSES.ACTIVE, authority: PLATFORM_ROLES.PLATFORM_ADMIN })],
+  ]));
+  await assert.rejects(resolvePlatformAuthority(mismatchedAuthority, actor), BackendError);
+});
+
 test("tenant authority binds active Tenant and approved Membership to actor", async () => {
   const reader = new Reader(new Map([
     [identityDocumentPath(actor.uid), snapshot({ uid: actor.uid })],
-    [tenantDocumentPath("tenant-1"), snapshot({ status: TENANT_STATUSES.ACTIVE })],
-    [membershipDocumentPath("tenant-1", "membership-1"), snapshot({ uid: actor.uid, tenantId: "tenant-1", status: MEMBERSHIP_STATUSES.APPROVED, role: "tenant_admin" })],
+    [tenantDocumentPath("tenant-1"), snapshot({ tenantId: "tenant-1", status: TENANT_STATUSES.ACTIVE })],
+    [membershipDocumentPath("tenant-1", "membership-1"), snapshot({ membershipId: "membership-1", uid: actor.uid, tenantId: "tenant-1", status: MEMBERSHIP_STATUSES.APPROVED, role: "tenant_admin" })],
   ]));
   const resolved = await resolveTenantAuthority(reader, actor, "tenant-1", "membership-1");
   assert.equal(resolved.authority, "tenant_admin");
@@ -57,13 +74,25 @@ test("tenant authority binds active Tenant and approved Membership to actor", as
 test("tenant authority rejects missing, foreign, suspended and unknown Memberships", async () => {
   const values = (membership: Readonly<Record<string, JsonValue>> | null): Reader => new Reader(new Map([
     [identityDocumentPath(actor.uid), snapshot({ uid: actor.uid })],
-    [tenantDocumentPath("tenant-1"), snapshot({ status: TENANT_STATUSES.ACTIVE })],
+    [tenantDocumentPath("tenant-1"), snapshot({ tenantId: "tenant-1", status: TENANT_STATUSES.ACTIVE })],
     [membershipDocumentPath("tenant-1", "membership-1"), snapshot(membership)],
   ]));
   await assert.rejects(resolveTenantAuthority(values(null), actor, "tenant-1", "membership-1"), BackendError);
-  await assert.rejects(resolveTenantAuthority(values({ uid: "other", tenantId: "tenant-1", status: MEMBERSHIP_STATUSES.APPROVED, role: "student" }), actor, "tenant-1", "membership-1"), BackendError);
-  await assert.rejects(resolveTenantAuthority(values({ uid: actor.uid, tenantId: "tenant-1", status: MEMBERSHIP_STATUSES.SUSPENDED, role: "student" }), actor, "tenant-1", "membership-1"), BackendError);
-  await assert.rejects(resolveTenantAuthority(values({ uid: actor.uid, tenantId: "tenant-1", status: MEMBERSHIP_STATUSES.APPROVED, role: "unknown" }), actor, "tenant-1", "membership-1"), BackendError);
+  await assert.rejects(resolveTenantAuthority(values({ membershipId: "membership-1", uid: "other", tenantId: "tenant-1", status: MEMBERSHIP_STATUSES.APPROVED, role: "student" }), actor, "tenant-1", "membership-1"), BackendError);
+  await assert.rejects(resolveTenantAuthority(values({ membershipId: "membership-1", uid: actor.uid, tenantId: "other", status: MEMBERSHIP_STATUSES.APPROVED, role: "student" }), actor, "tenant-1", "membership-1"), BackendError);
+  await assert.rejects(resolveTenantAuthority(values({ membershipId: "membership-1", uid: actor.uid, tenantId: "tenant-1", status: MEMBERSHIP_STATUSES.SUSPENDED, role: "student" }), actor, "tenant-1", "membership-1"), BackendError);
+  await assert.rejects(resolveTenantAuthority(values({ membershipId: "membership-1", uid: actor.uid, tenantId: "tenant-1", status: MEMBERSHIP_STATUSES.APPROVED, role: "unknown" }), actor, "tenant-1", "membership-1"), BackendError);
+  const coherentMembership = snapshot({ membershipId: "membership-1", uid: actor.uid, tenantId: "tenant-1", status: MEMBERSHIP_STATUSES.APPROVED, role: "student" });
+  await assert.rejects(resolveTenantAuthority(new Reader(new Map([
+    [identityDocumentPath(actor.uid), snapshot({ uid: "other" })],
+    [tenantDocumentPath("tenant-1"), snapshot({ tenantId: "tenant-1", status: TENANT_STATUSES.ACTIVE })],
+    [membershipDocumentPath("tenant-1", "membership-1"), coherentMembership],
+  ])), actor, "tenant-1", "membership-1"), BackendError);
+  await assert.rejects(resolveTenantAuthority(new Reader(new Map([
+    [identityDocumentPath(actor.uid), snapshot({ uid: actor.uid })],
+    [tenantDocumentPath("tenant-1"), snapshot({ tenantId: "tenant-1", status: TENANT_STATUSES.SUSPENDED })],
+    [membershipDocumentPath("tenant-1", "membership-1"), coherentMembership],
+  ])), actor, "tenant-1", "membership-1"), BackendError);
 });
 
 const tenantAuthority: AuthorityResolution = Object.freeze({ actorUid: actor.uid, actorType: "identity", authority: "tenant_admin", tenantId: "tenant-1", roles: Object.freeze(["tenant_admin"]), capabilities: Object.freeze([]) });
@@ -85,10 +114,19 @@ test("audit writer rejects sensitive, nested and oversized data", () => {
   assert.throws(() => writeAuditEvent(transaction, { ...base, metadata: { value: "x".repeat(5000) } }), BackendError);
 });
 
-test("transaction foundation enforces budgets and forbids external effects", async () => {
+test("transaction foundation automatically enforces 19-read and 19-write budgets", async () => {
   const transaction = new Transaction();
   const runner: TransactionRunnerPort = { run: async <T>(operation: (port: TransactionPort) => Promise<T>) => operation(transaction) };
-  assert.equal(await runAuthoritativeTransaction(runner, async ({ registerRead, registerWrite }) => { registerRead(); registerWrite(); return "ok"; }), "ok");
-  await assert.rejects(runAuthoritativeTransaction(runner, async ({ registerRead }) => { for (let index = 0; index < 20; index += 1) registerRead(); return "no"; }), BackendError);
+  assert.equal(await runAuthoritativeTransaction(runner, async ({ transaction: port }) => {
+    for (let index = 0; index < 19; index += 1) await port.get(`reads/${index}`);
+    for (let index = 0; index < 19; index += 1) port.create(`writes/${index}`, {});
+    return "ok";
+  }), "ok");
+  await assert.rejects(runAuthoritativeTransaction(runner, async ({ transaction: port }) => {
+    for (let index = 0; index < 20; index += 1) await port.get(`reads/${index}`);
+  }), BackendError);
+  await assert.rejects(runAuthoritativeTransaction(runner, async ({ transaction: port }) => {
+    for (let index = 0; index < 20; index += 1) port.create(`writes/${index}`, {});
+  }), BackendError);
   await assert.rejects(externalEffect(), BackendError);
 });

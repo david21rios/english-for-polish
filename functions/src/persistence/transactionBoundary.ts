@@ -14,16 +14,28 @@ export const runAuthoritativeTransaction = async <T>(
 ): Promise<T> => runner.run(async (transaction) => {
   let reads = 0;
   let writes = 0;
+  const registerRead = (): void => {
+    reads += 1;
+    if (reads >= 20) throw new BackendError(BACKEND_ERROR_CODES.FAILED_PRECONDITION, "The command exceeds the contractual read budget.");
+  };
+  const registerWrite = (): void => {
+    writes += 1;
+    if (writes >= 20) throw new BackendError(BACKEND_ERROR_CODES.FAILED_PRECONDITION, "The command exceeds the contractual write budget.");
+  };
+  const budgetedTransaction: TransactionPort = Object.freeze({
+    get: async (path: string) => { registerRead(); return transaction.get(path); },
+    create: (path: string, data: Readonly<Record<string, unknown>>) => { registerWrite(); transaction.create(path, data); },
+    set: (path: string, data: Readonly<Record<string, unknown>>, options?: { merge: boolean }) => {
+      registerWrite();
+      if (options === undefined) transaction.set(path, data);
+      else transaction.set(path, data, options);
+    },
+    update: (path: string, data: Readonly<Record<string, unknown>>) => { registerWrite(); transaction.update(path, data); },
+  });
   const result = await operation(Object.freeze({
-    transaction,
-    registerRead: () => {
-      reads += 1;
-      if (reads >= 20) throw new BackendError(BACKEND_ERROR_CODES.FAILED_PRECONDITION, "The command exceeds the contractual read budget.");
-    },
-    registerWrite: () => {
-      writes += 1;
-      if (writes >= 20) throw new BackendError(BACKEND_ERROR_CODES.FAILED_PRECONDITION, "The command exceeds the contractual write budget.");
-    },
+    transaction: budgetedTransaction,
+    registerRead,
+    registerWrite,
   }));
   return result;
 });

@@ -23,6 +23,9 @@ const allowedKeys = new Set(["BACKEND_ENVIRONMENT", "GCLOUD_PROJECT", "DEPLOYMEN
 
 export const loadBackendConfig = (source: ConfigSource): BackendConfig => {
   for (const key of Object.keys(source)) {
+    if (!allowedKeys.has(key)) {
+      throw new BackendError(BACKEND_ERROR_CODES.CONTRACT_VIOLATION, "Versioned backend configuration contains an unknown key.");
+    }
     if (/secret|password|token|credential/i.test(key)) {
       throw new BackendError(BACKEND_ERROR_CODES.CONTRACT_VIOLATION, "Secret values are not accepted by versioned backend configuration.");
     }
