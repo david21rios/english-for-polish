@@ -5,7 +5,32 @@
 **Regla:** ninguna fase activa enforcement ni elimina compatibilidad antes de
 cumplir su gate.
 
-## Current checkpoint — SaaS-03B-B0-I-R3-H residual authority closure
+## Current checkpoint — SaaS-03B-B0-I-R3-C1-R1 global lint gate reconciliation
+
+The first independent R3-C1 review found that every R3 gate passed except the
+repository-global lint command. R3-C1-R1 selected `RESOLUTION_A`: a clean
+pre-R3 baseline reproduces exactly the current 13 errors and 8 warnings, none
+of their 11 files changed during R3, and lint over all R3 changes and affected
+compatibility surfaces passes with zero errors and zero warnings.
+
+The R3-C1 lint contract is now scoped and delta-based without hiding global
+debt: execute and report global lint, require `R3_SCOPED_LINT = PASS` and
+`GLOBAL_LINT_R3_DELTA = 0`, and block on any R3-attributable lint error. The
+existing global debt remains unresolved and separately tracked.
+
+```text
+SaaS-03B-B0-I-R3-C1-R1 = completed_pending_human_review_and_push
+SaaS-03B-B0-I-R3-C1 = blocked_pending_R1_push_and_revalidation
+SaaS-03B-B0-I-R3 = not_closed
+SaaS-03B-B0-I-R4 = blocked
+SaaS-03B-B = blocked_pending_B0_I_R3_R4
+Privileged Backend = not_created
+```
+
+Next after human review and push: re-execute `SaaS-03B-B0-I-R3-C1` with the
+reconciled lint gate. R4 is not started.
+
+## Historical checkpoint — SaaS-03B-B0-I-R3-H residual authority closure
 
 R3-H selected `RESULT_A`: 21 migrated contracts retain package physical
 authority through Domain compatibility reexports; 12 JSDoc shapes remain
