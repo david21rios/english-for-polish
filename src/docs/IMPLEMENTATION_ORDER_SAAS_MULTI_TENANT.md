@@ -5,7 +5,28 @@
 **Regla:** ninguna fase activa enforcement ni elimina compatibilidad antes de
 cumplir su gate.
 
-## Current checkpoint — SaaS-03B-B0-I-R3-C1-R1 global lint gate reconciliation
+## Current checkpoint — SaaS-03B-B0-I-R3-C1-R2 artifact reproducibility repair
+
+R3-C1-R2 selected `SOLUTION_A`. The package now has a repository-controlled LF
+policy and a regression test over all 30 shipped source files. Independent
+checkouts with `core.autocrlf=false` and `core.autocrlf=true` generate the same
+0.6.0 tarball byte-for-byte, preserving the canonical SHA-256
+`6fda40da4fb2467c40b48e32a35030a9801a2a5d79756658eddf556eb78a44b2`.
+No package semantics, version, artifact, manifest or lockfile changed.
+
+```text
+SaaS-03B-B0-I-R3-C1-R2 = completed_pending_human_review_and_push
+SaaS-03B-B0-I-R3-C1 = blocked_pending_R2_push_and_revalidation
+SaaS-03B-B0-I-R3 = not_closed
+SaaS-03B-B0-I-R4 = blocked
+SaaS-03B-B = blocked_pending_B0_I_R3_R4
+Privileged Backend = not_created
+```
+
+Next after human review and push: re-execute `SaaS-03B-B0-I-R3-C1`. R4 is not
+started.
+
+## Historical checkpoint — SaaS-03B-B0-I-R3-C1-R1 global lint gate reconciliation
 
 The first independent R3-C1 review found that every R3 gate passed except the
 repository-global lint command. R3-C1-R1 selected `RESOLUTION_A`: a clean
