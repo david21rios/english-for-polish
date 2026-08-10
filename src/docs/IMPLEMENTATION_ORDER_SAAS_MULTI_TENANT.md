@@ -5,7 +5,29 @@
 **Regla:** ninguna fase activa enforcement ni elimina compatibilidad antes de
 cumplir su gate.
 
-## Current checkpoint — SaaS-03B-B0-I-R3-C1-R2 artifact reproducibility repair
+## Current checkpoint — SaaS-03B-B0-I-R3-C1 independent final review
+
+The final R3 review revalidated the published lint-gate reconciliation and the
+deterministic-EOL repair. All R3 authority, compatibility, purity, artifact,
+clean-install, regression, Rules, build, scoped-lint, and delta-based global-lint
+gates pass. The package artifact is byte-identical from clean Windows checkouts
+with opposite safe `core.autocrlf` settings. Native Linux/WSL was unavailable and
+is not reported as passing.
+
+```text
+SaaS-03B-B0-I-R3-C1-R1 = completed
+SaaS-03B-B0-I-R3-C1-R2 = completed
+SaaS-03B-B0-I-R3-C1 = completed_pending_human_review_and_push
+SaaS-03B-B0-I-R3 = completed
+SaaS-03B-B0-I-R4 = ready_not_started
+SaaS-03B-B = blocked_pending_B0_I_R4
+Privileged Backend = not_created
+```
+
+Next after human review and push: `SaaS-03B-B0-I-R4`. R4 and 03B-B were not
+started by this review.
+
+## Historical checkpoint — SaaS-03B-B0-I-R3-C1-R2 artifact reproducibility repair
 
 R3-C1-R2 selected `SOLUTION_A`. The package now has a repository-controlled LF
 policy and a regression test over all 30 shipped source files. Independent
