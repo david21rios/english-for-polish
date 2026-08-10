@@ -5,6 +5,29 @@
 **Regla:** ninguna fase activa enforcement ni elimina compatibilidad antes de
 cumplir su gate.
 
+## Current checkpoint — SaaS-03B-B-C1-R2-R1 identifier validation repair
+
+The independent post-repair review found that three Functions consumers treated
+the result-based `validateDocumentIdentifier` contract as throwing and therefore
+accepted invalid authenticated and command identifiers. R2-R1 now discriminates
+`validation.ok` explicitly without changing the shared package. Empty,
+whitespace, dot, dot-dot and slash identifiers fail closed; the complete clean
+Functions and root regression matrices pass.
+
+```text
+SaaS-03B-B = implemented_repaired_pending_independent_revalidation
+SaaS-03B-B-C1-R1 = completed
+SaaS-03B-B-C1-R2-R1 = completed_pending_human_review_and_push
+SaaS-03B-B-C1-R2 = blocked_pending_R2_R1_human_review_and_push
+SaaS-03B-B-C1 = not_closed
+SaaS-03B-C = blocked
+Privileged Backend Foundation = repaired_pending_independent_revalidation
+Bootstrap platform_admin = not_started
+```
+
+Next after human review and push: perform a post-identifier-repair independent
+full C1 revalidation. Do not start 03B-C.
+
 ## Current checkpoint — SaaS-03B-B-C1-R1 authority coherence repair
 
 Independent C1 characterization proved that the original foundation accepted a
