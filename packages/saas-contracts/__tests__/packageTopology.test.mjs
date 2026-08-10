@@ -9,7 +9,7 @@ const manifest = JSON.parse(await readFile(path.join(packageRoot, "package.json"
 
 test("package manifest freezes identity, safety and public subpaths", () => {
   assert.equal(manifest.name, "@mipymetic/saas-contracts");
-  assert.equal(manifest.version, "0.6.0");
+  assert.equal(manifest.version, "0.6.1");
   assert.equal(manifest.private, true);
   assert.equal(manifest.type, "module");
   assert.equal(manifest.sideEffects, false);
@@ -24,7 +24,12 @@ test("package manifest freezes identity, safety and public subpaths", () => {
     "./errors",
   ]);
   assert.equal(manifest.dependencies, undefined);
-  assert.equal(manifest.scripts, undefined);
+  assert.equal(manifest.types, "./types/index.d.ts");
+  assert.deepEqual(manifest.files, ["src", "types", "README.md"]);
+  assert.equal(manifest.devDependencies.typescript, "5.9.3");
+  for (const value of Object.values(manifest.exports)) {
+    assert.deepEqual(Object.keys(value), ["types", "default"]);
+  }
 });
 
 test("workspace resolution points to the authoritative local package", async () => {
@@ -41,7 +46,7 @@ test("functions dependency is a contained exact vendor artifact", async () => {
   assert.equal(functionsManifest.private, true);
 });
 
-test("vendor artifact checksum and inventory are explicit", async () => {
+test("current vendor artifact checksum and inventory are explicit", async () => {
   const artifact = JSON.parse(await readFile("functions/vendor/saas-contracts-artifact.json", "utf8"));
   const tarball = await readFile(`functions/vendor/${artifact.filename}`);
   assert.equal(createHash("sha256").update(tarball).digest("hex"), artifact.sha256);

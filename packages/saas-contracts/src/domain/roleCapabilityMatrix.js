@@ -2,6 +2,7 @@ import { MEMBERSHIP_ROLES } from "./membership.js";
 import { CAPABILITY_IDS } from "./capabilities.js";
 import { PLATFORM_ROLES } from "./authorization.js";
 
+/** @template {readonly string[]} T @param {T} capabilities @returns {Readonly<T>} */
 const freezeCapabilities = (capabilities) => Object.freeze(capabilities);
 
 export const ROLE_CAPABILITY_MATRIX = Object.freeze({

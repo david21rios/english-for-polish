@@ -1,0 +1,16 @@
+export function identityDocumentPath(uid: unknown): string;
+export function tenantDocumentPath(tenantId: unknown): string;
+export function tenantSettingsDocumentPath(tenantId: unknown): string;
+export function tenantBrandingDocumentPath(tenantId: unknown): string;
+export function registrationRequestDocumentPath(tenantId: unknown, requestId: unknown): string;
+export function registrationRequestKeyDocumentPath(tenantId: unknown, uidKey: unknown): string;
+export function membershipDocumentPath(tenantId: unknown, membershipId: unknown): string;
+export function membershipKeyDocumentPath(tenantId: unknown, uidKey: unknown): string;
+export function courseDocumentPath(tenantId: unknown, courseId: unknown): string;
+export function enrollmentDocumentPath(tenantId: unknown, enrollmentId: unknown): string;
+export function platformAuthorityDocumentPath(uid: unknown): string;
+export function platformAuthorityRegistryDocumentPath(): string;
+export function privilegedCommandDocumentPath(commandId: unknown): string;
+export function platformAuditEventDocumentPath(auditId: unknown): string;
+export function tenantAuditEventDocumentPath(tenantId: unknown, auditId: unknown): string;
+export function tenantAdminAuthorityStateDocumentPath(tenantId: unknown): string;

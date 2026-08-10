@@ -1,24 +1,33 @@
 {
   "name": "@mipymetic/saas-contracts",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "private": true,
   "type": "module",
   "sideEffects": false,
   "engines": {
     "node": ">=20"
   },
+  "types": "./types/index.d.ts",
   "exports": {
-    ".": "./src/index.js",
-    "./domain": "./src/domain/index.js",
-    "./persistence": "./src/persistence/index.js",
-    "./validation": "./src/validation/index.js",
-    "./commands": "./src/commands/index.js",
-    "./authority": "./src/authority/index.js",
-    "./audit": "./src/audit/index.js",
-    "./errors": "./src/errors/index.js"
+    ".": { "types": "./types/index.d.ts", "default": "./src/index.js" },
+    "./domain": { "types": "./types/domain/index.d.ts", "default": "./src/domain/index.js" },
+    "./persistence": { "types": "./types/persistence/index.d.ts", "default": "./src/persistence/index.js" },
+    "./validation": { "types": "./types/validation/index.d.ts", "default": "./src/validation/index.js" },
+    "./commands": { "types": "./types/commands/index.d.ts", "default": "./src/commands/index.js" },
+    "./authority": { "types": "./types/authority/index.d.ts", "default": "./src/authority/index.js" },
+    "./audit": { "types": "./types/audit/index.d.ts", "default": "./src/audit/index.js" },
+    "./errors": { "types": "./types/errors/index.d.ts", "default": "./src/errors/index.js" }
   },
   "files": [
     "src",
+    "types",
     "README.md"
-  ]
+  ],
+  "scripts": {
+    "build:types": "tsc -p tsconfig.types.json",
+    "check:types": "tsc -p tsconfig.types.json --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3"
+  }
 }

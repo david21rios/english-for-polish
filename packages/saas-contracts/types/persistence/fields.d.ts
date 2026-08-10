@@ -1,0 +1,13 @@
+export const IDENTITY_FIELDS: readonly string[];
+export const IDENTITY_REQUIRED_FIELDS: readonly string[];
+export const IDENTITY_PROFILE_UPDATE_FIELDS: readonly string[];
+export const TENANT_FIELDS: readonly string[];
+export const TENANT_REQUIRED_FIELDS: readonly string[];
+export const REGISTRATION_REQUEST_FIELDS: readonly string[];
+export const REGISTRATION_REQUEST_REQUIRED_FIELDS: readonly string[];
+export const MEMBERSHIP_FIELDS: readonly string[];
+export const MEMBERSHIP_REQUIRED_FIELDS: readonly string[];
+export const COURSE_FIELDS: readonly string[];
+export const COURSE_REQUIRED_FIELDS: readonly string[];
+export const ENROLLMENT_FIELDS: readonly string[];
+export const ENROLLMENT_REQUIRED_FIELDS: readonly string[];

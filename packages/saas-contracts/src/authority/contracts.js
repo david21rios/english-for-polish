@@ -1,3 +1,4 @@
+/** @template {readonly string[]} T @param {T} values @returns {Readonly<T>} */
 const frozen = (values) => Object.freeze(values);
 
 export const AUTHORITY_SCHEMA_VERSION = 1;

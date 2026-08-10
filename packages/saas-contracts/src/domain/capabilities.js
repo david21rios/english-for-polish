@@ -54,6 +54,17 @@ export const CAPABILITY_IDS = Object.freeze({
   PLATFORM_IDENTITY_READ: "platform.identity_read",
 });
 
+/**
+ * @template {string} I
+ * @template {string} S
+ * @template {string} R
+ * @template {string} D
+ * @param {I} id
+ * @param {S} scope
+ * @param {R} resource
+ * @param {D} description
+ * @returns {Readonly<{id: I, scope: S, resource: R, description: D}>}
+ */
 const defineCapability = (id, scope, resource, description) =>
   Object.freeze({ id, scope, resource, description });
 
