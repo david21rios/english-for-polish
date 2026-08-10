@@ -267,3 +267,19 @@ and artifact reproducibility pass. R3-C is `ready_not_started`.
 
 R3-C subsequently completed its planned role/scope/actor slice; lifecycle and
 transition migration remains unstarted.
+
+## R3-G reconciliation checkpoint
+
+R3-G selected `RESULT_A — reconciliation only`. Shared
+`REPOSITORY_ERROR_CODES`, `RepositoryError` and `mapFirebaseError` remain the
+client repository compatibility surface. Package `COMMON_ERROR_CODES` and
+`BACKEND_ERROR_CODES` remain pure declarations; their nine common string values
+are legitimate overlap, not duplicate authority. Command, audit and authority
+result/status contracts were already package-owned. No technical migration,
+SemVer change or artifact regeneration was required.
+
+```text
+SaaS-03B-B0-I-R3-G = completed_pending_human_review_and_push
+SaaS-03B-B0-I-R3-H = ready_not_started
+PURE_CONTRACT_PHYSICAL_EXTRACTION = error_result_surfaces_reconciled
+```

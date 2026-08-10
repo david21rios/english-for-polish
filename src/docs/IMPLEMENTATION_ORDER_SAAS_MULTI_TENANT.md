@@ -5,6 +5,26 @@
 **Regla:** ninguna fase activa enforcement ni elimina compatibilidad antes de
 cumplir su gate.
 
+## Current checkpoint — SaaS-03B-B0-I-R3-G error/result reconciliation
+
+R3-G selected `RESULT_A`: Shared `RepositoryError`, its nine client codes and
+Firebase mapping remain the client compatibility surface. Package common/backend
+error codes and command, audit and authority status/result contracts remain pure
+declarations. Matching common strings are legitimate cross-surface overlap, not
+duplicate authority. Package `0.6.0` and its vendored artifact remain unchanged.
+
+```text
+SaaS-03B-B0-I-R3-G = completed_pending_human_review_and_push
+SaaS-03B-B0-I-R3 = in_progress
+SaaS-03B-B0-I-R3-H = ready_not_started
+SaaS-03B-B = blocked_pending_B0_I_R3_R4
+PURE_CONTRACT_PHYSICAL_EXTRACTION = error_result_surfaces_reconciled
+Privileged Backend = not_created
+```
+
+Next after human review and push: `SaaS-03B-B0-I-R3-H — Residual duplication
+elimination and final authority closure`. It is not started.
+
 > Course gate definitive status: `SaaS-03A.5R-B2 = completed`, Course runtime
 > 114/114 and CourseRepository `completed_in_shadow_mode`. The next ordered
 > phase `SaaS-03A.6A-R1` completed its contract resolution. `SaaS-03A.6B` is
