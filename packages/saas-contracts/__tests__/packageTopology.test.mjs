@@ -53,3 +53,19 @@ test("vendor artifact checksum and inventory are explicit", async () => {
   assert.equal(artifact.files.some((file) => file.includes("__tests__")), false);
   assert.equal(artifact.files.some((file) => file.includes("node_modules")), false);
 });
+
+test("packaged source uses repository-canonical LF bytes", async () => {
+  const artifact = JSON.parse(await readFile("functions/vendor/saas-contracts-artifact.json", "utf8"));
+
+  for (const file of artifact.files) {
+    const contents = await readFile(path.join(packageRoot, file));
+    const hasCrLf = contents.some(
+      (byte, index) => byte === 13 && contents[index + 1] === 10,
+    );
+    assert.equal(
+      hasCrLf,
+      false,
+      `${file} must not contain CRLF bytes`,
+    );
+  }
+});
