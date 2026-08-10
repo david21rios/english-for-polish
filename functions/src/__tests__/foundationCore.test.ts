@@ -34,6 +34,12 @@ const record = (status: CommandStatus, payloadHash = "hash-1"): CommandRecord =>
 
 test("authenticated actor derives identity only from verified context", () => {
   assert.throws(() => requireAuthenticatedActor(null), (error: unknown) => error instanceof BackendError && error.code === BACKEND_ERROR_CODES.UNAUTHENTICATED);
+  for (const uid of ["", "   ", ".", "..", "a/b"]) {
+    assert.throws(
+      () => requireAuthenticatedActor({ uid }),
+      (error: unknown) => error instanceof BackendError && error.code === BACKEND_ERROR_CODES.UNAUTHENTICATED,
+    );
+  }
   assert.deepEqual(requireAuthenticatedActor({ uid: "actor-1", token: { email_verified: true }, appCheckVerified: true }), {
     uid: "actor-1", tokenEmailVerified: true, appCheckVerified: true,
   });
@@ -65,6 +71,15 @@ test("capability resolution uses the shared matrices", () => {
 
 test("command envelope is exact and rejects unknown commands", () => {
   assert.doesNotThrow(() => validateCommandEnvelope(envelope()));
+  assert.doesNotThrow(() => validateCommandEnvelope({ ...envelope(), commandId: "firebase_document-ID_1" }));
+  for (const field of ["commandId", "correlationId", "tenantId"] as const) {
+    for (const value of ["", "   ", ".", "..", "a/b"]) {
+      assert.throws(
+        () => validateCommandEnvelope({ ...envelope(), [field]: value }),
+        (error: unknown) => error instanceof BackendError && error.code === BACKEND_ERROR_CODES.INVALID_ARGUMENT,
+      );
+    }
+  }
   assert.throws(() => validateCommandEnvelope({ ...envelope(), commandType: "Unknown" }), BackendError);
   assert.throws(() => validateCommandEnvelope({ ...envelope(), actorUid: "spoofed" } as CommandEnvelope), BackendError);
   assert.throws(() => validateCommandEnvelope({ ...envelope(), payload: [] } as unknown as CommandEnvelope), BackendError);

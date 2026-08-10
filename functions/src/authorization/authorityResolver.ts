@@ -15,8 +15,9 @@ const activeIdentity = async (reader: AuthoritativeReaderPort, uid: string) => {
   if (!isPlainObject(identity.data) || typeof identity.data.uid !== "string") {
     throw new BackendError(BACKEND_ERROR_CODES.CONTRACT_VIOLATION, "The actor Identity is invalid.");
   }
-  try { validateDocumentIdentifier(identity.data.uid, "identity.uid"); } catch (error) {
-    throw new BackendError(BACKEND_ERROR_CODES.CONTRACT_VIOLATION, "The actor Identity is invalid.", { cause: error });
+  const validation = validateDocumentIdentifier(identity.data.uid, "identity.uid");
+  if (!validation.ok) {
+    throw new BackendError(BACKEND_ERROR_CODES.CONTRACT_VIOLATION, "The actor Identity is invalid.");
   }
   if (identity.data.uid !== uid) {
     throw new BackendError(BACKEND_ERROR_CODES.FORBIDDEN, "The actor Identity is not coherent with authentication.");

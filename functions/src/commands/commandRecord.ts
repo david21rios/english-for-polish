@@ -16,12 +16,13 @@ export const validateCommandEnvelope = (envelope: CommandEnvelope): void => {
   if (typeof envelope.payload !== "object" || envelope.payload === null || Array.isArray(envelope.payload)) {
     throw new BackendError(BACKEND_ERROR_CODES.INVALID_ARGUMENT, "The command payload must be a plain object.");
   }
-  try {
-    validateDocumentIdentifier(envelope.commandId, "commandId");
-    validateDocumentIdentifier(envelope.correlationId, "correlationId");
-    if (envelope.tenantId !== null) validateDocumentIdentifier(envelope.tenantId, "tenantId");
-  } catch (error) {
-    throw new BackendError(BACKEND_ERROR_CODES.INVALID_ARGUMENT, "The command envelope contains an invalid identifier.", { cause: error });
+  const identifiers = [
+    validateDocumentIdentifier(envelope.commandId, "commandId"),
+    validateDocumentIdentifier(envelope.correlationId, "correlationId"),
+    ...(envelope.tenantId === null ? [] : [validateDocumentIdentifier(envelope.tenantId, "tenantId")]),
+  ];
+  if (identifiers.some((validation) => !validation.ok)) {
+    throw new BackendError(BACKEND_ERROR_CODES.INVALID_ARGUMENT, "The command envelope contains an invalid identifier.");
   }
   if (!commandTypes.has(envelope.commandType as (typeof COMMAND_TYPES)[keyof typeof COMMAND_TYPES])) {
     throw new BackendError(BACKEND_ERROR_CODES.INVALID_ARGUMENT, "The command type is unknown.");

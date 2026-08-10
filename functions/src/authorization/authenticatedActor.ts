@@ -13,8 +13,9 @@ export const requireAuthenticatedActor = (context: VerifiedAuthenticationContext
   if (context?.uid === undefined) {
     throw new BackendError(BACKEND_ERROR_CODES.UNAUTHENTICATED, "Authentication is required.");
   }
-  try { validateDocumentIdentifier(context.uid, "actorUid"); } catch (error) {
-    throw new BackendError(BACKEND_ERROR_CODES.UNAUTHENTICATED, "The authenticated actor is invalid.", { cause: error });
+  const validation = validateDocumentIdentifier(context.uid, "actorUid");
+  if (!validation.ok) {
+    throw new BackendError(BACKEND_ERROR_CODES.UNAUTHENTICATED, "The authenticated actor is invalid.");
   }
   return Object.freeze({
     uid: context.uid,
