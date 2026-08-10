@@ -41,7 +41,7 @@ test("functions dependency is a contained exact vendor artifact", async () => {
   const functionsManifest = JSON.parse(await readFile("functions/package.json", "utf8"));
   assert.equal(
     functionsManifest.dependencies["@mipymetic/saas-contracts"],
-    "file:vendor/mipymetic-saas-contracts-0.6.0.tgz",
+    "file:vendor/mipymetic-saas-contracts-0.6.1.tgz",
   );
   assert.equal(functionsManifest.private, true);
 });
