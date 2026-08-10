@@ -5,6 +5,26 @@
 **Regla:** ninguna fase activa enforcement ni elimina compatibilidad antes de
 cumplir su gate.
 
+## Current checkpoint — SaaS-03B-B0-I-R4-C1-R1 TypeScript declaration repair
+
+The first strict TypeScript consumer exposed a post-R4-C1 packaging defect: the
+`0.6.0` artifact had no declaration surface. R4-C1-R1 repairs that surface
+without changing runtime semantics. JavaScript/JSDoc remains authoritative, 28
+deterministic declarations cover all eight public subpaths, package `0.6.1` has
+zero runtime dependencies, and its canonical artifact is byte-reproducible. The
+preexisting partial 03B-B Functions work remains uncommitted and excluded.
+
+```text
+SaaS-03B-B0-I-R4-C1-R1 = completed_pending_human_review_and_push
+B0_I_TYPESCRIPT_DECLARATION_SURFACE = repaired
+SaaS-03B-B0-I = completed_pending_post_repair_revalidation
+SaaS-03B-B = blocked_pending_B0_I_types_repair_push_and_resume
+Privileged Backend = partial_uncommitted_not_completed
+```
+
+Next after human review and push: independent post-repair R4-C1 revalidation.
+The package/artifact change makes that review mandatory before resuming 03B-B.
+
 ## Current checkpoint — SaaS-03B-B0-I-R4-C1 independent final review
 
 The independent R4-C1 review confirms R4 `RESULT A` and closes the physical
