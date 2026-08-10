@@ -116,3 +116,13 @@ Privileged business commands = not_started
 
 Next after human review and push is independent 03B-B-C1. Neither 03B-C nor any
 business-command phase starts here.
+
+## C1-R1 repair trace
+
+The first independent C1 review later proved that the original implementation
+did not enforce persisted Identity UID coherence and that its configuration
+allowlist was not effective. `SaaS-03B-B-C1-R1` repairs those statements in
+code, adds automatic transaction-port budget enforcement and expands negative
+characterization. This historical foundation record is therefore superseded for
+those guarantees by the R1 repair report; independent C1-R2 revalidation remains
+required before 03B-C.

@@ -5,6 +5,26 @@
 **Regla:** ninguna fase activa enforcement ni elimina compatibilidad antes de
 cumplir su gate.
 
+## Current checkpoint — SaaS-03B-B-C1-R1 authority coherence repair
+
+Independent C1 characterization proved that the original foundation accepted a
+mismatched persisted Identity and ignored unknown configuration keys. R1 now
+validates Identity/path authority coherence, makes the configuration allowlist
+effective, and enforces transaction budgets through the provided transaction
+port. The repair passes 19/19 Functions tests and the complete unchanged root
+regression matrix.
+
+```text
+SaaS-03B-B = implemented_repaired_pending_independent_revalidation
+SaaS-03B-B-C1-R1 = completed_pending_human_review_and_push
+SaaS-03B-B-C1 = blocked_pending_R1_human_review_and_push
+SaaS-03B-C = blocked
+Privileged Backend Foundation = repaired_pending_C1_revalidation
+Bootstrap platform_admin = not_started
+```
+
+Next after human review and push: run `SaaS-03B-B-C1-R2`. Do not start 03B-C.
+
 ## Current checkpoint — SaaS-03B-B-R1 package topology reconciliation and foundation completion
 
 The resumed 03B-B worktree consumes the canonical
