@@ -5,6 +5,30 @@
 **Regla:** ninguna fase activa enforcement ni elimina compatibilidad antes de
 cumplir su gate.
 
+## Current checkpoint — SaaS-03B-B0-I-R3-H residual authority closure
+
+R3-H selected `RESULT_A`: 21 migrated contracts retain package physical
+authority through Domain compatibility reexports; 12 JSDoc shapes remain
+structural Domain authority; five complete workflows remain temporary Domain
+runtime authority because no later normative source authorizes their extraction;
+and `APPROVE_REGISTRATION_REQUEST` is backend-deferred. Rules literals, fixtures
+and legacy CEFR copies are classified, while defective duplication remains zero.
+No technical change, adapter removal, SemVer change or artifact regeneration is
+required.
+
+```text
+SaaS-03B-B0-I-R3-H = completed_pending_human_review_and_push
+SaaS-03B-B0-I-R3 = in_progress
+SaaS-03B-B0-I-R3-C1 = ready_not_started
+SaaS-03B-B0-I-R4 = blocked_pending_R3_C1
+SaaS-03B-B = blocked_pending_B0_I_R3_R4
+PURE_CONTRACT_PHYSICAL_EXTRACTION = residual_authority_reconciled
+Privileged Backend = not_created
+```
+
+Next after human review and push: `SaaS-03B-B0-I-R3-C1 — Independent Final
+Review of R3`. It is not started.
+
 ## Current checkpoint — SaaS-03B-B0-I-R3-G error/result reconciliation
 
 R3-G selected `RESULT_A`: Shared `RepositoryError`, its nine client codes and

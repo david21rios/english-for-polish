@@ -45,7 +45,7 @@ rollback/risk/dependencies/order. `same` means exact name, values, key order,
 freezing and referential reexport are preserved. `restore` means revert the
 microphase commit and restore the previous Domain definition.
 
-## 4. Complete Domain inventory (40 contracts)
+## 4. Complete Domain inventory (39 current contract rows)
 
 | ID | Family / symbol / type | Current authority and export | Exact value or shape | Consumers and impacts | Tests / duplicates | Classification and target | Adapter / compatibility / rollback / risk / deps / order |
 |---|---|---|---|---|---|---|---|
@@ -89,7 +89,7 @@ microphase commit and restore the previous Domain definition.
 | DOM-WF-006 | workflow / `ENROLLMENT_WORKFLOW` / state machine | `workflow/enrollmentWorkflow.js` | pending initial; 4 transitions | future commands; P,F,R,B | Domain docs/runtime semantics | DOMAIN_MUST_REMAIN_TEMPORARY_AUTHORITY | no in R3-D; complete workflow mixes lifecycle, actors and capabilities; independent `ENROLLMENT_STATUS_TRANSITIONS` remains R3-D; critical; statuses/actors/caps; H |
 | DOM-WF-007 | workflow / `APPROVE_REGISTRATION_REQUEST` / cross-aggregate descriptor | `workflow/registrationApproval.js` | idempotency, preconditions, effects, replay | future privileged command; P,F,R,B | architecture docs | DOMAIN_MUST_REMAIN_TEMPORARY_AUTHORITY | no; preserve until command R2; n/a; critical; 03B command design; H |
 
-Classification totals after R3-D-R1 reconciliation: 22
+Classification totals after R3-D-R1 reconciliation: 21
 `EXTRACTION_WITH_REEXPORT_ADAPTER`, 18
 `DOMAIN_MUST_REMAIN_TEMPORARY_AUTHORITY`, and zero current
 `DIRECT_EXTRACTION`, `DUPLICATION_DEFECT` or `PROHIBITED_TO_MIGRATE_IN_R3`.
@@ -282,4 +282,20 @@ SemVer change or artifact regeneration was required.
 SaaS-03B-B0-I-R3-G = completed_pending_human_review_and_push
 SaaS-03B-B0-I-R3-H = ready_not_started
 PURE_CONTRACT_PHYSICAL_EXTRACTION = error_result_surfaces_reconciled
+```
+
+## R3-H residual authority checkpoint
+
+R3-H reconstructed the current inventory as 39 contracts: 21 package-owned
+runtime contracts with Domain compatibility reexports, 12 structural/JSDoc
+Domain authorities, five complete workflow descriptors retained as temporary
+Domain runtime authority, and `APPROVE_REGISTRATION_REQUEST` deferred to backend
+command design. The previous 40/22 heading was stale relative to its 39 actual
+rows and is corrected without removing a contract. `DEFECTIVE_DUPLICATION = 0`;
+no technical change or adapter removal is required.
+
+```text
+SaaS-03B-B0-I-R3-H = completed_pending_human_review_and_push
+SaaS-03B-B0-I-R3-C1 = ready_not_started
+PURE_CONTRACT_PHYSICAL_EXTRACTION = residual_authority_reconciled
 ```
