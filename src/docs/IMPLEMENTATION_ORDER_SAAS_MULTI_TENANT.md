@@ -5,6 +5,28 @@
 **Regla:** ninguna fase activa enforcement ni elimina compatibilidad antes de
 cumplir su gate.
 
+## Current checkpoint — SaaS-03B-B-C1-R2-R2 persisted command record repair
+
+The independent C1-R2 revalidation proved that persisted Firestore command data
+was cast directly to `CommandRecord`, allowing a partial succeeded record to be
+accepted as replay. R2-R2 now validates exact fields, schema version, identifiers,
+types, shared command/status/error literals, SHA-256 payload hashes, timestamps
+and JSON result shape before idempotency. Malformed records fail closed.
+
+```text
+SaaS-03B-B = implemented_repaired_pending_independent_revalidation
+SaaS-03B-B-C1-R1 = completed
+SaaS-03B-B-C1-R2-R1 = completed
+SaaS-03B-B-C1-R2-R2 = completed_pending_human_review_and_push
+SaaS-03B-B-C1-R2 = blocked_pending_R2_R2_human_review_and_revalidation
+SaaS-03B-B-C1 = not_closed
+SaaS-03B-C = blocked
+Privileged Backend Foundation = repaired_pending_independent_revalidation
+```
+
+Next after human review and push: reexecute the independent full C1 validation.
+Do not start 03B-C.
+
 ## Current checkpoint — SaaS-03B-B-C1-R2-R1 identifier validation repair
 
 The independent post-repair review found that three Functions consumers treated
