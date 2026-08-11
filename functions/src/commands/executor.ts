@@ -5,7 +5,7 @@ import { sanitizeBackendError } from "../errors/backendError.js";
 import { decideIdempotency } from "../idempotency/idempotency.js";
 import { canonicalPayloadHash } from "../idempotency/payloadHash.js";
 import type { TransactionPort, TransactionRunnerPort } from "../persistence/ports.js";
-import { createPendingCommandRecord, validateCommandEnvelope } from "./commandRecord.js";
+import { createPendingCommandRecord, validateCommandEnvelope, validatePersistedCommandRecord } from "./commandRecord.js";
 
 export interface CommandExecutionDependencies {
   readonly transactionRunner: TransactionRunnerPort;
@@ -26,7 +26,7 @@ export const prepareCommandExecution = async (input: {
   return input.dependencies.transactionRunner.run(async (transaction: TransactionPort) => {
     const path = privilegedCommandDocumentPath(input.envelope.commandId);
     const snapshot = await transaction.get(path);
-    const existing = snapshot.exists ? snapshot.data as unknown as CommandRecord : null;
+    const existing = snapshot.exists ? validatePersistedCommandRecord(snapshot.data) : null;
     const decision = decideIdempotency(existing, payloadHash);
     if (decision.kind === "replay" || decision.kind === "resume") return Object.freeze({ decision: decision.kind, record: decision.record });
     const record = createPendingCommandRecord({ envelope: input.envelope, payloadHash, authority, now: input.dependencies.clock() });

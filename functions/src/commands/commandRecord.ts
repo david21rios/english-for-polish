@@ -4,8 +4,61 @@ import { BACKEND_ERROR_CODES } from "@mipymetic/saas-contracts/errors";
 import type { AuthorityResolution, CommandEnvelope, CommandRecord, JsonValue } from "../contracts/types.js";
 import { BackendError } from "../errors/backendError.js";
 
-const commandTypes = new Set(Object.values(COMMAND_TYPES));
+const commandTypes = new Set<string>(Object.values(COMMAND_TYPES));
+const commandStatuses = new Set<string>(Object.values(COMMAND_STATUSES));
+const backendErrorCodes = new Set<string>(Object.values(BACKEND_ERROR_CODES));
 const envelopeFields = Object.freeze(["commandId", "commandType", "correlationId", "tenantId", "payload"]);
+const actorTypes = new Set(["identity", "platform_admin", "system"]);
+
+const isTimestamp = (value: unknown): value is string => typeof value === "string"
+  && !Number.isNaN(Date.parse(value))
+  && new Date(value).toISOString() === value;
+
+const isNullableTimestamp = (value: unknown): value is string | null => value === null || isTimestamp(value);
+
+const isJsonValue = (value: unknown): value is JsonValue => {
+  if (value === null || typeof value === "string" || typeof value === "boolean") return true;
+  if (typeof value === "number") return Number.isFinite(value);
+  if (Array.isArray(value)) return value.every(isJsonValue);
+  if (typeof value !== "object") return false;
+  const prototype = Object.getPrototypeOf(value);
+  return (prototype === Object.prototype || prototype === null) && Object.values(value).every(isJsonValue);
+};
+
+const validIdentifier = (value: unknown, name: string): value is string => validateDocumentIdentifier(value, name).ok;
+
+export const validatePersistedCommandRecord = (value: unknown): CommandRecord => {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    throw new BackendError(BACKEND_ERROR_CODES.CONTRACT_VIOLATION, "The persisted command record is invalid.");
+  }
+  const record = value as Readonly<Record<string, unknown>>;
+  const keys = Object.keys(record);
+  const exactShape = keys.length === COMMAND_RECORD_FIELDS.length
+    && keys.every((key) => COMMAND_RECORD_FIELDS.includes(key));
+  const valid = exactShape
+    && record.schemaVersion === COMMAND_SCHEMA_VERSION
+    && validIdentifier(record.commandId, "commandId")
+    && typeof record.commandType === "string" && commandTypes.has(record.commandType)
+    && typeof record.payloadHash === "string" && /^[a-f0-9]{64}$/.test(record.payloadHash)
+    && validIdentifier(record.actorUid, "actorUid")
+    && typeof record.actorType === "string" && actorTypes.has(record.actorType)
+    && typeof record.authority === "string" && record.authority.trim().length > 0
+    && (record.tenantId === null || validIdentifier(record.tenantId, "tenantId"))
+    && typeof record.status === "string" && commandStatuses.has(record.status)
+    && isTimestamp(record.startedAt)
+    && isNullableTimestamp(record.completedAt)
+    && isNullableTimestamp(record.failedAt)
+    && isJsonValue(record.result)
+    && (record.errorCode === null || (typeof record.errorCode === "string" && backendErrorCodes.has(record.errorCode)))
+    && typeof record.attemptCount === "number" && Number.isInteger(record.attemptCount) && record.attemptCount >= 0
+    && validIdentifier(record.correlationId, "correlationId")
+    && isNullableTimestamp(record.expiresAt)
+    && isNullableTimestamp(record.leaseExpiresAt);
+  if (!valid) {
+    throw new BackendError(BACKEND_ERROR_CODES.CONTRACT_VIOLATION, "The persisted command record is invalid.");
+  }
+  return record as unknown as CommandRecord;
+};
 
 export const validateCommandEnvelope = (envelope: CommandEnvelope): void => {
   if (typeof envelope !== "object" || envelope === null || Array.isArray(envelope)

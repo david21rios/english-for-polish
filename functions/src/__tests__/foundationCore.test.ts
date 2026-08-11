@@ -7,12 +7,14 @@ import { BACKEND_ERROR_CODES } from "@mipymetic/saas-contracts/errors";
 import { canonicalJsonStringify } from "@mipymetic/saas-contracts/validation";
 import { rejectActorAuthorityPayload, requireAuthenticatedActor } from "../authorization/authenticatedActor.js";
 import { capabilitiesForMembershipRole, capabilitiesForPlatformRole, requireCapability } from "../authorization/capabilities.js";
-import { createPendingCommandRecord, validateCommandEnvelope } from "../commands/commandRecord.js";
+import { createPendingCommandRecord, validateCommandEnvelope, validatePersistedCommandRecord } from "../commands/commandRecord.js";
+import { prepareCommandExecution } from "../commands/executor.js";
 import type { AuthorityResolution, CommandEnvelope, CommandRecord, CommandStatus, JsonValue } from "../contracts/types.js";
 import { loadBackendConfig } from "../config/config.js";
 import { BackendError, mapFirebaseAdminError, sanitizeBackendError } from "../errors/backendError.js";
 import { decideIdempotency } from "../idempotency/idempotency.js";
 import { canonicalPayloadHash } from "../idempotency/payloadHash.js";
+import type { TransactionPort, TransactionRunnerPort } from "../persistence/ports.js";
 
 const envelope = (payload: Readonly<Record<string, JsonValue>> = {}): CommandEnvelope => ({
   commandId: "command-1", commandType: COMMAND_TYPES.BOOTSTRAP_TENANT,
@@ -91,6 +93,58 @@ test("pending command record follows the shared schema", () => {
   assert.equal(created.schemaVersion, 1);
   assert.equal(created.result, null);
   assert.ok(Object.isFrozen(created));
+});
+
+test("persisted command records fail closed unless their exact contract is valid", () => {
+  const valid = createPendingCommandRecord({
+    envelope: envelope(), payloadHash: "a".repeat(64), authority, now: "2026-01-01T00:00:00.000Z",
+  });
+  assert.equal(validatePersistedCommandRecord(valid), valid);
+  const invalidRecords: readonly unknown[] = [
+    {},
+    { payloadHash: valid.payloadHash, status: COMMAND_STATUSES.SUCCEEDED },
+    Object.fromEntries(Object.entries(valid).filter(([key]) => key !== "commandId")),
+    { ...valid, unknown: true },
+    { ...valid, status: "unknown" },
+    { ...valid, schemaVersion: 2 },
+    { ...valid, payloadHash: "not-a-sha256" },
+    { ...valid, startedAt: "not-a-timestamp" },
+    { ...valid, completedAt: "not-a-timestamp" },
+    { ...valid, actorUid: "a/b" },
+    { ...valid, actorType: "client" },
+    { ...valid, authority: "" },
+    { ...valid, tenantId: "a/b" },
+    { ...valid, commandType: "Unknown" },
+    { ...valid, attemptCount: -1 },
+  ];
+  for (const invalid of invalidRecords) {
+    assert.throws(
+      () => validatePersistedCommandRecord(invalid),
+      (error: unknown) => error instanceof BackendError && error.code === BACKEND_ERROR_CODES.CONTRACT_VIOLATION,
+    );
+  }
+});
+
+test("command execution rejects a malformed persisted replay before idempotency", async () => {
+  const inputEnvelope = envelope({ safe: true });
+  const payloadHash = canonicalPayloadHash(inputEnvelope.commandType, inputEnvelope.payload);
+  const transaction: TransactionPort = {
+    get: async () => ({ exists: true, data: { payloadHash, status: COMMAND_STATUSES.SUCCEEDED } }),
+    create: () => assert.fail("malformed replay must not create a command"),
+    set: () => {},
+    update: () => {},
+  };
+  const transactionRunner: TransactionRunnerPort = {
+    run: async <T>(operation: (port: TransactionPort) => Promise<T>): Promise<T> => operation(transaction),
+  };
+  await assert.rejects(
+    prepareCommandExecution({
+      auth: { uid: authority.actorUid },
+      envelope: inputEnvelope,
+      dependencies: { transactionRunner, resolveAuthority: async () => authority, clock: () => "2026-01-01T00:00:00.000Z" },
+    }),
+    (error: unknown) => error instanceof BackendError && error.code === BACKEND_ERROR_CODES.CONTRACT_VIOLATION,
+  );
 });
 
 test("canonical payload hash preserves UTF-8 and key-order determinism", () => {
