@@ -5,6 +5,33 @@
 **Regla:** ninguna fase activa enforcement ni elimina compatibilidad antes de
 cumplir su gate.
 
+## Current checkpoint — SaaS-03B-C-R2 BootstrapPlatformAdmins reconciliation
+
+`SaaS-03B-C-R2` closes the two BootstrapPlatformAdmins gaps found by the first
+03B-C implementation audit. `correlationId` is required operator input and the
+immutable correlation value of the command record and every saga audit event.
+It is excluded from the canonical behavioral payload hash, as required by
+03B-A-R1, but a repeated command ID with a different correlation ID is a
+`CONFLICT` before replay or resume.
+
+Partial, failed or uncertain Auth claim application has one deterministic
+policy: forward recovery. Authority remains non-active, command and registry
+enter `recovery_required`, Auth state is reread, and the same command resumes
+missing effects until finalization atomically activates both authorities. There
+is no automatic cleanup, reset or cross-service rollback.
+
+```text
+SaaS-03B-C-R2 = completed_pending_human_review_and_push
+SaaS-03B-C-R1 = completed
+SaaS-03B-C-R1-R1 = completed
+SaaS-03B-C = blocked_pending_bootstrap_contract_resolution_push
+SaaS-03B-D = blocked
+SaaS-03B-E/F = not_started
+Phase 4 = not_started
+```
+
+After human review and push, `SaaS-03B-C` becomes `ready_to_implement`.
+
 ## Current checkpoint — SaaS-03B-C-R1-R1 revoke capability resolution
 
 The shared contract gap found by `SaaS-03B-C-R1` is resolved by the subordinate
