@@ -5,6 +5,37 @@
 **Regla:** ninguna fase activa enforcement ni elimina compatibilidad antes de
 cumplir su gate.
 
+## Current checkpoint — SaaS-03B-C-R3-R1 portable timestamp resolution
+
+`SaaS-03B-C-R3-R1` closes the portable persisted timestamp policy required by
+Platform Authority Transition Ownership. The logical shared value is a
+canonical UTC ISO-8601 string with exactly millisecond precision
+(`YYYY-MM-DDTHH:mm:ss.sssZ`). Firestore continues to persist its native
+timestamp value; an SDK adapter converts that value to the portable string on
+read. `serverTimestamp()` remains a write transform owned by the adapter and is
+never a persisted value or package contract.
+
+The package validator to be materialized with Transition Ownership must accept
+only the canonical non-null string. Field contracts own nullability. Authority
+`createdAt` and `updatedAt` are non-null; `activatedAt`, `revokedAt` and
+`lastClaimSyncAt` accept the canonical value or `null`. Client/business payloads
+cannot supply these server-owned fields. No client repository, Rules, index,
+package, artifact or Functions change is made by this documentation-first
+resolution.
+
+```text
+SaaS-03B-C-R3-R1 = completed_pending_human_review_and_push
+Platform Authority Transition Ownership Resolution = blocked_pending_R3_R1_push
+Platform Command Transaction Store Boundary = blocked
+SaaS-03B-C = blocked
+SaaS-03B-D = blocked
+Phase 4 = not_started
+```
+
+After human review and push, resume Transition Ownership and materialize this
+primitive together with the Authority validator. Do not start the Transaction
+Store or 03B-C yet.
+
 ## Current checkpoint — SaaS-03B-C-R3 authority schema versioning resolution
 
 `SaaS-03B-C-R3` closes the persisted-schema policy that blocked transition
