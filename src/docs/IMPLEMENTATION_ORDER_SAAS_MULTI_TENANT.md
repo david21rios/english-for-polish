@@ -5,7 +5,36 @@
 **Regla:** ninguna fase activa enforcement ni elimina compatibilidad antes de
 cumplir su gate.
 
-## Current checkpoint — SaaS-03B-C-R4-C1-R1 persisted Identity repair
+## Current checkpoint — SaaS-03B-C-R4-C1 independent Bootstrap revalidation
+
+The complete independent R4-C1 revalidation after the published R4-C1-R1
+repair is PASS. It independently rejects malformed persisted Identity values,
+requires both targets to validate before any prepare/Auth effect, and preserves
+the approved Bootstrap payload, approval, claims, forward recovery, resume,
+finalize, replay, audit and physical-timestamp contracts.
+
+Functions remain 43/43 and package 40/40. Real Firestore Emulator evidence
+remains Bootstrap 3/3 and Store 5/5, including competing ownership, transaction
+retry, recovery resume and finalize idempotency. The clean isolated Functions
+validation, full SaaS regression, protected hashes and dependency baselines all
+pass with no technical change.
+
+```text
+SaaS-03B-C-R4 = completed
+SaaS-03B-C-R4-C1 = completed_pending_human_review_and_push
+SaaS-03B-C-R4-C1-R1 = completed
+BootstrapPlatformAdmins = independently_validated
+RecoverPlatformAdmin = ready_not_started
+RevokePlatformAdmin = blocked_pending_recovery_or_next_sequence
+SaaS-03B-C = in_progress
+SaaS-03B-D = blocked
+Phase 4 = not_started
+```
+
+After human review and push of this documentation-only closure, Recovery may
+begin only in its separate authorized microphase.
+
+## Previous checkpoint — SaaS-03B-C-R4-C1-R1 persisted Identity repair
 
 The independent R4-C1 review stopped fail-closed after proving that the
 Bootstrap Firestore Identity boundary accepted exact-key documents with
