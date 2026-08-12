@@ -5,6 +5,31 @@
 **Regla:** ninguna fase activa enforcement ni elimina compatibilidad antes de
 cumplir su gate.
 
+## Current checkpoint — SaaS-03B-C-R3-R2 transition ownership materialization
+
+`SaaS-03B-C-R3-R2` materializes the already approved portable timestamp,
+independent Authority/Registry schema versions, and Platform Authority
+transition-owner contract. `@mipymetic/saas-contracts` advances additively to
+`0.8.0`; Functions consumes the canonical reproducible artifact. Platform
+Authority schema v1 is exact and fail-closed, and `transitionCommandId` is
+required/nullable according to the approved status-owner matrix.
+
+This microphase does not implement cross-document ownership coordination, the
+Transaction Store, BootstrapPlatformAdmins, RecoverPlatformAdmin or
+RevokePlatformAdmin.
+
+```text
+SaaS-03B-C-R3-R2 = completed_pending_human_review_and_push
+Platform Authority Transition Ownership Resolution = completed_pending_human_review_and_push
+Platform Command Transaction Store Boundary = blocked_pending_ownership_push
+SaaS-03B-C = blocked_pending_transaction_store
+SaaS-03B-D = blocked
+Phase 4 = not_started
+```
+
+After human review and push, the Platform Command Transaction Store Boundary
+becomes `ready_not_started`. Do not begin it in this microphase.
+
 ## Current checkpoint — SaaS-03B-C-R3-R1 portable timestamp resolution
 
 `SaaS-03B-C-R3-R1` closes the portable persisted timestamp policy required by
