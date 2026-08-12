@@ -5,6 +5,35 @@
 **Regla:** ninguna fase activa enforcement ni elimina compatibilidad antes de
 cumplir su gate.
 
+## Current checkpoint — SaaS-03B-C-R3 authority schema versioning resolution
+
+`SaaS-03B-C-R3` closes the persisted-schema policy that blocked transition
+ownership. The current 12-field Platform Authority is classified as a legacy,
+unversioned design; `AUTHORITY_SCHEMA_VERSION = 1` has persisted meaning only
+for the registry in the current implementation. Authority and registry will be
+versioned independently.
+
+The first explicit Platform Authority schema will use
+`PLATFORM_AUTHORITY_SCHEMA_VERSION = 1` and a required server-owned
+`schemaVersion` discriminator. Registry retains version 1 under the future
+unambiguous name `PLATFORM_AUTHORITY_REGISTRY_SCHEMA_VERSION`. Missing or
+unknown versions fail closed. Repository evidence shows no privileged backend
+deployment or production Platform Authority writer, so the first deployment
+may write only the new current schema; no compatibility reader or migration is
+authorized.
+
+```text
+SaaS-03B-C-R3 = completed_pending_human_review_and_push
+Platform Authority Transition Ownership Resolution = blocked_pending_R3_push
+Platform Command Transaction Store Boundary = blocked
+SaaS-03B-C = blocked
+SaaS-03B-D = blocked
+Phase 4 = not_started
+```
+
+After human review and push, resume the ownership resolution. Do not implement
+the Transaction Store or 03B-C yet.
+
 ## Current checkpoint — SaaS-03B-C-R2 BootstrapPlatformAdmins reconciliation
 
 `SaaS-03B-C-R2` closes the two BootstrapPlatformAdmins gaps found by the first
