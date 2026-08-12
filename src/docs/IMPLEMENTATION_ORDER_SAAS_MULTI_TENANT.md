@@ -5,6 +5,29 @@
 **Regla:** ninguna fase activa enforcement ni elimina compatibilidad antes de
 cumplir su gate.
 
+## Current checkpoint — SaaS-03B-B-C1-R2 independent foundation closure
+
+The complete independent post-R2-R3 review validates persisted-record shape and
+status invariants, authorization/config repairs, transaction/audit/error
+foundations, strict TypeScript consumption, clean Functions isolation and the
+unchanged root regression baselines. No technical defect remains in the
+authorized foundation scope.
+
+```text
+SaaS-03B-B = completed
+SaaS-03B-B-C1-R1 = completed
+SaaS-03B-B-C1-R2-R1 = completed
+SaaS-03B-B-C1-R2-R2 = completed
+SaaS-03B-B-C1-R2-R3 = completed
+SaaS-03B-B-C1-R2 = completed_pending_human_review_and_push
+SaaS-03B-B-C1 = completed
+SaaS-03B-C = ready_not_started
+Privileged Backend Foundation = independently_validated
+```
+
+Next after human review and push: reconstruct the exact SaaS-03B-C contract
+from the current normative sources. Do not start it from historical memory.
+
 ## Current checkpoint — SaaS-03B-B-C1-R2-R3 command record status invariants repair
 
 Independent C1-R2 revalidation found that R2-R2 validated `leaseExpiresAt` as a
