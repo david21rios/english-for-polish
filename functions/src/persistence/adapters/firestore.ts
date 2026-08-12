@@ -4,6 +4,7 @@ import { BackendError } from "../../errors/backendError.js";
 import { isServerOwnedTimestamp, type AuthoritativeReaderPort, type DocumentSnapshotPort, type PersistedDocumentShape, type TransactionPort, type TransactionRunnerPort } from "../ports.js";
 
 const timestampFields: Readonly<Record<PersistedDocumentShape, Readonly<Record<string, boolean>>>> = Object.freeze({
+  identity: Object.freeze({ createdAt: false, updatedAt: false }),
   platform_authority: Object.freeze({ createdAt: false, updatedAt: false, activatedAt: true, revokedAt: true, lastClaimSyncAt: true }),
   platform_authority_registry: Object.freeze({ updatedAt: false }),
   privileged_command: Object.freeze({ startedAt: false, completedAt: true, failedAt: true, expiresAt: true, leaseExpiresAt: true }),
@@ -59,5 +60,7 @@ export class FirestoreAdminTransactionRunner implements TransactionRunnerPort {
 
 export class FirestoreAdminReader implements AuthoritativeReaderPort {
   constructor(private readonly firestore: Firestore) {}
-  async read(path: string): Promise<DocumentSnapshotPort> { return snapshotPort(await this.firestore.doc(path).get()); }
+  async read(path: string, shape?: PersistedDocumentShape): Promise<DocumentSnapshotPort> {
+    return snapshotPort(await this.firestore.doc(path).get(), shape);
+  }
 }

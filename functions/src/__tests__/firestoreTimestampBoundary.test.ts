@@ -39,3 +39,10 @@ test("Firestore Audit required timestamps normalize fail-closed", () => {
   assert.equal(normalized.executedAt, "2026-08-12T12:34:56.123Z");
   assert.throws(() => normalizeFirestoreDocument({ requestedAt: null, executedAt: instant }, "platform_audit"), BackendError);
 });
+
+test("Firestore Identity timestamps normalize before Bootstrap validation", () => {
+  const data = normalizeFirestoreDocument({ createdAt: instant, updatedAt: instant }, "identity");
+  assert.equal(data.createdAt, "2026-08-12T12:34:56.123Z");
+  assert.equal(data.updatedAt, "2026-08-12T12:34:56.123Z");
+  for (const field of ["createdAt", "updatedAt"]) assert.throws(() => normalizeFirestoreDocument({ createdAt: instant, updatedAt: instant, [field]: "bad" }, "identity"), BackendError);
+});

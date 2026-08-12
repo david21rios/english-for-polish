@@ -2,7 +2,7 @@ import { IDENTITY_FIELDS, identityDocumentPath, platformAuditEventDocumentPath, 
 import { COMMAND_STATUSES, COMMAND_TYPES, PRIVILEGED_COMMAND_STAGES } from "@mipymetic/saas-contracts/commands";
 import { PLATFORM_AUTHORITY_REGISTRY_STATES, PLATFORM_AUTHORITY_STATUSES } from "@mipymetic/saas-contracts/authority";
 import { BACKEND_ERROR_CODES } from "@mipymetic/saas-contracts/errors";
-import { validateDocumentIdentifier } from "@mipymetic/saas-contracts/validation";
+import { validateDocumentIdentifier, validatePersistedTimestamp } from "@mipymetic/saas-contracts/validation";
 import type { AuthorityResolution, CommandEnvelope, JsonValue } from "../contracts/types.js";
 import { writeAuditEvent } from "../audit/auditWriter.js";
 import { createPendingCommandRecord, validateCommandEnvelope, validatePersistedCommandRecord } from "./commandRecord.js";
@@ -73,4 +73,16 @@ export const executeBootstrapPlatformAdmins=async(value:unknown,deps:BootstrapDe
   const finalResult=result(input,false);await deps.store.mutate({commandId:input.commandId,correlationId:input.correlationId,payloadHash,nextCommandStatus:COMMAND_STATUSES.SUCCEEDED,nextCommandStage:PRIVILEGED_COMMAND_STAGES.COMPLETED,commandResult:finalResult as unknown as JsonValue,commandErrorCode:null,nextRegistryState:PLATFORM_AUTHORITY_REGISTRY_STATES.COMPLETED,activeCountDelta:2,authorities:input.targets.map(target=>({uid:target.uid,expectedStatus:PLATFORM_AUTHORITY_STATUSES.PROVISIONING,nextStatus:PLATFORM_AUTHORITY_STATUSES.ACTIVE,bootstrapCommandId:input.commandId,recordClaimSync:true})),audit:storeAudit(deps,input,"finalize","succeeded",null)});return finalResult;
 };
 
-export const createFirestoreBootstrapIdentityPort=(reader:AuthoritativeReaderPort):BootstrapIdentityPort=>Object.freeze({verify:async(uid:string,email:string)=>{const snapshot=await reader.read(identityDocumentPath(uid));if(!snapshot.exists||snapshot.data===null||Object.keys(snapshot.data).length!==IDENTITY_FIELDS.length||Object.keys(snapshot.data).some(key=>!IDENTITY_FIELDS.includes(key))||snapshot.data.uid!==uid||snapshot.data.email!==email||snapshot.data.emailVerified!==true)throw new BackendError(BACKEND_ERROR_CODES.FAILED_PRECONDITION,"Bootstrap Identity is missing or incoherent.")}});
+export const createFirestoreBootstrapIdentityPort=(reader:AuthoritativeReaderPort):BootstrapIdentityPort=>Object.freeze({verify:async(uid:string,email:string)=>{
+  const snapshot=await reader.read(identityDocumentPath(uid),"identity"), identity=snapshot.data;
+  const validShape=snapshot.exists&&identity!==null&&Object.keys(identity).length===IDENTITY_FIELDS.length&&IDENTITY_FIELDS.every(field=>Object.prototype.hasOwnProperty.call(identity,field));
+  const validUid=validShape&&validateDocumentIdentifier(identity.uid,"identity.uid").ok&&identity.uid===uid;
+  const validEmail=validShape&&typeof identity.email==="string"&&identity.email===email;
+  const validDisplayName=validShape&&typeof identity.displayName==="string";
+  const validPhoto=validShape&&(identity.photoURL===null||typeof identity.photoURL==="string");
+  const validVerified=validShape&&identity.emailVerified===true;
+  const validLocale=validShape&&typeof identity.interfaceLocale==="string"&&identity.interfaceLocale.trim().length>0;
+  const validCreated=validShape&&validatePersistedTimestamp(identity.createdAt).ok;
+  const validUpdated=validShape&&validatePersistedTimestamp(identity.updatedAt).ok;
+  if(!validShape||!validUid||!validEmail||!validDisplayName||!validPhoto||!validVerified||!validLocale||!validCreated||!validUpdated)throw new BackendError(BACKEND_ERROR_CODES.CONTRACT_VIOLATION,"Bootstrap Identity is malformed or incoherent.");
+}});
