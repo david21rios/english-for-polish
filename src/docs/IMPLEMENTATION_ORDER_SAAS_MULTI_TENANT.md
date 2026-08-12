@@ -5,7 +5,35 @@
 **Regla:** ninguna fase activa enforcement ni elimina compatibilidad antes de
 cumplir su gate.
 
-## Current checkpoint — SaaS-03B-C-R3-R4 Registry validation and timestamp boundary
+## Current checkpoint — SaaS-03B-C-R3-R5 privileged command stage resolution
+
+`SaaS-03B-C-R3-R5` closes the persisted checkpoint contract required by the
+future Platform Command Transaction Store. The package-owned catalog to be
+materialized is ordered `not_started`, `prepared`, `completed`, persisted in a
+required non-null backend-owned `stage` field. It is deliberately smaller than
+the audit-stage vocabulary: uncertain or partial Auth effects retain
+`prepared`, enter `recovery_required`, and force an external-state reread.
+
+The exact command record advances from schema v1/18 fields to v2/19 fields.
+Current readers and writers will be v2-only; no stage is inferred from a v1
+status. Repository evidence shows no handlers, deployed privileged backend or
+implemented business commands, so unexpected v1 persisted data blocks rollout
+and requires a separate migration decision rather than automatic conversion.
+
+```text
+SaaS-03B-C-R3-R5 = completed_pending_human_review_and_push
+Privileged Command Persisted Stage Contract Resolution = completed_pending_human_review_and_push
+Stage + Command/Audit Timestamp Technical Materialization = blocked_pending_R3_R5_push
+Platform Command Transaction Store Boundary = blocked_pending_stage_timestamp_materialization
+SaaS-03B-C = blocked_pending_transaction_store
+SaaS-03B-D = blocked
+Phase 4 = not_started
+```
+
+After human review and push, materialize schema v2, the stage catalog/matrices,
+and command/audit timestamp shapes together. Do not start the Store yet.
+
+## Previous checkpoint — SaaS-03B-C-R3-R4 Registry validation and timestamp boundary
 
 `SaaS-03B-C-R3-R4` materializes the two published prerequisites for the
 Platform Command Transaction Store: the package-owned frozen registry state
