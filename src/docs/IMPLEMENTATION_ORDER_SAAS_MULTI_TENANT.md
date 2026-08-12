@@ -5,7 +5,30 @@
 **Regla:** ninguna fase activa enforcement ni elimina compatibilidad antes de
 cumplir su gate.
 
-## Current checkpoint — SaaS-03B-C-R3-R7 transaction Store boundary
+## Current checkpoint — SaaS-03B-C-R4 BootstrapPlatformAdmins
+
+`SaaS-03B-C-R4` implements the first internal privileged business command on
+the validated Foundation and transaction Store. It uses the exact payload,
+injected approval/Auth/Identity boundaries, atomic prepare/recovery/finalize,
+sequential claim reconciliation, forward recovery, stable replay and Critical
+audit. Unit and real Firestore Emulator evidence proves competing-bootstrap
+exclusion, retry-safe prepare, recovery resume and finalize idempotency.
+
+```text
+SaaS-03B-C-R4 = completed_pending_human_review_and_push
+BootstrapPlatformAdmins = implemented_and_validated
+RecoverPlatformAdmin = ready_not_started
+RevokePlatformAdmin = blocked_pending_recovery_or_next_sequence
+SaaS-03B-C = in_progress
+SaaS-03B-D = blocked
+Phase 4 = not_started
+```
+
+No public handler, Recovery/Revoke implementation, package, Domain, Shared,
+Rules, index or Firebase configuration change was introduced. After human
+review and push, continue only with RecoverPlatformAdmin.
+
+## Previous checkpoint — SaaS-03B-C-R3-R7 transaction Store boundary
 
 The first `SaaS-03B-C-R3-R7` execution stopped fail-closed as
 `BLOCKED_EMULATOR_RUNTIME_UNAVAILABLE`: the Emulator artifact existed but Java
