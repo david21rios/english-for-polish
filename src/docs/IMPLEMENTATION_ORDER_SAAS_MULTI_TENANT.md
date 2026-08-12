@@ -5,7 +5,34 @@
 **Regla:** ninguna fase activa enforcement ni elimina compatibilidad antes de
 cumplir su gate.
 
-## Current checkpoint — SaaS-03B-C-R3-R6 stage and timestamp materialization
+## Current checkpoint — SaaS-03B-C-R3-R7 transaction Store boundary
+
+The first `SaaS-03B-C-R3-R7` execution stopped fail-closed as
+`BLOCKED_EMULATOR_RUNTIME_UNAVAILABLE`: the Emulator artifact existed but Java
+did not. It left no candidate implementation or staging. This resumed execution
+uses the same identifier after Java became available.
+
+The Platform Command Transaction Store is implemented on the validated
+transaction ports. It validates Registry, Authority and Command reads, enforces
+`transitionCommandId` ownership, updates revision/count/last-command and audit
+atomically, and keeps Firebase Admin in the adapter. Firestore Emulator 1.21.0
+evidence covers competing ownership, same-owner resume, last-two-admin
+concurrency, callback retry, single committed deltas/audits and native server
+timestamps. No command saga, Auth effect, handler, Rules/index/config change or
+remote Firebase operation was introduced.
+
+```text
+SaaS-03B-C-R3-R7 = completed_pending_human_review_and_push
+Platform Command Transaction Store = implemented_and_emulator_validated
+SaaS-03B-C = ready_to_implement_business_commands_after_R3_R7_push
+SaaS-03B-D = blocked
+Phase 4 = not_started
+```
+
+After human review and push, `SaaS-03B-C` may implement only the already closed
+Bootstrap, Recovery and Revoke contracts. `SaaS-03B-D` remains blocked.
+
+## Previous checkpoint — SaaS-03B-C-R3-R6 stage and timestamp materialization
 
 `SaaS-03B-C-R3-R6` materializes the published R3-R5 contract without starting
 the Platform Command Transaction Store. `@mipymetic/saas-contracts` advances
