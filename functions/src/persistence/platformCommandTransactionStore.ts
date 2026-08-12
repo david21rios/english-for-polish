@@ -14,14 +14,14 @@ type AuthorityStatus = (typeof PLATFORM_AUTHORITY_STATUSES)[keyof typeof PLATFOR
 interface PlatformAuthority { readonly schemaVersion: 1; readonly transitionCommandId: string|null; readonly uid: string; readonly authority: "platform_admin"; readonly status: AuthorityStatus; readonly createdAt: string; readonly createdBy: string; readonly updatedAt: string; readonly updatedBy: string; readonly activatedAt: string|null; readonly revokedAt: string|null; readonly revokedBy: string|null; readonly bootstrapCommandId: string|null; readonly lastClaimSyncAt: string|null }
 interface PlatformRegistry { readonly schemaVersion: 1; readonly bootstrapState: RegistryState; readonly activeCount: number; readonly revision: number; readonly lastCommandId: string|null; readonly updatedAt: string }
 
-export interface PlatformAuthorityTransition { readonly uid: string; readonly expectedStatus: AuthorityStatus|null; readonly nextStatus: AuthorityStatus; readonly bootstrapCommandId: string|null }
+export interface PlatformAuthorityTransition { readonly uid: string; readonly expectedStatus: AuthorityStatus|null; readonly nextStatus: AuthorityStatus; readonly bootstrapCommandId: string|null; readonly recordClaimSync?: boolean }
 export interface PlatformCommandStoreMutation {
   readonly commandId: string; readonly correlationId: string; readonly payloadHash: string;
   readonly nextCommandStatus: CommandStatus; readonly nextCommandStage: PrivilegedCommandStage;
   readonly commandResult: JsonValue; readonly commandErrorCode: string|null;
   readonly nextRegistryState: RegistryState; readonly activeCountDelta: -1|0|1|2;
   readonly authorities: readonly PlatformAuthorityTransition[];
-  readonly audit: Readonly<{ auditId: string; authority: AuthorityResolution; operation: string; resourceType: string; resourceId: string; result: "succeeded"|"failed"; errorCode: string|null; beforeSummary: Readonly<Record<string,JsonValue>>; afterSummary: Readonly<Record<string,JsonValue>>; metadata: Readonly<Record<string,JsonValue>> }>;
+  readonly audit: Readonly<{ auditId: string; authority: AuthorityResolution; operation: string; resourceType: string; resourceId: string; result: "succeeded"|"failed"|"recovery_required"; errorCode: string|null; beforeSummary: Readonly<Record<string,JsonValue>>; afterSummary: Readonly<Record<string,JsonValue>>; metadata: Readonly<Record<string,JsonValue>> }>;
 }
 export interface PlatformCommandTransactionStore { mutate(input: PlatformCommandStoreMutation): Promise<Readonly<{ command: CommandRecord; registry: PlatformRegistry; authorities: readonly PlatformAuthority[] }>> }
 
@@ -43,6 +43,10 @@ export const createPlatformCommandTransactionStore = (runner:TransactionRunnerPo
     const command=validatePersistedCommandRecord(commandSnapshot.data), registry=registryValue(registrySnapshot.data);
     if(command.commandId!==input.commandId) return fail("Command path identity is invalid.");
     if(command.payloadHash!==input.payloadHash||command.correlationId!==input.correlationId) return conflict("Command binding conflicts.");
+    if(command.status===COMMAND_STATUSES.SUCCEEDED&&command.stage===PRIVILEGED_COMMAND_STAGES.COMPLETED
+      &&input.nextCommandStatus===COMMAND_STATUSES.SUCCEEDED&&input.nextCommandStage===PRIVILEGED_COMMAND_STAGES.COMPLETED){
+      return Object.freeze({command,registry,authorities:Object.freeze([])});
+    }
     const currentRank=rank[command.stage], nextRank=rank[input.nextCommandStage];
     if(nextRank<currentRank||nextRank>currentRank+1) return fail("Stage transition is invalid.");
     if(command.commandType===COMMAND_TYPES.BOOTSTRAP_PLATFORM_ADMINS){
@@ -62,16 +66,18 @@ export const createPlatformCommandTransactionStore = (runner:TransactionRunnerPo
       if(change.expectedStatus===null?current!==null:current?.status!==change.expectedStatus) return conflict("Authority changed concurrently.");
       if(current?.transitionCommandId!==null&&current?.transitionCommandId!==undefined&&current.transitionCommandId!==input.commandId) return conflict("Authority is owned by another command.");
       const logicalNow=current?.updatedAt??command.startedAt;
-      const candidate=authorityValue({schemaVersion:PLATFORM_AUTHORITY_SCHEMA_VERSION,transitionCommandId:transitional.has(change.nextStatus)?input.commandId:null,uid:change.uid,authority:PLATFORM_AUTHORITY,status:change.nextStatus,createdAt:current?.createdAt??logicalNow,createdBy:current?.createdBy??input.commandId,updatedAt:logicalNow,updatedBy:input.commandId,activatedAt:change.nextStatus===PLATFORM_AUTHORITY_STATUSES.ACTIVE?logicalNow:(current?.activatedAt??null),revokedAt:change.nextStatus===PLATFORM_AUTHORITY_STATUSES.REVOKED?logicalNow:null,revokedBy:change.nextStatus===PLATFORM_AUTHORITY_STATUSES.REVOKED?command.actorUid:null,bootstrapCommandId:change.bootstrapCommandId,lastClaimSyncAt:current?.lastClaimSyncAt??null});
-      const write={...candidate,updatedAt:serverOwnedTimestamp(),...(current===null?{createdAt:serverOwnedTimestamp()}:{}),...(change.nextStatus===PLATFORM_AUTHORITY_STATUSES.ACTIVE?{activatedAt:serverOwnedTimestamp()}:{}),...(change.nextStatus===PLATFORM_AUTHORITY_STATUSES.REVOKED?{revokedAt:serverOwnedTimestamp()}: {})};
+      const candidate=authorityValue({schemaVersion:PLATFORM_AUTHORITY_SCHEMA_VERSION,transitionCommandId:transitional.has(change.nextStatus)?input.commandId:null,uid:change.uid,authority:PLATFORM_AUTHORITY,status:change.nextStatus,createdAt:current?.createdAt??logicalNow,createdBy:current?.createdBy??input.commandId,updatedAt:logicalNow,updatedBy:input.commandId,activatedAt:change.nextStatus===PLATFORM_AUTHORITY_STATUSES.ACTIVE?logicalNow:(current?.activatedAt??null),revokedAt:change.nextStatus===PLATFORM_AUTHORITY_STATUSES.REVOKED?logicalNow:null,revokedBy:change.nextStatus===PLATFORM_AUTHORITY_STATUSES.REVOKED?command.actorUid:null,bootstrapCommandId:change.bootstrapCommandId,lastClaimSyncAt:change.recordClaimSync?logicalNow:(current?.lastClaimSyncAt??null)});
+      const write=current===null
+        ? {...candidate,createdAt:serverOwnedTimestamp(),updatedAt:serverOwnedTimestamp(),...(change.nextStatus===PLATFORM_AUTHORITY_STATUSES.ACTIVE?{activatedAt:serverOwnedTimestamp()}:{}),...(change.nextStatus===PLATFORM_AUTHORITY_STATUSES.REVOKED?{revokedAt:serverOwnedTimestamp()}:{}),...(change.recordClaimSync?{lastClaimSyncAt:serverOwnedTimestamp()}: {})}
+        : {transitionCommandId:candidate.transitionCommandId,status:candidate.status,updatedAt:serverOwnedTimestamp(),updatedBy:candidate.updatedBy,revokedAt:change.nextStatus===PLATFORM_AUTHORITY_STATUSES.REVOKED?serverOwnedTimestamp():null,revokedBy:candidate.revokedBy,bootstrapCommandId:candidate.bootstrapCommandId,...(change.nextStatus===PLATFORM_AUTHORITY_STATUSES.ACTIVE?{activatedAt:serverOwnedTimestamp()}:{}),...(change.recordClaimSync?{lastClaimSyncAt:serverOwnedTimestamp()}: {})};
       authorityWrites.push(Object.freeze({path,current,candidate,write}));
     }
     const count=registry.activeCount+input.activeCountDelta; if(!Number.isInteger(count)||count<0) return fail("activeCount is invalid.");
     const nextRegistry=registryValue({schemaVersion:PLATFORM_AUTHORITY_REGISTRY_SCHEMA_VERSION,bootstrapState:input.nextRegistryState,activeCount:count,revision:registry.revision+1,lastCommandId:input.commandId,updatedAt:registry.updatedAt});
     const nextCommand=validatePersistedCommandRecord({...command,status:input.nextCommandStatus,stage:input.nextCommandStage,result:input.commandResult,errorCode:input.commandErrorCode,completedAt:input.nextCommandStatus===COMMAND_STATUSES.SUCCEEDED?command.startedAt:command.completedAt,failedAt:input.nextCommandStatus===COMMAND_STATUSES.FAILED_RETRYABLE||input.nextCommandStatus===COMMAND_STATUSES.FAILED_TERMINAL?command.startedAt:command.failedAt,leaseExpiresAt:null});
-    for(const {path,current,write} of authorityWrites){ if(current===null) transaction.create(path,write); else transaction.set(path,write); }
+    for(const {path,current,write} of authorityWrites){ if(current===null) transaction.create(path,write); else transaction.update(path,write); }
     transaction.set(registryPath,{...nextRegistry,updatedAt:serverOwnedTimestamp()});
-    transaction.set(commandPath,{...nextCommand,...(input.nextCommandStatus===COMMAND_STATUSES.SUCCEEDED?{completedAt:serverOwnedTimestamp()}:{}),...((input.nextCommandStatus===COMMAND_STATUSES.FAILED_RETRYABLE||input.nextCommandStatus===COMMAND_STATUSES.FAILED_TERMINAL)?{failedAt:serverOwnedTimestamp()}: {})});
+    transaction.update(commandPath,{status:nextCommand.status,stage:nextCommand.stage,result:nextCommand.result,errorCode:nextCommand.errorCode,leaseExpiresAt:null,...(input.nextCommandStatus===COMMAND_STATUSES.SUCCEEDED?{completedAt:serverOwnedTimestamp()}:{}),...((input.nextCommandStatus===COMMAND_STATUSES.FAILED_RETRYABLE||input.nextCommandStatus===COMMAND_STATUSES.FAILED_TERMINAL)?{failedAt:serverOwnedTimestamp()}: {})});
     writeAuditEvent(transaction,{...input.audit,commandId:input.commandId,correlationId:input.correlationId,level:"critical"});
     return Object.freeze({command:nextCommand,registry:nextRegistry,authorities:Object.freeze(authorityWrites.map(({candidate})=>candidate))});
   })

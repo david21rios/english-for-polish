@@ -1,0 +1,76 @@
+import { IDENTITY_FIELDS, identityDocumentPath, platformAuditEventDocumentPath, privilegedCommandDocumentPath } from "@mipymetic/saas-contracts/persistence";
+import { COMMAND_STATUSES, COMMAND_TYPES, PRIVILEGED_COMMAND_STAGES } from "@mipymetic/saas-contracts/commands";
+import { PLATFORM_AUTHORITY_REGISTRY_STATES, PLATFORM_AUTHORITY_STATUSES } from "@mipymetic/saas-contracts/authority";
+import { BACKEND_ERROR_CODES } from "@mipymetic/saas-contracts/errors";
+import { validateDocumentIdentifier } from "@mipymetic/saas-contracts/validation";
+import type { AuthorityResolution, CommandEnvelope, JsonValue } from "../contracts/types.js";
+import { writeAuditEvent } from "../audit/auditWriter.js";
+import { createPendingCommandRecord, validateCommandEnvelope, validatePersistedCommandRecord } from "./commandRecord.js";
+import { BackendError, mapFirebaseAdminError } from "../errors/backendError.js";
+import { canonicalPayloadHash } from "../idempotency/payloadHash.js";
+import type { PlatformCommandTransactionStore } from "../persistence/platformCommandTransactionStore.js";
+import type { AuthoritativeReaderPort, TransactionRunnerPort } from "../persistence/ports.js";
+import { runAuthoritativeTransaction } from "../persistence/transactionBoundary.js";
+import type { BackendEnvironment } from "../config/config.js";
+
+export interface BootstrapPlatformAdminTarget { readonly uid:string; readonly expectedNormalizedEmail:string }
+export interface BootstrapPlatformAdminsInput { readonly commandId:string; readonly correlationId:string; readonly environment:BackendEnvironment; readonly confirmationId:string; readonly targets:readonly [BootstrapPlatformAdminTarget,BootstrapPlatformAdminTarget] }
+export interface BootstrapApprovalPort { verify(input:Readonly<{confirmationId:string;environment:BackendEnvironment;targetUids:readonly [string,string]}>):Promise<boolean> }
+export interface BootstrapAuthUser { readonly uid:string; readonly email:string|null; readonly emailVerified:boolean; readonly disabled:boolean; readonly customClaims:Readonly<Record<string,JsonValue>> }
+export interface BootstrapAuthPort { getUser(uid:string):Promise<BootstrapAuthUser>; setCustomClaims(uid:string,claims:Readonly<Record<string,JsonValue>>):Promise<void> }
+export interface BootstrapIdentityPort { verify(uid:string,expectedNormalizedEmail:string):Promise<void> }
+export interface BootstrapResult { readonly commandId:string;readonly correlationId:string;readonly operation:"BootstrapPlatformAdmins";readonly resourceType:"platform_authority_registry";readonly resourceId:"authorityRegistry";readonly status:"succeeded";readonly replayed:boolean }
+
+export interface BootstrapDependencies { readonly runner:TransactionRunnerPort;readonly store:PlatformCommandTransactionStore;readonly approval:BootstrapApprovalPort;readonly auth:BootstrapAuthPort;readonly identity:BootstrapIdentityPort;readonly operator:AuthorityResolution }
+const inputFields=Object.freeze(["commandId","correlationId","environment","confirmationId","targets"]), targetFields=Object.freeze(["uid","expectedNormalizedEmail"]), environments=new Set(["local","demo-emulator","development","staging","production"]);
+const exact=(value:unknown,fields:readonly string[])=>typeof value==="object"&&value!==null&&!Array.isArray(value)&&Object.keys(value).length===fields.length&&Object.keys(value).every(k=>fields.includes(k));
+const normalizedEmail=(value:unknown):value is string=>typeof value==="string"&&value===value.trim().toLowerCase()&&/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(value);
+const invalid=(message:string):never=>{throw new BackendError(BACKEND_ERROR_CODES.INVALID_ARGUMENT,message)};
+const result=(input:BootstrapPlatformAdminsInput,replayed:boolean):BootstrapResult=>Object.freeze({commandId:input.commandId,correlationId:input.correlationId,operation:"BootstrapPlatformAdmins",resourceType:"platform_authority_registry",resourceId:"authorityRegistry",status:"succeeded",replayed});
+
+export const validateBootstrapPlatformAdminsInput=(value:unknown):BootstrapPlatformAdminsInput=>{
+  if(!exact(value,inputFields)) return invalid("Bootstrap input has an invalid shape.");
+  const input=value as Readonly<Record<string,unknown>>;
+  if(!validateDocumentIdentifier(input.commandId,"commandId").ok||!validateDocumentIdentifier(input.correlationId,"correlationId").ok||!validateDocumentIdentifier(input.confirmationId,"confirmationId").ok) return invalid("Bootstrap identifiers are invalid.");
+  if(typeof input.environment!=="string"||!environments.has(input.environment)) return invalid("Bootstrap environment is invalid.");
+  if(!Array.isArray(input.targets)||input.targets.length!==2) return invalid("Bootstrap requires exactly two targets.");
+  const targets=input.targets.map(target=>{if(!exact(target,targetFields)) return invalid("Bootstrap target has an invalid shape.");const item=target as Readonly<Record<string,unknown>>;if(!validateDocumentIdentifier(item.uid,"uid").ok||!normalizedEmail(item.expectedNormalizedEmail)) return invalid("Bootstrap target is invalid.");return Object.freeze({uid:item.uid as string,expectedNormalizedEmail:item.expectedNormalizedEmail as string})}) as unknown as readonly [BootstrapPlatformAdminTarget,BootstrapPlatformAdminTarget];
+  if(targets[0].uid===targets[1].uid) return invalid("Bootstrap targets must be distinct.");
+  return Object.freeze({commandId:input.commandId as string,correlationId:input.correlationId as string,environment:input.environment as BackendEnvironment,confirmationId:input.confirmationId as string,targets});
+};
+
+const audit=async(deps:BootstrapDependencies,input:BootstrapPlatformAdminsInput,stage:string,index:number|null,resultValue:"succeeded"|"recovery_required",errorCode:string|null)=>runAuthoritativeTransaction(deps.runner,async({transaction})=>{
+  const auditId=`${input.commandId}-${stage}${index===null?"":`-${index+1}`}`, path=platformAuditEventDocumentPath(auditId), existing=await transaction.get(path,"platform_audit");
+  if(existing.exists){if(existing.data?.commandId!==input.commandId||existing.data?.correlationId!==input.correlationId||existing.data?.operation!==`BootstrapPlatformAdmins.${stage}`)throw new BackendError(BACKEND_ERROR_CODES.CONFLICT,"Audit identity conflicts.");return path}
+  return writeAuditEvent(transaction,{auditId,commandId:input.commandId,correlationId:input.correlationId,authority:deps.operator,level:"critical",operation:`BootstrapPlatformAdmins.${stage}`,resourceType:"platform_authority_registry",resourceId:"authorityRegistry",result:resultValue,errorCode,beforeSummary:{},afterSummary:{},metadata:{stage,environment:input.environment,confirmationId:input.confirmationId,...(index===null?{}:{targetIndex:index})}});
+});
+
+const claimCommand=async(deps:BootstrapDependencies,input:BootstrapPlatformAdminsInput,envelope:CommandEnvelope,payloadHash:string)=>runAuthoritativeTransaction(deps.runner,async({transaction})=>{
+  const path=privilegedCommandDocumentPath(input.commandId), snapshot=await transaction.get(path,"privileged_command");
+  if(!snapshot.exists){transaction.create(path,createPendingCommandRecord({envelope,payloadHash,authority:deps.operator}));return Object.freeze({kind:"new" as const,record:null})}
+  const record=validatePersistedCommandRecord(snapshot.data);if(record.payloadHash!==payloadHash||record.correlationId!==input.correlationId)throw new BackendError(BACKEND_ERROR_CODES.CONFLICT,"Command binding conflicts.");
+  if(record.status===COMMAND_STATUSES.SUCCEEDED&&record.stage===PRIVILEGED_COMMAND_STAGES.COMPLETED)return Object.freeze({kind:"replay" as const,record});
+  if((record.status===COMMAND_STATUSES.RUNNING||record.status===COMMAND_STATUSES.RECOVERY_REQUIRED)&&record.stage===PRIVILEGED_COMMAND_STAGES.PREPARED)return Object.freeze({kind:"resume" as const,record});
+  if(record.status===COMMAND_STATUSES.PENDING&&record.stage===PRIVILEGED_COMMAND_STAGES.NOT_STARTED)return Object.freeze({kind:"new" as const,record});
+  throw new BackendError(BACKEND_ERROR_CODES.CONFLICT,"Bootstrap command is already in an incompatible state.");
+});
+
+const authUser=async(deps:BootstrapDependencies,target:BootstrapPlatformAdminTarget)=>{let user:BootstrapAuthUser;try{user=await deps.auth.getUser(target.uid)}catch(error){throw mapFirebaseAdminError(error)}if(user.uid!==target.uid||user.disabled||!user.emailVerified||user.email?.trim().toLowerCase()!==target.expectedNormalizedEmail)throw new BackendError(BACKEND_ERROR_CODES.FAILED_PRECONDITION,"Bootstrap Auth user is not eligible.");return user};
+const claimState=(user:BootstrapAuthUser)=>{const role=user.customClaims.platformRole;if(role===undefined)return "missing" as const;if(role==="platform_admin")return "correct" as const;throw new BackendError(BACKEND_ERROR_CODES.CONTRACT_VIOLATION,"Bootstrap target has an unexpected platform role.")};
+const applyClaim=async(deps:BootstrapDependencies,input:BootstrapPlatformAdminsInput,target:BootstrapPlatformAdminTarget,index:number)=>{let user=await authUser(deps,target);let state=claimState(user);await audit(deps,input,"claim_observed",index,"succeeded",null);if(state==="correct")return;try{await deps.auth.setCustomClaims(target.uid,Object.freeze({...user.customClaims,platformRole:"platform_admin"}))}catch(error){user=await authUser(deps,target);if(claimState(user)==="correct")return;throw mapFirebaseAdminError(error)}user=await authUser(deps,target);state=claimState(user);if(state!=="correct")throw new BackendError(BACKEND_ERROR_CODES.CONTRACT_VIOLATION,"Bootstrap claim verification failed.");await audit(deps,input,"claim_applied",index,"succeeded",null)};
+
+const transitions=(input:BootstrapPlatformAdminsInput,status:"provisioning"|"recovery_required"|"active")=>input.targets.map(target=>({uid:target.uid,expectedStatus:status==="provisioning"?null:(status==="recovery_required"?PLATFORM_AUTHORITY_STATUSES.PROVISIONING:PLATFORM_AUTHORITY_STATUSES.PROVISIONING),nextStatus:status,bootstrapCommandId:input.commandId,recordClaimSync:status==="active"}));
+const storeAudit=(deps:BootstrapDependencies,input:BootstrapPlatformAdminsInput,stage:string,resultValue:"succeeded"|"recovery_required",errorCode:string|null)=>({auditId:`${input.commandId}-${stage}`,authority:deps.operator,operation:`BootstrapPlatformAdmins.${stage}`,resourceType:"platform_authority_registry",resourceId:"authorityRegistry",result:resultValue,errorCode,beforeSummary:{},afterSummary:{},metadata:{stage,environment:input.environment,confirmationId:input.confirmationId}} as const);
+
+export const executeBootstrapPlatformAdmins=async(value:unknown,deps:BootstrapDependencies):Promise<BootstrapResult>=>{
+  const input=validateBootstrapPlatformAdminsInput(value), behavioral:Readonly<Record<string,JsonValue>>={environment:input.environment,confirmationId:input.confirmationId,targets:input.targets.map(target=>({uid:target.uid,expectedNormalizedEmail:target.expectedNormalizedEmail}))}, envelope:CommandEnvelope={commandId:input.commandId,commandType:COMMAND_TYPES.BOOTSTRAP_PLATFORM_ADMINS,correlationId:input.correlationId,tenantId:null,payload:behavioral};validateCommandEnvelope(envelope);
+  if(!await deps.approval.verify({confirmationId:input.confirmationId,environment:input.environment,targetUids:[input.targets[0].uid,input.targets[1].uid]}))throw new BackendError(BACKEND_ERROR_CODES.FORBIDDEN,"Bootstrap approval is invalid.");
+  for(const target of input.targets){await deps.identity.verify(target.uid,target.expectedNormalizedEmail);await authUser(deps,target)}
+  const payloadHash=canonicalPayloadHash(envelope.commandType,envelope.payload), claimed=await claimCommand(deps,input,envelope,payloadHash);if(claimed.kind==="replay")return result(input,true);
+  if(claimed.kind==="new")await deps.store.mutate({commandId:input.commandId,correlationId:input.correlationId,payloadHash,nextCommandStatus:COMMAND_STATUSES.RUNNING,nextCommandStage:PRIVILEGED_COMMAND_STAGES.PREPARED,commandResult:null,commandErrorCode:null,nextRegistryState:PLATFORM_AUTHORITY_REGISTRY_STATES.IN_PROGRESS,activeCountDelta:0,authorities:transitions(input,"provisioning"),audit:storeAudit(deps,input,"prepare","succeeded",null)});
+  else if(claimed.record.status===COMMAND_STATUSES.RECOVERY_REQUIRED)await deps.store.mutate({commandId:input.commandId,correlationId:input.correlationId,payloadHash,nextCommandStatus:COMMAND_STATUSES.RUNNING,nextCommandStage:PRIVILEGED_COMMAND_STAGES.PREPARED,commandResult:null,commandErrorCode:null,nextRegistryState:PLATFORM_AUTHORITY_REGISTRY_STATES.IN_PROGRESS,activeCountDelta:0,authorities:input.targets.map(target=>({uid:target.uid,expectedStatus:PLATFORM_AUTHORITY_STATUSES.RECOVERY_REQUIRED,nextStatus:PLATFORM_AUTHORITY_STATUSES.PROVISIONING,bootstrapCommandId:input.commandId})),audit:storeAudit(deps,input,"resume","succeeded",null)});
+  try{for(const [index,target] of input.targets.entries())await applyClaim(deps,input,target,index);for(const target of input.targets){await deps.identity.verify(target.uid,target.expectedNormalizedEmail);const user=await authUser(deps,target);if(claimState(user)!=="correct")throw new BackendError(BACKEND_ERROR_CODES.CONTRACT_VIOLATION,"Bootstrap verification failed.")}await audit(deps,input,"verification",null,"succeeded",null)}catch(error){const code=error instanceof BackendError?error.code:BACKEND_ERROR_CODES.UNKNOWN;await deps.store.mutate({commandId:input.commandId,correlationId:input.correlationId,payloadHash,nextCommandStatus:COMMAND_STATUSES.RECOVERY_REQUIRED,nextCommandStage:PRIVILEGED_COMMAND_STAGES.PREPARED,commandResult:null,commandErrorCode:code,nextRegistryState:PLATFORM_AUTHORITY_REGISTRY_STATES.RECOVERY_REQUIRED,activeCountDelta:0,authorities:input.targets.map(target=>({uid:target.uid,expectedStatus:PLATFORM_AUTHORITY_STATUSES.PROVISIONING,nextStatus:PLATFORM_AUTHORITY_STATUSES.RECOVERY_REQUIRED,bootstrapCommandId:input.commandId})),audit:storeAudit(deps,input,"recovery_required","recovery_required",code)});throw error}
+  const finalResult=result(input,false);await deps.store.mutate({commandId:input.commandId,correlationId:input.correlationId,payloadHash,nextCommandStatus:COMMAND_STATUSES.SUCCEEDED,nextCommandStage:PRIVILEGED_COMMAND_STAGES.COMPLETED,commandResult:finalResult as unknown as JsonValue,commandErrorCode:null,nextRegistryState:PLATFORM_AUTHORITY_REGISTRY_STATES.COMPLETED,activeCountDelta:2,authorities:input.targets.map(target=>({uid:target.uid,expectedStatus:PLATFORM_AUTHORITY_STATUSES.PROVISIONING,nextStatus:PLATFORM_AUTHORITY_STATUSES.ACTIVE,bootstrapCommandId:input.commandId,recordClaimSync:true})),audit:storeAudit(deps,input,"finalize","succeeded",null)});return finalResult;
+};
+
+export const createFirestoreBootstrapIdentityPort=(reader:AuthoritativeReaderPort):BootstrapIdentityPort=>Object.freeze({verify:async(uid:string,email:string)=>{const snapshot=await reader.read(identityDocumentPath(uid));if(!snapshot.exists||snapshot.data===null||Object.keys(snapshot.data).length!==IDENTITY_FIELDS.length||Object.keys(snapshot.data).some(key=>!IDENTITY_FIELDS.includes(key))||snapshot.data.uid!==uid||snapshot.data.email!==email||snapshot.data.emailVerified!==true)throw new BackendError(BACKEND_ERROR_CODES.FAILED_PRECONDITION,"Bootstrap Identity is missing or incoherent.")}});

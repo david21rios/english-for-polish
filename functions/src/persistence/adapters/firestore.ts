@@ -1,7 +1,7 @@
 import { FieldValue, Timestamp, type Firestore, type Transaction } from "firebase-admin/firestore";
 import { BACKEND_ERROR_CODES } from "@mipymetic/saas-contracts/errors";
 import { BackendError } from "../../errors/backendError.js";
-import { isServerOwnedTimestamp, type DocumentSnapshotPort, type PersistedDocumentShape, type TransactionPort, type TransactionRunnerPort } from "../ports.js";
+import { isServerOwnedTimestamp, type AuthoritativeReaderPort, type DocumentSnapshotPort, type PersistedDocumentShape, type TransactionPort, type TransactionRunnerPort } from "../ports.js";
 
 const timestampFields: Readonly<Record<PersistedDocumentShape, Readonly<Record<string, boolean>>>> = Object.freeze({
   platform_authority: Object.freeze({ createdAt: false, updatedAt: false, activatedAt: true, revokedAt: true, lastClaimSyncAt: true }),
@@ -18,7 +18,7 @@ export const normalizeFirestoreDocument = (data: FirebaseFirestore.DocumentData,
     if (!Object.prototype.hasOwnProperty.call(data, field)) continue;
     const value = data[field];
     if (value === null && nullable) continue;
-    if (!(value instanceof Timestamp)) throw new BackendError(BACKEND_ERROR_CODES.CONTRACT_VIOLATION, "The persisted timestamp is invalid.");
+    if (!(value instanceof Timestamp)) throw new BackendError(BACKEND_ERROR_CODES.CONTRACT_VIOLATION, `The persisted ${field} timestamp is invalid.`);
     result[field] = value.toDate().toISOString();
   }
   return result;
@@ -55,4 +55,9 @@ export class FirestoreAdminTransactionRunner implements TransactionRunnerPort {
   run<T>(operation: (transaction: TransactionPort) => Promise<T>): Promise<T> {
     return this.firestore.runTransaction((transaction) => operation(new FirestoreTransactionPort(this.firestore, transaction)));
   }
+}
+
+export class FirestoreAdminReader implements AuthoritativeReaderPort {
+  constructor(private readonly firestore: Firestore) {}
+  async read(path: string): Promise<DocumentSnapshotPort> { return snapshotPort(await this.firestore.doc(path).get()); }
 }
