@@ -1,5 +1,5 @@
 import { ACCESS_STATES, BACKEND_ERROR_CODES, tenantDocumentPath } from "@mipymetic/saas-contracts";
-import { CEFR_LEVELS } from "@mipymetic/saas-contracts/domain";
+import { CAPABILITY_IDS, CEFR_LEVELS } from "@mipymetic/saas-contracts/domain";
 import { tenantAuditEventDocumentPath } from "@mipymetic/saas-contracts/persistence";
 import { canonicalJsonStringify } from "@mipymetic/saas-contracts/validation";
 import { COMMAND_STATUSES } from "@mipymetic/saas-contracts/commands";
@@ -13,6 +13,7 @@ const command: typeof COMMAND_STATUSES.SUCCEEDED = "succeeded";
 const authority: typeof PLATFORM_AUTHORITY_STATUSES.ACTIVE = "active";
 const audit: typeof AUDIT_LEVELS.CRITICAL = "critical";
 const error: typeof COMMON_ERROR_CODES.CONFLICT = BACKEND_ERROR_CODES.CONFLICT;
+const revokeCapability: "platform.authority_revoke" = CAPABILITY_IDS.PLATFORM_AUTHORITY_REVOKE;
 const paths: readonly string[] = [tenantDocumentPath("tenant-a"), tenantAuditEventDocumentPath("tenant-a", "audit-a")];
 const canonical: string = canonicalJsonStringify({ access, cefr, command, authority, audit, error, paths });
 
@@ -22,4 +23,5 @@ const invalidStatus: typeof COMMAND_STATUSES.SUCCEEDED = "done";
 await import("@mipymetic/saas-contracts/src/internal/json.js");
 
 void canonical;
+void revokeCapability;
 void invalidStatus;

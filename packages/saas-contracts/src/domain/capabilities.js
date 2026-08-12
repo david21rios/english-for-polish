@@ -52,6 +52,7 @@ export const CAPABILITY_IDS = Object.freeze({
   PLATFORM_TENANT_RESTORE: "platform.tenant_restore",
   PLATFORM_TENANT_ARCHIVE: "platform.tenant_archive",
   PLATFORM_IDENTITY_READ: "platform.identity_read",
+  PLATFORM_AUTHORITY_REVOKE: "platform.authority_revoke",
 });
 
 /**
@@ -296,5 +297,11 @@ export const CAPABILITIES = Object.freeze({
     CAPABILITY_SCOPES.PLATFORM,
     "platform_identity",
     "Read identity administration data at platform scope.",
+  ),
+  [CAPABILITY_IDS.PLATFORM_AUTHORITY_REVOKE]: defineCapability(
+    CAPABILITY_IDS.PLATFORM_AUTHORITY_REVOKE,
+    CAPABILITY_SCOPES.PLATFORM,
+    "platform_authority",
+    "Revoke an active platform authority through the approved privileged command.",
   ),
 });

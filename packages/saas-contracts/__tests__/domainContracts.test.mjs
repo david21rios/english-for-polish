@@ -146,10 +146,11 @@ test("capability catalog preserves exact IDs, order, descriptors and reference i
     "enrollment.cancel_self", "platform.tenant_list", "platform.tenant_read",
     "platform.tenant_create", "platform.tenant_update", "platform.tenant_suspend",
     "platform.tenant_restore", "platform.tenant_archive", "platform.identity_read",
+    "platform.authority_revoke",
   ];
   assert.deepEqual(Object.values(packageDomain.CAPABILITY_IDS), expectedIds);
   assert.deepEqual(Object.keys(packageDomain.CAPABILITIES), expectedIds);
-  assert.equal(new Set(expectedIds).size, 37);
+  assert.equal(new Set(expectedIds).size, 38);
   assert.equal(Object.isFrozen(packageDomain.CAPABILITY_IDS), true);
   assert.equal(Object.isFrozen(packageDomain.CAPABILITIES), true);
   for (const [id, descriptor] of Object.entries(packageDomain.CAPABILITIES)) {
@@ -174,7 +175,7 @@ test("self capabilities and role matrix preserve exact assignments and deep free
   );
   assert.deepEqual(
     Object.fromEntries(Object.entries(packageDomain.ROLE_CAPABILITY_MATRIX.platformRoles).map(([role, ids]) => [role, ids.length])),
-    { platform_admin: 8 },
+    { platform_admin: 9 },
   );
   assert.equal(Object.isFrozen(packageDomain.IDENTITY_SELF_CAPABILITIES), true);
   assert.equal(Object.isFrozen(packageDomain.ROLE_CAPABILITY_MATRIX), true);
@@ -184,6 +185,23 @@ test("self capabilities and role matrix preserve exact assignments and deep free
   }
   assert.strictEqual(IDENTITY_SELF_CAPABILITIES, packageDomain.IDENTITY_SELF_CAPABILITIES);
   assert.strictEqual(ROLE_CAPABILITY_MATRIX, packageDomain.ROLE_CAPABILITY_MATRIX);
+});
+
+test("platform authority revoke capability is exact, frozen and platform-only", () => {
+  const id = packageDomain.CAPABILITY_IDS.PLATFORM_AUTHORITY_REVOKE;
+  assert.equal(id, "platform.authority_revoke");
+  assert.deepEqual(packageDomain.CAPABILITIES[id], {
+    id,
+    scope: "platform",
+    resource: "platform_authority",
+    description: "Revoke an active platform authority through the approved privileged command.",
+  });
+  assert.equal(Object.isFrozen(packageDomain.CAPABILITIES[id]), true);
+  assert.equal(packageDomain.ROLE_CAPABILITY_MATRIX.platformRoles.platform_admin.includes(id), true);
+  for (const ids of Object.values(packageDomain.ROLE_CAPABILITY_MATRIX.membershipRoles)) {
+    assert.equal(ids.includes(id), false);
+  }
+  assert.equal(packageDomain.IDENTITY_SELF_CAPABILITIES.includes(id), false);
 });
 
 test("all assignments and workflow capability references resolve to the exact catalog", () => {

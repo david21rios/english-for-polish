@@ -43,6 +43,7 @@ export const CAPABILITY_IDS: Readonly<{
     PLATFORM_TENANT_RESTORE: "platform.tenant_restore";
     PLATFORM_TENANT_ARCHIVE: "platform.tenant_archive";
     PLATFORM_IDENTITY_READ: "platform.identity_read";
+    PLATFORM_AUTHORITY_REVOKE: "platform.authority_revoke";
 }>;
 export const CAPABILITIES: Readonly<{
     "identity.read_self": Readonly<{
@@ -266,6 +267,12 @@ export const CAPABILITIES: Readonly<{
         scope: "platform";
         resource: "platform_identity";
         description: "Read identity administration data at platform scope.";
+    }>;
+    "platform.authority_revoke": Readonly<{
+        id: "platform.authority_revoke";
+        scope: "platform";
+        resource: "platform_authority";
+        description: "Revoke an active platform authority through the approved privileged command.";
     }>;
 }>;
 export type Capability = {
