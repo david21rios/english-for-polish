@@ -53,7 +53,8 @@ export const validatePersistedCommandRecord = (value: unknown): CommandRecord =>
     && typeof record.attemptCount === "number" && Number.isInteger(record.attemptCount) && record.attemptCount >= 0
     && validIdentifier(record.correlationId, "correlationId")
     && isNullableTimestamp(record.expiresAt)
-    && isNullableTimestamp(record.leaseExpiresAt);
+    && isNullableTimestamp(record.leaseExpiresAt)
+    && (record.status === COMMAND_STATUSES.RUNNING || record.leaseExpiresAt === null);
   if (!valid) {
     throw new BackendError(BACKEND_ERROR_CODES.CONTRACT_VIOLATION, "The persisted command record is invalid.");
   }

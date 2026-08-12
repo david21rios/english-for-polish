@@ -125,6 +125,24 @@ test("persisted command records fail closed unless their exact contract is valid
   }
 });
 
+test("persisted command record leases are restricted to running commands", () => {
+  const valid = createPendingCommandRecord({
+    envelope: envelope(), payloadHash: "a".repeat(64), authority, now: "2026-01-01T00:00:00.000Z",
+  });
+  const leaseExpiresAt = "2026-01-01T00:01:00.000Z";
+  for (const status of Object.values(COMMAND_STATUSES)) {
+    assert.doesNotThrow(() => validatePersistedCommandRecord({ ...valid, status, leaseExpiresAt: null }));
+    if (status === COMMAND_STATUSES.RUNNING) {
+      assert.doesNotThrow(() => validatePersistedCommandRecord({ ...valid, status, leaseExpiresAt }));
+    } else {
+      assert.throws(
+        () => validatePersistedCommandRecord({ ...valid, status, leaseExpiresAt }),
+        (error: unknown) => error instanceof BackendError && error.code === BACKEND_ERROR_CODES.CONTRACT_VIOLATION,
+      );
+    }
+  }
+});
+
 test("command execution rejects a malformed persisted replay before idempotency", async () => {
   const inputEnvelope = envelope({ safe: true });
   const payloadHash = canonicalPayloadHash(inputEnvelope.commandType, inputEnvelope.payload);
