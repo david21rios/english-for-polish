@@ -5,7 +5,34 @@
 **Regla:** ninguna fase activa enforcement ni elimina compatibilidad antes de
 cumplir su gate.
 
-## Current checkpoint — SaaS-03B-C-R4 BootstrapPlatformAdmins
+## Current checkpoint — SaaS-03B-C-R4-C1-R1 persisted Identity repair
+
+The independent R4-C1 review stopped fail-closed after proving that the
+Bootstrap Firestore Identity boundary accepted exact-key documents with
+malformed values. `SaaS-03B-C-R4-C1-R1` repairs only that defect.
+
+The Functions boundary now normalizes Identity `createdAt`/`updatedAt` from
+native Firestore Timestamp to canonical ISO and validates all eight required
+fields before Bootstrap prepare. Both targets must pass before any command,
+Registry, Authority, audit or Auth write. Unit, clean-install and real Emulator
+regressions pass without package, Domain, Shared, Rules or Firebase changes.
+
+```text
+SaaS-03B-C-R4 = implemented
+SaaS-03B-C-R4-C1 = blocked_pending_R1_human_review_push_and_revalidation
+SaaS-03B-C-R4-C1-R1 = completed_pending_human_review_and_push
+BootstrapPlatformAdmins = repaired_pending_independent_revalidation
+RecoverPlatformAdmin = blocked
+RevokePlatformAdmin = blocked
+SaaS-03B-C = blocked_pending_R4_C1_revalidation
+SaaS-03B-D = blocked
+Phase 4 = not_started
+```
+
+After human review and push, rerun the complete `SaaS-03B-C-R4-C1` from a
+clean published HEAD. Do not begin Recovery before that independent closure.
+
+## Previous checkpoint — SaaS-03B-C-R4 BootstrapPlatformAdmins
 
 `SaaS-03B-C-R4` implements the first internal privileged business command on
 the validated Foundation and transaction Store. It uses the exact payload,
