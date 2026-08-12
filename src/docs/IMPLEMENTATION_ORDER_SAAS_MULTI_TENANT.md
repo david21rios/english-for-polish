@@ -5,7 +5,34 @@
 **Regla:** ninguna fase activa enforcement ni elimina compatibilidad antes de
 cumplir su gate.
 
-## Current checkpoint — SaaS-03B-C-R3-R3 Registry contract resolution
+## Current checkpoint — SaaS-03B-C-R3-R4 Registry validation and timestamp boundary
+
+`SaaS-03B-C-R3-R4` materializes the two published prerequisites for the
+Platform Command Transaction Store: the package-owned frozen registry state
+catalog and exact fail-closed registry validator, plus the Functions-local
+portable boundary for server-owned Firestore timestamps. The shared package
+advances additively to `0.9.0`; Functions consumes its single reproducible
+vendored artifact.
+
+Firestore native `Timestamp` values are normalized by the Admin adapter to
+canonical ISO strings before portable core validation. Core writes can request
+server time only through an identity-safe Functions token which the adapter
+maps to `FieldValue.serverTimestamp()`. This checkpoint does not implement the
+Transaction Store, any platform command, handler, Rules change or deployment.
+
+```text
+SaaS-03B-C-R3-R4 = completed_pending_human_review_and_push
+Registry Validation + Timestamp Boundary prerequisite = completed_pending_human_review_and_push
+Platform Command Transaction Store Boundary = blocked_pending_R3_R4_push
+SaaS-03B-C = blocked_pending_transaction_store
+SaaS-03B-D = blocked
+Phase 4 = not_started
+```
+
+After human review and push, the Platform Command Transaction Store Boundary
+becomes `ready_not_started`. Do not start it in this microphase.
+
+## Previous checkpoint — SaaS-03B-C-R3-R3 Registry contract resolution
 
 `SaaS-03B-C-R3-R3` closes the exact Platform Authority Registry state and
 last-command contract required before its runtime validator can be
