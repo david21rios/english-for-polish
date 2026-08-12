@@ -5,6 +5,35 @@
 **Regla:** ninguna fase activa enforcement ni elimina compatibilidad antes de
 cumplir su gate.
 
+## Current checkpoint — SaaS-03B-C-R1 platform recovery/revocation contracts
+
+The post-foundation scope audit proved that `RecoverPlatformAdmin` and
+`RevokePlatformAdmin` had names and lifecycle outlines but no executable command
+contracts. New resolution microphase `SaaS-03B-C-R1` now closes their payloads,
+actors, approvals, target matrices, sagas, registry/count semantics,
+idempotency, audit, errors, recovery and completion criteria without code.
+
+Recovery is an out-of-band two-person break-glass ceremony and intentionally
+requires no role capability. Revoke is an ordinary active-platform-authority
+operation and must be capability-authorized. Package 0.6.1 has no exact
+platform-authority-revoke capability, so implementation remains blocked pending
+a shared-contract microphase; this document does not invent one.
+
+```text
+SaaS-03B-B = completed
+SaaS-03B-B-C1 = completed
+SaaS-03B-C-R1 = completed_pending_human_review_and_push
+SaaS-03B-C = blocked_pending_shared_contract_resolution
+SaaS-03B-D = blocked
+SaaS-03B-E/F = not_started
+Phase 4 = not_started
+Privileged Backend Foundation = independently_validated
+```
+
+Next after human review and push: resolve the missing package-owned revoke
+capability in an explicitly scoped shared-contract microphase. Do not implement
+03B-C or begin 03B-D.
+
 ## Current checkpoint — SaaS-03B-B-C1-R2 independent foundation closure
 
 The complete independent post-R2-R3 review validates persisted-record shape and
