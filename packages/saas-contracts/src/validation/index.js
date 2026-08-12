@@ -3,6 +3,7 @@ export {
   isDocumentIdentifier,
   validateDocumentIdentifier,
 } from "./identifiers.js";
+export { validatePersistedTimestamp } from "./timestamps.js";
 export {
   hasExactKeys,
   hasRequiredKeys,

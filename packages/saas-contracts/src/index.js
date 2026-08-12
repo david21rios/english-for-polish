@@ -42,6 +42,7 @@ export {
   isEnumValue,
   isPlainObject,
   validateDocumentIdentifier,
+  validatePersistedTimestamp,
 } from "./validation/index.js";
 export {
   COMMAND_RECORD_FIELDS,
@@ -54,10 +55,13 @@ export {
   AUTHORITY_SCHEMA_VERSION,
   PLATFORM_AUTHORITY,
   PLATFORM_AUTHORITY_FIELDS,
+  PLATFORM_AUTHORITY_REGISTRY_SCHEMA_VERSION,
   PLATFORM_AUTHORITY_REGISTRY_FIELDS,
   PLATFORM_AUTHORITY_REQUIRED_FIELDS,
+  PLATFORM_AUTHORITY_SCHEMA_VERSION,
   PLATFORM_AUTHORITY_STATUSES,
   TENANT_ADMIN_AUTHORITY_STATE_FIELDS,
+  validatePlatformAuthority,
 } from "./authority/index.js";
 export {
   AUDIT_BEFORE_AFTER_MAX_BYTES,

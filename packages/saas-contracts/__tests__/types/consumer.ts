@@ -1,9 +1,12 @@
 import { ACCESS_STATES, BACKEND_ERROR_CODES, tenantDocumentPath } from "@mipymetic/saas-contracts";
 import { CAPABILITY_IDS, CEFR_LEVELS } from "@mipymetic/saas-contracts/domain";
 import { tenantAuditEventDocumentPath } from "@mipymetic/saas-contracts/persistence";
-import { canonicalJsonStringify } from "@mipymetic/saas-contracts/validation";
+import { canonicalJsonStringify, validatePersistedTimestamp } from "@mipymetic/saas-contracts/validation";
 import { COMMAND_STATUSES } from "@mipymetic/saas-contracts/commands";
-import { PLATFORM_AUTHORITY_STATUSES } from "@mipymetic/saas-contracts/authority";
+import {
+  AUTHORITY_SCHEMA_VERSION, PLATFORM_AUTHORITY_REGISTRY_SCHEMA_VERSION, PLATFORM_AUTHORITY_SCHEMA_VERSION,
+  PLATFORM_AUTHORITY_STATUSES, validatePlatformAuthority,
+} from "@mipymetic/saas-contracts/authority";
 import { AUDIT_LEVELS } from "@mipymetic/saas-contracts/audit";
 import { COMMON_ERROR_CODES } from "@mipymetic/saas-contracts/errors";
 
@@ -14,6 +17,11 @@ const authority: typeof PLATFORM_AUTHORITY_STATUSES.ACTIVE = "active";
 const audit: typeof AUDIT_LEVELS.CRITICAL = "critical";
 const error: typeof COMMON_ERROR_CODES.CONFLICT = BACKEND_ERROR_CODES.CONFLICT;
 const revokeCapability: "platform.authority_revoke" = CAPABILITY_IDS.PLATFORM_AUTHORITY_REVOKE;
+const authoritySchema: 1 = PLATFORM_AUTHORITY_SCHEMA_VERSION;
+const registrySchema: 1 = PLATFORM_AUTHORITY_REGISTRY_SCHEMA_VERSION;
+const legacyRegistrySchema: typeof registrySchema = AUTHORITY_SCHEMA_VERSION;
+const timestampResult = validatePersistedTimestamp("2026-08-12T12:34:56.123Z");
+const authorityResult = validatePlatformAuthority({ schemaVersion: authoritySchema, transitionCommandId: null });
 const paths: readonly string[] = [tenantDocumentPath("tenant-a"), tenantAuditEventDocumentPath("tenant-a", "audit-a")];
 const canonical: string = canonicalJsonStringify({ access, cefr, command, authority, audit, error, paths });
 
@@ -24,4 +32,7 @@ await import("@mipymetic/saas-contracts/src/internal/json.js");
 
 void canonical;
 void revokeCapability;
+void legacyRegistrySchema;
+void timestampResult;
+void authorityResult;
 void invalidStatus;

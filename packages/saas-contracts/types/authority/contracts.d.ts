@@ -1,3 +1,6 @@
+export const PLATFORM_AUTHORITY_SCHEMA_VERSION: 1;
+export const PLATFORM_AUTHORITY_REGISTRY_SCHEMA_VERSION: 1;
+/** @deprecated Use PLATFORM_AUTHORITY_REGISTRY_SCHEMA_VERSION. */
 export const AUTHORITY_SCHEMA_VERSION: 1;
 export const PLATFORM_AUTHORITY: "platform_admin";
 export const PLATFORM_AUTHORITY_STATUSES: Readonly<{
@@ -11,3 +14,30 @@ export const PLATFORM_AUTHORITY_FIELDS: readonly string[];
 export const PLATFORM_AUTHORITY_REQUIRED_FIELDS: readonly string[];
 export const PLATFORM_AUTHORITY_REGISTRY_FIELDS: readonly string[];
 export const TENANT_ADMIN_AUTHORITY_STATE_FIELDS: readonly string[];
+export function validatePlatformAuthority(value: unknown): Readonly<{
+    ok: true;
+    value: PlatformAuthority;
+}> | Readonly<{
+    ok: false;
+    issue: Readonly<{
+        code: "INVALID_ARGUMENT";
+        field: "platformAuthority";
+        reason: "invalid_platform_authority";
+    }>;
+}>;
+export type PlatformAuthority = Readonly<{
+    schemaVersion: 1;
+    transitionCommandId: string | null;
+    uid: string;
+    authority: "platform_admin";
+    status: "provisioning" | "active" | "revoking" | "revoked" | "recovery_required";
+    createdAt: string;
+    createdBy: string;
+    updatedAt: string;
+    updatedBy: string;
+    activatedAt: string | null;
+    revokedAt: string | null;
+    revokedBy: string | null;
+    bootstrapCommandId: string | null;
+    lastClaimSyncAt: string | null;
+}>;

@@ -1,11 +1,11 @@
 {
   "packageName": "@mipymetic/saas-contracts",
-  "version": "0.7.0",
-  "filename": "mipymetic-saas-contracts-0.7.0.tgz",
-  "sha256": "cc01ad1a89c3773500c0f56561da6b5100af75328ecfbd2e940fe6266494b7e1",
-  "npmShasum": "ed673ddc78984e651c6556ecb15e00a5f5d54a2b",
-  "npmIntegrity": "sha512-D1PSg+EoCB7QQuI6LIKsXmQDy4u5EjCUPJ21zzadwm7vGWo9dT0cV+mMOtvqan7/1y6HjFRsFjH6ad/ONGyiPg==",
-  "entryCount": 58,
+  "version": "0.8.0",
+  "filename": "mipymetic-saas-contracts-0.8.0.tgz",
+  "sha256": "2b7e3592c31c739efa1fb1dc598de87010a2b3152d9bd0c264eeac60d6555c5b",
+  "npmShasum": "c256db3f4f14af62286caf6bc3c667cc4f09d48b",
+  "npmIntegrity": "sha512-siHNTL+KZ+QPRYtuR7BWdhYvvVh6/yTrNODMDr8jIpuqtGE+KixPwRvcm5o0AZyhjvxLU32wQePFGVTqsf9M6g==",
+  "entryCount": 60,
   "files": [
     "README.md",
     "package.json",
@@ -37,6 +37,7 @@
     "src/validation/identifiers.js",
     "src/validation/index.js",
     "src/validation/objects.js",
+    "src/validation/timestamps.js",
     "types/audit/contracts.d.ts",
     "types/audit/index.d.ts",
     "types/authority/contracts.d.ts",
@@ -64,6 +65,7 @@
     "types/persistence/paths.d.ts",
     "types/validation/identifiers.d.ts",
     "types/validation/index.d.ts",
-    "types/validation/objects.d.ts"
+    "types/validation/objects.d.ts",
+    "types/validation/timestamps.d.ts"
   ]
 }
