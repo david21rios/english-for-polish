@@ -1,6 +1,6 @@
 import { BACKEND_ERROR_CODES } from "@mipymetic/saas-contracts/errors";
 import { BackendError } from "../errors/backendError.js";
-import type { TransactionPort, TransactionRunnerPort } from "./ports.js";
+import type { PersistedDocumentShape, TransactionPort, TransactionRunnerPort } from "./ports.js";
 
 export interface TransactionContext {
   readonly transaction: TransactionPort;
@@ -23,7 +23,7 @@ export const runAuthoritativeTransaction = async <T>(
     if (writes >= 20) throw new BackendError(BACKEND_ERROR_CODES.FAILED_PRECONDITION, "The command exceeds the contractual write budget.");
   };
   const budgetedTransaction: TransactionPort = Object.freeze({
-    get: async (path: string) => { registerRead(); return transaction.get(path); },
+    get: async (path: string, shape?: PersistedDocumentShape) => { registerRead(); return transaction.get(path, shape); },
     create: (path: string, data: Readonly<Record<string, unknown>>) => { registerWrite(); transaction.create(path, data); },
     set: (path: string, data: Readonly<Record<string, unknown>>, options?: { merge: boolean }) => {
       registerWrite();

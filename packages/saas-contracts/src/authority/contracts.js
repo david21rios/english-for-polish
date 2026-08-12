@@ -14,6 +14,12 @@ export const PLATFORM_AUTHORITY_STATUSES = Object.freeze({
   PROVISIONING: "provisioning", ACTIVE: "active", REVOKING: "revoking",
   REVOKED: "revoked", RECOVERY_REQUIRED: "recovery_required"
 });
+export const PLATFORM_AUTHORITY_REGISTRY_STATES = Object.freeze({
+  UNINITIALIZED: "uninitialized",
+  IN_PROGRESS: "in_progress",
+  COMPLETED: "completed",
+  RECOVERY_REQUIRED: "recovery_required"
+});
 export const PLATFORM_AUTHORITY_FIELDS = frozen(["schemaVersion", "transitionCommandId", "uid", "authority", "status", "createdAt", "createdBy", "updatedAt", "updatedBy", "activatedAt", "revokedAt", "revokedBy", "bootstrapCommandId", "lastClaimSyncAt"]);
 export const PLATFORM_AUTHORITY_REQUIRED_FIELDS = PLATFORM_AUTHORITY_FIELDS;
 export const PLATFORM_AUTHORITY_REGISTRY_FIELDS = frozen(["schemaVersion", "bootstrapState", "activeCount", "revision", "lastCommandId", "updatedAt"]);
@@ -86,4 +92,41 @@ export const validatePlatformAuthority = (value) => {
     ok: false,
     issue: Object.freeze({ code: "INVALID_ARGUMENT", field: "platformAuthority", reason: "invalid_platform_authority" }),
   });
+};
+
+/**
+ * @typedef {Readonly<{
+ * schemaVersion: 1,
+ * bootstrapState: "uninitialized"|"in_progress"|"completed"|"recovery_required",
+ * activeCount: number,
+ * revision: number,
+ * lastCommandId: string|null,
+ * updatedAt: string
+ * }>} PlatformAuthorityRegistry
+ */
+
+/** @param {unknown} value @returns {Readonly<{ok: true, value: PlatformAuthorityRegistry}> | Readonly<{ok: false, issue: Readonly<{code: "INVALID_ARGUMENT", field: "platformAuthorityRegistry", reason: "invalid_platform_authority_registry"}>}>} */
+export const validatePlatformAuthorityRegistry = (value) => {
+  const validShape = isPlainObject(value)
+    && Object.keys(value).length === PLATFORM_AUTHORITY_REGISTRY_FIELDS.length
+    && PLATFORM_AUTHORITY_REGISTRY_FIELDS.every((field) => Object.prototype.hasOwnProperty.call(value, field));
+  if (validShape) {
+    const registry = /** @type {Record<string, unknown>} */ (value);
+    const state = registry.bootstrapState;
+    const validState = Object.values(PLATFORM_AUTHORITY_REGISTRY_STATES).some((candidate) => candidate === state);
+    const initial = state === PLATFORM_AUTHORITY_REGISTRY_STATES.UNINITIALIZED;
+    const lastCommandValid = initial ? registry.lastCommandId === null : validIdentifier(registry.lastCommandId);
+    if (registry.schemaVersion === PLATFORM_AUTHORITY_REGISTRY_SCHEMA_VERSION
+      && validState
+      && Number.isInteger(registry.activeCount) && Number(registry.activeCount) >= 0
+      && Number.isInteger(registry.revision) && Number(registry.revision) >= 0
+      && lastCommandValid
+      && (!initial || (registry.activeCount === 0 && registry.revision === 0))
+      && validTimestamp(registry.updatedAt)) {
+      return Object.freeze({ ok: true, value: /** @type {PlatformAuthorityRegistry} */ (value) });
+    }
+  }
+  return Object.freeze({ ok: false, issue: Object.freeze({
+    code: "INVALID_ARGUMENT", field: "platformAuthorityRegistry", reason: "invalid_platform_authority_registry"
+  }) });
 };

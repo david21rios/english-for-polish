@@ -5,7 +5,8 @@ import { canonicalJsonStringify, validatePersistedTimestamp } from "@mipymetic/s
 import { COMMAND_STATUSES } from "@mipymetic/saas-contracts/commands";
 import {
   AUTHORITY_SCHEMA_VERSION, PLATFORM_AUTHORITY_REGISTRY_SCHEMA_VERSION, PLATFORM_AUTHORITY_SCHEMA_VERSION,
-  PLATFORM_AUTHORITY_STATUSES, validatePlatformAuthority,
+  PLATFORM_AUTHORITY_REGISTRY_STATES, PLATFORM_AUTHORITY_STATUSES,
+  validatePlatformAuthority, validatePlatformAuthorityRegistry,
 } from "@mipymetic/saas-contracts/authority";
 import { AUDIT_LEVELS } from "@mipymetic/saas-contracts/audit";
 import { COMMON_ERROR_CODES } from "@mipymetic/saas-contracts/errors";
@@ -19,9 +20,11 @@ const error: typeof COMMON_ERROR_CODES.CONFLICT = BACKEND_ERROR_CODES.CONFLICT;
 const revokeCapability: "platform.authority_revoke" = CAPABILITY_IDS.PLATFORM_AUTHORITY_REVOKE;
 const authoritySchema: 1 = PLATFORM_AUTHORITY_SCHEMA_VERSION;
 const registrySchema: 1 = PLATFORM_AUTHORITY_REGISTRY_SCHEMA_VERSION;
+const registryState: "uninitialized" = PLATFORM_AUTHORITY_REGISTRY_STATES.UNINITIALIZED;
 const legacyRegistrySchema: typeof registrySchema = AUTHORITY_SCHEMA_VERSION;
 const timestampResult = validatePersistedTimestamp("2026-08-12T12:34:56.123Z");
 const authorityResult = validatePlatformAuthority({ schemaVersion: authoritySchema, transitionCommandId: null });
+const registryResult = validatePlatformAuthorityRegistry({ schemaVersion: registrySchema });
 const paths: readonly string[] = [tenantDocumentPath("tenant-a"), tenantAuditEventDocumentPath("tenant-a", "audit-a")];
 const canonical: string = canonicalJsonStringify({ access, cefr, command, authority, audit, error, paths });
 
@@ -35,4 +38,6 @@ void revokeCapability;
 void legacyRegistrySchema;
 void timestampResult;
 void authorityResult;
+void registryState;
+void registryResult;
 void invalidStatus;

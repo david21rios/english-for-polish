@@ -10,6 +10,12 @@ export const PLATFORM_AUTHORITY_STATUSES: Readonly<{
     REVOKED: "revoked";
     RECOVERY_REQUIRED: "recovery_required";
 }>;
+export const PLATFORM_AUTHORITY_REGISTRY_STATES: Readonly<{
+    UNINITIALIZED: "uninitialized";
+    IN_PROGRESS: "in_progress";
+    COMPLETED: "completed";
+    RECOVERY_REQUIRED: "recovery_required";
+}>;
 export const PLATFORM_AUTHORITY_FIELDS: readonly string[];
 export const PLATFORM_AUTHORITY_REQUIRED_FIELDS: readonly string[];
 export const PLATFORM_AUTHORITY_REGISTRY_FIELDS: readonly string[];
@@ -23,6 +29,17 @@ export function validatePlatformAuthority(value: unknown): Readonly<{
         code: "INVALID_ARGUMENT";
         field: "platformAuthority";
         reason: "invalid_platform_authority";
+    }>;
+}>;
+export function validatePlatformAuthorityRegistry(value: unknown): Readonly<{
+    ok: true;
+    value: PlatformAuthorityRegistry;
+}> | Readonly<{
+    ok: false;
+    issue: Readonly<{
+        code: "INVALID_ARGUMENT";
+        field: "platformAuthorityRegistry";
+        reason: "invalid_platform_authority_registry";
     }>;
 }>;
 export type PlatformAuthority = Readonly<{
@@ -40,4 +57,12 @@ export type PlatformAuthority = Readonly<{
     revokedBy: string | null;
     bootstrapCommandId: string | null;
     lastClaimSyncAt: string | null;
+}>;
+export type PlatformAuthorityRegistry = Readonly<{
+    schemaVersion: 1;
+    bootstrapState: "uninitialized" | "in_progress" | "completed" | "recovery_required";
+    activeCount: number;
+    revision: number;
+    lastCommandId: string | null;
+    updatedAt: string;
 }>;

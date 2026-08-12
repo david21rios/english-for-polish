@@ -5,13 +5,40 @@ import {
   PLATFORM_AUTHORITY,
   PLATFORM_AUTHORITY_FIELDS,
   PLATFORM_AUTHORITY_REGISTRY_SCHEMA_VERSION,
+  PLATFORM_AUTHORITY_REGISTRY_STATES,
   PLATFORM_AUTHORITY_SCHEMA_VERSION,
   PLATFORM_AUTHORITY_STATUSES,
   validatePlatformAuthority,
+  validatePlatformAuthorityRegistry,
 } from "@mipymetic/saas-contracts/authority";
 import { validatePersistedTimestamp } from "@mipymetic/saas-contracts/validation";
 
 const timestamp = "2026-08-12T12:34:56.123Z";
+const registry = (bootstrapState = PLATFORM_AUTHORITY_REGISTRY_STATES.UNINITIALIZED) => ({
+  schemaVersion: PLATFORM_AUTHORITY_REGISTRY_SCHEMA_VERSION, bootstrapState, activeCount: 0,
+  revision: bootstrapState === PLATFORM_AUTHORITY_REGISTRY_STATES.UNINITIALIZED ? 0 : 1,
+  lastCommandId: bootstrapState === PLATFORM_AUTHORITY_REGISTRY_STATES.UNINITIALIZED ? null : "command-1", updatedAt: timestamp,
+});
+
+test("Platform Authority Registry states and validator are canonical", () => {
+  assert.deepEqual(Object.keys(PLATFORM_AUTHORITY_REGISTRY_STATES), ["UNINITIALIZED", "IN_PROGRESS", "COMPLETED", "RECOVERY_REQUIRED"]);
+  assert.deepEqual(Object.values(PLATFORM_AUTHORITY_REGISTRY_STATES), ["uninitialized", "in_progress", "completed", "recovery_required"]);
+  assert.ok(Object.isFrozen(PLATFORM_AUTHORITY_REGISTRY_STATES));
+  for (const state of Object.values(PLATFORM_AUTHORITY_REGISTRY_STATES)) assert.equal(validatePlatformAuthorityRegistry(registry(state)).ok, true, state);
+});
+
+test("Platform Authority Registry rejects malformed local invariants", () => {
+  const valid = registry();
+  for (const field of ["schemaVersion", "bootstrapState", "activeCount", "revision", "lastCommandId", "updatedAt"]) {
+    const missing = { ...valid }; delete missing[field]; assert.equal(validatePlatformAuthorityRegistry(missing).ok, false, field);
+  }
+  for (const value of [{ ...valid, extra: true }, { ...valid, schemaVersion: 2 }, { ...valid, bootstrapState: "unknown" },
+    { ...valid, activeCount: -1 }, { ...valid, activeCount: 0.5 }, { ...valid, revision: -1 }, { ...valid, revision: 0.5 },
+    { ...valid, lastCommandId: "command-1" }, { ...valid, activeCount: 1 },
+    { ...registry(PLATFORM_AUTHORITY_REGISTRY_STATES.COMPLETED), lastCommandId: null }, { ...valid, updatedAt: "invalid" }]) {
+    assert.equal(validatePlatformAuthorityRegistry(value).ok, false);
+  }
+});
 const authority = (status = PLATFORM_AUTHORITY_STATUSES.ACTIVE, transitionCommandId = null) => ({
   schemaVersion: PLATFORM_AUTHORITY_SCHEMA_VERSION,
   transitionCommandId,

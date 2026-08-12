@@ -9,7 +9,7 @@ const manifest = JSON.parse(await readFile(path.join(packageRoot, "package.json"
 
 test("package manifest freezes identity, safety and public subpaths", () => {
   assert.equal(manifest.name, "@mipymetic/saas-contracts");
-  assert.equal(manifest.version, "0.8.0");
+  assert.equal(manifest.version, "0.9.0");
   assert.equal(manifest.private, true);
   assert.equal(manifest.type, "module");
   assert.equal(manifest.sideEffects, false);
@@ -41,7 +41,7 @@ test("functions dependency is a contained exact vendor artifact", async () => {
   const functionsManifest = JSON.parse(await readFile("functions/package.json", "utf8"));
   assert.equal(
     functionsManifest.dependencies["@mipymetic/saas-contracts"],
-    "file:vendor/mipymetic-saas-contracts-0.8.0.tgz",
+    "file:vendor/mipymetic-saas-contracts-0.9.0.tgz",
   );
   assert.equal(functionsManifest.private, true);
 });
