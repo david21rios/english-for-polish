@@ -9,5 +9,7 @@ export { decideIdempotency } from "./idempotency/idempotency.js";
 export { canonicalPayloadHash } from "./idempotency/payloadHash.js";
 export { runAuthoritativeTransaction } from "./persistence/transactionBoundary.js";
 export { writeAuditEvent } from "./audit/auditWriter.js";
+export { createPlatformCommandTransactionStore } from "./persistence/platformCommandTransactionStore.js";
+export type { PlatformCommandStoreMutation, PlatformCommandTransactionStore } from "./persistence/platformCommandTransactionStore.js";
 
 // No Firebase Function handler is exported in 03B-B. Business transports begin in later phases.
