@@ -5,6 +5,26 @@
 **Regla:** ninguna fase activa enforcement ni elimina compatibilidad antes de
 cumplir su gate.
 
+## Current checkpoint — SaaS-03B-B-C1-R2-R3 command record status invariants repair
+
+Independent C1-R2 revalidation found that R2-R2 validated `leaseExpiresAt` as a
+nullable timestamp without enforcing its approved relationship with command
+status. R2-R3 now permits a non-null lease only for `running`; pending,
+succeeded, retryable failure, terminal failure and recovery-required records
+must store a null lease. The complete unchanged regression matrix passes.
+
+```text
+SaaS-03B-B = implemented_repaired_pending_independent_revalidation
+SaaS-03B-B-C1-R2-R3 = completed_pending_human_review_and_push
+SaaS-03B-B-C1-R2 = blocked_pending_R2_R3_human_review_push_and_revalidation
+SaaS-03B-B-C1 = not_closed
+SaaS-03B-C = blocked
+Privileged Backend Foundation = repaired_pending_independent_revalidation
+```
+
+Next after human review and push: reexecute the independent full C1-R2
+validation. Do not start 03B-C.
+
 ## Current checkpoint — SaaS-03B-B-C1-R2-R2 persisted command record repair
 
 The independent C1-R2 revalidation proved that persisted Firestore command data
