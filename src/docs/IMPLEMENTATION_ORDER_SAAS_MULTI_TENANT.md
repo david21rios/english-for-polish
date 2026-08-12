@@ -5,6 +5,36 @@
 **Regla:** ninguna fase activa enforcement ni elimina compatibilidad antes de
 cumplir su gate.
 
+## Current checkpoint — SaaS-03B-C-R3-R3 Registry contract resolution
+
+`SaaS-03B-C-R3-R3` closes the exact Platform Authority Registry state and
+last-command contract required before its runtime validator can be
+materialized. The canonical ordered state catalog is `uninitialized`,
+`in_progress`, `completed`, `recovery_required`, targeted for explicit frozen
+exports from `@mipymetic/saas-contracts/authority`.
+
+The Registry exists before the first privileged command. Its exact initial v1
+state is `uninitialized`, `activeCount=0`, `revision=0`,
+`lastCommandId=null`, with a non-null server-owned `updatedAt`. `lastCommandId`
+is a required-nullable history/coordination field: null only while
+`uninitialized`; every other state requires the valid identifier of the most
+recent command that transactionally mutated the Registry. It is not Authority
+transition ownership.
+
+```text
+SaaS-03B-C-R3-R3 = completed_pending_human_review_and_push
+Registry Contract Resolution = completed_pending_human_review_and_push
+Registry Validation + Timestamp Boundary prerequisite = blocked_pending_R3_R3_push
+Platform Command Transaction Store Boundary = blocked_pending_prerequisite_boundary_implementation
+SaaS-03B-C = blocked_pending_transaction_store
+SaaS-03B-D = blocked
+Phase 4 = not_started
+```
+
+After human review and push, resume the technical Registry Validation and
+Server-Owned Timestamp Boundary prerequisite. Do not start the Transaction
+Store or business commands yet.
+
 ## Current checkpoint — SaaS-03B-C-R3-R2 transition ownership materialization
 
 `SaaS-03B-C-R3-R2` materializes the already approved portable timestamp,
