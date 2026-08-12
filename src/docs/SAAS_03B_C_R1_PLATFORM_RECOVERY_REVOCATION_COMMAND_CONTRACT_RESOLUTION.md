@@ -1,5 +1,11 @@
 # SaaS-03B-C-R1 — Platform Recovery and Revocation Command Contract Resolution
 
+> Subsequent resolution: `SaaS-03B-C-R1-R1` closes the shared contract gap by
+> adding package-owned capability `platform.authority_revoke`, scoped to
+> `platform_authority` at platform scope and assigned only to `platform_admin`.
+> This preserves the original gap as historical traceability; Recovery remains
+> capability-free and revoke implementation remains outside this document.
+
 ## Decision
 
 `SaaS-03B-C-R1` is a new resolution identifier beneath `SaaS-03B-C`; no prior

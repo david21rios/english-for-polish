@@ -5,6 +5,30 @@
 **Regla:** ninguna fase activa enforcement ni elimina compatibilidad antes de
 cumplir su gate.
 
+## Current checkpoint — SaaS-03B-C-R1-R1 revoke capability resolution
+
+The shared contract gap found by `SaaS-03B-C-R1` is resolved by the subordinate
+microphase `SaaS-03B-C-R1-R1`. Package-owned capability
+`platform.authority_revoke` is a platform-scoped `platform_authority` contract,
+assigned only to `platform_admin`. It authorizes an ordinary revoke attempt; it
+does not bypass last-admin protection and is not used by break-glass Recovery.
+
+The additive public contract advances `@mipymetic/saas-contracts` from `0.6.1`
+to `0.7.0`, including generated declarations and the canonical Functions
+artifact. No command implementation, Rules change, Firebase operation or
+03B-D work is part of this resolution.
+
+```text
+SaaS-03B-C-R1-R1 = completed_pending_human_review_and_push
+SaaS-03B-C-R1 = completed
+SaaS-03B-C = blocked_pending_shared_gap_push
+SaaS-03B-D = blocked
+SaaS-03B-E/F = not_started
+Phase 4 = not_started
+```
+
+After human review and push, `SaaS-03B-C` becomes `ready_to_implement`.
+
 ## Current checkpoint — SaaS-03B-C-R1 platform recovery/revocation contracts
 
 The post-foundation scope audit proved that `RecoverPlatformAdmin` and
