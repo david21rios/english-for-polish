@@ -5,7 +5,33 @@
 **Regla:** ninguna fase activa enforcement ni elimina compatibilidad antes de
 cumplir su gate.
 
-## Current checkpoint — SaaS-03B-C-R3-R5 privileged command stage resolution
+## Current checkpoint — SaaS-03B-C-R3-R6 stage and timestamp materialization
+
+`SaaS-03B-C-R3-R6` materializes the published R3-R5 contract without starting
+the Platform Command Transaction Store. `@mipymetic/saas-contracts` advances
+to `0.10.0`: command schema v2 has the required backend-owned `stage`, the
+ordered frozen stage catalog, and fail-closed command/status matrices. V1 is
+rejected without inference or migration.
+
+The Functions boundary now writes command and platform-audit authoritative
+times through `ServerOwnedTimestamp` and normalizes their explicitly declared
+Firestore Timestamp fields to canonical UTC ISO before portable validation.
+No Store, handler, business command, Rules, index or Firebase configuration was
+created or changed.
+
+```text
+SaaS-03B-C-R3-R6 = completed_pending_human_review_and_push
+Stage + Command/Audit Timestamp Technical Materialization = completed_pending_human_review_and_push
+Platform Command Transaction Store Boundary = ready_not_started_after_push
+SaaS-03B-C = blocked_pending_transaction_store
+SaaS-03B-D = blocked
+Phase 4 = not_started
+```
+
+After human review and push, start only the Platform Command Transaction Store
+Boundary. Bootstrap, Recovery and Revoke remain unimplemented.
+
+## Previous checkpoint — SaaS-03B-C-R3-R5 privileged command stage resolution
 
 `SaaS-03B-C-R3-R5` closes the persisted checkpoint contract required by the
 future Platform Command Transaction Store. The package-owned catalog to be
