@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import test from "node:test";
-import { COMMAND_STATUSES, COMMAND_TYPES } from "@mipymetic/saas-contracts/commands";
+import { COMMAND_SCHEMA_VERSION, COMMAND_STATUSES, COMMAND_TYPES, PRIVILEGED_COMMAND_STAGES } from "@mipymetic/saas-contracts/commands";
 import { CAPABILITY_IDS } from "@mipymetic/saas-contracts/domain";
 import { BACKEND_ERROR_CODES } from "@mipymetic/saas-contracts/errors";
 import { canonicalJsonStringify } from "@mipymetic/saas-contracts/validation";
@@ -17,8 +17,8 @@ import { canonicalPayloadHash } from "../idempotency/payloadHash.js";
 import type { TransactionPort, TransactionRunnerPort } from "../persistence/ports.js";
 
 const envelope = (payload: Readonly<Record<string, JsonValue>> = {}): CommandEnvelope => ({
-  commandId: "command-1", commandType: COMMAND_TYPES.BOOTSTRAP_TENANT,
-  correlationId: "correlation-1", tenantId: "tenant-1", payload,
+  commandId: "command-1", commandType: COMMAND_TYPES.BOOTSTRAP_PLATFORM_ADMINS,
+  correlationId: "correlation-1", tenantId: null, payload,
 });
 
 const authority: AuthorityResolution = Object.freeze({
@@ -27,11 +27,14 @@ const authority: AuthorityResolution = Object.freeze({
 });
 
 const record = (status: CommandStatus, payloadHash = "hash-1"): CommandRecord => Object.freeze({
-  commandId: "command-1", commandType: COMMAND_TYPES.BOOTSTRAP_TENANT, payloadHash,
-  actorUid: "actor-1", actorType: "identity", authority: "tenant_admin", tenantId: "tenant-1",
+  commandId: "command-1", commandType: COMMAND_TYPES.BOOTSTRAP_PLATFORM_ADMINS, payloadHash,
+  actorUid: "actor-1", actorType: "identity", authority: "tenant_admin", tenantId: null,
   status, startedAt: "2026-01-01T00:00:00.000Z", completedAt: null, failedAt: null,
+  stage: status === COMMAND_STATUSES.SUCCEEDED ? PRIVILEGED_COMMAND_STAGES.COMPLETED
+    : status === COMMAND_STATUSES.RECOVERY_REQUIRED ? PRIVILEGED_COMMAND_STAGES.PREPARED
+      : PRIVILEGED_COMMAND_STAGES.NOT_STARTED,
   result: null, errorCode: null, attemptCount: 1, correlationId: "correlation-1",
-  expiresAt: null, leaseExpiresAt: null, schemaVersion: 1,
+  expiresAt: null, leaseExpiresAt: null, schemaVersion: COMMAND_SCHEMA_VERSION,
 });
 
 test("authenticated actor derives identity only from verified context", () => {
@@ -88,34 +91,32 @@ test("command envelope is exact and rejects unknown commands", () => {
 });
 
 test("pending command record follows the shared schema", () => {
-  const created = createPendingCommandRecord({ envelope: envelope(), payloadHash: "hash-1", authority, now: "2026-01-01T00:00:00.000Z" });
+  const created = createPendingCommandRecord({ envelope: envelope(), payloadHash: "hash-1", authority });
   assert.equal(created.status, COMMAND_STATUSES.PENDING);
-  assert.equal(created.schemaVersion, 1);
+  assert.equal(created.schemaVersion, 2);
+  assert.equal(created.stage, PRIVILEGED_COMMAND_STAGES.NOT_STARTED);
   assert.equal(created.result, null);
   assert.ok(Object.isFrozen(created));
 });
 
 test("persisted command records fail closed unless their exact contract is valid", () => {
   const valid = createPendingCommandRecord({
-    envelope: envelope(), payloadHash: "a".repeat(64), authority, now: "2026-01-01T00:00:00.000Z",
+    envelope: envelope(), payloadHash: "a".repeat(64), authority,
   });
-  assert.equal(validatePersistedCommandRecord(valid), valid);
+  const persisted = { ...valid, startedAt: "2026-01-01T00:00:00.000Z" };
+  assert.deepEqual(validatePersistedCommandRecord(persisted), persisted);
   const invalidRecords: readonly unknown[] = [
     {},
     { payloadHash: valid.payloadHash, status: COMMAND_STATUSES.SUCCEEDED },
-    Object.fromEntries(Object.entries(valid).filter(([key]) => key !== "commandId")),
-    { ...valid, unknown: true },
-    { ...valid, status: "unknown" },
-    { ...valid, schemaVersion: 2 },
-    { ...valid, payloadHash: "not-a-sha256" },
-    { ...valid, startedAt: "not-a-timestamp" },
-    { ...valid, completedAt: "not-a-timestamp" },
-    { ...valid, actorUid: "a/b" },
-    { ...valid, actorType: "client" },
-    { ...valid, authority: "" },
-    { ...valid, tenantId: "a/b" },
-    { ...valid, commandType: "Unknown" },
-    { ...valid, attemptCount: -1 },
+    Object.fromEntries(Object.entries(persisted).filter(([key]) => key !== "commandId")),
+    { ...persisted, unknown: true }, { ...persisted, status: "unknown" },
+    { ...persisted, schemaVersion: 1 }, { ...persisted, schemaVersion: 3 },
+    { ...persisted, stage: null }, { ...persisted, stage: "unknown" },
+    { ...persisted, payloadHash: "not-a-sha256" }, { ...persisted, startedAt: "not-a-timestamp" },
+    { ...persisted, completedAt: "not-a-timestamp" }, { ...persisted, actorUid: "a/b" },
+    { ...persisted, actorType: "client" }, { ...persisted, authority: "" },
+    { ...persisted, tenantId: "a/b" }, { ...persisted, commandType: COMMAND_TYPES.BOOTSTRAP_TENANT },
+    { ...persisted, attemptCount: -1 },
   ];
   for (const invalid of invalidRecords) {
     assert.throws(
@@ -127,16 +128,19 @@ test("persisted command records fail closed unless their exact contract is valid
 
 test("persisted command record leases are restricted to running commands", () => {
   const valid = createPendingCommandRecord({
-    envelope: envelope(), payloadHash: "a".repeat(64), authority, now: "2026-01-01T00:00:00.000Z",
+    envelope: envelope(), payloadHash: "a".repeat(64), authority,
   });
+  const persisted = { ...valid, startedAt: "2026-01-01T00:00:00.000Z" };
   const leaseExpiresAt = "2026-01-01T00:01:00.000Z";
   for (const status of Object.values(COMMAND_STATUSES)) {
-    assert.doesNotThrow(() => validatePersistedCommandRecord({ ...valid, status, leaseExpiresAt: null }));
+    const stage = status === COMMAND_STATUSES.SUCCEEDED ? PRIVILEGED_COMMAND_STAGES.COMPLETED
+      : status === COMMAND_STATUSES.RECOVERY_REQUIRED ? PRIVILEGED_COMMAND_STAGES.PREPARED : PRIVILEGED_COMMAND_STAGES.NOT_STARTED;
+    assert.doesNotThrow(() => validatePersistedCommandRecord({ ...persisted, status, stage, leaseExpiresAt: null }));
     if (status === COMMAND_STATUSES.RUNNING) {
-      assert.doesNotThrow(() => validatePersistedCommandRecord({ ...valid, status, leaseExpiresAt }));
+      assert.doesNotThrow(() => validatePersistedCommandRecord({ ...persisted, status, stage, leaseExpiresAt }));
     } else {
       assert.throws(
-        () => validatePersistedCommandRecord({ ...valid, status, leaseExpiresAt }),
+        () => validatePersistedCommandRecord({ ...persisted, status, stage, leaseExpiresAt }),
         (error: unknown) => error instanceof BackendError && error.code === BACKEND_ERROR_CODES.CONTRACT_VIOLATION,
       );
     }
@@ -159,7 +163,7 @@ test("command execution rejects a malformed persisted replay before idempotency"
     prepareCommandExecution({
       auth: { uid: authority.actorUid },
       envelope: inputEnvelope,
-      dependencies: { transactionRunner, resolveAuthority: async () => authority, clock: () => "2026-01-01T00:00:00.000Z" },
+      dependencies: { transactionRunner, resolveAuthority: async () => authority },
     }),
     (error: unknown) => error instanceof BackendError && error.code === BACKEND_ERROR_CODES.CONTRACT_VIOLATION,
   );

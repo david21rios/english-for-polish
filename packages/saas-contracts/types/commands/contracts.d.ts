@@ -1,4 +1,4 @@
-export const COMMAND_SCHEMA_VERSION: 1;
+export const COMMAND_SCHEMA_VERSION: 2;
 export const COMMAND_STATUSES: Readonly<{
     PENDING: "pending";
     RUNNING: "running";
@@ -27,5 +27,13 @@ export const COMMAND_TYPES: Readonly<{
     COMPLETE_ENROLLMENT: "CompleteEnrollment";
     CANCEL_ENROLLMENT: "CancelEnrollment";
 }>;
+export const PRIVILEGED_COMMAND_STAGES: Readonly<{
+    NOT_STARTED: "not_started";
+    PREPARED: "prepared";
+    COMPLETED: "completed";
+}>;
+export const PLATFORM_COMMAND_TYPES: readonly ("BootstrapPlatformAdmins" | "RecoverPlatformAdmin" | "RevokePlatformAdmin")[];
 export const COMMAND_RECORD_FIELDS: readonly string[];
 export const COMMAND_RECORD_REQUIRED_FIELDS: readonly string[];
+export function isPrivilegedCommandStageAllowed(commandType: unknown, stage: unknown): boolean;
+export function isCommandStatusStageAllowed(status: unknown, stage: unknown): boolean;

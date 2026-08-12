@@ -4,4 +4,8 @@ export {
   COMMAND_SCHEMA_VERSION,
   COMMAND_STATUSES,
   COMMAND_TYPES,
+  PLATFORM_COMMAND_TYPES,
+  PRIVILEGED_COMMAND_STAGES,
+  isCommandStatusStageAllowed,
+  isPrivilegedCommandStageAllowed,
 } from "./contracts.js";

@@ -1,9 +1,10 @@
 export type JsonPrimitive = null | boolean | number | string;
 export type JsonValue = JsonPrimitive | readonly JsonValue[] | { readonly [key: string]: JsonValue };
 
-import type { COMMAND_STATUSES } from "@mipymetic/saas-contracts/commands";
+import type { COMMAND_STATUSES, PRIVILEGED_COMMAND_STAGES } from "@mipymetic/saas-contracts/commands";
 
 export type CommandStatus = (typeof COMMAND_STATUSES)[keyof typeof COMMAND_STATUSES];
+export type PrivilegedCommandStage = (typeof PRIVILEGED_COMMAND_STAGES)[keyof typeof PRIVILEGED_COMMAND_STAGES];
 
 export interface AuthenticatedActor {
   readonly uid: string;
@@ -38,6 +39,7 @@ export interface CommandRecord {
   readonly authority: string;
   readonly tenantId: string | null;
   readonly status: CommandStatus;
+  readonly stage: PrivilegedCommandStage;
   readonly startedAt: string;
   readonly completedAt: string | null;
   readonly failedAt: string | null;

@@ -6,6 +6,8 @@ import { isServerOwnedTimestamp, type DocumentSnapshotPort, type PersistedDocume
 const timestampFields: Readonly<Record<PersistedDocumentShape, Readonly<Record<string, boolean>>>> = Object.freeze({
   platform_authority: Object.freeze({ createdAt: false, updatedAt: false, activatedAt: true, revokedAt: true, lastClaimSyncAt: true }),
   platform_authority_registry: Object.freeze({ updatedAt: false }),
+  privileged_command: Object.freeze({ startedAt: false, completedAt: true, failedAt: true, expiresAt: true, leaseExpiresAt: true }),
+  platform_audit: Object.freeze({ requestedAt: false, executedAt: false }),
 });
 
 export const normalizeFirestoreDocument = (data: FirebaseFirestore.DocumentData, shape?: PersistedDocumentShape): FirebaseFirestore.DocumentData => {

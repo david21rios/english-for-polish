@@ -1,7 +1,8 @@
-import { COMMAND_RECORD_FIELDS, COMMAND_SCHEMA_VERSION, COMMAND_STATUSES, COMMAND_TYPES } from "@mipymetic/saas-contracts/commands";
+import { COMMAND_RECORD_FIELDS, COMMAND_SCHEMA_VERSION, COMMAND_STATUSES, COMMAND_TYPES, PRIVILEGED_COMMAND_STAGES, isCommandStatusStageAllowed, isPrivilegedCommandStageAllowed } from "@mipymetic/saas-contracts/commands";
 import { validateDocumentIdentifier } from "@mipymetic/saas-contracts/validation";
 import { BACKEND_ERROR_CODES } from "@mipymetic/saas-contracts/errors";
 import type { AuthorityResolution, CommandEnvelope, CommandRecord, JsonValue } from "../contracts/types.js";
+import { serverOwnedTimestamp, type ServerOwnedTimestamp } from "../persistence/ports.js";
 import { BackendError } from "../errors/backendError.js";
 
 const commandTypes = new Set<string>(Object.values(COMMAND_TYPES));
@@ -39,12 +40,14 @@ export const validatePersistedCommandRecord = (value: unknown): CommandRecord =>
     && record.schemaVersion === COMMAND_SCHEMA_VERSION
     && validIdentifier(record.commandId, "commandId")
     && typeof record.commandType === "string" && commandTypes.has(record.commandType)
+    && isPrivilegedCommandStageAllowed(record.commandType, record.stage)
     && typeof record.payloadHash === "string" && /^[a-f0-9]{64}$/.test(record.payloadHash)
     && validIdentifier(record.actorUid, "actorUid")
     && typeof record.actorType === "string" && actorTypes.has(record.actorType)
     && typeof record.authority === "string" && record.authority.trim().length > 0
     && (record.tenantId === null || validIdentifier(record.tenantId, "tenantId"))
     && typeof record.status === "string" && commandStatuses.has(record.status)
+    && isCommandStatusStageAllowed(record.status, record.stage)
     && isTimestamp(record.startedAt)
     && isNullableTimestamp(record.completedAt)
     && isNullableTimestamp(record.failedAt)
@@ -87,9 +90,11 @@ export const createPendingCommandRecord = (input: {
   envelope: CommandEnvelope;
   payloadHash: string;
   authority: AuthorityResolution;
-  now: string;
-}): CommandRecord => {
-  const record: CommandRecord = Object.freeze({
+}): PendingCommandWrite => {
+  if (!isPrivilegedCommandStageAllowed(input.envelope.commandType, PRIVILEGED_COMMAND_STAGES.NOT_STARTED)) {
+    throw new BackendError(BACKEND_ERROR_CODES.CONTRACT_VIOLATION, "Command type has no approved privileged stage contract");
+  }
+  const record = Object.freeze({
     commandId: input.envelope.commandId,
     commandType: input.envelope.commandType,
     payloadHash: input.payloadHash,
@@ -98,7 +103,8 @@ export const createPendingCommandRecord = (input: {
     authority: input.authority.authority,
     tenantId: input.envelope.tenantId,
     status: COMMAND_STATUSES.PENDING,
-    startedAt: input.now,
+    stage: PRIVILEGED_COMMAND_STAGES.NOT_STARTED,
+    startedAt: serverOwnedTimestamp(),
     completedAt: null,
     failedAt: null,
     result: null,
@@ -114,5 +120,7 @@ export const createPendingCommandRecord = (input: {
   }
   return record;
 };
+
+export type PendingCommandWrite = Readonly<Omit<CommandRecord, "startedAt"> & { readonly startedAt: ServerOwnedTimestamp }>;
 
 export const sanitizeCommandResult = (result: JsonValue): JsonValue => result;

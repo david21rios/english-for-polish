@@ -50,6 +50,10 @@ export {
   COMMAND_SCHEMA_VERSION,
   COMMAND_STATUSES,
   COMMAND_TYPES,
+  PLATFORM_COMMAND_TYPES,
+  PRIVILEGED_COMMAND_STAGES,
+  isCommandStatusStageAllowed,
+  isPrivilegedCommandStageAllowed,
 } from "./commands/index.js";
 export {
   AUTHORITY_SCHEMA_VERSION,

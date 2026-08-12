@@ -9,7 +9,7 @@ import { writeAuditEvent } from "../audit/auditWriter.js";
 import { resolvePlatformAuthority, resolveTenantAuthority } from "../authorization/authorityResolver.js";
 import type { AuthenticatedActor, AuthorityResolution, JsonValue } from "../contracts/types.js";
 import { BackendError } from "../errors/backendError.js";
-import type { AuthoritativeReaderPort, DocumentSnapshotPort, TransactionPort, TransactionRunnerPort } from "../persistence/ports.js";
+import { isServerOwnedTimestamp, type AuthoritativeReaderPort, type DocumentSnapshotPort, type TransactionPort, type TransactionRunnerPort } from "../persistence/ports.js";
 import { externalEffect, runAuthoritativeTransaction } from "../persistence/transactionBoundary.js";
 
 const actor: AuthenticatedActor = Object.freeze({ uid: "actor-1", tokenEmailVerified: true, appCheckVerified: false });
@@ -99,16 +99,18 @@ const tenantAuthority: AuthorityResolution = Object.freeze({ actorUid: actor.uid
 
 test("audit writer uses tenant and platform roots and exact shared shape", () => {
   const transaction = new Transaction();
-  const common = { auditId: "audit-1", commandId: "command-1", correlationId: "correlation-1", level: "privileged" as const, operation: "foundation.test", resourceType: "tenant", resourceId: "tenant-1", result: AUDIT_RESULTS.SUCCEEDED, errorCode: null, requestedAt: "2026-01-01T00:00:00.000Z", executedAt: "2026-01-01T00:00:01.000Z", beforeSummary: { status: "draft" }, afterSummary: { status: "active" }, metadata: { attempt: 1 } };
+  const common = { auditId: "audit-1", commandId: "command-1", correlationId: "correlation-1", level: "privileged" as const, operation: "foundation.test", resourceType: "tenant", resourceId: "tenant-1", result: AUDIT_RESULTS.SUCCEEDED, errorCode: null, beforeSummary: { status: "draft" }, afterSummary: { status: "active" }, metadata: { attempt: 1 } };
   assert.equal(writeAuditEvent(transaction, { ...common, authority: tenantAuthority }), "tenants/tenant-1/auditEvents/audit-1");
   assert.equal(transaction.creates.length, 1);
+  assert.equal(isServerOwnedTimestamp(transaction.creates[0]?.data.requestedAt), true);
+  assert.equal(isServerOwnedTimestamp(transaction.creates[0]?.data.executedAt), true);
   const platform = Object.freeze({ ...tenantAuthority, actorType: "platform_admin" as const, authority: "platform_admin", tenantId: null });
   assert.equal(writeAuditEvent(transaction, { ...common, authority: platform }), "platformAuditEvents/audit-1");
 });
 
 test("audit writer rejects sensitive, nested and oversized data", () => {
   const transaction = new Transaction();
-  const base = { auditId: "audit-1", commandId: "command-1", correlationId: "correlation-1", authority: tenantAuthority, level: "critical" as const, operation: "foundation.test", resourceType: "tenant", resourceId: "tenant-1", result: AUDIT_RESULTS.FAILED, errorCode: BACKEND_ERROR_CODES.INTERNAL, requestedAt: "2026-01-01T00:00:00.000Z", executedAt: "2026-01-01T00:00:01.000Z", beforeSummary: {}, afterSummary: {}, metadata: {} };
+  const base = { auditId: "audit-1", commandId: "command-1", correlationId: "correlation-1", authority: tenantAuthority, level: "critical" as const, operation: "foundation.test", resourceType: "tenant", resourceId: "tenant-1", result: AUDIT_RESULTS.FAILED, errorCode: BACKEND_ERROR_CODES.INTERNAL, beforeSummary: {}, afterSummary: {}, metadata: {} };
   assert.throws(() => writeAuditEvent(transaction, { ...base, metadata: { token: "secret" } }), BackendError);
   assert.throws(() => writeAuditEvent(transaction, { ...base, metadata: { nested: { value: "no" } } }), BackendError);
   assert.throws(() => writeAuditEvent(transaction, { ...base, metadata: { value: "x".repeat(5000) } }), BackendError);

@@ -7,7 +7,7 @@ import { canonicalJsonUtf8 } from "@mipymetic/saas-contracts/validation";
 import { BACKEND_ERROR_CODES } from "@mipymetic/saas-contracts/errors";
 import type { AuthorityResolution, JsonValue } from "../contracts/types.js";
 import { BackendError } from "../errors/backendError.js";
-import type { TransactionPort } from "../persistence/ports.js";
+import { serverOwnedTimestamp, type TransactionPort } from "../persistence/ports.js";
 
 type AuditResult = (typeof AUDIT_RESULTS)[keyof typeof AUDIT_RESULTS];
 type AuditLevel = "basic" | "privileged" | "critical";
@@ -32,7 +32,7 @@ const bounded = (value: JsonValue, maximum: number, label: string): JsonValue =>
 export const writeAuditEvent = (transaction: TransactionPort, input: {
   auditId: string; commandId: string; correlationId: string; authority: AuthorityResolution;
   level: AuditLevel; operation: string; resourceType: string; resourceId: string;
-  result: AuditResult; errorCode: string | null; requestedAt: string; executedAt: string;
+  result: AuditResult; errorCode: string | null;
   beforeSummary: Readonly<Record<string, JsonValue>>; afterSummary: Readonly<Record<string, JsonValue>>;
   metadata: Readonly<Record<string, JsonValue>>;
 }): string => {
@@ -43,7 +43,7 @@ export const writeAuditEvent = (transaction: TransactionPort, input: {
     authority: input.authority.authority, tenantId: input.authority.tenantId,
     level: input.level, operation: input.operation, resourceType: input.resourceType,
     resourceId: input.resourceId, result: input.result, errorCode: input.errorCode,
-    requestedAt: input.requestedAt, executedAt: input.executedAt,
+    requestedAt: serverOwnedTimestamp(), executedAt: serverOwnedTimestamp(),
     beforeSummary: auditMap(input.beforeSummary, AUDIT_BEFORE_AFTER_MAX_BYTES, "beforeSummary"),
     afterSummary: auditMap(input.afterSummary, AUDIT_BEFORE_AFTER_MAX_BYTES, "afterSummary"),
     metadata: auditMap(input.metadata, AUDIT_METADATA_MAX_BYTES, "metadata"),
