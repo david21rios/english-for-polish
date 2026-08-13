@@ -49,6 +49,17 @@ export function validateMembershipKey(value: unknown): Readonly<{
     ok: boolean;
     value: unknown;
 }>;
+export function validatePersistedMembership(value: unknown): Readonly<{
+    ok: false;
+    issue: Readonly<{
+        code: "INVALID_ARGUMENT";
+        field: string;
+        reason: string;
+    }>;
+}> | Readonly<{
+    ok: boolean;
+    value: unknown;
+}>;
 export function encodeMembershipUidKey(uid: unknown): string;
 export function validateTenantAdminAuthorityState(value: unknown): Readonly<{
     ok: false;

@@ -1,6 +1,6 @@
 import { ACCESS_STATES, BACKEND_ERROR_CODES, tenantDocumentPath } from "@mipymetic/saas-contracts";
 import { CAPABILITY_IDS, CEFR_LEVELS } from "@mipymetic/saas-contracts/domain";
-import { tenantAuditEventDocumentPath } from "@mipymetic/saas-contracts/persistence";
+import { tenantAuditEventDocumentPath, validatePersistedMembership } from "@mipymetic/saas-contracts/persistence";
 import { canonicalJsonStringify, validatePersistedTimestamp } from "@mipymetic/saas-contracts/validation";
 import { COMMAND_STATUSES } from "@mipymetic/saas-contracts/commands";
 import {
@@ -25,6 +25,7 @@ const legacyRegistrySchema: typeof registrySchema = AUTHORITY_SCHEMA_VERSION;
 const timestampResult = validatePersistedTimestamp("2026-08-12T12:34:56.123Z");
 const authorityResult = validatePlatformAuthority({ schemaVersion: authoritySchema, transitionCommandId: null });
 const registryResult = validatePlatformAuthorityRegistry({ schemaVersion: registrySchema });
+const membershipResult = validatePersistedMembership({});
 const paths: readonly string[] = [tenantDocumentPath("tenant-a"), tenantAuditEventDocumentPath("tenant-a", "audit-a")];
 const canonical: string = canonicalJsonStringify({ access, cefr, command, authority, audit, error, paths });
 
@@ -40,4 +41,5 @@ void timestampResult;
 void authorityResult;
 void registryState;
 void registryResult;
+void membershipResult;
 void invalidStatus;

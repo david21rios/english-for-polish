@@ -39,6 +39,7 @@ export {
   TENANT_SETTINGS_FIELDS,
   encodeMembershipUidKey,
   validateMembershipKey,
+  validatePersistedMembership,
   validatePersistedTenant,
   validateTenantAdminAuthorityState,
   validateTenantBranding,

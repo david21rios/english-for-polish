@@ -1,4 +1,5 @@
 import { MEMBERSHIP_ROLES, MEMBERSHIP_STATUSES } from "../domain/membership.js";
+import { MEMBERSHIP_FIELDS } from "./fields.js";
 import { TENANT_STATUSES, TENANT_TYPES } from "../domain/tenant.js";
 import { validateDocumentIdentifier } from "../validation/identifiers.js";
 import { hasExactKeys, isCanonicalBcp47, isPlainObject } from "../validation/objects.js";
@@ -74,6 +75,24 @@ export const validateMembershipKey = (value) => {
   return id(v.tenantId) && id(v.uid) && id(v.membershipId) && nullableId(v.originRequestId)
     && (v.status === MEMBERSHIP_STATUSES.APPROVED || v.status === MEMBERSHIP_STATUSES.SUSPENDED)
     && timestamp(v.updatedAt) ? ok(value) : invalid("membershipKey", "invalid_membership_key");
+};
+
+/** @param {unknown} value */
+export const validatePersistedMembership = (value) => {
+  if (!hasExactKeys(value, MEMBERSHIP_FIELDS)) return invalid("membership", "invalid_membership");
+  const v = /** @type {Record<string, unknown>} */ (value);
+  const validRole = Object.values(MEMBERSHIP_ROLES).includes(/** @type {never} */ (v.role));
+  const validStatus = Object.values(MEMBERSHIP_STATUSES).includes(/** @type {never} */ (v.status));
+  const validLifecycle = v.status === MEMBERSHIP_STATUSES.APPROVED
+    ? nullableTimestamp(v.suspendedAt) && v.removedAt === null
+    : v.status === MEMBERSHIP_STATUSES.SUSPENDED
+      ? timestamp(v.suspendedAt) && v.removedAt === null
+      : v.status === MEMBERSHIP_STATUSES.REMOVED
+        && nullableTimestamp(v.suspendedAt) && timestamp(v.removedAt);
+  return id(v.membershipId) && id(v.tenantId) && id(v.uid) && validRole && validStatus
+    && nullableId(v.originRequestId) && timestamp(v.createdAt) && timestamp(v.approvedAt)
+    && id(v.approvedBy) && timestamp(v.updatedAt) && validLifecycle
+    ? ok(value) : invalid("membership", "invalid_membership");
 };
 
 /** @param {unknown} uid */

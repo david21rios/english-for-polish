@@ -36,6 +36,6 @@ export {
   REGISTRATION_POLICY_FIELDS, TENANT_ADMIN_AUTHORITY_STATE_FIELDS,
   TENANT_BRANDING_FIELDS, TENANT_BRAND_COLORS_FIELDS, TENANT_PERSISTED_FIELDS,
   TENANT_SETTINGS_FIELDS, encodeMembershipUidKey, validateMembershipKey,
-  validatePersistedTenant, validateTenantAdminAuthorityState,
+  validatePersistedMembership, validatePersistedTenant, validateTenantAdminAuthorityState,
   validateTenantBranding, validateTenantSettings,
 } from "./tenantContracts.js";
