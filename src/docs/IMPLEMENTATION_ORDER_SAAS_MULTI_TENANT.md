@@ -1,5 +1,38 @@
 # Orden de implementación SaaS multi-tenant
 
+## Current checkpoint — SaaS-03B-D-R3-C1-R4-R1 authority runtime materialization
+
+The actor matrix closed by R4-R1-R1 is now materialized in
+`@mipymetic/saas-contracts@0.14.0` as a portable exact-shape runtime union and
+validator. Foundation validates human resolver output and the two approved
+system operators at their trust boundaries. Package, Functions, repository,
+precheck, Rules, build, lint-baseline, audit and protected-file gates pass.
+
+The Tenant Bootstrap Store remains deliberately unchanged. R4 may consume this
+shared primitive only after human review and publication of this checkpoint.
+
+```text
+SaaS-03B-D-R3 = implemented_and_validated
+SaaS-03B-D-R3-C1-R1 = completed
+SaaS-03B-D-R3-C1-R2-R1 = completed
+SaaS-03B-D-R3-C1-R2 = completed
+SaaS-03B-D-R3-C1-R3 = completed
+SaaS-03B-D-R3-C1-R4-R1-R1 = completed
+SaaS-03B-D-R3-C1-R4-R1 = completed_pending_human_review_and_push
+SaaS-03B-D-R3-C1-R4 = blocked_pending_R4_R1_push_then_repair
+SaaS-03B-D-R3-C1 = blocked_pending_R4_completion_and_revalidation
+BootstrapTenant = implemented_but_not_independently_validated
+UpdateTenantProfile/UpdateTenantSettings/UpdateTenantBranding = blocked_pending_contract_resolution
+SuspendTenant/RestoreTenant/ArchiveTenant = blocked_pending_contract_resolution
+SaaS-03B-D = in_progress_blocked_pending_BootstrapTenant_revalidation
+SaaS-03B-E = blocked_pending_03B_D
+SaaS-03B-F = blocked_pending_previous_sequence
+Phase 4 = not_started
+```
+
+After human review and push, resume only `SaaS-03B-D-R3-C1-R4 —
+BootstrapTenant Store Actor Authority Validation Repair`.
+
 ## Current checkpoint — SaaS-03B-D-R3-C1-R4-R1-R1 authority actor matrix resolution
 
 The attempted R3-C1-R4 Store actor-authority repair stopped correctly because
