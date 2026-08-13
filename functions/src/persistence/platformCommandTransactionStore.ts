@@ -56,10 +56,13 @@ const recoveryOwnership=async(runner:TransactionRunnerPort,input:RecoveryOwnersh
   if(!registrySnapshot.exists||!commandSnapshot.exists||!authoritySnapshot.exists) fail("Recovery ownership documents must exist.");
   const registry=registryValue(registrySnapshot.data), command=validatePersistedCommandRecord(commandSnapshot.data), authority=authorityValue(authoritySnapshot.data);
   assertRecoverBinding(command,input);
-  if((command.status===COMMAND_STATUSES.RUNNING||command.status===COMMAND_STATUSES.RECOVERY_REQUIRED)&&command.stage===PRIVILEGED_COMMAND_STAGES.PREPARED&&authority.transitionCommandId===input.commandId)return Object.freeze({command,registry,authorities:Object.freeze([authority])});
-  if(command.status!==COMMAND_STATUSES.PENDING||command.stage!==PRIVILEGED_COMMAND_STAGES.NOT_STARTED) throw new BackendError(BACKEND_ERROR_CODES.FAILED_PRECONDITION,"New Recover command is not pending.");
+  const resumable=(command.status===COMMAND_STATUSES.RUNNING||command.status===COMMAND_STATUSES.RECOVERY_REQUIRED)&&command.stage===PRIVILEGED_COMMAND_STAGES.PREPARED;
   if(priorCommandId===null){
     if(authority.status!==PLATFORM_AUTHORITY_STATUSES.ACTIVE) throw new BackendError(BACKEND_ERROR_CODES.FAILED_PRECONDITION,"Active Recovery ownership requires active Authority.");
+    if(resumable&&authority.transitionCommandId===input.commandId)return Object.freeze({command,registry,authorities:Object.freeze([authority])});
+  }else if(resumable&&authority.status===PLATFORM_AUTHORITY_STATUSES.PROVISIONING&&authority.transitionCommandId===input.commandId)return Object.freeze({command,registry,authorities:Object.freeze([authority])});
+  if(command.status!==COMMAND_STATUSES.PENDING||command.stage!==PRIVILEGED_COMMAND_STAGES.NOT_STARTED) throw new BackendError(BACKEND_ERROR_CODES.FAILED_PRECONDITION,"New Recover command is not pending.");
+  if(priorCommandId===null){
     if(authority.transitionCommandId!==null) conflict("Authority is owned by another command.");
   }else{
     const persistedPrior=priorSnapshot;
