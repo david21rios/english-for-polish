@@ -5,7 +5,28 @@
 **Regla:** ninguna fase activa enforcement ni elimina compatibilidad antes de
 cumplir su gate.
 
-## Current checkpoint — SaaS-03B-C-R6-C1-R2 Revoke resume lifecycle repair
+## Current checkpoint — SaaS-03B-C-R6-C1 independent Revoke revalidation
+
+The complete independent post-repair review passes. R6-C1-R1 makes new Revoke prepare atomic, and R6-C1-R2 requires a read-only Command/Authority/Registry checkpoint proof before any existing Revoke can reach Auth. Forensic review found no scope drift, generic ownership bypass, lifecycle shortcut, orphan command, count/revision drift or audit leak.
+
+Functions pass 67/67 and clean isolated validation. Firestore Emulator passes Revoke 5/5, Store 11/11, Bootstrap 3/3 and Recover 3/3. Package 0.11.0 remains unchanged at 40/40; Shared 51/51, repositories 360/360, prechecks, Rules 222/88/134, general 35/35 and production build pass. Legacy lint remains 13 errors/8 warnings, supply-chain baselines and protected hashes remain unchanged.
+
+```text
+SaaS-03B-C-R6 = completed
+SaaS-03B-C-R6-C1-R1 = completed
+SaaS-03B-C-R6-C1-R2 = completed
+SaaS-03B-C-R6-C1 = completed_pending_human_review_and_push
+RevokePlatformAdmin = independently_validated
+BootstrapPlatformAdmins = independently_validated
+RecoverPlatformAdmin = independently_validated
+SaaS-03B-C = ready_for_aggregate_closure_review
+SaaS-03B-D = blocked_pending_03B_C_closure
+Phase 4 = not_started
+```
+
+After human review and push, perform only the roadmap aggregate closure review for SaaS-03B-C. Do not start 03B-D or Phase 4.
+
+## Previous checkpoint — SaaS-03B-C-R6-C1-R2 Revoke resume lifecycle repair
 
 The second independent R6-C1 review found `REVOKE_EXISTING_RESUME_AUTHORITY_LIFECYCLE_UNVALIDATED`: an existing `running/prepared` or `recovery_required/prepared` Revoke was classified from Command binding alone, so an incoherent Authority checkpoint could reach Auth before Store finalization rejected it.
 
