@@ -1,5 +1,37 @@
 # Orden de implementación SaaS multi-tenant
 
+## Current checkpoint — SaaS-03B-D-R3-C1-R5-R2 audit destination materialization
+
+R5-R2 completes the atomic Foundation/caller cutover approved by R5-R2-R1.
+Audit destination is explicit and exact; canonical AuthorityResolution is
+validated and preserved; routing and `AuditEvent.tenantId` derive only from the
+destination. All callers migrated without fallback. The Tenant Bootstrap caller
+now uses canonical Platform Admin authority plus explicit Tenant destination,
+with no other business or aggregate change.
+
+Functions, isolated clean validation, package, Emulator suites, repository
+prechecks, Rules preflight, general tests and production build pass. Package
+0.14.0 and AuditEvent schema v1 remain unchanged. Legacy lint and supply-chain
+baselines have attributable delta zero; protected files remain intact.
+
+```text
+SaaS-03B-D-R3-C1-R5-R1 = completed
+SaaS-03B-D-R3-C1-R5-R2-R1 = completed
+SaaS-03B-D-R3-C1-R5-R2 = completed_pending_human_review_and_push
+SaaS-03B-D-R3-C1-R5 = blocked_pending_R5_R2_push_then_specific_review
+SaaS-03B-D-R3-C1 = blocked_pending_R5_completion_and_revalidation
+BootstrapTenant = implemented_but_not_independently_validated
+UpdateTenantProfile/UpdateTenantSettings/UpdateTenantBranding = blocked_pending_contract_resolution
+SuspendTenant/RestoreTenant/ArchiveTenant = blocked_pending_contract_resolution
+SaaS-03B-D = in_progress
+SaaS-03B-E = blocked_pending_03B_D
+SaaS-03B-F = blocked_pending_previous_sequence
+Phase 4 = not_started
+```
+
+After human review and push, execute only `SaaS-03B-D-R3-C1-R5 —
+BootstrapTenant Tenant Audit Authority Scope Repair / Specific Review`.
+
 ## Current checkpoint — SaaS-03B-D-R3-C1-R5-R2-R1 cutover scope reconciliation
 
 R5-R2-R1 resolves `R5_R2_SCOPE_DEPENDENCY_CONTRADICTION`. The Foundation API
