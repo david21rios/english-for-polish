@@ -1,5 +1,45 @@
 # Orden de implementación SaaS multi-tenant
 
+## Current checkpoint — SaaS-03B-D-R3-C1-R5-R1 audit destination contract resolution
+
+R5-R1 closes `SHARED_FOUNDATION_AUDIT_AUTHORITY_DESTINATION_SCOPE_GAP`
+without technical changes. `AuthorityResolution.tenantId` remains exclusively
+actor authority scope; persisted `AuditEvent.tenantId` is exclusively the
+audited Tenant/destination scope. Future Foundation materialization must accept
+an exact platform-or-Tenant destination, validate canonical authority and
+destination coherence, and derive path and event Tenant ID from destination.
+Authority must never be mutated for routing.
+
+The audit schema remains v1 and roots remain unchanged, so package, migration,
+Rules, index and Firebase configuration changes are unnecessary. Published R4
+commit `090caf659131ec2db8ff8d43b532ca9a8f85e881` also reconciles R4 to completed
+while preserving its historical pre-push state.
+
+```text
+SaaS-03B-D-R3 = implemented_and_validated
+SaaS-03B-D-R3-C1-R1 = completed
+SaaS-03B-D-R3-C1-R2-R1 = completed
+SaaS-03B-D-R3-C1-R2 = completed
+SaaS-03B-D-R3-C1-R3 = completed
+SaaS-03B-D-R3-C1-R4-R1-R1 = completed
+SaaS-03B-D-R3-C1-R4-R1 = completed
+SaaS-03B-D-R3-C1-R4 = completed
+SaaS-03B-D-R3-C1-R5-R1 = completed_pending_human_review_and_push
+SaaS-03B-D-R3-C1-R5 = blocked_pending_R1_push_then_foundation_materialization
+SaaS-03B-D-R3-C1 = blocked_pending_R5_completion_and_revalidation
+BootstrapTenant = implemented_but_not_independently_validated
+UpdateTenantProfile/UpdateTenantSettings/UpdateTenantBranding = blocked_pending_contract_resolution
+SuspendTenant/RestoreTenant/ArchiveTenant = blocked_pending_contract_resolution
+SaaS-03B-D = in_progress_blocked_pending_BootstrapTenant_revalidation
+SaaS-03B-E = blocked_pending_03B_D
+SaaS-03B-F = blocked_pending_previous_sequence
+Phase 4 = not_started
+```
+
+After human review and push, execute only `SaaS-03B-D-R3-C1-R5-R2 — Audit
+Destination Scope Foundation Materialization`. Do not repair BootstrapTenant R5
+until that Foundation checkpoint is published.
+
 ## Current checkpoint — SaaS-03B-D-R3-C1-R4 Store authority repair
 
 R4 repairs `BOOTSTRAP_TENANT_STORE_ACTOR_AUTHORITY_UNVALIDATED`. The Store now
