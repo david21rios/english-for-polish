@@ -1,5 +1,39 @@
 # Orden de implementación SaaS multi-tenant
 
+## Current checkpoint — SaaS-03B-D-R3-C1-R5-R2-R1 cutover scope reconciliation
+
+R5-R2-R1 resolves `R5_R2_SCOPE_DEPENDENCY_CONTRADICTION`. The Foundation API
+change and every required caller migration are one atomic technical cutover.
+The sole permitted Tenant Store adaptation replaces its synthetic Platform Admin
+authority with the unchanged canonical actor and supplies an explicit Tenant
+destination. This is a mechanical API migration, not new business or
+authorization semantics.
+
+The previous R5-R2 STOP was correct because publishing Foundation alone would
+break or invalidate a production caller. R5-R1 remains authoritative. After
+this resolution is published, the same R5-R2 identifier resumes with its
+joint-Foundation-and-required-callsite scope; no compatibility fallback or
+intermediate broken commit is allowed. R5 then performs the distinct
+BootstrapTenant-specific review and regression characterization.
+
+```text
+SaaS-03B-D-R3-C1-R5-R1 = completed
+SaaS-03B-D-R3-C1-R5-R2-R1 = completed_pending_human_review_and_push
+SaaS-03B-D-R3-C1-R5-R2 = ready_for_joint_foundation_and_required_callsite_cutover_after_push
+SaaS-03B-D-R3-C1-R5 = blocked_pending_R5_R2_cutover_then_specific_review
+SaaS-03B-D-R3-C1 = blocked_pending_R5_completion_and_revalidation
+BootstrapTenant = implemented_but_not_independently_validated
+UpdateTenantProfile/UpdateTenantSettings/UpdateTenantBranding = blocked_pending_contract_resolution
+SuspendTenant/RestoreTenant/ArchiveTenant = blocked_pending_contract_resolution
+SaaS-03B-D = in_progress_blocked_pending_BootstrapTenant_revalidation
+SaaS-03B-E = blocked_pending_03B_D
+SaaS-03B-F = blocked_pending_previous_sequence
+Phase 4 = not_started
+```
+
+After human review and push, resume only `SaaS-03B-D-R3-C1-R5-R2 — Audit
+Destination Scope Foundation Materialization` under this reconciled scope.
+
 ## Current checkpoint — SaaS-03B-D-R3-C1-R5-R1 audit destination contract resolution
 
 R5-R1 closes `SHARED_FOUNDATION_AUDIT_AUTHORITY_DESTINATION_SCOPE_GAP`
