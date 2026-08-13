@@ -2,17 +2,18 @@ import { AUDIT_RESULTS } from "@mipymetic/saas-contracts/audit";
 import { COMMAND_SCHEMA_VERSION, COMMAND_STATUSES, COMMAND_TYPES, PRIVILEGED_COMMAND_STAGES, validateBootstrapTenantResult } from "@mipymetic/saas-contracts/commands";
 import { BACKEND_ERROR_CODES } from "@mipymetic/saas-contracts/errors";
 import {
-  membershipDocumentPath, membershipKeyDocumentPath, platformAuthorityRegistryDocumentPath,
+  encodeMembershipUidKey, membershipDocumentPath, membershipKeyDocumentPath, platformAuthorityRegistryDocumentPath,
   privilegedCommandDocumentPath, tenantAdminAuthorityStateDocumentPath, tenantBrandingDocumentPath,
   tenantDocumentPath, tenantSettingsDocumentPath, validateMembershipKey, validatePersistedTenant,
-  validateTenantAdminAuthorityState, validateTenantBranding, validateTenantSettings,
+  validatePersistedMembership, validateTenantAdminAuthorityState, validateTenantBranding, validateTenantSettings,
 } from "@mipymetic/saas-contracts/persistence";
+import { MEMBERSHIP_ROLES, MEMBERSHIP_STATUSES, TENANT_STATUSES } from "@mipymetic/saas-contracts/domain";
 import { PLATFORM_AUTHORITY_REGISTRY_STATES, validatePlatformAuthorityRegistry } from "@mipymetic/saas-contracts/authority";
 import type { AuthorityResolution, JsonValue } from "../contracts/types.js";
 import { writeAuditEvent } from "../audit/auditWriter.js";
 import { validatePersistedCommandRecord } from "../commands/commandRecord.js";
 import { BackendError } from "../errors/backendError.js";
-import { serverOwnedTimestamp, type TransactionRunnerPort } from "./ports.js";
+import { isServerOwnedTimestamp, serverOwnedTimestamp, type TransactionRunnerPort } from "./ports.js";
 import { runAuthoritativeTransaction } from "./transactionBoundary.js";
 
 export interface BootstrapTenantAggregate {
@@ -38,11 +39,26 @@ export const validateBootstrapTenantPersistedResult=(value:unknown,expected:Read
 const conflict=(message:string):never=>{throw new BackendError(BACKEND_ERROR_CODES.CONFLICT,message)};
 const contract=(message:string):never=>{throw new BackendError(BACKEND_ERROR_CODES.CONTRACT_VIOLATION,message)};
 const exists=(message:string):never=>{throw new BackendError(BACKEND_ERROR_CODES.ALREADY_EXISTS,message)};
-const exactMembership=(value:unknown,input:BootstrapTenantAggregate):boolean=>{
-  if(typeof value!=="object"||value===null||Array.isArray(value))return false;
-  const v=value as Readonly<Record<string,unknown>>, fields=["membershipId","tenantId","uid","role","status","originRequestId","createdAt","approvedAt","approvedBy","updatedAt","suspendedAt","removedAt"];
-  return Object.keys(v).length===fields.length&&fields.every(field=>Object.prototype.hasOwnProperty.call(v,field))
-    &&v.membershipId===input.membershipId&&v.tenantId===input.tenantId;
+const timestampFields=Object.freeze({
+  tenant:Object.freeze({createdAt:false,updatedAt:false,suspendedAt:true,archivedAt:true}),
+  settings:Object.freeze({updatedAt:false}),branding:Object.freeze({updatedAt:false}),
+  membership:Object.freeze({createdAt:false,approvedAt:false,updatedAt:false,suspendedAt:true,removedAt:true}),
+  membershipKey:Object.freeze({updatedAt:false}),authorityState:Object.freeze({updatedAt:false}),
+});
+const plain=(value:unknown):value is Readonly<Record<string,unknown>>=>value!==null&&typeof value==="object"&&!Array.isArray(value)&&Object.getPrototypeOf(value)===Object.prototype;
+const containsTimestampToken=(value:unknown):boolean=>isServerOwnedTimestamp(value)
+  ||(Array.isArray(value)?value.some(containsTimestampToken):plain(value)&&Object.values(value).some(containsTimestampToken));
+const logicalCandidate=(value:unknown,fields:Readonly<Record<string,boolean>>,logicalTimestamp:string):Readonly<Record<string,unknown>>=>{
+  if(!plain(value))return contract("BootstrapTenant write candidate is malformed.");
+  const candidate:Record<string,unknown>={...value};
+  for(const [field,nullable] of Object.entries(fields)){
+    if(!Object.prototype.hasOwnProperty.call(candidate,field))contract("BootstrapTenant server timestamp field is missing.");
+    if(candidate[field]===null&&nullable)continue;
+    if(!isServerOwnedTimestamp(candidate[field]))contract("BootstrapTenant server timestamp token is invalid.");
+    candidate[field]=logicalTimestamp;
+  }
+  if(containsTimestampToken(candidate))contract("BootstrapTenant server timestamp token is unexpected.");
+  return candidate;
 };
 const membershipKeyMatches=(value:unknown,input:BootstrapTenantAggregate):boolean=>{
   if(typeof value!=="object"||value===null||Array.isArray(value))return false;
@@ -60,10 +76,17 @@ export const createTenantBootstrapTransactionStore=(runner:TransactionRunnerPort
   if(tenant.exists){if(!validatePersistedTenant(tenant.data).ok)contract("Tenant collision is malformed.");exists("Tenant already exists.")}
   if(settings.exists){if(!validateTenantSettings(settings.data).ok)contract("Settings collision is malformed.");exists("Tenant Settings already exist.")}
   if(branding.exists){if(!validateTenantBranding(branding.data).ok)contract("Branding collision is malformed.");exists("Tenant Branding already exists.")}
-  if(membership.exists){if(!exactMembership(membership.data,input))contract("Membership collision is malformed.");exists("Membership already exists.")}
+  if(membership.exists){if(!validatePersistedMembership(membership.data).ok)contract("Membership collision is malformed.");const value=membership.data!;if(value.membershipId!==input.membershipId||value.tenantId!==input.tenantId)contract("Membership collision is incoherent.");exists("Membership already exists.")}
   if(key.exists){const keyValidation=validateMembershipKey(key.data);if(!keyValidation.ok)contract("MembershipKey collision is malformed.");if(!membershipKeyMatches(key.data,input))contract("MembershipKey collision points to a foreign Membership.");exists("MembershipKey already exists.")}
   if(state.exists){if(!validateTenantAdminAuthorityState(state.data).ok)contract("Authority State collision is malformed.");exists("Authority State already exists.")}
-  if(!validateBootstrapTenantResult(input.result).ok)contract("BootstrapTenant result is malformed.");const command={commandId:input.commandId,commandType:COMMAND_TYPES.BOOTSTRAP_TENANT,payloadHash:input.payloadHash,actorUid:input.actor.actorUid,actorType:input.actor.actorType,authority:input.actor.authority,tenantId:input.tenantId,status:COMMAND_STATUSES.SUCCEEDED,stage:PRIVILEGED_COMMAND_STAGES.COMPLETED,startedAt:serverOwnedTimestamp(),completedAt:serverOwnedTimestamp(),failedAt:null,result:input.result,errorCode:null,attemptCount:1,correlationId:input.correlationId,expiresAt:null,leaseExpiresAt:null,schemaVersion:COMMAND_SCHEMA_VERSION};validatePersistedCommandRecord({...command,startedAt:registryValue.updatedAt,completedAt:registryValue.updatedAt});
+  const logicalTenant=logicalCandidate(input.tenant,timestampFields.tenant,registryValue.updatedAt),logicalSettings=logicalCandidate(input.settings,timestampFields.settings,registryValue.updatedAt),logicalBranding=logicalCandidate(input.branding,timestampFields.branding,registryValue.updatedAt),logicalMembership=logicalCandidate(input.membership,timestampFields.membership,registryValue.updatedAt),logicalKey=logicalCandidate(input.membershipKey,timestampFields.membershipKey,registryValue.updatedAt),logicalState=logicalCandidate(input.authorityState,timestampFields.authorityState,registryValue.updatedAt);
+  if(!validatePersistedTenant(logicalTenant).ok||!validateTenantSettings(logicalSettings).ok||!validateTenantBranding(logicalBranding).ok||!validatePersistedMembership(logicalMembership).ok||!validateMembershipKey(logicalKey).ok||!validateTenantAdminAuthorityState(logicalState).ok)contract("BootstrapTenant aggregate violates shared contracts.");
+  if(logicalTenant.tenantId!==input.tenantId||logicalSettings.tenantId!==input.tenantId||logicalBranding.tenantId!==input.tenantId||logicalMembership.tenantId!==input.tenantId||logicalKey.tenantId!==input.tenantId||logicalState.tenantId!==input.tenantId)contract("BootstrapTenant aggregate Tenant binding is incoherent.");
+  if(logicalTenant.status!==TENANT_STATUSES.ACTIVE||logicalTenant.suspendedAt!==null||logicalTenant.archivedAt!==null)contract("BootstrapTenant initial Tenant lifecycle is incoherent.");
+  if(logicalMembership.membershipId!==input.membershipId||logicalMembership.uid!==logicalKey.uid||logicalMembership.role!==MEMBERSHIP_ROLES.TENANT_ADMIN||logicalMembership.status!==MEMBERSHIP_STATUSES.APPROVED||logicalMembership.originRequestId!==null||logicalMembership.approvedBy!==input.actor.actorUid||logicalMembership.suspendedAt!==null||logicalMembership.removedAt!==null)contract("BootstrapTenant first Membership is incoherent.");
+  if(logicalKey.membershipId!==input.membershipId||logicalKey.status!==logicalMembership.status||logicalKey.originRequestId!==logicalMembership.originRequestId||input.uidKey!==encodeMembershipUidKey(logicalMembership.uid))contract("BootstrapTenant MembershipKey composition is incoherent.");
+  if(logicalState.activeCount!==1||logicalState.revision!==1||logicalState.lastCommandId!==input.commandId)contract("BootstrapTenant Authority State initial tuple is incoherent.");
+  validateBootstrapTenantPersistedResult(input.result,{commandId:input.commandId,correlationId:input.correlationId,tenantId:input.tenantId});const command={commandId:input.commandId,commandType:COMMAND_TYPES.BOOTSTRAP_TENANT,payloadHash:input.payloadHash,actorUid:input.actor.actorUid,actorType:input.actor.actorType,authority:input.actor.authority,tenantId:input.tenantId,status:COMMAND_STATUSES.SUCCEEDED,stage:PRIVILEGED_COMMAND_STAGES.COMPLETED,startedAt:serverOwnedTimestamp(),completedAt:serverOwnedTimestamp(),failedAt:null,result:input.result,errorCode:null,attemptCount:1,correlationId:input.correlationId,expiresAt:null,leaseExpiresAt:null,schemaVersion:COMMAND_SCHEMA_VERSION};validatePersistedCommandRecord({...command,startedAt:registryValue.updatedAt,completedAt:registryValue.updatedAt});
   transaction.create(paths.tenant,input.tenant);transaction.create(paths.settings,input.settings);transaction.create(paths.branding,input.branding);transaction.create(paths.membership,input.membership);transaction.create(paths.key,input.membershipKey);transaction.create(paths.state,input.authorityState);transaction.create(commandPath,command);
   const common={commandId:input.commandId,correlationId:input.correlationId,level:"critical" as const,operation:"BootstrapTenant.create",resourceType:"tenant",resourceId:input.tenantId,result:AUDIT_RESULTS.SUCCEEDED,errorCode:null,beforeSummary:{tenantExists:false},afterSummary:{tenantStatus:"active",firstAdminStatus:"approved",tenantAdminActiveCount:1},metadata:{stage:"completed",tenantType:input.tenant.tenantType as string}};
   writeAuditEvent(transaction,{...common,auditId:`${input.commandId}-tenant-create`,authority:Object.freeze({...input.actor,tenantId:input.tenantId})});writeAuditEvent(transaction,{...common,auditId:`${input.commandId}-platform-create`,authority:input.actor});
