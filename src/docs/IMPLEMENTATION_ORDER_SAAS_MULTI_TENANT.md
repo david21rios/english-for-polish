@@ -5,7 +5,35 @@
 **Regla:** ninguna fase activa enforcement ni elimina compatibilidad antes de
 cumplir su gate.
 
-## Current checkpoint — SaaS-03B-C-R6-C1 independent Revoke revalidation
+## Current checkpoint — SaaS-03B-C aggregate privileged platform backend closure
+
+The aggregate closure review passes without technical changes. Foundation, the package-owned schemas, Transaction Store, Bootstrap, Recover and Revoke remain mutually coherent and independently validated. The cross-command matrix preserves `transitionCommandId` as the only target-local owner, treats Registry `lastCommandId` as global history only, rejects command-type reuse/takeover, and keeps every activeCount delta exact and idempotent.
+
+Functions pass 67/67 and clean isolated validation. Firestore Emulator passes the combined Store/Bootstrap/Recover/Revoke suite 22/22. Package 0.11.0 remains unchanged at 40/40; Shared 51/51, repositories 360/360, all prechecks, Rules 222/88/134, general 35/35 and production build pass. Protected hashes, supply-chain baselines and legacy lint remain unchanged. Rules impact is `RULES_IMPACT_NONE`; indexes, Storage and Firebase configuration also require no change.
+
+```text
+SaaS-03B-B = completed
+Privileged Backend Foundation = independently_validated
+Platform Command Transaction Store = implemented_and_emulator_validated
+SaaS-03B-C-R4 = completed
+SaaS-03B-C-R4-C1 = completed
+BootstrapPlatformAdmins = independently_validated
+SaaS-03B-C-R5 = completed
+SaaS-03B-C-R5-C1 = completed
+RecoverPlatformAdmin = independently_validated
+SaaS-03B-C-R6 = completed
+SaaS-03B-C-R6-C1 = completed
+RevokePlatformAdmin = independently_validated
+SaaS-03B-C = completed_pending_human_review_and_push
+SaaS-03B-D = ready_not_started_after_03B_C_push
+SaaS-03B-E = blocked_pending_03B_D
+SaaS-03B-F = blocked_pending_previous_sequence
+Phase 4 = not_started
+```
+
+After human review and push, SaaS-03B-D is the next eligible phase but remains not started in this checkpoint.
+
+## Previous checkpoint — SaaS-03B-C-R6-C1 independent Revoke revalidation
 
 The complete independent post-repair review passes. R6-C1-R1 makes new Revoke prepare atomic, and R6-C1-R2 requires a read-only Command/Authority/Registry checkpoint proof before any existing Revoke can reach Auth. Forensic review found no scope drift, generic ownership bypass, lifecycle shortcut, orphan command, count/revision drift or audit leak.
 
