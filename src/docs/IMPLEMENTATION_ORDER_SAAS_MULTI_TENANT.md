@@ -5,6 +5,34 @@
 **Regla:** ninguna fase activa enforcement ni elimina compatibilidad antes de
 cumplir su gate.
 
+## Current checkpoint — SaaS-03B-D-R3-C1-R2-R1 persisted Membership validator
+
+The attempted R3-C1-R2 Store aggregate repair stopped before technical edits
+because the package had no authoritative persisted Membership validator.
+R3-C1-R2-R1 resolves only that shared gap. `@mipymetic/saas-contracts@0.13.0`
+now exports the pure, exact-shape, legacy-unversioned
+`validatePersistedMembership`; Functions consumes its reproducible vendored
+artifact. The Tenant Store and BootstrapTenant semantics remain unchanged.
+
+```text
+SaaS-03B-D-R3 = implemented_and_validated
+SaaS-03B-D-R3-C1-R1 = completed
+SaaS-03B-D-R3-C1-R2-R1 = completed_pending_human_review_and_push
+SaaS-03B-D-R3-C1-R2 = blocked_pending_R1_push_then_resume
+SaaS-03B-D-R3-C1 = blocked_pending_R2_completion_and_revalidation
+BootstrapTenant = repaired_but_not_independently_validated
+UpdateTenantProfile/UpdateTenantSettings/UpdateTenantBranding = blocked_pending_contract_resolution
+SuspendTenant/RestoreTenant/ArchiveTenant = blocked_pending_contract_resolution
+SaaS-03B-D = in_progress_blocked_pending_BootstrapTenant_revalidation
+SaaS-03B-E = blocked_pending_03B_D
+SaaS-03B-F = blocked_pending_previous_sequence
+Phase 4 = not_started
+```
+
+After human review and push, resume only `SaaS-03B-D-R3-C1-R2 —
+BootstrapTenant Store Aggregate Validation Repair`. Do not rerun R3-C1 until
+R3-C1-R2 is completed and published.
+
 ## Current checkpoint — SaaS-03B-D-R3-C1-R1 replay result binding repair
 
 The independent R3-C1 review found
