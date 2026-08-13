@@ -5,7 +5,27 @@
 **Regla:** ninguna fase activa enforcement ni elimina compatibilidad antes de
 cumplir su gate.
 
-## Current checkpoint — SaaS-03B-C-R5-C1 independent Recover revalidation
+## Current checkpoint — SaaS-03B-C-R6 RevokePlatformAdmin implementation
+
+`RevokePlatformAdmin` is implemented as an internal authenticated command. Server-derived actor Identity/Authority and the package capability matrix guard the operation; self-revoke and last-admin revoke fail closed. Prepare owns the target and decrements `activeCount` exactly once, Auth claim removal remains outside Firestore transactions, forward recovery retains ownership, and finalization/replay are idempotent.
+
+Functions pass 64/64. Local Firestore Emulator passes Store 11/11, Bootstrap 3/3, Recover 3/3 and Revoke 3/3, including same-target contention and the last-two-admin invariant. Package 0.11.0 remains unchanged at 40/40. Full SaaS, Rules, build, protected-hash and supply-chain baselines pass with attributable delta zero.
+
+```text
+SaaS-03B-C-R5 = completed
+SaaS-03B-C-R5-C1 = completed
+RecoverPlatformAdmin = independently_validated
+SaaS-03B-C-R6 = completed_pending_human_review_and_push
+RevokePlatformAdmin = implemented_and_validated
+Revoke independent review = ready_not_started
+SaaS-03B-C = in_progress_pending_revoke_independent_review
+SaaS-03B-D = blocked
+Phase 4 = not_started
+```
+
+After human review and push, execute only `SaaS-03B-C-R6-C1 — Independent RevokePlatformAdmin Review`. Do not start 03B-D or Phase 4.
+
+## Previous checkpoint — SaaS-03B-C-R5-C1 independent Recover revalidation
 
 The independent post-repair review passes. R5-C1-R1 removed the generic active
 owner capability and R5-C1-R2 made active lifecycle validation precede owner
