@@ -7,9 +7,10 @@ import { PLATFORM_AUTHORITY_SCHEMA_VERSION, PLATFORM_AUTHORITY_REGISTRY_STATES a
 import { platformAuthorityDocumentPath, platformAuthorityRegistryDocumentPath, privilegedCommandDocumentPath } from "@mipymetic/saas-contracts/persistence";
 import { FirestoreAdminTransactionRunner } from "../lib/persistence/adapters/firestore.js";
 import { createPlatformCommandTransactionStore } from "../lib/persistence/platformCommandTransactionStore.js";
+import { capabilitiesForPlatformRole } from "../lib/authorization/capabilities.js";
 
 const projectId="demo-polish-learning-r3-r7", app=initializeApp({projectId},"r3-r7-emulator"), db=getFirestore(app), instant=Timestamp.fromDate(new Date("2026-01-01T00:00:00.000Z"));
-const actor=Object.freeze({actorUid:"actor-1",actorType:"platform_admin",authority:"platform_admin",tenantId:null,roles:Object.freeze(["platform_admin"]),capabilities:Object.freeze([])});
+const actor=Object.freeze({actorUid:"actor-1",actorType:"platform_admin",authority:"platform_admin",tenantId:null,roles:Object.freeze(["platform_admin"]),capabilities:capabilitiesForPlatformRole("platform_admin")});
 const command=(id,type)=>({commandId:id,commandType:type,payloadHash:"a".repeat(64),actorUid:"actor-1",actorType:"platform_admin",authority:"platform_admin",tenantId:null,status:CS.PENDING,stage:ST.NOT_STARTED,startedAt:instant,completedAt:null,failedAt:null,result:null,errorCode:null,attemptCount:0,correlationId:`correlation-${id}`,expiresAt:null,leaseExpiresAt:null,schemaVersion:COMMAND_SCHEMA_VERSION});
 const registry=(count,state=RS.UNINITIALIZED,revision=0,last=null)=>({schemaVersion:1,bootstrapState:state,activeCount:count,revision,lastCommandId:last,updatedAt:instant});
 const authority=(uid)=>({schemaVersion:PLATFORM_AUTHORITY_SCHEMA_VERSION,transitionCommandId:null,uid,authority:"platform_admin",status:AS.ACTIVE,createdAt:instant,createdBy:"seed-command",updatedAt:instant,updatedBy:"seed-command",activatedAt:instant,revokedAt:null,revokedBy:null,bootstrapCommandId:null,lastClaimSyncAt:null});

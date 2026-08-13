@@ -4,6 +4,7 @@ import { PLATFORM_AUTHORITY_SCHEMA_VERSION, PLATFORM_AUTHORITY_REGISTRY_STATES a
 import { COMMAND_SCHEMA_VERSION, COMMAND_STATUSES as CS, COMMAND_TYPES, PRIVILEGED_COMMAND_STAGES as ST } from "@mipymetic/saas-contracts/commands";
 import { BACKEND_ERROR_CODES } from "@mipymetic/saas-contracts/errors";
 import { platformAuthorityDocumentPath, platformAuthorityRegistryDocumentPath, privilegedCommandDocumentPath } from "@mipymetic/saas-contracts/persistence";
+import { capabilitiesForPlatformRole } from "../authorization/capabilities.js";
 import type { AuthorityResolution, CommandRecord, JsonValue } from "../contracts/types.js";
 import { BackendError } from "../errors/backendError.js";
 import { createPlatformCommandTransactionStore, type PlatformCommandStoreMutation } from "../persistence/platformCommandTransactionStore.js";
@@ -11,7 +12,7 @@ import { isServerOwnedTimestamp, type DocumentSnapshotPort, type TransactionPort
 import { externalEffect } from "../persistence/transactionBoundary.js";
 
 const now="2026-01-01T00:00:00.000Z";
-const actor:AuthorityResolution=Object.freeze({actorUid:"actor-1",actorType:"platform_admin",authority:"platform_admin",tenantId:null,roles:Object.freeze(["platform_admin"]),capabilities:Object.freeze([])});
+const actor:AuthorityResolution=Object.freeze({actorUid:"actor-1",actorType:"platform_admin",authority:"platform_admin",tenantId:null,roles:Object.freeze(["platform_admin"]),capabilities:capabilitiesForPlatformRole("platform_admin")});
 const command=(type:string=COMMAND_TYPES.BOOTSTRAP_PLATFORM_ADMINS,id="command-1"):CommandRecord=>Object.freeze({commandId:id,commandType:type,payloadHash:"a".repeat(64),actorUid:actor.actorUid,actorType:actor.actorType,authority:actor.authority,tenantId:null,status:CS.PENDING,stage:ST.NOT_STARTED,startedAt:now,completedAt:null,failedAt:null,result:null,errorCode:null,attemptCount:0,correlationId:`correlation-${id}`,expiresAt:null,leaseExpiresAt:null,schemaVersion:COMMAND_SCHEMA_VERSION});
 const registry=(count=0,state:string=RS.UNINITIALIZED,revision=0,last:string|null=null)=>({schemaVersion:1,bootstrapState:state,activeCount:count,revision,lastCommandId:last,updatedAt:now});
 const authority=(uid:string,status:string=AS.ACTIVE,owner:string|null=null)=>({schemaVersion:PLATFORM_AUTHORITY_SCHEMA_VERSION,transitionCommandId:owner,uid,authority:"platform_admin",status,createdAt:now,createdBy:"command-0",updatedAt:now,updatedBy:"command-0",activatedAt:status===AS.ACTIVE?now:null,revokedAt:null,revokedBy:null,bootstrapCommandId:null,lastClaimSyncAt:null});

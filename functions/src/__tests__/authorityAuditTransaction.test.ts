@@ -5,7 +5,8 @@ import { PLATFORM_AUTHORITY_STATUSES } from "@mipymetic/saas-contracts/authority
 import { CAPABILITY_IDS, MEMBERSHIP_STATUSES, PLATFORM_ROLES, TENANT_STATUSES } from "@mipymetic/saas-contracts/domain";
 import { BACKEND_ERROR_CODES } from "@mipymetic/saas-contracts/errors";
 import { identityDocumentPath, membershipDocumentPath, platformAuthorityDocumentPath, tenantDocumentPath } from "@mipymetic/saas-contracts/persistence";
-import { writeAuditEvent } from "../audit/auditWriter.js";
+import { validateAuditDestination, writeAuditEvent, type AuditDestination } from "../audit/auditWriter.js";
+import { capabilitiesForMembershipRole, capabilitiesForPlatformRole } from "../authorization/capabilities.js";
 import { resolvePlatformAuthority, resolveTenantAuthority } from "../authorization/authorityResolver.js";
 import type { AuthenticatedActor, AuthorityResolution, JsonValue } from "../contracts/types.js";
 import { BackendError } from "../errors/backendError.js";
@@ -97,22 +98,77 @@ test("tenant authority rejects missing, foreign, suspended and unknown Membershi
   ])), actor, "tenant-1", "membership-1"), BackendError);
 });
 
-const tenantAuthority: AuthorityResolution = Object.freeze({ actorUid: actor.uid, actorType: "identity", authority: "tenant_admin", tenantId: "tenant-1", roles: Object.freeze(["tenant_admin"]), capabilities: Object.freeze([]) });
+const humanAuthority = (role: "student" | "teacher" | "tenant_admin", tenantId = "tenant-1"): AuthorityResolution => Object.freeze({ actorUid: actor.uid, actorType: "identity", authority: role, tenantId, roles: Object.freeze([role]), capabilities: capabilitiesForMembershipRole(role) });
+const tenantAuthority = humanAuthority("tenant_admin");
+const platformAuthority: AuthorityResolution = Object.freeze({ actorUid: actor.uid, actorType: "platform_admin", authority: "platform_admin", tenantId: null, roles: Object.freeze(["platform_admin"]), capabilities: capabilitiesForPlatformRole("platform_admin") });
+const systemAuthority = (authority: "platform_system" | "platform_recovery"): AuthorityResolution => Object.freeze({ actorUid: `${authority}-actor`, actorType: "system", authority, tenantId: null, roles: Object.freeze([]), capabilities: Object.freeze([]) });
+const destination = (value: unknown): AuditDestination => value as AuditDestination;
+
+const commonAudit = { auditId: "audit-1", commandId: "command-1", correlationId: "correlation-1", level: "privileged" as const, operation: "foundation.test", resourceType: "tenant", resourceId: "tenant-1", result: AUDIT_RESULTS.SUCCEEDED, errorCode: null, beforeSummary: { status: "draft" }, afterSummary: { status: "active" }, metadata: { attempt: 1 } };
 
 test("audit writer uses tenant and platform roots and exact shared shape", () => {
   const transaction = new Transaction();
-  const common = { auditId: "audit-1", commandId: "command-1", correlationId: "correlation-1", level: "privileged" as const, operation: "foundation.test", resourceType: "tenant", resourceId: "tenant-1", result: AUDIT_RESULTS.SUCCEEDED, errorCode: null, beforeSummary: { status: "draft" }, afterSummary: { status: "active" }, metadata: { attempt: 1 } };
-  assert.equal(writeAuditEvent(transaction, { ...common, authority: tenantAuthority }), "tenants/tenant-1/auditEvents/audit-1");
+  assert.equal(writeAuditEvent(transaction, { ...commonAudit, authority: tenantAuthority, destination: { kind: "tenant", tenantId: "tenant-1" } }), "tenants/tenant-1/auditEvents/audit-1");
   assert.equal(transaction.creates.length, 1);
   assert.equal(isServerOwnedTimestamp(transaction.creates[0]?.data.requestedAt), true);
   assert.equal(isServerOwnedTimestamp(transaction.creates[0]?.data.executedAt), true);
-  const platform = Object.freeze({ ...tenantAuthority, actorType: "platform_admin" as const, authority: "platform_admin", tenantId: null });
-  assert.equal(writeAuditEvent(transaction, { ...common, authority: platform }), "platformAuditEvents/audit-1");
+  assert.equal(writeAuditEvent(transaction, { ...commonAudit, authority: platformAuthority, destination: { kind: "platform" } }), "platformAuditEvents/audit-1");
+});
+
+test("audit writer separates canonical platform actor from Tenant destination", () => {
+  const transaction = new Transaction();
+  const path = writeAuditEvent(transaction, { ...commonAudit, authority: platformAuthority, destination: { kind: "tenant", tenantId: "tenant-a" } });
+  assert.equal(path, "tenants/tenant-a/auditEvents/audit-1");
+  assert.equal(platformAuthority.tenantId, null);
+  assert.equal(transaction.creates[0]?.data.tenantId, "tenant-a");
+  assert.deepEqual([transaction.creates[0]?.data.actorUid, transaction.creates[0]?.data.actorType, transaction.creates[0]?.data.authority], [platformAuthority.actorUid, platformAuthority.actorType, platformAuthority.authority]);
+});
+
+test("audit writer accepts the complete positive authority and destination matrix", () => {
+  const cases: readonly Readonly<{ authority: AuthorityResolution; destination: AuditDestination }>[] = [
+    { authority: platformAuthority, destination: { kind: "platform" } },
+    { authority: platformAuthority, destination: { kind: "tenant", tenantId: "tenant-1" } },
+    { authority: humanAuthority("tenant_admin"), destination: { kind: "tenant", tenantId: "tenant-1" } },
+    { authority: humanAuthority("student"), destination: { kind: "tenant", tenantId: "tenant-1" } },
+    { authority: humanAuthority("teacher"), destination: { kind: "tenant", tenantId: "tenant-1" } },
+    { authority: systemAuthority("platform_system"), destination: { kind: "platform" } },
+    { authority: systemAuthority("platform_recovery"), destination: { kind: "platform" } },
+  ];
+  for (const item of cases) assert.doesNotThrow(() => writeAuditEvent(new Transaction(), { ...commonAudit, ...item }));
+});
+
+test("audit writer rejects incoherent authority destinations before writes", () => {
+  const malformedPlatform = Object.freeze({ ...platformAuthority, capabilities: platformAuthority.capabilities.slice(1) });
+  const cases: readonly Readonly<{ authority: AuthorityResolution; destination: AuditDestination }>[] = [
+    { authority: humanAuthority("tenant_admin"), destination: { kind: "platform" } },
+    { authority: humanAuthority("tenant_admin"), destination: { kind: "tenant", tenantId: "tenant-2" } },
+    { authority: humanAuthority("student"), destination: { kind: "tenant", tenantId: "tenant-2" } },
+    { authority: humanAuthority("teacher"), destination: { kind: "tenant", tenantId: "tenant-2" } },
+    { authority: systemAuthority("platform_system"), destination: { kind: "tenant", tenantId: "tenant-1" } },
+    { authority: systemAuthority("platform_recovery"), destination: { kind: "tenant", tenantId: "tenant-1" } },
+    { authority: malformedPlatform, destination: { kind: "platform" } },
+  ];
+  for (const item of cases) {
+    const transaction = new Transaction();
+    assert.throws(() => writeAuditEvent(transaction, { ...commonAudit, ...item }), (error: unknown) => error instanceof BackendError && error.code === BACKEND_ERROR_CODES.CONTRACT_VIOLATION);
+    assert.equal(transaction.creates.length, 0);
+  }
+});
+
+test("audit destination validator is exact and fail closed", () => {
+  assert.equal(validateAuditDestination({ kind: "platform" }).ok, true);
+  assert.equal(validateAuditDestination({ kind: "tenant", tenantId: "tenant-1" }).ok, true);
+  for (const value of [null, undefined, "tenant", [], {}, { kind: "unknown" }, { kind: "platform", tenantId: "tenant-1" }, { kind: "tenant" }, { kind: "tenant", tenantId: null }, { kind: "tenant", tenantId: "" }, { kind: "tenant", tenantId: "   " }, { kind: "tenant", tenantId: "." }, { kind: "tenant", tenantId: ".." }, { kind: "tenant", tenantId: "a/b" }, { kind: "tenant", tenantId: "tenant-1", extra: true }]) assert.equal(validateAuditDestination(value).ok, false);
+  for (const value of [null, { kind: "unknown" }, { kind: "tenant", tenantId: "a/b" }, { kind: "platform", extra: true }]) {
+    const transaction = new Transaction();
+    assert.throws(() => writeAuditEvent(transaction, { ...commonAudit, authority: platformAuthority, destination: destination(value) }), BackendError);
+    assert.equal(transaction.creates.length, 0);
+  }
 });
 
 test("audit writer rejects sensitive, nested and oversized data", () => {
   const transaction = new Transaction();
-  const base = { auditId: "audit-1", commandId: "command-1", correlationId: "correlation-1", authority: tenantAuthority, level: "critical" as const, operation: "foundation.test", resourceType: "tenant", resourceId: "tenant-1", result: AUDIT_RESULTS.FAILED, errorCode: BACKEND_ERROR_CODES.INTERNAL, beforeSummary: {}, afterSummary: {}, metadata: {} };
+  const base = { auditId: "audit-1", commandId: "command-1", correlationId: "correlation-1", authority: tenantAuthority, destination: { kind: "tenant", tenantId: "tenant-1" } as const, level: "critical" as const, operation: "foundation.test", resourceType: "tenant", resourceId: "tenant-1", result: AUDIT_RESULTS.FAILED, errorCode: BACKEND_ERROR_CODES.INTERNAL, beforeSummary: {}, afterSummary: {}, metadata: {} };
   assert.throws(() => writeAuditEvent(transaction, { ...base, metadata: { token: "secret" } }), BackendError);
   assert.throws(() => writeAuditEvent(transaction, { ...base, metadata: { nested: { value: "no" } } }), BackendError);
   assert.throws(() => writeAuditEvent(transaction, { ...base, metadata: { value: "x".repeat(5000) } }), BackendError);

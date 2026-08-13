@@ -84,7 +84,7 @@ const recoveryOwnership=async(runner:TransactionRunnerPort,input:RecoveryOwnersh
   transaction.update(authorityPath,{status:logicalAuthority.status,transitionCommandId:input.commandId,updatedAt:serverOwnedTimestamp(),updatedBy:input.commandId});
   transaction.set(registryPath,{...nextRegistry,updatedAt:serverOwnedTimestamp()});
   transaction.update(commandPath,{status:COMMAND_STATUSES.RUNNING,stage:PRIVILEGED_COMMAND_STAGES.PREPARED,leaseExpiresAt:null});
-  writeAuditEvent(transaction,{...input.audit,commandId:input.commandId,correlationId:input.correlationId,level:"critical"});
+  writeAuditEvent(transaction,{...input.audit,commandId:input.commandId,correlationId:input.correlationId,level:"critical",destination:{kind:"platform"}});
   return Object.freeze({command:nextCommand,registry:nextRegistry,authorities:Object.freeze([logicalAuthority])});
 });
 
@@ -101,7 +101,7 @@ const markActiveRecoveryRequired=async(runner:TransactionRunnerPort,input:Recove
   const nextCommand=validatePersistedCommandRecord({...command,status:COMMAND_STATUSES.RECOVERY_REQUIRED,stage:PRIVILEGED_COMMAND_STAGES.PREPARED,leaseExpiresAt:null});
   transaction.set(registryPath,{...nextRegistry,updatedAt:serverOwnedTimestamp()});
   transaction.update(commandPath,{status:COMMAND_STATUSES.RECOVERY_REQUIRED,stage:PRIVILEGED_COMMAND_STAGES.PREPARED,leaseExpiresAt:null});
-  writeAuditEvent(transaction,{...input.audit,commandId:input.commandId,correlationId:input.correlationId,level:"critical"});
+  writeAuditEvent(transaction,{...input.audit,commandId:input.commandId,correlationId:input.correlationId,level:"critical",destination:{kind:"platform"}});
   return Object.freeze({command:nextCommand,registry:nextRegistry,authorities:Object.freeze([authority])});
 });
 
@@ -123,7 +123,7 @@ const revokeCheckpoint=async(runner:TransactionRunnerPort,input:RecoveryOwnershi
   }
   const status=resume?PLATFORM_AUTHORITY_STATUSES.REVOKING:PLATFORM_AUTHORITY_STATUSES.RECOVERY_REQUIRED,nextCommandStatus=resume?COMMAND_STATUSES.RUNNING:COMMAND_STATUSES.RECOVERY_REQUIRED,nextRegistryState=resume?PLATFORM_AUTHORITY_REGISTRY_STATES.COMPLETED:PLATFORM_AUTHORITY_REGISTRY_STATES.RECOVERY_REQUIRED;
   const nextAuthority=authorityValue({...authority,status,updatedBy:input.commandId}),nextRegistry=registryValue({...registry,bootstrapState:nextRegistryState,revision:registry.revision+1,lastCommandId:input.commandId}),nextCommand=validatePersistedCommandRecord({...command,status:nextCommandStatus,stage:PRIVILEGED_COMMAND_STAGES.PREPARED,leaseExpiresAt:null});
-  transaction.update(authorityPath,{status,updatedAt:serverOwnedTimestamp(),updatedBy:input.commandId});transaction.set(registryPath,{...nextRegistry,updatedAt:serverOwnedTimestamp()});transaction.update(commandPath,{status:nextCommandStatus,stage:PRIVILEGED_COMMAND_STAGES.PREPARED,leaseExpiresAt:null});writeAuditEvent(transaction,{...input.audit,commandId:input.commandId,correlationId:input.correlationId,level:"critical"});
+  transaction.update(authorityPath,{status,updatedAt:serverOwnedTimestamp(),updatedBy:input.commandId});transaction.set(registryPath,{...nextRegistry,updatedAt:serverOwnedTimestamp()});transaction.update(commandPath,{status:nextCommandStatus,stage:PRIVILEGED_COMMAND_STAGES.PREPARED,leaseExpiresAt:null});writeAuditEvent(transaction,{...input.audit,commandId:input.commandId,correlationId:input.correlationId,level:"critical",destination:{kind:"platform"}});
   return Object.freeze({command:nextCommand,registry:nextRegistry,authorities:Object.freeze([nextAuthority])});
 });
 
@@ -149,7 +149,7 @@ const prepareRevokePlatformAdmin=async(runner:TransactionRunnerPort,input:Revoke
   transaction.create(commandPath,{...input.command,status:COMMAND_STATUSES.RUNNING,stage:PRIVILEGED_COMMAND_STAGES.PREPARED,leaseExpiresAt:null});
   transaction.update(authorityPath,{status:PLATFORM_AUTHORITY_STATUSES.REVOKING,transitionCommandId:input.commandId,updatedAt:serverOwnedTimestamp(),updatedBy:input.commandId});
   transaction.set(registryPath,{...nextRegistry,updatedAt:serverOwnedTimestamp()});
-  writeAuditEvent(transaction,{...input.audit,commandId:input.commandId,correlationId:input.correlationId,level:"critical"});
+  writeAuditEvent(transaction,{...input.audit,commandId:input.commandId,correlationId:input.correlationId,level:"critical",destination:{kind:"platform"}});
   return Object.freeze({command:nextCommand,registry:nextRegistry,authorities:Object.freeze([nextAuthority])});
 });
 
@@ -229,7 +229,7 @@ export const createPlatformCommandTransactionStore = (runner:TransactionRunnerPo
     for(const {path,current,write} of authorityWrites){ if(current===null) transaction.create(path,write); else transaction.update(path,write); }
     transaction.set(registryPath,{...nextRegistry,updatedAt:serverOwnedTimestamp()});
     transaction.update(commandPath,{status:nextCommand.status,stage:nextCommand.stage,result:nextCommand.result,errorCode:nextCommand.errorCode,leaseExpiresAt:null,...(input.nextCommandStatus===COMMAND_STATUSES.SUCCEEDED?{completedAt:serverOwnedTimestamp()}:{}),...((input.nextCommandStatus===COMMAND_STATUSES.FAILED_RETRYABLE||input.nextCommandStatus===COMMAND_STATUSES.FAILED_TERMINAL)?{failedAt:serverOwnedTimestamp()}: {})});
-    writeAuditEvent(transaction,{...input.audit,commandId:input.commandId,correlationId:input.correlationId,level:"critical"});
+    writeAuditEvent(transaction,{...input.audit,commandId:input.commandId,correlationId:input.correlationId,level:"critical",destination:{kind:"platform"}});
     return Object.freeze({command:nextCommand,registry:nextRegistry,authorities:Object.freeze(authorityWrites.map(({candidate})=>candidate))});
   })
 });

@@ -12,7 +12,8 @@ export { BackendError, mapFirebaseAdminError, sanitizeBackendError } from "./err
 export { decideIdempotency } from "./idempotency/idempotency.js";
 export { canonicalPayloadHash } from "./idempotency/payloadHash.js";
 export { runAuthoritativeTransaction } from "./persistence/transactionBoundary.js";
-export { writeAuditEvent } from "./audit/auditWriter.js";
+export { validateAuditDestination, writeAuditEvent } from "./audit/auditWriter.js";
+export type { AuditDestination, AuditDestinationValidation } from "./audit/auditWriter.js";
 export { createPlatformCommandTransactionStore } from "./persistence/platformCommandTransactionStore.js";
 export { createTenantBootstrapTransactionStore } from "./persistence/tenantBootstrapTransactionStore.js";
 export type { PlatformCommandStoreMutation, PlatformCommandTransactionStore, RecoveryOwnershipInput, RecoveryOwnershipHandoffInput } from "./persistence/platformCommandTransactionStore.js";
