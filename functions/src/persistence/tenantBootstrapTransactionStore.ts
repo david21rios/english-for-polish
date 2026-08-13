@@ -1,5 +1,10 @@
-import { AUDIT_RESULTS } from "@mipymetic/saas-contracts/audit";
-import { COMMAND_SCHEMA_VERSION, COMMAND_STATUSES, COMMAND_TYPES, PRIVILEGED_COMMAND_STAGES, validateBootstrapTenantResult } from "@mipymetic/saas-contracts/commands";
+import {
+  BOOTSTRAP_TENANT_AUDIT_AFTER_FIELDS, BOOTSTRAP_TENANT_AUDIT_BEFORE_FIELDS,
+  BOOTSTRAP_TENANT_AUDIT_LEVEL, BOOTSTRAP_TENANT_AUDIT_METADATA_FIELDS,
+  BOOTSTRAP_TENANT_AUDIT_OPERATION, BOOTSTRAP_TENANT_AUDIT_RESULT,
+  BOOTSTRAP_TENANT_RESOURCE_TYPE, COMMAND_SCHEMA_VERSION, COMMAND_STATUSES,
+  COMMAND_TYPES, PRIVILEGED_COMMAND_STAGES, validateBootstrapTenantResult,
+} from "@mipymetic/saas-contracts/commands";
 import { BACKEND_ERROR_CODES } from "@mipymetic/saas-contracts/errors";
 import {
   encodeMembershipUidKey, membershipDocumentPath, membershipKeyDocumentPath, platformAuthorityRegistryDocumentPath,
@@ -48,6 +53,11 @@ const timestampFields=Object.freeze({
 const plain=(value:unknown):value is Readonly<Record<string,unknown>>=>value!==null&&typeof value==="object"&&!Array.isArray(value)&&Object.getPrototypeOf(value)===Object.prototype;
 const containsTimestampToken=(value:unknown):boolean=>isServerOwnedTimestamp(value)
   ||(Array.isArray(value)?value.some(containsTimestampToken):plain(value)&&Object.values(value).some(containsTimestampToken));
+const allowlistedAuditMap=(value:Readonly<Record<string,JsonValue>>,fields:readonly string[],label:string):Readonly<Record<string,JsonValue>>=>{
+  const keys=Object.keys(value);
+  if(keys.length!==fields.length||keys.some(key=>!fields.includes(key)))contract(`BootstrapTenant ${label} violates its shared allowlist.`);
+  return Object.freeze({...value});
+};
 const logicalCandidate=(value:unknown,fields:Readonly<Record<string,boolean>>,logicalTimestamp:string):Readonly<Record<string,unknown>>=>{
   if(!plain(value))return contract("BootstrapTenant write candidate is malformed.");
   const candidate:Record<string,unknown>={...value};
@@ -88,7 +98,7 @@ export const createTenantBootstrapTransactionStore=(runner:TransactionRunnerPort
   if(logicalState.activeCount!==1||logicalState.revision!==1||logicalState.lastCommandId!==input.commandId)contract("BootstrapTenant Authority State initial tuple is incoherent.");
   validateBootstrapTenantPersistedResult(input.result,{commandId:input.commandId,correlationId:input.correlationId,tenantId:input.tenantId});const command={commandId:input.commandId,commandType:COMMAND_TYPES.BOOTSTRAP_TENANT,payloadHash:input.payloadHash,actorUid:input.actor.actorUid,actorType:input.actor.actorType,authority:input.actor.authority,tenantId:input.tenantId,status:COMMAND_STATUSES.SUCCEEDED,stage:PRIVILEGED_COMMAND_STAGES.COMPLETED,startedAt:serverOwnedTimestamp(),completedAt:serverOwnedTimestamp(),failedAt:null,result:input.result,errorCode:null,attemptCount:1,correlationId:input.correlationId,expiresAt:null,leaseExpiresAt:null,schemaVersion:COMMAND_SCHEMA_VERSION};validatePersistedCommandRecord({...command,startedAt:registryValue.updatedAt,completedAt:registryValue.updatedAt});
   transaction.create(paths.tenant,input.tenant);transaction.create(paths.settings,input.settings);transaction.create(paths.branding,input.branding);transaction.create(paths.membership,input.membership);transaction.create(paths.key,input.membershipKey);transaction.create(paths.state,input.authorityState);transaction.create(commandPath,command);
-  const common={commandId:input.commandId,correlationId:input.correlationId,level:"critical" as const,operation:"BootstrapTenant.create",resourceType:"tenant",resourceId:input.tenantId,result:AUDIT_RESULTS.SUCCEEDED,errorCode:null,beforeSummary:{tenantExists:false},afterSummary:{tenantStatus:"active",firstAdminStatus:"approved",tenantAdminActiveCount:1},metadata:{stage:"completed",tenantType:input.tenant.tenantType as string}};
+  const common={commandId:input.commandId,correlationId:input.correlationId,level:BOOTSTRAP_TENANT_AUDIT_LEVEL,operation:BOOTSTRAP_TENANT_AUDIT_OPERATION,resourceType:BOOTSTRAP_TENANT_RESOURCE_TYPE,resourceId:input.tenantId,result:BOOTSTRAP_TENANT_AUDIT_RESULT,errorCode:null,beforeSummary:allowlistedAuditMap({tenantExists:false},BOOTSTRAP_TENANT_AUDIT_BEFORE_FIELDS,"before summary"),afterSummary:allowlistedAuditMap({tenantStatus:"active",firstAdminStatus:"approved",tenantAdminActiveCount:1},BOOTSTRAP_TENANT_AUDIT_AFTER_FIELDS,"after summary"),metadata:allowlistedAuditMap({stage:"completed",tenantType:input.tenant.tenantType as string},BOOTSTRAP_TENANT_AUDIT_METADATA_FIELDS,"metadata")};
   writeAuditEvent(transaction,{...common,auditId:`${input.commandId}-tenant-create`,authority:Object.freeze({...input.actor,tenantId:input.tenantId})});writeAuditEvent(transaction,{...common,auditId:`${input.commandId}-platform-create`,authority:input.actor});
   return Object.freeze({replayed:false});
 })});
