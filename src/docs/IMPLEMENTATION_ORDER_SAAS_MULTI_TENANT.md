@@ -5,7 +5,37 @@
 **Regla:** ninguna fase activa enforcement ni elimina compatibilidad antes de
 cumplir su gate.
 
-## Current checkpoint — SaaS-03B-D-R2 shared-contract materialization blocker
+## Current checkpoint — SaaS-03B-D-R2-R1 Bootstrap shared-contract contradiction
+
+R2-R1 recovered several authoritative physical decisions: Tenant, Settings,
+Branding and Membership are legacy-unversioned exact shapes; uidKey is the
+approved versioned Base64URL encoding; membershipId is independently generated;
+and Bootstrap is a nine-document, Firestore-only atomic aggregate with zero Auth
+writes.
+
+The resolution nevertheless stops with `RESULT D`. R1 requires generated
+membershipId in the command result, while the current result contract permits
+exactly seven fields and has no membershipId. MembershipKey requires
+originRequestId although first-admin bootstrap has no RegistrationRequest.
+Bootstrap's exact payload also omits correlationId required by command v2, and
+the authority-state initial revision/lastCommandId plus audit literals remain
+unspecified. Choosing values would invent a persisted contract.
+
+```text
+SaaS-03B-C = completed
+SaaS-03B-D-R2-R1 = blocked_pending_R2_R1_R1
+SaaS-03B-D-R2 = blocked_pending_R2_R1_resolution
+SaaS-03B-D = split_into_ordered_microphases_blocked_pending_contract_completion
+SaaS-03B-E = blocked_pending_03B_D
+SaaS-03B-F = blocked_pending_previous_sequence
+Phase 4 = not_started
+```
+
+Next execute only `SaaS-03B-D-R2-R1-R1 — BootstrapTenant Command Envelope,
+MembershipKey Origin and Result Contract Resolution`. It is documentation-only
+and must not implement or materialize BootstrapTenant.
+
+## Previous checkpoint — SaaS-03B-D-R2 shared-contract materialization blocker
 
 R2 audited the published R1 contract inventory and stopped before technical
 edits with `RESULT C`. Package 0.11.0 still contains only BootstrapTenant among
