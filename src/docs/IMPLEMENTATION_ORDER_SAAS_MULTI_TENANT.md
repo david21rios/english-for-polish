@@ -5,7 +5,28 @@
 **Regla:** ninguna fase activa enforcement ni elimina compatibilidad antes de
 cumplir su gate.
 
-## Current checkpoint — SaaS-03B-C-R6-C1-R1 Revoke prepare atomicity repair
+## Current checkpoint — SaaS-03B-C-R6-C1-R2 Revoke resume lifecycle repair
+
+The second independent R6-C1 review found `REVOKE_EXISTING_RESUME_AUTHORITY_LIFECYCLE_UNVALIDATED`: an existing `running/prepared` or `recovery_required/prepared` Revoke was classified from Command binding alone, so an incoherent Authority checkpoint could reach Auth before Store finalization rejected it.
+
+R6-C1-R2 adds a narrow, read-only, Revoke-specific Store checkpoint proof. Before any Auth effect, one transaction rereads and validates Command, Authority and Registry together. Running resume now requires `revoking/currentCommandId` with a completed Registry; recovery resume requires `recovery_required/currentCommandId` with a recovery-required Registry. Foreign owners conflict and every other lifecycle fails closed without Command, Authority, Registry, audit, count or revision mutation. Replay ordering and R6-C1-R1 atomic new-command prepare remain unchanged.
+
+Functions pass 67/67; clean isolated validation passes. Firestore Emulator passes Revoke 5/5, Bootstrap 3/3, Recover 3/3 and Store 11/11. Package 0.11.0 remains 40/40; Shared 51/51, repositories 360/360, prechecks, Rules 222/88/134, general 35/35 and production build pass. Legacy lint remains 13 errors/8 warnings, supply-chain baselines and protected hashes remain unchanged.
+
+```text
+SaaS-03B-C-R6 = implemented
+SaaS-03B-C-R6-C1-R1 = completed
+SaaS-03B-C-R6-C1-R2 = completed_pending_human_review_and_push
+SaaS-03B-C-R6-C1 = blocked_pending_R2_push_and_revalidation
+RevokePlatformAdmin = repaired_pending_independent_revalidation
+SaaS-03B-C = blocked_pending_R6_C1_revalidation
+SaaS-03B-D = blocked
+Phase 4 = not_started
+```
+
+After human review and push, rerun only `SaaS-03B-C-R6-C1 — Independent RevokePlatformAdmin Review`. Do not start 03B-D or Phase 4.
+
+## Previous checkpoint — SaaS-03B-C-R6-C1-R1 Revoke prepare atomicity repair
 
 The independent R6-C1 review found `REVOKE_COMMAND_PREPARE_ATOMICITY_BROKEN`: new Revoke execution created a pending command before the transactional lifecycle and last-admin decision. R6-C1-R1 replaces that write with read-only existing-command inspection and a narrow Revoke-only Store prepare primitive. Command, Authority, Registry decrement/revision and Critical audit now commit together or not at all.
 
