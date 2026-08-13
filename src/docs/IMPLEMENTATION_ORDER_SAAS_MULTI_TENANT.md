@@ -5,7 +5,36 @@
 **Regla:** ninguna fase activa enforcement ni elimina compatibilidad antes de
 cumplir su gate.
 
-## Current checkpoint — SaaS-03B-D-R3-C1-R2-R1 persisted Membership validator
+## Current checkpoint — SaaS-03B-D-R3-C1-R2 Store aggregate validation repair
+
+R3-C1-R2 closes `BOOTSTRAP_TENANT_STORE_NEW_AGGREGATE_UNVALIDATED`.
+Before its first write, the Tenant Bootstrap Store validates every NEW
+aggregate candidate with package-owned validators, proves the cross-document
+first-admin composition and validates the persisted result binding. Nominal
+server timestamp intent is verified while only native Firestore transforms are
+persisted. Unit and Emulator evidence proves malformed NEW aggregate rejection
+is physically zero-write and valid creation remains one atomic nine-document
+checkpoint.
+
+```text
+SaaS-03B-D-R3 = implemented_and_validated
+SaaS-03B-D-R3-C1-R1 = completed
+SaaS-03B-D-R3-C1-R2-R1 = completed
+SaaS-03B-D-R3-C1-R2 = completed_pending_human_review_and_push
+SaaS-03B-D-R3-C1 = blocked_pending_R2_push_and_independent_revalidation
+BootstrapTenant = repaired_pending_independent_revalidation
+UpdateTenantProfile/UpdateTenantSettings/UpdateTenantBranding = blocked_pending_contract_resolution
+SuspendTenant/RestoreTenant/ArchiveTenant = blocked_pending_contract_resolution
+SaaS-03B-D = in_progress_blocked_pending_BootstrapTenant_revalidation
+SaaS-03B-E = blocked_pending_03B_D
+SaaS-03B-F = blocked_pending_previous_sequence
+Phase 4 = not_started
+```
+
+After human review and push, resume only `SaaS-03B-D-R3-C1 — Independent
+BootstrapTenant Review`. Do not start another Tenant workflow.
+
+## Previous checkpoint — SaaS-03B-D-R3-C1-R2-R1 persisted Membership validator
 
 The attempted R3-C1-R2 Store aggregate repair stopped before technical edits
 because the package had no authoritative persisted Membership validator.
