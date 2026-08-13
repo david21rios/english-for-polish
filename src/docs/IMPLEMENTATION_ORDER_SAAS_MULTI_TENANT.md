@@ -5,7 +5,36 @@
 **Regla:** ninguna fase activa enforcement ni elimina compatibilidad antes de
 cumplir su gate.
 
-## Current checkpoint — SaaS-03B-C-R5 RecoverPlatformAdmin implementation
+## Current checkpoint — SaaS-03B-C-R5-C1-R1 owner-scope repair
+
+The independent R5-C1 review stopped on
+`RECOVER_TRANSITION_OWNER_FLAG_UNSCOPED`: generic Store mutation exposed a flag
+that could preserve ownership on an active Authority for commands other than
+Recover. R5-C1-R1 removes that generic capability and rejects transition
+lookalikes at runtime. `claimActiveRecoveryOwnership` is again the sole active
+claim route; a second narrow Recover-only primitive persists the active
+recovery-required checkpoint without rewriting Authority or count.
+
+Functions pass 56/56. Firestore Emulator passes Store 10/10, Bootstrap 3/3 and
+Recover 3/3; package 0.11.0 remains unchanged at 40/40. Full regressions pass.
+The historical lint discrepancy is reconciled: generated `functions/lib`
+contributed three transient errors (16 total); with derived output removed the
+source baseline remains 13 errors/8 warnings and attributable delta is zero.
+
+```text
+SaaS-03B-C-R5-C1-R1 = completed_pending_human_review_and_push
+SaaS-03B-C-R5-C1 = blocked_pending_R1_push_and_revalidation
+RecoverPlatformAdmin = repaired_pending_independent_revalidation
+RevokePlatformAdmin = blocked
+SaaS-03B-C = in_progress
+SaaS-03B-D = blocked
+Phase 4 = not_started
+```
+
+After human review and push, rerun only `SaaS-03B-C-R5-C1 — Independent
+RecoverPlatformAdmin Review`. Do not start Revoke, 03B-D or Phase 4.
+
+## Previous checkpoint — SaaS-03B-C-R5 RecoverPlatformAdmin implementation
 
 `RecoverPlatformAdmin` is implemented as an internal break-glass command on
 Authority schema v2 and the narrow Transaction Store ownership primitives.
