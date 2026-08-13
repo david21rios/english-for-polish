@@ -5,7 +5,45 @@
 **Regla:** ninguna fase activa enforcement ni elimina compatibilidad antes de
 cumplir su gate.
 
-## Current checkpoint — SaaS-03B-C aggregate privileged platform backend closure
+## Current checkpoint — SaaS-03B-D-R1 Tenant bootstrap/lifecycle contract reconciliation
+
+The published aggregate closure commit
+`9d09725345917760c57cb76b5069b7fc18d9b0dd` advances SaaS-03B-C from its
+pre-push pending state to `completed`. No 03B-C technical blocker remains.
+
+The first 03B-D audit confirms the contractual name
+`Tenant/first-admin bootstrap/lifecycle` and its seven-workflow catalogue:
+BootstrapTenant; profile, settings and branding updates; and suspend, restore
+and archive lifecycle commands. These are three distinct authority/transaction
+families and cannot safely be delivered as one opaque implementation.
+
+The package contains BootstrapTenant and all seven capabilities, but lacks the
+other six command types, exact command payload/result/audit contracts, persisted
+Tenant/config/key validators, the tenant-admin authority-state validator and a
+canonical membershipKey encoder. The outcome is `RESULT C + D`: normative gaps
+remain and 03B-D is split into an ordered sequence. R1 is documentation-only;
+no Tenant business command, package change, Rules change or handler was created.
+
+```text
+SaaS-03B-B = completed
+Privileged Backend Foundation = independently_validated
+Platform Command Transaction Store = implemented_and_emulator_validated
+BootstrapPlatformAdmins = independently_validated
+RecoverPlatformAdmin = independently_validated
+RevokePlatformAdmin = independently_validated
+SaaS-03B-C = completed
+SaaS-03B-D-R1 = completed_pending_human_review_and_push
+SaaS-03B-D = split_into_ordered_microphases_blocked_pending_R2
+SaaS-03B-E = blocked_pending_03B_D
+SaaS-03B-F = blocked_pending_previous_sequence
+Phase 4 = not_started
+```
+
+After human review and push, execute only `SaaS-03B-D-R2 — Tenant Bootstrap
+and Lifecycle Shared Contract Materialization`. R2 closes and physically
+materializes shared contracts without implementing Tenant business commands.
+
+## Previous checkpoint — SaaS-03B-C aggregate privileged platform backend closure
 
 The aggregate closure review passes without technical changes. Foundation, the package-owned schemas, Transaction Store, Bootstrap, Recover and Revoke remain mutually coherent and independently validated. The cross-command matrix preserves `transitionCommandId` as the only target-local owner, treats Registry `lastCommandId` as global history only, rejects command-type reuse/takeover, and keeps every activeCount delta exact and idempotent.
 
