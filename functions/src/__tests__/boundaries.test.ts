@@ -26,9 +26,9 @@ test("Functions import boundaries isolate SDKs and reject client dependencies", 
   assert.deepEqual(violations, []);
 });
 
-test("foundation exports no business or callable handler", async () => {
+test("backend entrypoint exports no callable handler or unauthorized workflow", async () => {
   const entrypoint = await readFile(path.resolve("src/index.ts"), "utf8");
-  assert.doesNotMatch(entrypoint, /onCall|onRequest|BootstrapPlatformAdmin|BootstrapTenant|ApproveRegistrationRequest/);
+  assert.doesNotMatch(entrypoint, /onCall|onRequest|BootstrapPlatformAdmin|ApproveRegistrationRequest|UpdateTenant|SuspendTenant|RestoreTenant|ArchiveTenant/);
 });
 
 test("static module graph is acyclic", async () => {

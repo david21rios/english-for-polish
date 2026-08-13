@@ -5,7 +5,8 @@ export interface DocumentSnapshotPort {
   readonly data: Readonly<Record<string, JsonValue>> | null;
 }
 
-export type PersistedDocumentShape = "identity" | "platform_authority" | "platform_authority_registry" | "privileged_command" | "platform_audit";
+export type PersistedDocumentShape = "identity" | "platform_authority" | "platform_authority_registry" | "privileged_command" | "platform_audit"
+  | "tenant" | "tenant_settings" | "tenant_branding" | "membership" | "membership_key" | "tenant_admin_authority_state";
 declare const serverOwnedTimestampBrand: unique symbol;
 export type ServerOwnedTimestamp = Readonly<{ readonly [serverOwnedTimestampBrand]: true }>;
 export type TransactionWriteValue = unknown | ServerOwnedTimestamp;

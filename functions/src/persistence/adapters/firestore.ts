@@ -9,6 +9,12 @@ const timestampFields: Readonly<Record<PersistedDocumentShape, Readonly<Record<s
   platform_authority_registry: Object.freeze({ updatedAt: false }),
   privileged_command: Object.freeze({ startedAt: false, completedAt: true, failedAt: true, expiresAt: true, leaseExpiresAt: true }),
   platform_audit: Object.freeze({ requestedAt: false, executedAt: false }),
+  tenant: Object.freeze({ createdAt: false, updatedAt: false, suspendedAt: true, archivedAt: true }),
+  tenant_settings: Object.freeze({ updatedAt: false }),
+  tenant_branding: Object.freeze({ updatedAt: false }),
+  membership: Object.freeze({ createdAt: false, approvedAt: true, updatedAt: false, suspendedAt: true, removedAt: true }),
+  membership_key: Object.freeze({ updatedAt: false }),
+  tenant_admin_authority_state: Object.freeze({ updatedAt: false }),
 });
 
 export const normalizeFirestoreDocument = (data: FirebaseFirestore.DocumentData, shape?: PersistedDocumentShape): FirebaseFirestore.DocumentData => {
