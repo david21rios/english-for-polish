@@ -31,3 +31,11 @@ export {
   tenantDocumentPath,
   tenantSettingsDocumentPath,
 } from "./paths.js";
+export {
+  FIRST_ADMIN_ROLE, FIRST_ADMIN_STATUS, MEMBERSHIP_KEY_FIELDS,
+  REGISTRATION_POLICY_FIELDS, TENANT_ADMIN_AUTHORITY_STATE_FIELDS,
+  TENANT_BRANDING_FIELDS, TENANT_BRAND_COLORS_FIELDS, TENANT_PERSISTED_FIELDS,
+  TENANT_SETTINGS_FIELDS, encodeMembershipUidKey, validateMembershipKey,
+  validatePersistedTenant, validateTenantAdminAuthorityState,
+  validateTenantBranding, validateTenantSettings,
+} from "./tenantContracts.js";

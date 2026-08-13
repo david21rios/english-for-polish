@@ -33,6 +33,7 @@ export const PLATFORM_COMMAND_TYPES = frozen([
   COMMAND_TYPES.RECOVER_PLATFORM_ADMIN,
   COMMAND_TYPES.REVOKE_PLATFORM_ADMIN,
 ]);
+export const ATOMIC_TENANT_COMMAND_TYPES = frozen([COMMAND_TYPES.BOOTSTRAP_TENANT]);
 export const COMMAND_RECORD_FIELDS = frozen(["commandId", "commandType", "payloadHash", "actorUid", "actorType", "authority", "tenantId", "status", "stage", "startedAt", "completedAt", "failedAt", "result", "errorCode", "attemptCount", "correlationId", "expiresAt", "leaseExpiresAt", "schemaVersion"]);
 export const COMMAND_RECORD_REQUIRED_FIELDS = COMMAND_RECORD_FIELDS;
 
@@ -47,8 +48,10 @@ const allowedStatusStages = Object.freeze({
 
 /** @param {unknown} commandType @param {unknown} stage @returns {boolean} */
 export const isPrivilegedCommandStageAllowed = (commandType, stage) =>
-  PLATFORM_COMMAND_TYPES.includes(/** @type {never} */ (commandType))
-  && Object.values(PRIVILEGED_COMMAND_STAGES).includes(/** @type {never} */ (stage));
+  (PLATFORM_COMMAND_TYPES.includes(/** @type {never} */ (commandType))
+    && Object.values(PRIVILEGED_COMMAND_STAGES).includes(/** @type {never} */ (stage)))
+  || (ATOMIC_TENANT_COMMAND_TYPES.includes(/** @type {never} */ (commandType))
+    && stage === PRIVILEGED_COMMAND_STAGES.COMPLETED);
 
 /** @param {unknown} status @param {unknown} stage @returns {boolean} */
 export const isCommandStatusStageAllowed = (status, stage) =>
