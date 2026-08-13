@@ -7,6 +7,7 @@ import { BACKEND_ERROR_CODES } from "@mipymetic/saas-contracts/errors";
 import { canonicalJsonStringify } from "@mipymetic/saas-contracts/validation";
 import { rejectActorAuthorityPayload, requireAuthenticatedActor } from "../authorization/authenticatedActor.js";
 import { capabilitiesForMembershipRole, capabilitiesForPlatformRole, requireCapability } from "../authorization/capabilities.js";
+import { requireValidAuthorityResolution } from "../authorization/resolvedAuthority.js";
 import { createPendingCommandRecord, validateCommandEnvelope, validatePersistedCommandRecord } from "../commands/commandRecord.js";
 import { prepareCommandExecution } from "../commands/executor.js";
 import type { AuthorityResolution, CommandEnvelope, CommandRecord, CommandStatus, JsonValue } from "../contracts/types.js";
@@ -72,6 +73,21 @@ test("capability resolution uses the shared matrices", () => {
   assert.doesNotThrow(() => requireCapability([CAPABILITY_IDS.TENANT_UPDATE], CAPABILITY_IDS.TENANT_UPDATE));
   assert.throws(() => requireCapability([], CAPABILITY_IDS.TENANT_UPDATE), (error: unknown) => error instanceof BackendError && error.code === BACKEND_ERROR_CODES.FORBIDDEN);
   assert.throws(() => requireCapability([], "unknown.capability"), (error: unknown) => error instanceof BackendError && error.code === BACKEND_ERROR_CODES.CONTRACT_VIOLATION);
+});
+
+test("runtime authority composition accepts canonical evidence and rejects forged matrices", () => {
+  const platformCapabilities = capabilitiesForPlatformRole("platform_admin");
+  const valid = Object.freeze({ actorUid: "actor-1", actorType: "platform_admin", authority: "platform_admin", tenantId: null, roles: Object.freeze(["platform_admin"]), capabilities: platformCapabilities });
+  assert.equal(requireValidAuthorityResolution(valid), valid);
+  for (const value of [
+    { ...valid, authority: "forged_authority" },
+    { ...valid, capabilities: platformCapabilities.slice(1) },
+    { ...valid, capabilities: [...platformCapabilities, CAPABILITY_IDS.TENANT_UPDATE] },
+    { ...valid, tenantId: "tenant-1" },
+    { ...valid, metadata: "forged" },
+  ]) assert.throws(() => requireValidAuthorityResolution(value), (error: unknown) => error instanceof BackendError && error.code === BACKEND_ERROR_CODES.CONTRACT_VIOLATION);
+  assert.doesNotThrow(() => requireValidAuthorityResolution({ actorUid: "operator-1", actorType: "system", authority: "platform_system", tenantId: null, roles: [], capabilities: [] }));
+  assert.doesNotThrow(() => requireValidAuthorityResolution({ actorUid: "operator-2", actorType: "system", authority: "platform_recovery", tenantId: null, roles: [], capabilities: [] }));
 });
 
 test("command envelope is exact and rejects unknown commands", () => {

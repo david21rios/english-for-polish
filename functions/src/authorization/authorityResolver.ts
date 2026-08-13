@@ -8,6 +8,7 @@ import type { AuthenticatedActor, AuthorityResolution } from "../contracts/types
 import { BackendError } from "../errors/backendError.js";
 import type { AuthoritativeReaderPort } from "../persistence/ports.js";
 import { capabilitiesForMembershipRole, capabilitiesForPlatformRole } from "./capabilities.js";
+import { requireValidAuthorityResolution } from "./resolvedAuthority.js";
 
 const activeIdentity = async (reader: AuthoritativeReaderPort, uid: string) => {
   const identity = await reader.read(identityDocumentPath(uid));
@@ -34,7 +35,7 @@ export const resolvePlatformAuthority = async (reader: AuthoritativeReaderPort, 
     || authority.data.authority !== PLATFORM_ROLES.PLATFORM_ADMIN) {
     throw new BackendError(BACKEND_ERROR_CODES.FORBIDDEN, "Active platform authority is required.");
   }
-  return Object.freeze({ actorUid: actor.uid, actorType: "platform_admin", authority: PLATFORM_ROLES.PLATFORM_ADMIN, tenantId: null, roles: Object.freeze([PLATFORM_ROLES.PLATFORM_ADMIN]), capabilities: capabilitiesForPlatformRole(PLATFORM_ROLES.PLATFORM_ADMIN) });
+  return requireValidAuthorityResolution(Object.freeze({ actorUid: actor.uid, actorType: "platform_admin", authority: PLATFORM_ROLES.PLATFORM_ADMIN, tenantId: null, roles: Object.freeze([PLATFORM_ROLES.PLATFORM_ADMIN]), capabilities: capabilitiesForPlatformRole(PLATFORM_ROLES.PLATFORM_ADMIN) }));
 };
 
 export const resolveTenantAuthority = async (reader: AuthoritativeReaderPort, actor: AuthenticatedActor, tenantId: string, membershipId: string): Promise<AuthorityResolution> => {
@@ -54,5 +55,5 @@ export const resolveTenantAuthority = async (reader: AuthoritativeReaderPort, ac
     throw new BackendError(BACKEND_ERROR_CODES.FORBIDDEN, "Membership authority is not coherent with the authenticated actor and Tenant.");
   }
   const role = membership.data.role;
-  return Object.freeze({ actorUid: actor.uid, actorType: "identity", authority: role, tenantId, roles: Object.freeze([role]), capabilities: capabilitiesForMembershipRole(role) });
+  return requireValidAuthorityResolution(Object.freeze({ actorUid: actor.uid, actorType: "identity", authority: role, tenantId, roles: Object.freeze([role]), capabilities: capabilitiesForMembershipRole(role) }));
 };

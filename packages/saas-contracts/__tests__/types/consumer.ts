@@ -4,10 +4,12 @@ import { tenantAuditEventDocumentPath, validatePersistedMembership } from "@mipy
 import { canonicalJsonStringify, validatePersistedTimestamp } from "@mipymetic/saas-contracts/validation";
 import { COMMAND_STATUSES } from "@mipymetic/saas-contracts/commands";
 import {
+  AUTHORITY_ACTOR_TYPES, SYSTEM_OPERATOR_AUTHORITIES,
   AUTHORITY_SCHEMA_VERSION, PLATFORM_AUTHORITY_REGISTRY_SCHEMA_VERSION, PLATFORM_AUTHORITY_SCHEMA_VERSION,
   PLATFORM_AUTHORITY_REGISTRY_STATES, PLATFORM_AUTHORITY_STATUSES,
-  validatePlatformAuthority, validatePlatformAuthorityRegistry,
+  validateAuthorityResolution, validatePlatformAuthority, validatePlatformAuthorityRegistry,
 } from "@mipymetic/saas-contracts/authority";
+import type { AuthorityResolution, HumanAuthorityResolution, SystemOperatorResolution } from "@mipymetic/saas-contracts/authority";
 import { AUDIT_LEVELS } from "@mipymetic/saas-contracts/audit";
 import { COMMON_ERROR_CODES } from "@mipymetic/saas-contracts/errors";
 
@@ -26,6 +28,9 @@ const timestampResult = validatePersistedTimestamp("2026-08-12T12:34:56.123Z");
 const authorityResult = validatePlatformAuthority({ schemaVersion: authoritySchema, transitionCommandId: null });
 const registryResult = validatePlatformAuthorityRegistry({ schemaVersion: registrySchema });
 const membershipResult = validatePersistedMembership({});
+const humanResolution: HumanAuthorityResolution = {actorUid:"admin-1",actorType:AUTHORITY_ACTOR_TYPES.PLATFORM_ADMIN,authority:"platform_admin",tenantId:null,roles:["platform_admin"],capabilities:[]};
+const systemResolution: SystemOperatorResolution = {actorUid:"operator-1",actorType:"system",authority:SYSTEM_OPERATOR_AUTHORITIES.PLATFORM_RECOVERY,tenantId:null,roles:[],capabilities:[]};
+const resolutionResult = validateAuthorityResolution(humanResolution as AuthorityResolution);
 const paths: readonly string[] = [tenantDocumentPath("tenant-a"), tenantAuditEventDocumentPath("tenant-a", "audit-a")];
 const canonical: string = canonicalJsonStringify({ access, cefr, command, authority, audit, error, paths });
 
@@ -42,4 +47,6 @@ void authorityResult;
 void registryState;
 void registryResult;
 void membershipResult;
+void systemResolution;
+void resolutionResult;
 void invalidStatus;

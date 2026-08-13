@@ -4,6 +4,102 @@ const frozen = (values) => Object.freeze(values);
 import { validateDocumentIdentifier } from "../validation/identifiers.js";
 import { isPlainObject } from "../validation/objects.js";
 import { validatePersistedTimestamp } from "../validation/timestamps.js";
+import { PLATFORM_ROLES } from "../domain/authorization.js";
+import { MEMBERSHIP_ROLES } from "../domain/membership.js";
+import { ROLE_CAPABILITY_MATRIX } from "../domain/roleCapabilityMatrix.js";
+
+export const AUTHORITY_ACTOR_TYPES = Object.freeze({
+  IDENTITY: "identity",
+  PLATFORM_ADMIN: "platform_admin",
+  SYSTEM: "system",
+});
+export const SYSTEM_OPERATOR_AUTHORITIES = Object.freeze({
+  PLATFORM_SYSTEM: "platform_system",
+  PLATFORM_RECOVERY: "platform_recovery",
+});
+export const AUTHORITY_RESOLUTION_FIELDS = frozen([
+  "actorUid", "actorType", "authority", "tenantId", "roles", "capabilities",
+]);
+
+/**
+ * @typedef {Readonly<{
+ * actorUid: string,
+ * actorType: "platform_admin",
+ * authority: "platform_admin",
+ * tenantId: null,
+ * roles: readonly ["platform_admin"],
+ * capabilities: readonly string[]
+ * }>|Readonly<{
+ * actorUid: string,
+ * actorType: "identity",
+ * authority: "student"|"teacher"|"tenant_admin",
+ * tenantId: string,
+ * roles: readonly ["student"|"teacher"|"tenant_admin"],
+ * capabilities: readonly string[]
+ * }>} HumanAuthorityResolution
+ */
+
+/**
+ * @typedef {Readonly<{
+ * actorUid: string,
+ * actorType: "system",
+ * authority: "platform_system"|"platform_recovery",
+ * tenantId: null,
+ * roles: readonly [],
+ * capabilities: readonly []
+ * }>} SystemOperatorResolution
+ */
+
+/** @typedef {HumanAuthorityResolution|SystemOperatorResolution} AuthorityResolution */
+
+/** @param {unknown} actual @param {readonly string[]} expected */
+const exactStringArray = (actual, expected) => Array.isArray(actual)
+  && actual.length === expected.length
+  && actual.every((value, index) => typeof value === "string" && value === expected[index]);
+
+/**
+ * @param {unknown} value
+ * @returns {Readonly<{ok:true,value:AuthorityResolution}>|Readonly<{ok:false,issue:Readonly<{code:"INVALID_ARGUMENT",field:"authorityResolution",reason:"invalid_authority_resolution"}>}>}
+ */
+export const validateAuthorityResolution = (value) => {
+  const validShape = isPlainObject(value)
+    && Object.keys(value).length === AUTHORITY_RESOLUTION_FIELDS.length
+    && AUTHORITY_RESOLUTION_FIELDS.every((field) => Object.prototype.hasOwnProperty.call(value, field));
+  if (validShape) {
+    const resolution = /** @type {Record<string, unknown>} */ (value);
+    const actorUidValidation = validateDocumentIdentifier(resolution.actorUid, "actorUid");
+    if (actorUidValidation.ok) {
+      if (resolution.actorType === AUTHORITY_ACTOR_TYPES.PLATFORM_ADMIN
+        && resolution.authority === PLATFORM_ROLES.PLATFORM_ADMIN
+        && resolution.tenantId === null
+        && exactStringArray(resolution.roles, [PLATFORM_ROLES.PLATFORM_ADMIN])
+        && exactStringArray(resolution.capabilities, ROLE_CAPABILITY_MATRIX.platformRoles[PLATFORM_ROLES.PLATFORM_ADMIN])) {
+        return Object.freeze({ ok: true, value: /** @type {AuthorityResolution} */ (value) });
+      }
+      if (resolution.actorType === AUTHORITY_ACTOR_TYPES.IDENTITY
+        && typeof resolution.authority === "string"
+        && Object.values(MEMBERSHIP_ROLES).includes(/** @type {never} */ (resolution.authority))) {
+        const role = /** @type {keyof typeof ROLE_CAPABILITY_MATRIX.membershipRoles} */ (resolution.authority);
+        const tenantIdValidation = validateDocumentIdentifier(resolution.tenantId, "tenantId");
+        if (tenantIdValidation.ok
+          && exactStringArray(resolution.roles, [role])
+          && exactStringArray(resolution.capabilities, ROLE_CAPABILITY_MATRIX.membershipRoles[role])) {
+          return Object.freeze({ ok: true, value: /** @type {AuthorityResolution} */ (value) });
+        }
+      }
+      if (resolution.actorType === AUTHORITY_ACTOR_TYPES.SYSTEM
+        && Object.values(SYSTEM_OPERATOR_AUTHORITIES).includes(/** @type {never} */ (resolution.authority))
+        && resolution.tenantId === null
+        && exactStringArray(resolution.roles, [])
+        && exactStringArray(resolution.capabilities, [])) {
+        return Object.freeze({ ok: true, value: /** @type {AuthorityResolution} */ (value) });
+      }
+    }
+  }
+  return Object.freeze({ ok: false, issue: Object.freeze({
+    code: "INVALID_ARGUMENT", field: "authorityResolution", reason: "invalid_authority_resolution",
+  }) });
+};
 
 export const PLATFORM_AUTHORITY_SCHEMA_VERSION = 2;
 export const PLATFORM_AUTHORITY_REGISTRY_SCHEMA_VERSION = 1;

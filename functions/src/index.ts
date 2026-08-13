@@ -1,6 +1,7 @@
 export { requireAuthenticatedActor, rejectActorAuthorityPayload } from "./authorization/authenticatedActor.js";
 export { resolvePlatformAuthority, resolveTenantAuthority } from "./authorization/authorityResolver.js";
 export { capabilitiesForMembershipRole, capabilitiesForPlatformRole, requireCapability } from "./authorization/capabilities.js";
+export { requireValidAuthorityResolution } from "./authorization/resolvedAuthority.js";
 export { prepareCommandExecution, safeCommandFailure } from "./commands/executor.js";
 export { executeRecoverPlatformAdmin, validateRecoverPlatformAdminInput } from "./commands/recoverPlatformAdmin.js";
 export { executeRevokePlatformAdmin, validateRevokePlatformAdminInput } from "./commands/revokePlatformAdmin.js";

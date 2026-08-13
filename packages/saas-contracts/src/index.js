@@ -1,3 +1,7 @@
+/** @typedef {import("./authority/contracts.js").HumanAuthorityResolution} HumanAuthorityResolution */
+/** @typedef {import("./authority/contracts.js").SystemOperatorResolution} SystemOperatorResolution */
+/** @typedef {import("./authority/contracts.js").AuthorityResolution} AuthorityResolution */
+
 export {
   COURSE_FIELDS,
   COURSE_REQUIRED_FIELDS,
@@ -86,6 +90,8 @@ export {
   validateBootstrapTenantResult,
 } from "./commands/index.js";
 export {
+  AUTHORITY_ACTOR_TYPES,
+  AUTHORITY_RESOLUTION_FIELDS,
   AUTHORITY_SCHEMA_VERSION,
   PLATFORM_AUTHORITY,
   PLATFORM_AUTHORITY_FIELDS,
@@ -96,6 +102,8 @@ export {
   PLATFORM_AUTHORITY_STATUSES,
   PLATFORM_AUTHORITY_REGISTRY_STATES,
   TENANT_ADMIN_AUTHORITY_STATE_FIELDS,
+  SYSTEM_OPERATOR_AUTHORITIES,
+  validateAuthorityResolution,
   validatePlatformAuthority,
   validatePlatformAuthorityRegistry,
 } from "./authority/index.js";

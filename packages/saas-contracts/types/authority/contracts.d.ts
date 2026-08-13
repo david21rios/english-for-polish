@@ -1,3 +1,24 @@
+export const AUTHORITY_ACTOR_TYPES: Readonly<{
+    IDENTITY: "identity";
+    PLATFORM_ADMIN: "platform_admin";
+    SYSTEM: "system";
+}>;
+export const SYSTEM_OPERATOR_AUTHORITIES: Readonly<{
+    PLATFORM_SYSTEM: "platform_system";
+    PLATFORM_RECOVERY: "platform_recovery";
+}>;
+export const AUTHORITY_RESOLUTION_FIELDS: readonly string[];
+export function validateAuthorityResolution(value: unknown): Readonly<{
+    ok: true;
+    value: AuthorityResolution;
+}> | Readonly<{
+    ok: false;
+    issue: Readonly<{
+        code: "INVALID_ARGUMENT";
+        field: "authorityResolution";
+        reason: "invalid_authority_resolution";
+    }>;
+}>;
 export const PLATFORM_AUTHORITY_SCHEMA_VERSION: 2;
 export const PLATFORM_AUTHORITY_REGISTRY_SCHEMA_VERSION: 1;
 /** @deprecated Use PLATFORM_AUTHORITY_REGISTRY_SCHEMA_VERSION. */
@@ -42,6 +63,30 @@ export function validatePlatformAuthorityRegistry(value: unknown): Readonly<{
         reason: "invalid_platform_authority_registry";
     }>;
 }>;
+export type HumanAuthorityResolution = Readonly<{
+    actorUid: string;
+    actorType: "platform_admin";
+    authority: "platform_admin";
+    tenantId: null;
+    roles: readonly ["platform_admin"];
+    capabilities: readonly string[];
+}> | Readonly<{
+    actorUid: string;
+    actorType: "identity";
+    authority: "student" | "teacher" | "tenant_admin";
+    tenantId: string;
+    roles: readonly ["student" | "teacher" | "tenant_admin"];
+    capabilities: readonly string[];
+}>;
+export type SystemOperatorResolution = Readonly<{
+    actorUid: string;
+    actorType: "system";
+    authority: "platform_system" | "platform_recovery";
+    tenantId: null;
+    roles: readonly [];
+    capabilities: readonly [];
+}>;
+export type AuthorityResolution = HumanAuthorityResolution | SystemOperatorResolution;
 export type PlatformAuthority = Readonly<{
     schemaVersion: 2;
     transitionCommandId: string | null;
