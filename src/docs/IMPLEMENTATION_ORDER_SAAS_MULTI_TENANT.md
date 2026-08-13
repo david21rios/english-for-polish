@@ -5,7 +5,25 @@
 **Regla:** ninguna fase activa enforcement ni elimina compatibilidad antes de
 cumplir su gate.
 
-## Current checkpoint — SaaS-03B-C-R6 RevokePlatformAdmin implementation
+## Current checkpoint — SaaS-03B-C-R6-C1-R1 Revoke prepare atomicity repair
+
+The independent R6-C1 review found `REVOKE_COMMAND_PREPARE_ATOMICITY_BROKEN`: new Revoke execution created a pending command before the transactional lifecycle and last-admin decision. R6-C1-R1 replaces that write with read-only existing-command inspection and a narrow Revoke-only Store prepare primitive. Command, Authority, Registry decrement/revision and Critical audit now commit together or not at all.
+
+Functions pass 65/65. Firestore Emulator passes Store 11/11, Bootstrap 3/3, Recover 3/3 and Revoke 4/4; loser commands are physically absent for same-target and last-two-admin contention. Package 0.11.0 and full SaaS, Rules, build, lint, supply-chain and protected-hash baselines remain unchanged.
+
+```text
+SaaS-03B-C-R6 = implemented
+SaaS-03B-C-R6-C1 = blocked_pending_R1_human_review_push_and_revalidation
+SaaS-03B-C-R6-C1-R1 = completed_pending_human_review_and_push
+RevokePlatformAdmin = repaired_pending_independent_revalidation
+SaaS-03B-C = blocked_pending_R6_C1_revalidation
+SaaS-03B-D = blocked
+Phase 4 = not_started
+```
+
+After human review and push, rerun only `SaaS-03B-C-R6-C1 — Independent RevokePlatformAdmin Review`. Do not start 03B-D or Phase 4.
+
+## Previous checkpoint — SaaS-03B-C-R6 RevokePlatformAdmin implementation
 
 `RevokePlatformAdmin` is implemented as an internal authenticated command. Server-derived actor Identity/Authority and the package capability matrix guard the operation; self-revoke and last-admin revoke fail closed. Prepare owns the target and decrements `activeCount` exactly once, Auth claim removal remains outside Firestore transactions, forward recovery retains ownership, and finalization/replay are idempotent.
 
