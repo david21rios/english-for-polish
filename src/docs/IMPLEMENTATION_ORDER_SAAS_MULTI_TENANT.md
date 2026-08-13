@@ -7,6 +7,31 @@ cumplir su gate.
 
 ## Current checkpoint — SaaS-03B-D-R2-R1-R1 Bootstrap envelope/result resolution
 
+## Current checkpoint — SaaS-03B-D-R2 shared contract materialization
+
+R2 materializes only the closed BootstrapTenant shared subset in
+`@mipymetic/saas-contracts@0.12.0`: exact input/hash projection, seven-field
+Tenant result, audit allowlists, completed-only stage authorization, persisted
+Tenant/config/MembershipKey/tenant-admin Authority State validators and the
+canonical key encoder. Root and Functions use the reproducible vendor artifact.
+No business command, handler, Store or other phase-D command type is created.
+
+```text
+SaaS-03B-C = completed
+SaaS-03B-D-R2-R1-R1 = completed
+SaaS-03B-D-R2 = completed_pending_human_review_and_push
+SaaS-03B-D = contracts_materialized_ready_for_first_implementation_microphase_after_R2_push
+SaaS-03B-E = blocked_pending_03B_D
+SaaS-03B-F = blocked_pending_previous_sequence
+Phase 4 = not_started
+```
+
+After human review and push, execute only the first BootstrapTenant
+implementation microphase derived from the genealogy. Do not start the six
+deferred workflows, 03B-E/F or Phase 4.
+
+## Previous checkpoint — SaaS-03B-D-R2-R1-R1 Bootstrap envelope/result resolution
+
 R2-R1-R1 resolves the contradictions reported by R2-R1 without technical
 materialization. CorrelationId is a required command-envelope/input binding but
 is excluded from behavioral hashing. Generated membershipId remains internal
