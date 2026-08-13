@@ -5,9 +5,39 @@
 **Regla:** ninguna fase activa enforcement ni elimina compatibilidad antes de
 cumplir su gate.
 
-## Current checkpoint — SaaS-03B-D-R2-R1-R1 Bootstrap envelope/result resolution
+## Current checkpoint — SaaS-03B-D-R3 BootstrapTenant implementation
 
-## Current checkpoint — SaaS-03B-D-R2 shared contract materialization
+No implementation identifier was assigned in the published roadmap. After R1
+contract reconciliation and R2 shared materialization, the minimum consistent
+identifier is `SaaS-03B-D-R3 — BootstrapTenant Implementation`.
+
+BootstrapTenant is implemented as an internal command with no public handler.
+It validates server-derived actor, Auth and Identity evidence, persisted active
+Platform Authority and `platform.tenant_create`, then atomically creates the
+Tenant aggregate, first Membership and MembershipKey, tenant-admin Authority
+State, completed Command, and tenant/platform Critical audits. Auth writes are
+zero. Unit and Firestore Emulator gates pass.
+
+```text
+SaaS-03B-C = completed
+SaaS-03B-D-R2-R1-R1 = completed
+SaaS-03B-D-R2 = completed
+SaaS-03B-D-R3 = completed_pending_human_review_and_push
+BootstrapTenant = implemented_and_validated
+BootstrapTenant independent review = ready_not_started_after_R3_push
+SaaS-03B-D = in_progress_pending_BootstrapTenant_independent_review
+UpdateTenantProfile/UpdateTenantSettings/UpdateTenantBranding = blocked_pending_contract_resolution
+SuspendTenant/RestoreTenant/ArchiveTenant = blocked_pending_contract_resolution
+SaaS-03B-E = blocked_pending_03B_D
+SaaS-03B-F = blocked_pending_previous_sequence
+Phase 4 = not_started
+```
+
+After human review and push, execute only `SaaS-03B-D-R3-C1 — Independent
+BootstrapTenant Review`. Do not start the six deferred workflows, 03B-E/F or
+Phase 4.
+
+## Previous checkpoint — SaaS-03B-D-R2 shared contract materialization
 
 R2 materializes only the closed BootstrapTenant shared subset in
 `@mipymetic/saas-contracts@0.12.0`: exact input/hash projection, seven-field
