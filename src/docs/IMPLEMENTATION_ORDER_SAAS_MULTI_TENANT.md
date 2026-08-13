@@ -1,5 +1,47 @@
 # Orden de implementación SaaS multi-tenant
 
+## Current checkpoint — SaaS-03B-D-R3-C1-R4-R1-R1 authority actor matrix resolution
+
+The attempted R3-C1-R4 Store actor-authority repair stopped correctly because
+`AuthorityResolution` had no authoritative runtime validator. R4-R1 then proved
+that materialization was blocked by an incomplete actor/authority matrix.
+R4-R1-R1 closes that normative gap without changing technical files.
+
+The resolved model is a closed union of human authority and system operator
+resolutions. Human roles are singleton and capabilities exactly match the
+canonical ordered package matrix. System operators are limited to
+`platform_system` and command-specific `platform_recovery`, use null Tenant
+scope and exact empty role/capability arrays. Every variant has six required
+fields and rejects unknown fields. Package materialization and Foundation
+composition remain the next gate; the Tenant Store is not repaired here.
+
+The R3-C1-R3 documentation commit `b7104a49f30b179c563669db3111632f8719573a`
+is published and an ancestor of current `main`, so its former pre-push state is
+reconciled to `completed` while its historical checkpoint remains intact.
+
+```text
+SaaS-03B-D-R3 = implemented_and_validated
+SaaS-03B-D-R3-C1-R1 = completed
+SaaS-03B-D-R3-C1-R2-R1 = completed
+SaaS-03B-D-R3-C1-R2 = completed
+SaaS-03B-D-R3-C1-R3 = completed
+SaaS-03B-D-R3-C1-R4-R1-R1 = completed_pending_human_review_and_push
+SaaS-03B-D-R3-C1-R4-R1 = blocked_pending_R1_R1_push_then_materialization
+SaaS-03B-D-R3-C1-R4 = blocked_pending_R4_R1_materialization
+SaaS-03B-D-R3-C1 = blocked_pending_R4_completion_and_revalidation
+BootstrapTenant = implemented_but_not_independently_validated
+UpdateTenantProfile/UpdateTenantSettings/UpdateTenantBranding = blocked_pending_contract_resolution
+SuspendTenant/RestoreTenant/ArchiveTenant = blocked_pending_contract_resolution
+SaaS-03B-D = in_progress_blocked_pending_BootstrapTenant_revalidation
+SaaS-03B-E = blocked_pending_03B_D
+SaaS-03B-F = blocked_pending_previous_sequence
+Phase 4 = not_started
+```
+
+After human review and push, resume only `SaaS-03B-D-R3-C1-R4-R1 — Authority
+Resolution Runtime Contract Resolution and Materialization`. Do not resume the
+Tenant Store repair before shared materialization is published.
+
 **Estado:** plan corregido y listo para aprobación de implementación
 **Estrategia:** expand → migrate → contract
 **Regla:** ninguna fase activa enforcement ni elimina compatibilidad antes de
