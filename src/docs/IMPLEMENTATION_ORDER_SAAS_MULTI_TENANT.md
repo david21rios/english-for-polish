@@ -5,7 +5,38 @@
 **Regla:** ninguna fase activa enforcement ni elimina compatibilidad antes de
 cumplir su gate.
 
-## Current checkpoint — SaaS-03B-C-R4-C1 independent Bootstrap revalidation
+## Current checkpoint — SaaS-03B-C-R5-R1 Recover ownership resolution
+
+`SaaS-03B-C-R5` stopped during Audit Before Edit because Authority schema v1
+cannot own an `active` claim-reconciliation transition and cannot authorize a
+new break-glass command to replace a prior transition owner. R5-R1 closes the
+normative policy as **RESULT B — SHARED RECOVER OWNERSHIP CONTRACT GAP**.
+
+The selected model keeps a previously active Authority active and counted while
+a Recover command temporarily owns claim reconciliation. An authorized handoff
+is limited to a prior Recover command in `recovery_required/prepared`;
+Bootstrap, live-command and Revoke ownership cannot be taken over. This
+requires Platform Authority schema v2, a revised status-owner
+matrix and atomic Store claim/handoff primitives before Recover implementation.
+
+```text
+SaaS-03B-C-R4 = completed
+SaaS-03B-C-R4-C1 = completed
+BootstrapPlatformAdmins = independently_validated
+SaaS-03B-C-R5-R1 = completed_pending_human_review_and_push
+Recover ownership boundary = normatively_resolved_pending_shared_materialization
+RecoverPlatformAdmin = blocked_pending_shared_ownership_materialization
+RevokePlatformAdmin = blocked
+SaaS-03B-C = in_progress_blocked_pending_R5_R1_materialization
+SaaS-03B-D = blocked
+Phase 4 = not_started
+```
+
+After human review and push, execute only `SaaS-03B-C-R5-R1-R1 — Recover
+Platform Authority Ownership Shared Contract Materialization`. Do not resume R5
+until that package/Store boundary is independently available.
+
+## Previous checkpoint — SaaS-03B-C-R4-C1 independent Bootstrap revalidation
 
 The complete independent R4-C1 revalidation after the published R4-C1-R1
 repair is PASS. It independently rejects malformed persisted Identity values,
