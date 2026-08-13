@@ -5,7 +5,37 @@
 **Regla:** ninguna fase activa enforcement ni elimina compatibilidad antes de
 cumplir su gate.
 
-## Current checkpoint — SaaS-03B-D-R2-R1 Bootstrap shared-contract contradiction
+## Current checkpoint — SaaS-03B-D-R2-R1-R1 Bootstrap envelope/result resolution
+
+R2-R1-R1 resolves the contradictions reported by R2-R1 without technical
+materialization. CorrelationId is a required command-envelope/input binding but
+is excluded from behavioral hashing. Generated membershipId remains internal
+aggregate state and is recovered through MembershipKey; it does not extend the
+universal seven-field Tenant result. First-admin Membership and key use nullable
+`originRequestId: null`.
+
+Tenant-admin Authority State starts at count 1, revision 1 and current command
+lastCommandId. Bootstrap commits directly to succeeded/completed with no orphan
+pending command. Tenant and platform Critical audits use the exact shared
+`BootstrapTenant.create` operation and bounded allowlists. All Bootstrap shared
+contracts are now closed for later R2 package materialization.
+
+```text
+SaaS-03B-C = completed
+SaaS-03B-D-R2-R1-R1 = completed_pending_human_review_and_push
+SaaS-03B-D-R2-R1 = completed_pending_R2_R1_R1_push
+SaaS-03B-D-R2 = blocked_pending_R2_R1_R1_push_and_materialization
+SaaS-03B-D = split_into_ordered_microphases_blocked_pending_contract_materialization
+SaaS-03B-E = blocked_pending_03B_D
+SaaS-03B-F = blocked_pending_previous_sequence
+Phase 4 = not_started
+```
+
+After human review and push, resume only `SaaS-03B-D-R2 — Tenant Bootstrap and
+Lifecycle Shared Contract Materialization`, limited first to the now-closed
+BootstrapTenant shared contracts. Do not implement BootstrapTenant.
+
+## Previous checkpoint — SaaS-03B-D-R2-R1 Bootstrap shared-contract contradiction
 
 R2-R1 recovered several authoritative physical decisions: Tenant, Settings,
 Branding and Membership are legacy-unversioned exact shapes; uidKey is the
