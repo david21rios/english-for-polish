@@ -2,6 +2,7 @@ export { requireAuthenticatedActor, rejectActorAuthorityPayload } from "./author
 export { resolvePlatformAuthority, resolveTenantAuthority } from "./authorization/authorityResolver.js";
 export { capabilitiesForMembershipRole, capabilitiesForPlatformRole, requireCapability } from "./authorization/capabilities.js";
 export { prepareCommandExecution, safeCommandFailure } from "./commands/executor.js";
+export { executeRecoverPlatformAdmin, validateRecoverPlatformAdminInput } from "./commands/recoverPlatformAdmin.js";
 export { createPendingCommandRecord, validateCommandEnvelope } from "./commands/commandRecord.js";
 export { loadBackendConfig, readBackendConfig } from "./config/config.js";
 export { BackendError, mapFirebaseAdminError, sanitizeBackendError } from "./errors/backendError.js";
