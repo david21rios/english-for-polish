@@ -5,7 +5,36 @@
 **Regla:** ninguna fase activa enforcement ni elimina compatibilidad antes de
 cumplir su gate.
 
-## Current checkpoint — SaaS-03B-D-R1 Tenant bootstrap/lifecycle contract reconciliation
+## Current checkpoint — SaaS-03B-D-R2 shared-contract materialization blocker
+
+R2 audited the published R1 contract inventory and stopped before technical
+edits with `RESULT C`. Package 0.11.0 still contains only BootstrapTenant among
+the seven phase-D commands. No new authoritative source closes the exact
+settings/branding shapes, membershipKey encoder/value schema, tenant-admin
+authority-state schema/validator, Bootstrap result/audit ambiguity, or the six
+missing command payload/repeat/audit contracts.
+
+Partial materialization would invent persisted contracts, so no command type,
+validator, declaration, artifact or Functions dependency changed. The gaps
+separate naturally into Bootstrap shared persistence, tenant-admin updates and
+platform lifecycle semantics. Only the next minimum resolution is identified;
+later resolution identifiers are deliberately deferred.
+
+```text
+SaaS-03B-C = completed
+SaaS-03B-D-R1 = completed
+SaaS-03B-D-R2 = blocked_pending_R2_R1_normative_resolution
+SaaS-03B-D = split_into_ordered_microphases_blocked_pending_contract_completion
+SaaS-03B-E = blocked_pending_03B_D
+SaaS-03B-F = blocked_pending_previous_sequence
+Phase 4 = not_started
+```
+
+Next execute only `SaaS-03B-D-R2-R1 — Tenant Bootstrap Shared Persistence and
+Result Contract Resolution`. It is normative and must not implement
+BootstrapTenant or any other Tenant business command.
+
+## Previous checkpoint — SaaS-03B-D-R1 Tenant bootstrap/lifecycle contract reconciliation
 
 The published aggregate closure commit
 `9d09725345917760c57cb76b5069b7fc18d9b0dd` advances SaaS-03B-C from its
