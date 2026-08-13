@@ -1,5 +1,40 @@
 # Orden de implementación SaaS multi-tenant
 
+## Current checkpoint — SaaS-03B-D-R3-C1-R4 Store authority repair
+
+R4 repairs `BOOTSTRAP_TENANT_STORE_ACTOR_AUTHORITY_UNVALIDATED`. The Store now
+consumes the package 0.14.0 runtime validator, restricts valid resolutions to
+the canonical human Platform Admin with `platform.tenant_create`, and binds the
+validated actor to Membership approval, Command and both audits. Invalid actors
+are physically zero-write; the nine-document checkpoint, replay, contention and
+retry invariants remain intact.
+
+The complete historical blocker lineage is preserved in the R4 report,
+including replay binding, aggregate validation, persisted Membership, audit
+authority, shared runtime validation and normative actor-matrix gaps.
+
+```text
+SaaS-03B-D-R3 = implemented_and_validated
+SaaS-03B-D-R3-C1-R1 = completed
+SaaS-03B-D-R3-C1-R2-R1 = completed
+SaaS-03B-D-R3-C1-R2 = completed
+SaaS-03B-D-R3-C1-R3 = completed
+SaaS-03B-D-R3-C1-R4-R1-R1 = completed
+SaaS-03B-D-R3-C1-R4-R1 = completed
+SaaS-03B-D-R3-C1-R4 = completed_pending_human_review_and_push
+SaaS-03B-D-R3-C1 = blocked_pending_R4_push_and_revalidation
+BootstrapTenant = repaired_pending_independent_revalidation
+UpdateTenantProfile/UpdateTenantSettings/UpdateTenantBranding = blocked_pending_contract_resolution
+SuspendTenant/RestoreTenant/ArchiveTenant = blocked_pending_contract_resolution
+SaaS-03B-D = in_progress
+SaaS-03B-E = blocked_pending_03B_D
+SaaS-03B-F = blocked_pending_previous_sequence
+Phase 4 = not_started
+```
+
+After human review and push, rerun only `SaaS-03B-D-R3-C1 — Independent
+BootstrapTenant Review`.
+
 ## Current checkpoint — SaaS-03B-D-R3-C1-R4-R1 authority runtime materialization
 
 The actor matrix closed by R4-R1-R1 is now materialized in
