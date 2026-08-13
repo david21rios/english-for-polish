@@ -5,7 +5,34 @@
 **Regla:** ninguna fase activa enforcement ni elimina compatibilidad antes de
 cumplir su gate.
 
-## Current checkpoint — SaaS-03B-C-R5-R1-R1 ownership materialization
+## Current checkpoint — SaaS-03B-C-R5 RecoverPlatformAdmin implementation
+
+`RecoverPlatformAdmin` is implemented as an internal break-glass command on
+Authority schema v2 and the narrow Transaction Store ownership primitives.
+Approval, Auth and exact persisted Identity validation precede ownership; Auth
+effects remain outside transactions. Active reconciliation is count-neutral,
+prior-Recover handoff is the only handoff, non-active activation increments
+exactly once, forward recovery retains ownership, and replay is read-only.
+
+Functions are 54/54. Recover, Bootstrap and Store Firestore Emulator suites are
+3/3, 3/3 and 9/9. Package 0.11.0 remains 40/40 and unchanged; full repository,
+precheck, Rules, general and build regression passes. No Revoke command, public
+handler, Rules/index/config change, Firebase remote operation or deployment was
+created.
+
+```text
+SaaS-03B-C-R5 = completed_pending_human_review_and_push
+RecoverPlatformAdmin = implemented_and_validated
+RevokePlatformAdmin = ready_not_started_pending_recover_independent_review
+SaaS-03B-C = in_progress
+SaaS-03B-D = blocked
+Phase 4 = not_started
+```
+
+After human review and push, execute only `SaaS-03B-C-R5-C1 — Independent
+RecoverPlatformAdmin Review`. Do not implement Revoke, 03B-D or Phase 4 yet.
+
+## Previous checkpoint — SaaS-03B-C-R5-R1-R1 ownership materialization
 
 The shared Recover ownership contract is physically materialized. Platform
 Authority schema v2 preserves the same fields and permits an active Authority
