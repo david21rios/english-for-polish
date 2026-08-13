@@ -5,7 +5,34 @@
 **Regla:** ninguna fase activa enforcement ni elimina compatibilidad antes de
 cumplir su gate.
 
-## Current checkpoint — SaaS-03B-C-R5-C1-R1 owner-scope repair
+## Current checkpoint — SaaS-03B-C-R5-C1-R2 active lifecycle repair
+
+R5-C1 revalidation found that the active-claim primitive's shared same-owner
+early return preceded its Authority status check. R5-C1-R2 now validates the
+primitive-specific lifecycle first: active claim accepts only `active`, then
+classifies null/same/foreign owner. All non-active same-owner states fail
+closed. Handoff retains its distinct provisioning resume and the active failure
+checkpoint remains narrow and idempotent.
+
+Functions pass 58/58. Firestore Emulator passes Store 11/11, Bootstrap 3/3 and
+Recover 3/3. Package 0.11.0 remains unchanged at 40/40; full regressions,
+protected hashes and the 13-error/8-warning legacy source lint baseline remain
+stable with attributable delta zero.
+
+```text
+SaaS-03B-C-R5-C1-R2 = completed_pending_human_review_and_push
+SaaS-03B-C-R5-C1 = blocked_pending_R2_push_and_revalidation
+RecoverPlatformAdmin = repaired_pending_independent_revalidation
+RevokePlatformAdmin = blocked
+SaaS-03B-C = in_progress
+SaaS-03B-D = blocked
+Phase 4 = not_started
+```
+
+After human review and push, rerun only `SaaS-03B-C-R5-C1 — Independent
+RecoverPlatformAdmin Revalidation`. Do not start Revoke, 03B-D or Phase 4.
+
+## Previous checkpoint — SaaS-03B-C-R5-C1-R1 owner-scope repair
 
 The independent R5-C1 review stopped on
 `RECOVER_TRANSITION_OWNER_FLAG_UNSCOPED`: generic Store mutation exposed a flag
