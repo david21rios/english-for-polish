@@ -12,8 +12,8 @@ import {
   tenantDocumentPath, tenantSettingsDocumentPath, validateMembershipKey, validatePersistedTenant,
   validatePersistedMembership, validateTenantAdminAuthorityState, validateTenantBranding, validateTenantSettings,
 } from "@mipymetic/saas-contracts/persistence";
-import { MEMBERSHIP_ROLES, MEMBERSHIP_STATUSES, TENANT_STATUSES } from "@mipymetic/saas-contracts/domain";
-import { PLATFORM_AUTHORITY_REGISTRY_STATES, validatePlatformAuthorityRegistry } from "@mipymetic/saas-contracts/authority";
+import { CAPABILITY_IDS, MEMBERSHIP_ROLES, MEMBERSHIP_STATUSES, PLATFORM_ROLES, TENANT_STATUSES } from "@mipymetic/saas-contracts/domain";
+import { PLATFORM_AUTHORITY_REGISTRY_STATES, validateAuthorityResolution, validatePlatformAuthorityRegistry } from "@mipymetic/saas-contracts/authority";
 import type { AuthorityResolution, JsonValue } from "../contracts/types.js";
 import { writeAuditEvent } from "../audit/auditWriter.js";
 import { validatePersistedCommandRecord } from "../commands/commandRecord.js";
@@ -44,6 +44,16 @@ export const validateBootstrapTenantPersistedResult=(value:unknown,expected:Read
 const conflict=(message:string):never=>{throw new BackendError(BACKEND_ERROR_CODES.CONFLICT,message)};
 const contract=(message:string):never=>{throw new BackendError(BACKEND_ERROR_CODES.CONTRACT_VIOLATION,message)};
 const exists=(message:string):never=>{throw new BackendError(BACKEND_ERROR_CODES.ALREADY_EXISTS,message)};
+const validateBootstrapTenantActor=(actor:unknown):void=>{
+  const validation=validateAuthorityResolution(actor);
+  if(validation.ok){
+    const authority=validation.value;
+    if(authority.actorType!=="platform_admin"||authority.authority!==PLATFORM_ROLES.PLATFORM_ADMIN
+      ||authority.tenantId!==null||!authority.capabilities.includes(CAPABILITY_IDS.PLATFORM_TENANT_CREATE))contract("BootstrapTenant actor authority is not authorized.");
+    return;
+  }
+  contract("BootstrapTenant actor authority is malformed.");
+};
 const timestampFields=Object.freeze({
   tenant:Object.freeze({createdAt:false,updatedAt:false,suspendedAt:true,archivedAt:true}),
   settings:Object.freeze({updatedAt:false}),branding:Object.freeze({updatedAt:false}),
@@ -77,8 +87,9 @@ const membershipKeyMatches=(value:unknown,input:BootstrapTenantAggregate):boolea
 };
 
 export const createTenantBootstrapTransactionStore=(runner:TransactionRunnerPort):TenantBootstrapTransactionStore=>Object.freeze({execute:async(input:BootstrapTenantAggregate)=>runAuthoritativeTransaction(runner,async({transaction})=>{
+  validateBootstrapTenantActor(input.actor);
   const commandPath=privilegedCommandDocumentPath(input.commandId), commandSnapshot=await transaction.get(commandPath,"privileged_command");
-  if(commandSnapshot.exists){const command=validatePersistedCommandRecord(commandSnapshot.data);if(command.commandType!==COMMAND_TYPES.BOOTSTRAP_TENANT||command.payloadHash!==input.payloadHash||command.correlationId!==input.correlationId)conflict("BootstrapTenant command binding conflicts.");if(command.status!==COMMAND_STATUSES.SUCCEEDED||command.stage!==PRIVILEGED_COMMAND_STAGES.COMPLETED)conflict("BootstrapTenant command state conflicts.");if(command.tenantId!==input.tenantId)contract("BootstrapTenant command target is incoherent.");validateBootstrapTenantPersistedResult(command.result,{commandId:command.commandId,correlationId:command.correlationId,tenantId:input.tenantId});return Object.freeze({replayed:true})}
+  if(commandSnapshot.exists){const command=validatePersistedCommandRecord(commandSnapshot.data);if(command.commandType!==COMMAND_TYPES.BOOTSTRAP_TENANT||command.payloadHash!==input.payloadHash||command.correlationId!==input.correlationId)conflict("BootstrapTenant command binding conflicts.");if(command.status!==COMMAND_STATUSES.SUCCEEDED||command.stage!==PRIVILEGED_COMMAND_STAGES.COMPLETED)conflict("BootstrapTenant command state conflicts.");if(command.tenantId!==input.tenantId||command.actorUid!==input.actor.actorUid||command.actorType!==input.actor.actorType||command.authority!==input.actor.authority)contract("BootstrapTenant command authority binding is incoherent.");validateBootstrapTenantPersistedResult(command.result,{commandId:command.commandId,correlationId:command.correlationId,tenantId:input.tenantId});return Object.freeze({replayed:true})}
   const paths={registry:platformAuthorityRegistryDocumentPath(),tenant:tenantDocumentPath(input.tenantId),settings:tenantSettingsDocumentPath(input.tenantId),branding:tenantBrandingDocumentPath(input.tenantId),membership:membershipDocumentPath(input.tenantId,input.membershipId),key:membershipKeyDocumentPath(input.tenantId,input.uidKey),state:tenantAdminAuthorityStateDocumentPath(input.tenantId)};
   const [registry,tenant,settings,branding,membership,key,state]=await Promise.all([
     transaction.get(paths.registry,"platform_authority_registry"),transaction.get(paths.tenant,"tenant"),transaction.get(paths.settings,"tenant_settings"),transaction.get(paths.branding,"tenant_branding"),transaction.get(paths.membership,"membership"),transaction.get(paths.key,"membership_key"),transaction.get(paths.state,"tenant_admin_authority_state")]);
