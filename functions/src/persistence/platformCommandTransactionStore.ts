@@ -4,7 +4,7 @@ import { BACKEND_ERROR_CODES } from "@mipymetic/saas-contracts/errors";
 import { platformAuthorityDocumentPath, platformAuthorityRegistryDocumentPath, privilegedCommandDocumentPath } from "@mipymetic/saas-contracts/persistence";
 import type { AuthorityResolution, CommandRecord, CommandStatus, JsonValue, PrivilegedCommandStage } from "../contracts/types.js";
 import { writeAuditEvent } from "../audit/auditWriter.js";
-import { validatePersistedCommandRecord } from "../commands/commandRecord.js";
+import { validatePersistedCommandRecord, type PendingCommandWrite } from "../commands/commandRecord.js";
 import { BackendError } from "../errors/backendError.js";
 import { serverOwnedTimestamp, type TransactionRunnerPort } from "./ports.js";
 import { runAuthoritativeTransaction } from "./transactionBoundary.js";
@@ -28,12 +28,14 @@ export interface RecoveryOwnershipInput {
   readonly audit: PlatformCommandStoreMutation["audit"];
 }
 export interface RecoveryOwnershipHandoffInput extends RecoveryOwnershipInput { readonly priorCommandId:string }
+export interface RevokePrepareInput extends RecoveryOwnershipInput { readonly command:PendingCommandWrite }
 type StoreResult = Readonly<{ command: CommandRecord; registry: PlatformRegistry; authorities: readonly PlatformAuthority[] }>;
 export interface PlatformCommandTransactionStore {
   mutate(input: PlatformCommandStoreMutation): Promise<StoreResult>;
   claimActiveRecoveryOwnership(input: RecoveryOwnershipInput): Promise<StoreResult>;
   handoffRecoveryOwnership(input: RecoveryOwnershipHandoffInput): Promise<StoreResult>;
   markActiveRecoveryRequired(input: RecoveryOwnershipInput): Promise<StoreResult>;
+  prepareRevokePlatformAdmin(input: RevokePrepareInput): Promise<StoreResult>;
   resumeRevokeOwnership(input: RecoveryOwnershipInput): Promise<StoreResult>;
   markRevokeRecoveryRequired(input: RecoveryOwnershipInput): Promise<StoreResult>;
 }
@@ -124,10 +126,37 @@ const revokeCheckpoint=async(runner:TransactionRunnerPort,input:RecoveryOwnershi
   return Object.freeze({command:nextCommand,registry:nextRegistry,authorities:Object.freeze([nextAuthority])});
 });
 
+const prepareRevokePlatformAdmin=async(runner:TransactionRunnerPort,input:RevokePrepareInput):Promise<StoreResult>=>runAuthoritativeTransaction(runner,async({transaction})=>{
+  const registryPath=platformAuthorityRegistryDocumentPath(),commandPath=privilegedCommandDocumentPath(input.commandId),authorityPath=platformAuthorityDocumentPath(input.targetUid);
+  const registrySnapshot=await transaction.get(registryPath,"platform_authority_registry"),commandSnapshot=await transaction.get(commandPath,"privileged_command"),authoritySnapshot=await transaction.get(authorityPath,"platform_authority");
+  if(!registrySnapshot.exists)fail("Revoke prepare Registry is missing.");
+  const registry=registryValue(registrySnapshot.data);
+  if(commandSnapshot.exists)conflict("Revoke command already exists.");
+  if(!authoritySnapshot.exists)throw new BackendError(BACKEND_ERROR_CODES.NOT_FOUND,"Revoke target is missing.");
+  const authority=authorityValue(authoritySnapshot.data);
+  const pending=validatePersistedCommandRecord({...input.command,startedAt:registry.updatedAt});
+  if(pending.commandId!==input.commandId||pending.commandType!==COMMAND_TYPES.REVOKE_PLATFORM_ADMIN)fail("Revoke prepare requires a new Revoke command.");
+  if(pending.status!==COMMAND_STATUSES.PENDING||pending.stage!==PRIVILEGED_COMMAND_STAGES.NOT_STARTED)fail("Revoke prepare command state is invalid.");
+  if(pending.payloadHash!==input.payloadHash||pending.correlationId!==input.correlationId)conflict("Command binding conflicts.");
+  if(registry.bootstrapState!==PLATFORM_AUTHORITY_REGISTRY_STATES.COMPLETED)throw new BackendError(BACKEND_ERROR_CODES.FAILED_PRECONDITION,"Revoke Registry state is invalid.");
+  if(registry.activeCount<=1)throw new BackendError(BACKEND_ERROR_CODES.FAILED_PRECONDITION,"Last Platform administrator cannot be revoked.");
+  if(authority.status!==PLATFORM_AUTHORITY_STATUSES.ACTIVE)throw new BackendError(BACKEND_ERROR_CODES.FAILED_PRECONDITION,"New Revoke requires active target.");
+  if(authority.transitionCommandId!==null)conflict("Revoke target is owned.");
+  const nextAuthority=authorityValue({...authority,status:PLATFORM_AUTHORITY_STATUSES.REVOKING,transitionCommandId:input.commandId,updatedBy:input.commandId});
+  const nextRegistry=registryValue({...registry,activeCount:registry.activeCount-1,revision:registry.revision+1,lastCommandId:input.commandId});
+  const nextCommand=validatePersistedCommandRecord({...pending,status:COMMAND_STATUSES.RUNNING,stage:PRIVILEGED_COMMAND_STAGES.PREPARED,leaseExpiresAt:null});
+  transaction.create(commandPath,{...input.command,status:COMMAND_STATUSES.RUNNING,stage:PRIVILEGED_COMMAND_STAGES.PREPARED,leaseExpiresAt:null});
+  transaction.update(authorityPath,{status:PLATFORM_AUTHORITY_STATUSES.REVOKING,transitionCommandId:input.commandId,updatedAt:serverOwnedTimestamp(),updatedBy:input.commandId});
+  transaction.set(registryPath,{...nextRegistry,updatedAt:serverOwnedTimestamp()});
+  writeAuditEvent(transaction,{...input.audit,commandId:input.commandId,correlationId:input.correlationId,level:"critical"});
+  return Object.freeze({command:nextCommand,registry:nextRegistry,authorities:Object.freeze([nextAuthority])});
+});
+
 export const createPlatformCommandTransactionStore = (runner:TransactionRunnerPort):PlatformCommandTransactionStore => Object.freeze({
   claimActiveRecoveryOwnership: (input:RecoveryOwnershipInput)=>recoveryOwnership(runner,input,null),
   handoffRecoveryOwnership: (input:RecoveryOwnershipHandoffInput)=>recoveryOwnership(runner,input,input.priorCommandId),
   markActiveRecoveryRequired: (input:RecoveryOwnershipInput)=>markActiveRecoveryRequired(runner,input),
+  prepareRevokePlatformAdmin: (input:RevokePrepareInput)=>prepareRevokePlatformAdmin(runner,input),
   resumeRevokeOwnership: (input:RecoveryOwnershipInput)=>revokeCheckpoint(runner,input,true),
   markRevokeRecoveryRequired: (input:RecoveryOwnershipInput)=>revokeCheckpoint(runner,input,false),
   mutate: async (input: PlatformCommandStoreMutation) => runAuthoritativeTransaction(runner, async ({transaction}) => {
