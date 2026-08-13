@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { PLATFORM_AUTHORITY_REGISTRY_STATES, validatePlatformAuthority, validatePlatformAuthorityRegistry } from "@mipymetic/saas-contracts/authority";
 import { CAPABILITY_IDS, MEMBERSHIP_ROLES, MEMBERSHIP_STATUSES, TENANT_STATUSES } from "@mipymetic/saas-contracts/domain";
-import { COMMAND_STATUSES, COMMAND_TYPES, PRIVILEGED_COMMAND_STAGES, bootstrapTenantBehavioralPayload, validateBootstrapTenantInput, validateBootstrapTenantResult } from "@mipymetic/saas-contracts/commands";
+import { COMMAND_STATUSES, COMMAND_TYPES, PRIVILEGED_COMMAND_STAGES, bootstrapTenantBehavioralPayload, validateBootstrapTenantInput } from "@mipymetic/saas-contracts/commands";
 import { BACKEND_ERROR_CODES } from "@mipymetic/saas-contracts/errors";
 import { encodeMembershipUidKey, platformAuthorityDocumentPath, platformAuthorityRegistryDocumentPath, privilegedCommandDocumentPath, validateMembershipKey, validatePersistedTenant, validateTenantAdminAuthorityState, validateTenantBranding, validateTenantSettings } from "@mipymetic/saas-contracts/persistence";
 import { validateDocumentIdentifier } from "@mipymetic/saas-contracts/validation";
@@ -11,7 +11,7 @@ import type { AuthorityResolution, JsonValue } from "../contracts/types.js";
 import { BackendError, mapFirebaseAdminError } from "../errors/backendError.js";
 import { canonicalPayloadHash } from "../idempotency/payloadHash.js";
 import { serverOwnedTimestamp, type AuthoritativeReaderPort } from "../persistence/ports.js";
-import type { TenantBootstrapTransactionStore } from "../persistence/tenantBootstrapTransactionStore.js";
+import { validateBootstrapTenantPersistedResult, type TenantBootstrapTransactionStore } from "../persistence/tenantBootstrapTransactionStore.js";
 import { validatePersistedCommandRecord } from "./commandRecord.js";
 import type { BootstrapAuthPort, BootstrapIdentityPort } from "./bootstrapPlatformAdmins.js";
 
@@ -28,7 +28,7 @@ const authority=async(d:BootstrapTenantDependencies,uid:string):Promise<Authorit
 export const executeBootstrapTenant=async(value:unknown,d:BootstrapTenantDependencies):Promise<BootstrapTenantResult>=>{
   const i=parseBootstrapTenantInput(value),actorUid=requireAuthenticatedActor(d.authContext).uid,operator=await authority(d,actorUid);
   const behavioral=bootstrapTenantBehavioralPayload(i as unknown as Readonly<Record<string,unknown>>) as Readonly<Record<string,JsonValue>>,payloadHash=canonicalPayloadHash(COMMAND_TYPES.BOOTSTRAP_TENANT,behavioral),commandSnapshot=await d.reader.read(privilegedCommandDocumentPath(i.commandId),"privileged_command");
-  if(commandSnapshot.exists){const command=validatePersistedCommandRecord(commandSnapshot.data);if(command.commandType!==COMMAND_TYPES.BOOTSTRAP_TENANT||command.payloadHash!==payloadHash||command.correlationId!==i.correlationId)throw new BackendError(BACKEND_ERROR_CODES.CONFLICT,"BootstrapTenant command binding conflicts.");if(command.status!==COMMAND_STATUSES.SUCCEEDED||command.stage!==PRIVILEGED_COMMAND_STAGES.COMPLETED||!validateBootstrapTenantResult(command.result).ok)throw new BackendError(BACKEND_ERROR_CODES.CONTRACT_VIOLATION,"BootstrapTenant replay is malformed.");return result(i,true)}
+  if(commandSnapshot.exists){const command=validatePersistedCommandRecord(commandSnapshot.data);if(command.commandType!==COMMAND_TYPES.BOOTSTRAP_TENANT||command.payloadHash!==payloadHash||command.correlationId!==i.correlationId)throw new BackendError(BACKEND_ERROR_CODES.CONFLICT,"BootstrapTenant command binding conflicts.");if(command.status!==COMMAND_STATUSES.SUCCEEDED||command.stage!==PRIVILEGED_COMMAND_STAGES.COMPLETED)throw new BackendError(BACKEND_ERROR_CODES.CONTRACT_VIOLATION,"BootstrapTenant replay is malformed.");if(command.tenantId!==i.tenantId)throw new BackendError(BACKEND_ERROR_CODES.CONTRACT_VIOLATION,"BootstrapTenant command target is incoherent.");validateBootstrapTenantPersistedResult(command.result,{commandId:command.commandId,correlationId:command.correlationId,tenantId:command.tenantId});return result(i,true)}
   await d.identity.verify(i.firstAdminUid,i.expectedAdminEmail);await eligibleAuth(d,i.firstAdminUid,i.expectedAdminEmail);
   const registry=await d.reader.read(platformAuthorityRegistryDocumentPath(),"platform_authority_registry"),registryValidation=validatePlatformAuthorityRegistry(registry.data);if(!registry.exists||!registryValidation.ok)throw new BackendError(BACKEND_ERROR_CODES.CONTRACT_VIOLATION,"Platform Registry is missing or malformed.");if(registryValidation.value.bootstrapState!==PLATFORM_AUTHORITY_REGISTRY_STATES.COMPLETED)throw new BackendError(BACKEND_ERROR_CODES.FAILED_PRECONDITION,"Platform Registry is not completed.");
   const membershipId=(d.generateMembershipId??randomUUID)();if(!validateDocumentIdentifier(membershipId,"membershipId").ok)throw new BackendError(BACKEND_ERROR_CODES.CONTRACT_VIOLATION,"Generated Membership ID is invalid.");const uidKey=encodeMembershipUidKey(i.firstAdminUid),timestamp=serverOwnedTimestamp();

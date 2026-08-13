@@ -25,6 +25,16 @@ export interface BootstrapTenantAggregate {
 }
 export interface TenantBootstrapTransactionStore { execute(input:BootstrapTenantAggregate):Promise<Readonly<{replayed:boolean}>> }
 
+export const validateBootstrapTenantPersistedResult=(value:unknown,expected:Readonly<{commandId:string;correlationId:string;tenantId:string}>):void=>{
+  const validation=validateBootstrapTenantResult(value);
+  if(!validation.ok)contract("BootstrapTenant persisted result is malformed.");
+  const persisted=value as Readonly<Record<string,unknown>>;
+  if(persisted.commandId!==expected.commandId||persisted.correlationId!==expected.correlationId
+    ||persisted.operation!==COMMAND_TYPES.BOOTSTRAP_TENANT||persisted.resourceType!=="tenant"
+    ||persisted.resourceId!==expected.tenantId||persisted.status!==COMMAND_STATUSES.SUCCEEDED
+    ||persisted.replayed!==false)contract("BootstrapTenant persisted result binding is incoherent.");
+};
+
 const conflict=(message:string):never=>{throw new BackendError(BACKEND_ERROR_CODES.CONFLICT,message)};
 const contract=(message:string):never=>{throw new BackendError(BACKEND_ERROR_CODES.CONTRACT_VIOLATION,message)};
 const exists=(message:string):never=>{throw new BackendError(BACKEND_ERROR_CODES.ALREADY_EXISTS,message)};
@@ -42,7 +52,7 @@ const membershipKeyMatches=(value:unknown,input:BootstrapTenantAggregate):boolea
 
 export const createTenantBootstrapTransactionStore=(runner:TransactionRunnerPort):TenantBootstrapTransactionStore=>Object.freeze({execute:async(input:BootstrapTenantAggregate)=>runAuthoritativeTransaction(runner,async({transaction})=>{
   const commandPath=privilegedCommandDocumentPath(input.commandId), commandSnapshot=await transaction.get(commandPath,"privileged_command");
-  if(commandSnapshot.exists){const command=validatePersistedCommandRecord(commandSnapshot.data);if(command.commandType!==COMMAND_TYPES.BOOTSTRAP_TENANT||command.payloadHash!==input.payloadHash||command.correlationId!==input.correlationId)conflict("BootstrapTenant command binding conflicts.");if(command.status!==COMMAND_STATUSES.SUCCEEDED||command.stage!==PRIVILEGED_COMMAND_STAGES.COMPLETED)conflict("BootstrapTenant command state conflicts.");return Object.freeze({replayed:true})}
+  if(commandSnapshot.exists){const command=validatePersistedCommandRecord(commandSnapshot.data);if(command.commandType!==COMMAND_TYPES.BOOTSTRAP_TENANT||command.payloadHash!==input.payloadHash||command.correlationId!==input.correlationId)conflict("BootstrapTenant command binding conflicts.");if(command.status!==COMMAND_STATUSES.SUCCEEDED||command.stage!==PRIVILEGED_COMMAND_STAGES.COMPLETED)conflict("BootstrapTenant command state conflicts.");if(command.tenantId!==input.tenantId)contract("BootstrapTenant command target is incoherent.");validateBootstrapTenantPersistedResult(command.result,{commandId:command.commandId,correlationId:command.correlationId,tenantId:input.tenantId});return Object.freeze({replayed:true})}
   const paths={registry:platformAuthorityRegistryDocumentPath(),tenant:tenantDocumentPath(input.tenantId),settings:tenantSettingsDocumentPath(input.tenantId),branding:tenantBrandingDocumentPath(input.tenantId),membership:membershipDocumentPath(input.tenantId,input.membershipId),key:membershipKeyDocumentPath(input.tenantId,input.uidKey),state:tenantAdminAuthorityStateDocumentPath(input.tenantId)};
   const [registry,tenant,settings,branding,membership,key,state]=await Promise.all([
     transaction.get(paths.registry,"platform_authority_registry"),transaction.get(paths.tenant,"tenant"),transaction.get(paths.settings,"tenant_settings"),transaction.get(paths.branding,"tenant_branding"),transaction.get(paths.membership,"membership"),transaction.get(paths.key,"membership_key"),transaction.get(paths.state,"tenant_admin_authority_state")]);
