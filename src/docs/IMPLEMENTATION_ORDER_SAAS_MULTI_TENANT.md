@@ -5,7 +5,33 @@
 **Regla:** ninguna fase activa enforcement ni elimina compatibilidad antes de
 cumplir su gate.
 
-## Current checkpoint — SaaS-03B-D-R3-C1-R2 Store aggregate validation repair
+## Current checkpoint — SaaS-03B-D-R3-C1-R3 audit contract authority repair
+
+R3-C1-R3 repairs `BOOTSTRAP_TENANT_AUDIT_CONTRACT_LOCALLY_DUPLICATED`.
+BootstrapTenant now consumes package-owned audit literals and enforces exact
+package-owned allowlists for both summaries and metadata. Both audits remain
+inside the atomic nine-document checkpoint and all regression gates pass.
+
+```text
+SaaS-03B-D-R3 = implemented_and_validated
+SaaS-03B-D-R3-C1-R1 = completed
+SaaS-03B-D-R3-C1-R2-R1 = completed
+SaaS-03B-D-R3-C1-R2 = completed
+SaaS-03B-D-R3-C1-R3 = completed_pending_human_review_and_push
+SaaS-03B-D-R3-C1 = blocked_pending_R3_push_and_revalidation
+BootstrapTenant = repaired_pending_independent_revalidation
+UpdateTenantProfile/UpdateTenantSettings/UpdateTenantBranding = blocked_pending_contract_resolution
+SuspendTenant/RestoreTenant/ArchiveTenant = blocked_pending_contract_resolution
+SaaS-03B-D = in_progress_blocked_pending_BootstrapTenant_revalidation
+SaaS-03B-E = blocked_pending_03B_D
+SaaS-03B-F = blocked_pending_previous_sequence
+Phase 4 = not_started
+```
+
+After human review and push, rerun only `SaaS-03B-D-R3-C1 — Independent
+BootstrapTenant Review`.
+
+## Previous checkpoint — SaaS-03B-D-R3-C1-R2 Store aggregate validation repair
 
 R3-C1-R2 closes `BOOTSTRAP_TENANT_STORE_NEW_AGGREGATE_UNVALIDATED`.
 Before its first write, the Tenant Bootstrap Store validates every NEW
