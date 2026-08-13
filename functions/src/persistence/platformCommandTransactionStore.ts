@@ -36,6 +36,7 @@ export interface PlatformCommandTransactionStore {
   handoffRecoveryOwnership(input: RecoveryOwnershipHandoffInput): Promise<StoreResult>;
   markActiveRecoveryRequired(input: RecoveryOwnershipInput): Promise<StoreResult>;
   prepareRevokePlatformAdmin(input: RevokePrepareInput): Promise<StoreResult>;
+  validateRevokeResumeCheckpoint(input: RecoveryOwnershipInput): Promise<StoreResult>;
   resumeRevokeOwnership(input: RecoveryOwnershipInput): Promise<StoreResult>;
   markRevokeRecoveryRequired(input: RecoveryOwnershipInput): Promise<StoreResult>;
 }
@@ -152,11 +153,32 @@ const prepareRevokePlatformAdmin=async(runner:TransactionRunnerPort,input:Revoke
   return Object.freeze({command:nextCommand,registry:nextRegistry,authorities:Object.freeze([nextAuthority])});
 });
 
+const validateRevokeResumeCheckpoint=async(runner:TransactionRunnerPort,input:RecoveryOwnershipInput):Promise<StoreResult>=>runAuthoritativeTransaction(runner,async({transaction})=>{
+  const registryPath=platformAuthorityRegistryDocumentPath(),commandPath=privilegedCommandDocumentPath(input.commandId),authorityPath=platformAuthorityDocumentPath(input.targetUid);
+  const registrySnapshot=await transaction.get(registryPath,"platform_authority_registry"),commandSnapshot=await transaction.get(commandPath,"privileged_command"),authoritySnapshot=await transaction.get(authorityPath,"platform_authority");
+  if(!registrySnapshot.exists)fail("Revoke resume Registry is missing.");
+  if(!commandSnapshot.exists)fail("Revoke resume command is missing.");
+  if(!authoritySnapshot.exists)throw new BackendError(BACKEND_ERROR_CODES.NOT_FOUND,"Revoke resume target is missing.");
+  const registry=registryValue(registrySnapshot.data),command=validatePersistedCommandRecord(commandSnapshot.data),authority=authorityValue(authoritySnapshot.data);
+  if(command.commandId!==input.commandId||command.commandType!==COMMAND_TYPES.REVOKE_PLATFORM_ADMIN)fail("Revoke resume requires a Revoke command.");
+  if(command.payloadHash!==input.payloadHash||command.correlationId!==input.correlationId)conflict("Command binding conflicts.");
+  if(authority.transitionCommandId!==null&&authority.transitionCommandId!==input.commandId)conflict("Revoke resume has a foreign owner.");
+  if(command.status===COMMAND_STATUSES.RUNNING&&command.stage===PRIVILEGED_COMMAND_STAGES.PREPARED){
+    if(authority.status!==PLATFORM_AUTHORITY_STATUSES.REVOKING||authority.transitionCommandId!==input.commandId)throw new BackendError(BACKEND_ERROR_CODES.FAILED_PRECONDITION,"Running Revoke checkpoint is invalid.");
+    if(registry.bootstrapState!==PLATFORM_AUTHORITY_REGISTRY_STATES.COMPLETED)throw new BackendError(BACKEND_ERROR_CODES.FAILED_PRECONDITION,"Running Revoke Registry checkpoint is invalid.");
+  }else if(command.status===COMMAND_STATUSES.RECOVERY_REQUIRED&&command.stage===PRIVILEGED_COMMAND_STAGES.PREPARED){
+    if(authority.status!==PLATFORM_AUTHORITY_STATUSES.RECOVERY_REQUIRED||authority.transitionCommandId!==input.commandId)throw new BackendError(BACKEND_ERROR_CODES.FAILED_PRECONDITION,"Recovery Revoke checkpoint is invalid.");
+    if(registry.bootstrapState!==PLATFORM_AUTHORITY_REGISTRY_STATES.RECOVERY_REQUIRED)throw new BackendError(BACKEND_ERROR_CODES.FAILED_PRECONDITION,"Recovery Revoke Registry checkpoint is invalid.");
+  }else throw new BackendError(BACKEND_ERROR_CODES.FAILED_PRECONDITION,"Revoke command is not resumable.");
+  return Object.freeze({command,registry,authorities:Object.freeze([authority])});
+});
+
 export const createPlatformCommandTransactionStore = (runner:TransactionRunnerPort):PlatformCommandTransactionStore => Object.freeze({
   claimActiveRecoveryOwnership: (input:RecoveryOwnershipInput)=>recoveryOwnership(runner,input,null),
   handoffRecoveryOwnership: (input:RecoveryOwnershipHandoffInput)=>recoveryOwnership(runner,input,input.priorCommandId),
   markActiveRecoveryRequired: (input:RecoveryOwnershipInput)=>markActiveRecoveryRequired(runner,input),
   prepareRevokePlatformAdmin: (input:RevokePrepareInput)=>prepareRevokePlatformAdmin(runner,input),
+  validateRevokeResumeCheckpoint: (input:RecoveryOwnershipInput)=>validateRevokeResumeCheckpoint(runner,input),
   resumeRevokeOwnership: (input:RecoveryOwnershipInput)=>revokeCheckpoint(runner,input,true),
   markRevokeRecoveryRequired: (input:RecoveryOwnershipInput)=>revokeCheckpoint(runner,input,false),
   mutate: async (input: PlatformCommandStoreMutation) => runAuthoritativeTransaction(runner, async ({transaction}) => {
