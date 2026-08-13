@@ -5,7 +5,36 @@
 **Regla:** ninguna fase activa enforcement ni elimina compatibilidad antes de
 cumplir su gate.
 
-## Current checkpoint — SaaS-03B-C-R5-R1 Recover ownership resolution
+## Current checkpoint — SaaS-03B-C-R5-R1-R1 ownership materialization
+
+The shared Recover ownership contract is physically materialized. Platform
+Authority schema v2 preserves the same fields and permits an active Authority
+to remain authoritative while a Recover command owns claim reconciliation.
+Package 0.11.0, generated declarations and the canonical artifact are coherent.
+
+The Transaction Store exposes narrow active-claim and authorized prior-Recover
+handoff primitives. Unit and Firestore Emulator evidence prove one-winner
+concurrency, no Bootstrap/Revoke takeover, count-zero ownership changes and
+exactly-once Recovery activation. Bootstrap remains valid on Authority v2.
+
+```text
+SaaS-03B-C-R5-R1-R1 = completed_pending_human_review_and_push
+Recover ownership shared contract = materialized
+Platform Authority schema = v2
+@mipymetic/saas-contracts = 0.11.0
+Platform Command Transaction Store = recovery_ownership_ready
+BootstrapPlatformAdmins = regression_validated_on_authority_v2
+RecoverPlatformAdmin = ready_not_started_after_R5_R1_R1_push
+RevokePlatformAdmin = blocked_pending_recovery_sequence
+SaaS-03B-C = in_progress
+SaaS-03B-D = blocked
+Phase 4 = not_started
+```
+
+After human review and push, resume only `SaaS-03B-C-R5 —
+RecoverPlatformAdmin Implementation`. Do not start Revoke, 03B-D or Phase 4.
+
+## Previous checkpoint — SaaS-03B-C-R5-R1 Recover ownership resolution
 
 `SaaS-03B-C-R5` stopped during Audit Before Edit because Authority schema v1
 cannot own an `active` claim-reconciliation transition and cannot authorize a
