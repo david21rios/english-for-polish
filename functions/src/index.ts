@@ -3,6 +3,7 @@ export { resolvePlatformAuthority, resolveTenantAuthority } from "./authorizatio
 export { capabilitiesForMembershipRole, capabilitiesForPlatformRole, requireCapability } from "./authorization/capabilities.js";
 export { prepareCommandExecution, safeCommandFailure } from "./commands/executor.js";
 export { executeRecoverPlatformAdmin, validateRecoverPlatformAdminInput } from "./commands/recoverPlatformAdmin.js";
+export { executeRevokePlatformAdmin, validateRevokePlatformAdminInput } from "./commands/revokePlatformAdmin.js";
 export { createPendingCommandRecord, validateCommandEnvelope } from "./commands/commandRecord.js";
 export { loadBackendConfig, readBackendConfig } from "./config/config.js";
 export { BackendError, mapFirebaseAdminError, sanitizeBackendError } from "./errors/backendError.js";

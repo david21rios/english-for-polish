@@ -34,6 +34,8 @@ export interface PlatformCommandTransactionStore {
   claimActiveRecoveryOwnership(input: RecoveryOwnershipInput): Promise<StoreResult>;
   handoffRecoveryOwnership(input: RecoveryOwnershipHandoffInput): Promise<StoreResult>;
   markActiveRecoveryRequired(input: RecoveryOwnershipInput): Promise<StoreResult>;
+  resumeRevokeOwnership(input: RecoveryOwnershipInput): Promise<StoreResult>;
+  markRevokeRecoveryRequired(input: RecoveryOwnershipInput): Promise<StoreResult>;
 }
 
 const fail = (message:string):never => { throw new BackendError(BACKEND_ERROR_CODES.CONTRACT_VIOLATION,message); };
@@ -100,10 +102,34 @@ const markActiveRecoveryRequired=async(runner:TransactionRunnerPort,input:Recove
   return Object.freeze({command:nextCommand,registry:nextRegistry,authorities:Object.freeze([authority])});
 });
 
+const revokeCheckpoint=async(runner:TransactionRunnerPort,input:RecoveryOwnershipInput,resume:boolean):Promise<StoreResult>=>runAuthoritativeTransaction(runner,async({transaction})=>{
+  const registryPath=platformAuthorityRegistryDocumentPath(),commandPath=privilegedCommandDocumentPath(input.commandId),authorityPath=platformAuthorityDocumentPath(input.targetUid);
+  const registrySnapshot=await transaction.get(registryPath,"platform_authority_registry"),commandSnapshot=await transaction.get(commandPath,"privileged_command"),authoritySnapshot=await transaction.get(authorityPath,"platform_authority");
+  if(!registrySnapshot.exists||!commandSnapshot.exists||!authoritySnapshot.exists) fail("Revoke checkpoint documents must exist.");
+  const registry=registryValue(registrySnapshot.data),command=validatePersistedCommandRecord(commandSnapshot.data),authority=authorityValue(authoritySnapshot.data);
+  if(command.commandType!==COMMAND_TYPES.REVOKE_PLATFORM_ADMIN) fail("Revoke checkpoint requires a Revoke command.");
+  if(command.commandId!==input.commandId) fail("Command path identity is invalid.");
+  if(command.payloadHash!==input.payloadHash||command.correlationId!==input.correlationId) conflict("Command binding conflicts.");
+  if(authority.transitionCommandId!==input.commandId) conflict("Revoke checkpoint ownership is invalid.");
+  if(resume){
+    if(command.status===COMMAND_STATUSES.RUNNING&&command.stage===PRIVILEGED_COMMAND_STAGES.PREPARED&&authority.status===PLATFORM_AUTHORITY_STATUSES.REVOKING)return Object.freeze({command,registry,authorities:Object.freeze([authority])});
+    if(command.status!==COMMAND_STATUSES.RECOVERY_REQUIRED||command.stage!==PRIVILEGED_COMMAND_STAGES.PREPARED||authority.status!==PLATFORM_AUTHORITY_STATUSES.RECOVERY_REQUIRED)throw new BackendError(BACKEND_ERROR_CODES.FAILED_PRECONDITION,"Revoke resume requires recovery_required/prepared.");
+  }else{
+    if(command.status===COMMAND_STATUSES.RECOVERY_REQUIRED&&command.stage===PRIVILEGED_COMMAND_STAGES.PREPARED&&authority.status===PLATFORM_AUTHORITY_STATUSES.RECOVERY_REQUIRED)return Object.freeze({command,registry,authorities:Object.freeze([authority])});
+    if(command.status!==COMMAND_STATUSES.RUNNING||command.stage!==PRIVILEGED_COMMAND_STAGES.PREPARED||authority.status!==PLATFORM_AUTHORITY_STATUSES.REVOKING)throw new BackendError(BACKEND_ERROR_CODES.FAILED_PRECONDITION,"Revoke failure requires running/prepared revoking Authority.");
+  }
+  const status=resume?PLATFORM_AUTHORITY_STATUSES.REVOKING:PLATFORM_AUTHORITY_STATUSES.RECOVERY_REQUIRED,nextCommandStatus=resume?COMMAND_STATUSES.RUNNING:COMMAND_STATUSES.RECOVERY_REQUIRED,nextRegistryState=resume?PLATFORM_AUTHORITY_REGISTRY_STATES.COMPLETED:PLATFORM_AUTHORITY_REGISTRY_STATES.RECOVERY_REQUIRED;
+  const nextAuthority=authorityValue({...authority,status,updatedBy:input.commandId}),nextRegistry=registryValue({...registry,bootstrapState:nextRegistryState,revision:registry.revision+1,lastCommandId:input.commandId}),nextCommand=validatePersistedCommandRecord({...command,status:nextCommandStatus,stage:PRIVILEGED_COMMAND_STAGES.PREPARED,leaseExpiresAt:null});
+  transaction.update(authorityPath,{status,updatedAt:serverOwnedTimestamp(),updatedBy:input.commandId});transaction.set(registryPath,{...nextRegistry,updatedAt:serverOwnedTimestamp()});transaction.update(commandPath,{status:nextCommandStatus,stage:PRIVILEGED_COMMAND_STAGES.PREPARED,leaseExpiresAt:null});writeAuditEvent(transaction,{...input.audit,commandId:input.commandId,correlationId:input.correlationId,level:"critical"});
+  return Object.freeze({command:nextCommand,registry:nextRegistry,authorities:Object.freeze([nextAuthority])});
+});
+
 export const createPlatformCommandTransactionStore = (runner:TransactionRunnerPort):PlatformCommandTransactionStore => Object.freeze({
   claimActiveRecoveryOwnership: (input:RecoveryOwnershipInput)=>recoveryOwnership(runner,input,null),
   handoffRecoveryOwnership: (input:RecoveryOwnershipHandoffInput)=>recoveryOwnership(runner,input,input.priorCommandId),
   markActiveRecoveryRequired: (input:RecoveryOwnershipInput)=>markActiveRecoveryRequired(runner,input),
+  resumeRevokeOwnership: (input:RecoveryOwnershipInput)=>revokeCheckpoint(runner,input,true),
+  markRevokeRecoveryRequired: (input:RecoveryOwnershipInput)=>revokeCheckpoint(runner,input,false),
   mutate: async (input: PlatformCommandStoreMutation) => runAuthoritativeTransaction(runner, async ({transaction}) => {
     const commandPath=privilegedCommandDocumentPath(input.commandId), registryPath=platformAuthorityRegistryDocumentPath();
     const registrySnapshot=await transaction.get(registryPath,"platform_authority_registry");
