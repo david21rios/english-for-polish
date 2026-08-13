@@ -5,7 +5,34 @@
 **Regla:** ninguna fase activa enforcement ni elimina compatibilidad antes de
 cumplir su gate.
 
-## Current checkpoint — SaaS-03B-D-R3 BootstrapTenant implementation
+## Current checkpoint — SaaS-03B-D-R3-C1-R1 replay result binding repair
+
+The independent R3-C1 review found
+`BOOTSTRAP_TENANT_REPLAY_RESULT_BINDING_UNVALIDATED`: a structurally valid but
+foreign persisted result could be accepted and hidden by a reconstructed replay
+response. R3-C1-R1 now validates the exact Command/result composition in both
+the orchestration pre-read and the Store race path. The original committed
+result must retain `replayed=false`; only the returned read-only replay uses
+`replayed=true`. Incoherent results fail with `CONTRACT_VIOLATION` and zero
+writes.
+
+```text
+SaaS-03B-D-R3 = implemented_and_validated
+SaaS-03B-D-R3-C1 = blocked_pending_R1_push_and_revalidation
+SaaS-03B-D-R3-C1-R1 = completed_pending_human_review_and_push
+BootstrapTenant = repaired_pending_independent_revalidation
+UpdateTenantProfile/UpdateTenantSettings/UpdateTenantBranding = blocked_pending_contract_resolution
+SuspendTenant/RestoreTenant/ArchiveTenant = blocked_pending_contract_resolution
+SaaS-03B-D = in_progress_blocked_pending_BootstrapTenant_revalidation
+SaaS-03B-E = blocked_pending_03B_D
+SaaS-03B-F = blocked_pending_previous_sequence
+Phase 4 = not_started
+```
+
+After human review and push, resume only `SaaS-03B-D-R3-C1 — Independent
+BootstrapTenant Review`. Do not start another Tenant workflow.
+
+## Previous checkpoint — SaaS-03B-D-R3 BootstrapTenant implementation
 
 No implementation identifier was assigned in the published roadmap. After R1
 contract reconciliation and R2 shared materialization, the minimum consistent
