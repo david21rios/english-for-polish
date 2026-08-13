@@ -5,7 +5,35 @@
 **Regla:** ninguna fase activa enforcement ni elimina compatibilidad antes de
 cumplir su gate.
 
-## Current checkpoint — SaaS-03B-C-R5-C1-R2 active lifecycle repair
+## Current checkpoint — SaaS-03B-C-R5-C1 independent Recover revalidation
+
+The independent post-repair review passes. R5-C1-R1 removed the generic active
+owner capability and R5-C1-R2 made active lifecycle validation precede owner
+classification. Forensic, unit, clean isolated and real Firestore Emulator
+evidence now closes Recover without technical changes in C1.
+
+Functions pass 58/58; Firestore Emulator passes Store 11/11, Bootstrap 3/3 and
+Recover 3/3. Package 0.11.0 remains unchanged at 40/40. Full SaaS regressions,
+protected hashes, supply-chain baselines and the 13-error/8-warning legacy lint
+baseline remain stable with attributable delta zero.
+
+```text
+SaaS-03B-C-R5 = completed
+SaaS-03B-C-R5-C1-R1 = completed
+SaaS-03B-C-R5-C1-R2 = completed
+SaaS-03B-C-R5-C1 = completed_pending_human_review_and_push
+RecoverPlatformAdmin = independently_validated
+RevokePlatformAdmin = ready_not_started
+SaaS-03B-C = in_progress
+SaaS-03B-D = blocked
+Phase 4 = not_started
+```
+
+After human review and push, continue only with the roadmap-authorized
+RevokePlatformAdmin implementation/reconciliation sequence. Do not start
+03B-D or Phase 4.
+
+## Previous checkpoint — SaaS-03B-C-R5-C1-R2 active lifecycle repair
 
 R5-C1 revalidation found that the active-claim primitive's shared same-owner
 early return preceded its Authority status check. R5-C1-R2 now validates the
