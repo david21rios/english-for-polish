@@ -1,4 +1,4 @@
-export const PLATFORM_AUTHORITY_SCHEMA_VERSION: 1;
+export const PLATFORM_AUTHORITY_SCHEMA_VERSION: 2;
 export const PLATFORM_AUTHORITY_REGISTRY_SCHEMA_VERSION: 1;
 /** @deprecated Use PLATFORM_AUTHORITY_REGISTRY_SCHEMA_VERSION. */
 export const AUTHORITY_SCHEMA_VERSION: 1;
@@ -43,7 +43,7 @@ export function validatePlatformAuthorityRegistry(value: unknown): Readonly<{
     }>;
 }>;
 export type PlatformAuthority = Readonly<{
-    schemaVersion: 1;
+    schemaVersion: 2;
     transitionCommandId: string | null;
     uid: string;
     authority: "platform_admin";

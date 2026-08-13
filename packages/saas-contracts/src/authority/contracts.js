@@ -5,7 +5,7 @@ import { validateDocumentIdentifier } from "../validation/identifiers.js";
 import { isPlainObject } from "../validation/objects.js";
 import { validatePersistedTimestamp } from "../validation/timestamps.js";
 
-export const PLATFORM_AUTHORITY_SCHEMA_VERSION = 1;
+export const PLATFORM_AUTHORITY_SCHEMA_VERSION = 2;
 export const PLATFORM_AUTHORITY_REGISTRY_SCHEMA_VERSION = 1;
 /** @deprecated Use PLATFORM_AUTHORITY_REGISTRY_SCHEMA_VERSION. */
 export const AUTHORITY_SCHEMA_VERSION = PLATFORM_AUTHORITY_REGISTRY_SCHEMA_VERSION;
@@ -27,7 +27,7 @@ export const TENANT_ADMIN_AUTHORITY_STATE_FIELDS = frozen(["tenantId", "activeCo
 
 /**
  * @typedef {Readonly<{
- * schemaVersion: 1,
+ * schemaVersion: 2,
  * transitionCommandId: string|null,
  * uid: string,
  * authority: "platform_admin",
@@ -69,8 +69,9 @@ export const validatePlatformAuthority = (value) => {
       || status === PLATFORM_AUTHORITY_STATUSES.RECOVERY_REQUIRED;
     const ownerValid = ownerRequired
       ? validIdentifier(authority.transitionCommandId)
-      : (status === PLATFORM_AUTHORITY_STATUSES.ACTIVE || status === PLATFORM_AUTHORITY_STATUSES.REVOKED)
-        && authority.transitionCommandId === null;
+      : status === PLATFORM_AUTHORITY_STATUSES.ACTIVE
+        ? authority.transitionCommandId === null || validIdentifier(authority.transitionCommandId)
+        : status === PLATFORM_AUTHORITY_STATUSES.REVOKED && authority.transitionCommandId === null;
     if (authority.schemaVersion === PLATFORM_AUTHORITY_SCHEMA_VERSION
       && validIdentifier(authority.uid)
       && authority.authority === PLATFORM_AUTHORITY

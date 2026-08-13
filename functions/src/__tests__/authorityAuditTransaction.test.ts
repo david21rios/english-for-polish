@@ -28,9 +28,9 @@ class Transaction implements TransactionPort {
   update(): void {}
 }
 
-const platformReader = (status: string = PLATFORM_AUTHORITY_STATUSES.ACTIVE): Reader => new Reader(new Map([
+const platformReader = (status: string = PLATFORM_AUTHORITY_STATUSES.ACTIVE, transitionCommandId: string | null = null): Reader => new Reader(new Map([
   [identityDocumentPath(actor.uid), snapshot({ uid: actor.uid })],
-  [platformAuthorityDocumentPath(actor.uid), snapshot({ uid: actor.uid, status, authority: PLATFORM_ROLES.PLATFORM_ADMIN })],
+  [platformAuthorityDocumentPath(actor.uid), snapshot({ uid: actor.uid, status, authority: PLATFORM_ROLES.PLATFORM_ADMIN, transitionCommandId })],
 ]));
 
 test("platform authority requires Identity plus active persisted authority", async () => {
@@ -38,6 +38,8 @@ test("platform authority requires Identity plus active persisted authority", asy
   assert.equal(resolved.authority, PLATFORM_ROLES.PLATFORM_ADMIN);
   assert.equal(resolved.tenantId, null);
   assert.ok(resolved.capabilities.includes(CAPABILITY_IDS.PLATFORM_TENANT_UPDATE));
+  const recovering = await resolvePlatformAuthority(platformReader(PLATFORM_AUTHORITY_STATUSES.ACTIVE, "recover-command"), actor);
+  assert.equal(recovering.authority, PLATFORM_ROLES.PLATFORM_ADMIN);
   await assert.rejects(resolvePlatformAuthority(platformReader("inactive"), actor), BackendError);
   await assert.rejects(resolvePlatformAuthority(new Reader(new Map()), actor), BackendError);
 });

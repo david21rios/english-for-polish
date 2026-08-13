@@ -11,7 +11,7 @@ import { runAuthoritativeTransaction } from "./transactionBoundary.js";
 
 type RegistryState = (typeof PLATFORM_AUTHORITY_REGISTRY_STATES)[keyof typeof PLATFORM_AUTHORITY_REGISTRY_STATES];
 type AuthorityStatus = (typeof PLATFORM_AUTHORITY_STATUSES)[keyof typeof PLATFORM_AUTHORITY_STATUSES];
-interface PlatformAuthority { readonly schemaVersion: 1; readonly transitionCommandId: string|null; readonly uid: string; readonly authority: "platform_admin"; readonly status: AuthorityStatus; readonly createdAt: string; readonly createdBy: string; readonly updatedAt: string; readonly updatedBy: string; readonly activatedAt: string|null; readonly revokedAt: string|null; readonly revokedBy: string|null; readonly bootstrapCommandId: string|null; readonly lastClaimSyncAt: string|null }
+interface PlatformAuthority { readonly schemaVersion: 2; readonly transitionCommandId: string|null; readonly uid: string; readonly authority: "platform_admin"; readonly status: AuthorityStatus; readonly createdAt: string; readonly createdBy: string; readonly updatedAt: string; readonly updatedBy: string; readonly activatedAt: string|null; readonly revokedAt: string|null; readonly revokedBy: string|null; readonly bootstrapCommandId: string|null; readonly lastClaimSyncAt: string|null }
 interface PlatformRegistry { readonly schemaVersion: 1; readonly bootstrapState: RegistryState; readonly activeCount: number; readonly revision: number; readonly lastCommandId: string|null; readonly updatedAt: string }
 
 export interface PlatformAuthorityTransition { readonly uid: string; readonly expectedStatus: AuthorityStatus|null; readonly nextStatus: AuthorityStatus; readonly bootstrapCommandId: string|null; readonly recordClaimSync?: boolean }
@@ -23,7 +23,17 @@ export interface PlatformCommandStoreMutation {
   readonly authorities: readonly PlatformAuthorityTransition[];
   readonly audit: Readonly<{ auditId: string; authority: AuthorityResolution; operation: string; resourceType: string; resourceId: string; result: "succeeded"|"failed"|"recovery_required"; errorCode: string|null; beforeSummary: Readonly<Record<string,JsonValue>>; afterSummary: Readonly<Record<string,JsonValue>>; metadata: Readonly<Record<string,JsonValue>> }>;
 }
-export interface PlatformCommandTransactionStore { mutate(input: PlatformCommandStoreMutation): Promise<Readonly<{ command: CommandRecord; registry: PlatformRegistry; authorities: readonly PlatformAuthority[] }>> }
+export interface RecoveryOwnershipInput {
+  readonly commandId:string; readonly correlationId:string; readonly payloadHash:string; readonly targetUid:string;
+  readonly audit: PlatformCommandStoreMutation["audit"];
+}
+export interface RecoveryOwnershipHandoffInput extends RecoveryOwnershipInput { readonly priorCommandId:string }
+type StoreResult = Readonly<{ command: CommandRecord; registry: PlatformRegistry; authorities: readonly PlatformAuthority[] }>;
+export interface PlatformCommandTransactionStore {
+  mutate(input: PlatformCommandStoreMutation): Promise<StoreResult>;
+  claimActiveRecoveryOwnership(input: RecoveryOwnershipInput): Promise<StoreResult>;
+  handoffRecoveryOwnership(input: RecoveryOwnershipHandoffInput): Promise<StoreResult>;
+}
 
 const fail = (message:string):never => { throw new BackendError(BACKEND_ERROR_CODES.CONTRACT_VIOLATION,message); };
 const conflict = (message:string):never => { throw new BackendError(BACKEND_ERROR_CODES.CONFLICT,message); };
@@ -32,7 +42,46 @@ const authorityValue = (value:unknown):PlatformAuthority => { const result=valid
 const rank = Object.freeze({not_started:0,prepared:1,completed:2});
 const transitional = new Set<string>([PLATFORM_AUTHORITY_STATUSES.PROVISIONING,PLATFORM_AUTHORITY_STATUSES.REVOKING,PLATFORM_AUTHORITY_STATUSES.RECOVERY_REQUIRED]);
 
+const assertRecoverBinding=(command:CommandRecord,input:RecoveryOwnershipInput):void=>{
+  if(command.commandType!==COMMAND_TYPES.RECOVER_PLATFORM_ADMIN) fail("Recovery ownership requires a Recover command.");
+  if(command.commandId!==input.commandId) fail("Command path identity is invalid.");
+  if(command.payloadHash!==input.payloadHash||command.correlationId!==input.correlationId) conflict("Command binding conflicts.");
+};
+
+const recoveryOwnership=async(runner:TransactionRunnerPort,input:RecoveryOwnershipInput,priorCommandId:string|null):Promise<StoreResult>=>runAuthoritativeTransaction(runner,async({transaction})=>{
+  const registryPath=platformAuthorityRegistryDocumentPath(), commandPath=privilegedCommandDocumentPath(input.commandId), authorityPath=platformAuthorityDocumentPath(input.targetUid);
+  const registrySnapshot=await transaction.get(registryPath,"platform_authority_registry"), commandSnapshot=await transaction.get(commandPath,"privileged_command"), authoritySnapshot=await transaction.get(authorityPath,"platform_authority");
+  const priorSnapshot=priorCommandId===null?null:await transaction.get(privilegedCommandDocumentPath(priorCommandId),"privileged_command");
+  if(!registrySnapshot.exists||!commandSnapshot.exists||!authoritySnapshot.exists) fail("Recovery ownership documents must exist.");
+  const registry=registryValue(registrySnapshot.data), command=validatePersistedCommandRecord(commandSnapshot.data), authority=authorityValue(authoritySnapshot.data);
+  assertRecoverBinding(command,input);
+  if(command.status===COMMAND_STATUSES.RUNNING&&command.stage===PRIVILEGED_COMMAND_STAGES.PREPARED&&authority.transitionCommandId===input.commandId)return Object.freeze({command,registry,authorities:Object.freeze([authority])});
+  if(command.status!==COMMAND_STATUSES.PENDING||command.stage!==PRIVILEGED_COMMAND_STAGES.NOT_STARTED) throw new BackendError(BACKEND_ERROR_CODES.FAILED_PRECONDITION,"New Recover command is not pending.");
+  if(priorCommandId===null){
+    if(authority.status!==PLATFORM_AUTHORITY_STATUSES.ACTIVE) throw new BackendError(BACKEND_ERROR_CODES.FAILED_PRECONDITION,"Active Recovery ownership requires active Authority.");
+    if(authority.transitionCommandId!==null) conflict("Authority is owned by another command.");
+  }else{
+    const persistedPrior=priorSnapshot;
+    if(persistedPrior===null||!persistedPrior.exists) throw new BackendError(BACKEND_ERROR_CODES.CONTRACT_VIOLATION,"Prior Recover command is missing.");
+    const prior=validatePersistedCommandRecord(persistedPrior.data);
+    if(prior.commandId!==priorCommandId||prior.commandType!==COMMAND_TYPES.RECOVER_PLATFORM_ADMIN) throw new BackendError(BACKEND_ERROR_CODES.FAILED_PRECONDITION,"Prior owner is not an eligible Recover command.");
+    if(prior.status!==COMMAND_STATUSES.RECOVERY_REQUIRED||prior.stage!==PRIVILEGED_COMMAND_STAGES.PREPARED) throw new BackendError(BACKEND_ERROR_CODES.FAILED_PRECONDITION,"Prior Recover command is not handoff-eligible.");
+    if(authority.status!==PLATFORM_AUTHORITY_STATUSES.RECOVERY_REQUIRED||authority.transitionCommandId!==priorCommandId) conflict("Authority ownership changed concurrently.");
+  }
+  const nextStatus=priorCommandId===null?PLATFORM_AUTHORITY_STATUSES.ACTIVE:PLATFORM_AUTHORITY_STATUSES.PROVISIONING;
+  const logicalAuthority=authorityValue({...authority,status:nextStatus,transitionCommandId:input.commandId,updatedBy:input.commandId});
+  const nextRegistry=registryValue({...registry,bootstrapState:PLATFORM_AUTHORITY_REGISTRY_STATES.IN_PROGRESS,revision:registry.revision+1,lastCommandId:input.commandId});
+  const nextCommand=validatePersistedCommandRecord({...command,status:COMMAND_STATUSES.RUNNING,stage:PRIVILEGED_COMMAND_STAGES.PREPARED,leaseExpiresAt:null});
+  transaction.update(authorityPath,{status:logicalAuthority.status,transitionCommandId:input.commandId,updatedAt:serverOwnedTimestamp(),updatedBy:input.commandId});
+  transaction.set(registryPath,{...nextRegistry,updatedAt:serverOwnedTimestamp()});
+  transaction.update(commandPath,{status:COMMAND_STATUSES.RUNNING,stage:PRIVILEGED_COMMAND_STAGES.PREPARED,leaseExpiresAt:null});
+  writeAuditEvent(transaction,{...input.audit,commandId:input.commandId,correlationId:input.correlationId,level:"critical"});
+  return Object.freeze({command:nextCommand,registry:nextRegistry,authorities:Object.freeze([logicalAuthority])});
+});
+
 export const createPlatformCommandTransactionStore = (runner:TransactionRunnerPort):PlatformCommandTransactionStore => Object.freeze({
+  claimActiveRecoveryOwnership: (input:RecoveryOwnershipInput)=>recoveryOwnership(runner,input,null),
+  handoffRecoveryOwnership: (input:RecoveryOwnershipHandoffInput)=>recoveryOwnership(runner,input,input.priorCommandId),
   mutate: async (input: PlatformCommandStoreMutation) => runAuthoritativeTransaction(runner, async ({transaction}) => {
     const commandPath=privilegedCommandDocumentPath(input.commandId), registryPath=platformAuthorityRegistryDocumentPath();
     const registrySnapshot=await transaction.get(registryPath,"platform_authority_registry");

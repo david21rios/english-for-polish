@@ -68,7 +68,7 @@ test("portable persisted timestamps accept only canonical UTC milliseconds", () 
 });
 
 test("Authority and Registry versions are independent and the legacy alias remains compatible", () => {
-  assert.equal(PLATFORM_AUTHORITY_SCHEMA_VERSION, 1);
+  assert.equal(PLATFORM_AUTHORITY_SCHEMA_VERSION, 2);
   assert.equal(PLATFORM_AUTHORITY_REGISTRY_SCHEMA_VERSION, 1);
   assert.equal(AUTHORITY_SCHEMA_VERSION, PLATFORM_AUTHORITY_REGISTRY_SCHEMA_VERSION);
   assert.deepEqual(PLATFORM_AUTHORITY_FIELDS, [
@@ -82,6 +82,7 @@ test("Platform Authority exact current schema accepts the complete status-owner 
   const valid = [
     authority(PLATFORM_AUTHORITY_STATUSES.PROVISIONING, "command-1"),
     authority(PLATFORM_AUTHORITY_STATUSES.ACTIVE, null),
+    authority(PLATFORM_AUTHORITY_STATUSES.ACTIVE, "command-1"),
     authority(PLATFORM_AUTHORITY_STATUSES.REVOKING, "command-1"),
     authority(PLATFORM_AUTHORITY_STATUSES.REVOKED, null),
     authority(PLATFORM_AUTHORITY_STATUSES.RECOVERY_REQUIRED, "command-1"),
@@ -89,7 +90,6 @@ test("Platform Authority exact current schema accepts the complete status-owner 
   for (const value of valid) assert.equal(validatePlatformAuthority(value).ok, true, value.status);
   const invalid = [
     authority(PLATFORM_AUTHORITY_STATUSES.PROVISIONING, null),
-    authority(PLATFORM_AUTHORITY_STATUSES.ACTIVE, "command-1"),
     authority(PLATFORM_AUTHORITY_STATUSES.REVOKING, null),
     authority(PLATFORM_AUTHORITY_STATUSES.REVOKED, "command-1"),
     authority(PLATFORM_AUTHORITY_STATUSES.RECOVERY_REQUIRED, null),
@@ -107,7 +107,7 @@ test("Platform Authority rejects legacy, unknown and incomplete exact shapes", (
   for (const value of [legacy, missingField, { ...valid, unexpected: true }]) {
     assert.equal(validatePlatformAuthority(value).ok, false);
   }
-  for (const schemaVersion of [null, "1", 0, -1, 1.5, 2, 999]) {
+  for (const schemaVersion of [null, "1", 0, -1, 1, 1.5, 999]) {
     assert.equal(validatePlatformAuthority({ ...valid, schemaVersion }).ok, false);
   }
 });
