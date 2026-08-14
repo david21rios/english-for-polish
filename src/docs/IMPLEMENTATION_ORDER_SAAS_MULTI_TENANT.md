@@ -1,5 +1,54 @@
 # Orden de implementación SaaS multi-tenant
 
+## Current checkpoint - SaaS-03B-D-R6-R1 UpdateTenantSettings Mutation and Optimistic Concurrency Contract Resolution
+
+R6 identified that UpdateTenantSettings could not be materialized without first
+closing mutation composition and optimistic-concurrency semantics.
+
+R6-R1 resolves those blockers normatively.
+
+Closed decisions:
+
+- UpdateTenantSettings uses complete replacement of caller-owned Settings fields;
+- registrationPolicy is replaced as one exact four-boolean object;
+- featureFlags is replaced as one complete boolean map;
+- Tenant must be active;
+- persisted Settings gains server-owned integer version >= 1;
+- BootstrapTenant initializes Settings version to 1;
+- UpdateTenantSettings requires expectedVersion;
+- transaction requires persisted.version == expectedVersion;
+- successful update increments version exactly once;
+- stale expectedVersion returns CONFLICT;
+- legacy unversioned Settings require explicit migration and are not silently upgraded;
+- behavioral payload contains tenantId + expectedVersion + settings;
+- replay never increments version again.
+
+No package or Functions code has been modified by R6/R6-R1.
+No protected Firebase file has been modified.
+No deployment has occurred.
+
+Current roadmap state:
+
+```text
+SaaS-03B-D-R5-R2 = published
+UpdateTenantProfile = backend_sequence_closed
+SaaS-03B-D-R6 = blocker_resolved_by_R6_R1
+SaaS-03B-D-R6-R1 = completed_pending_human_review_and_push
+UpdateTenantSettings = mutation_concurrency_contract_closed_pending_materialization
+UpdateTenantBranding = blocked_pending_UpdateTenantSettings_sequence
+SuspendTenant = blocked_pending_update_family_completion
+RestoreTenant = blocked_pending_update_family_completion
+ArchiveTenant = blocked_pending_update_family_completion
+SaaS-03B-D = in_progress_ordered_deferred_workflows
+SaaS-03B-E = blocked_pending_03B_D
+SaaS-03B-F = blocked_pending_previous_sequence
+Phase 4 = not_started
+```
+
+After publication, derive only the minimum shared-contract materialization
+checkpoint for UpdateTenantSettings.
+
+---
 ## Current checkpoint - SaaS-03B-D-R5-R2 UpdateTenantProfile Backend Implementation
 
 R5-R2 implements and validates the executable trusted-backend
