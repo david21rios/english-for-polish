@@ -24,7 +24,7 @@ const invalid = (field, reason) => Object.freeze({ ok: false, issue: Object.free
 export const TENANT_PERSISTED_FIELDS = frozen(["tenantId", "tenantType", "displayName", "shortName", "country", "locale", "timezone", "status", "createdAt", "updatedAt", "suspendedAt", "archivedAt"]);
 export const TENANT_SETTINGS_FIELDS = frozen(["tenantId", "defaultLocale", "registrationPolicy", "featureFlags", "supportEmail", "supportUrl", "version", "updatedAt"]);
 export const REGISTRATION_POLICY_FIELDS = frozen(["openRegistration", "invitationOnly", "institutionalEmailOnly", "manualApprovalRequired"]);
-export const TENANT_BRANDING_FIELDS = frozen(["tenantId", "displayName", "logoUrl", "faviconUrl", "colors", "updatedAt"]);
+export const TENANT_BRANDING_FIELDS = frozen(["tenantId", "displayName", "logoUrl", "faviconUrl", "colors", "version", "updatedAt"]);
 export const TENANT_BRAND_COLORS_FIELDS = frozen(["primary", "secondary", "accent"]);
 export const MEMBERSHIP_KEY_FIELDS = frozen(["tenantId", "uid", "membershipId", "status", "originRequestId", "updatedAt"]);
 export const TENANT_ADMIN_AUTHORITY_STATE_FIELDS = frozen(["tenantId", "activeCount", "revision", "lastCommandId", "updatedAt"]);
@@ -66,6 +66,7 @@ export const validateTenantBranding = (value) => {
   /** @param {unknown} candidate */ const nullableText = (candidate) => candidate === null || text(candidate);
   return id(v.tenantId) && nullableText(v.displayName) && nullableText(v.logoUrl) && nullableText(v.faviconUrl)
     && hasExactKeys(colors, TENANT_BRAND_COLORS_FIELDS) && TENANT_BRAND_COLORS_FIELDS.every((field) => text(colors[field]))
+    && typeof v.version === "number" && Number.isInteger(v.version) && v.version >= 1
     && timestamp(v.updatedAt) ? ok(value) : invalid("tenantBranding", "invalid_tenant_branding");
 };
 

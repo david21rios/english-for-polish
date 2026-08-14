@@ -1,6 +1,6 @@
 {
   "name": "@mipymetic/saas-contracts",
-  "version": "0.16.0",
+  "version": "0.17.0",
   "private": true,
   "type": "module",
   "sideEffects": false,
@@ -9,14 +9,38 @@
   },
   "types": "./types/index.d.ts",
   "exports": {
-    ".": { "types": "./types/index.d.ts", "default": "./src/index.js" },
-    "./domain": { "types": "./types/domain/index.d.ts", "default": "./src/domain/index.js" },
-    "./persistence": { "types": "./types/persistence/index.d.ts", "default": "./src/persistence/index.js" },
-    "./validation": { "types": "./types/validation/index.d.ts", "default": "./src/validation/index.js" },
-    "./commands": { "types": "./types/commands/index.d.ts", "default": "./src/commands/index.js" },
-    "./authority": { "types": "./types/authority/index.d.ts", "default": "./src/authority/index.js" },
-    "./audit": { "types": "./types/audit/index.d.ts", "default": "./src/audit/index.js" },
-    "./errors": { "types": "./types/errors/index.d.ts", "default": "./src/errors/index.js" }
+    ".": {
+      "types": "./types/index.d.ts",
+      "default": "./src/index.js"
+    },
+    "./domain": {
+      "types": "./types/domain/index.d.ts",
+      "default": "./src/domain/index.js"
+    },
+    "./persistence": {
+      "types": "./types/persistence/index.d.ts",
+      "default": "./src/persistence/index.js"
+    },
+    "./validation": {
+      "types": "./types/validation/index.d.ts",
+      "default": "./src/validation/index.js"
+    },
+    "./commands": {
+      "types": "./types/commands/index.d.ts",
+      "default": "./src/commands/index.js"
+    },
+    "./authority": {
+      "types": "./types/authority/index.d.ts",
+      "default": "./src/authority/index.js"
+    },
+    "./audit": {
+      "types": "./types/audit/index.d.ts",
+      "default": "./src/audit/index.js"
+    },
+    "./errors": {
+      "types": "./types/errors/index.d.ts",
+      "default": "./src/errors/index.js"
+    }
   },
   "files": [
     "src",

@@ -51,4 +51,19 @@ export {
   updateTenantSettingsBehavioralPayload,
   validateUpdateTenantSettingsInput,
   validateUpdateTenantSettingsResult,
-} from "./updateTenantSettings.js";
+} from "./updateTenantSettings.js";export {
+  UPDATE_TENANT_BRANDING_AUDIT_AFTER_FIELDS,
+  UPDATE_TENANT_BRANDING_AUDIT_BEFORE_FIELDS,
+  UPDATE_TENANT_BRANDING_AUDIT_LEVEL,
+  UPDATE_TENANT_BRANDING_AUDIT_METADATA_FIELDS,
+  UPDATE_TENANT_BRANDING_AUDIT_OPERATION,
+  UPDATE_TENANT_BRANDING_AUDIT_RESULT,
+  UPDATE_TENANT_BRANDING_FIELDS,
+  UPDATE_TENANT_BRANDING_INPUT_FIELDS,
+  UPDATE_TENANT_BRANDING_OPERATION,
+  UPDATE_TENANT_BRANDING_RESOURCE_TYPE,
+  UPDATE_TENANT_BRANDING_RESULT_FIELDS,
+  updateTenantBrandingBehavioralPayload,
+  validateUpdateTenantBrandingInput,
+  validateUpdateTenantBrandingResult,
+} from "./updateTenantBranding.js";
