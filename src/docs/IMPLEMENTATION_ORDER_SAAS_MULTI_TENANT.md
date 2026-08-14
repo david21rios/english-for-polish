@@ -1,5 +1,88 @@
 # Orden de implementación SaaS multi-tenant
 
+## Current checkpoint - SaaS-03B-D-R3-C1 Independent BootstrapTenant Review
+
+R3-C1 completes the full independent post-repair review of BootstrapTenant.
+The complete R1 through R5 repair lineage is published and the final independent
+revalidation found no new technical defect or contract gap.
+
+BootstrapTenant remains an internal Firestore-only command. Its canonical
+Platform Admin authority is preserved, the Tenant aggregate remains atomic,
+replay is read-only, malformed and conflicting states fail closed, audit routing
+is destination-owned, and contention/retry behavior remains coherent.
+
+Validation evidence:
+
+- Functions 83/83 PASS
+- BootstrapTenant Emulator 7/7 PASS
+- PlatformCommandTransactionStore Emulator 11/11 PASS
+- BootstrapPlatformAdmins Emulator 3/3 PASS
+- RecoverPlatformAdmin Emulator 3/3 PASS
+- RevokePlatformAdmin Emulator 5/5 PASS
+- package @mipymetic/saas-contracts@0.14.0: 57/57 PASS
+- RegistrationRequest precheck 52 / 34 ALLOW / 18 DENY
+- Membership precheck 81 / 44 / 37
+- Course precheck 114 / 32 / 82
+- Enrollment precheck 111 / 42 / 69
+- Firestore Rules preflight 222 / 88 ALLOW / 134 DENY
+- general tests 35/35 PASS
+- production build PASS
+- Node syntax checks PASS
+- global lint baseline unchanged at 13 errors / 8 warnings
+- attributable lint delta = 0
+- root audit unchanged at 25 vulnerabilities
+- Functions audit unchanged at 7 moderate
+- protected file hashes unchanged
+- Firebase remote not used
+- deploy not performed
+
+The first regression Emulator attempt after deleting generated functions/lib
+failed before business execution with ERR_MODULE_NOT_FOUND. Rebuilding the
+derived Functions output restored the expected environment and every regression
+suite passed. This is classified as test-environment preparation, not a product
+defect.
+
+Current roadmap state:
+
+```text
+SaaS-03B-D-R3 = implemented_and_validated
+SaaS-03B-D-R3-C1-R1 = completed
+SaaS-03B-D-R3-C1-R2-R1 = completed
+SaaS-03B-D-R3-C1-R2 = completed
+SaaS-03B-D-R3-C1-R3 = completed
+SaaS-03B-D-R3-C1-R4-R1-R1 = completed
+SaaS-03B-D-R3-C1-R4-R1 = completed
+SaaS-03B-D-R3-C1-R4 = completed
+SaaS-03B-D-R3-C1-R5-R1 = completed
+SaaS-03B-D-R3-C1-R5-R2-R1 = completed
+SaaS-03B-D-R3-C1-R5-R2 = completed
+SaaS-03B-D-R3-C1-R5 = completed
+SaaS-03B-D-R3-C1 = completed_pending_human_review_and_push
+BootstrapTenant = independently_validated
+UpdateTenantProfile/UpdateTenantSettings/UpdateTenantBranding = blocked_pending_contract_resolution
+SuspendTenant/RestoreTenant/ArchiveTenant = blocked_pending_contract_resolution
+SaaS-03B-D = in_progress_ready_for_deferred_workflow_contract_resolution_after_R3_C1_push
+SaaS-03B-E = blocked_pending_03B_D
+SaaS-03B-F = blocked_pending_previous_sequence
+Phase 4 = not_started
+```
+
+After human review and publication of R3-C1, do not implement any deferred
+Tenant workflow directly. First perform the minimum roadmap/contract
+reconciliation required to establish the authoritative order and contract
+boundary for:
+
+- UpdateTenantProfile
+- UpdateTenantSettings
+- UpdateTenantBranding
+- SuspendTenant
+- RestoreTenant
+- ArchiveTenant
+
+No identifier for that next reconciliation is assigned by this checkpoint.
+It must be derived from the published genealogy rather than invented.
+
+---
 ## Current checkpoint - SaaS-03B-D-R3-C1-R5 BootstrapTenant audit authority scope specific review
 
 R5 independently validates the BootstrapTenant Tenant-audit authority and
