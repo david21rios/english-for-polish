@@ -1,5 +1,60 @@
 # Orden de implementación SaaS multi-tenant
 
+## Current checkpoint - SaaS-03B-D-R3-C1-R5 BootstrapTenant audit authority scope specific review
+
+R5 independently validates the BootstrapTenant Tenant-audit authority and
+destination-scope repair after the published R5-R2 Foundation/caller cutover.
+
+The canonical human Platform Admin remains platform-scoped with `tenantId=null`.
+Both BootstrapTenant audits use the exact canonical actor. The Tenant audit uses
+an explicit Tenant destination; the platform audit uses an explicit platform
+destination. Foundation validates AuthorityResolution and destination before
+writes, and derives both routing and `AuditEvent.tenantId` exclusively from the
+destination. Executable synthetic Platform Admin authority residual count is zero.
+
+The previously blocked mandatory Emulator evidence was completed manually.
+BootstrapTenant aggregate, zero-write failures, replay, corrupted replay,
+contention and retry characterization pass. Platform Store,
+BootstrapPlatformAdmins, Recover and Revoke regressions pass. Functions are
+83/83, package 57/57, repository suites and prechecks pass, Rules preflight is
+222/88/134, general tests are 35/35, production build and Node syntax checks
+pass. Clean global lint remains the legacy 13 errors/8 warnings with
+attributable delta zero. Supply-chain baseline is unchanged and protected file
+hashes match exactly. No Firebase remote or deploy was used.
+
+Historical blockers are now classified:
+
+```text
+BOOTSTRAP_TENANT_TENANT_AUDIT_AUTHORITY_SCOPE_INVALID = CLOSED
+SHARED_FOUNDATION_AUDIT_AUTHORITY_DESTINATION_SCOPE_GAP = CLOSED
+R5_R2_SCOPE_DEPENDENCY_CONTRADICTION = CLOSED
+ENVIRONMENT_EVIDENCE_GATE_BLOCKED = RESOLVED_ENVIRONMENTALLY
+```
+
+Current roadmap state:
+
+```text
+SaaS-03B-D-R3-C1-R5-R1 = completed
+SaaS-03B-D-R3-C1-R5-R2-R1 = completed
+SaaS-03B-D-R3-C1-R5-R2 = completed
+SaaS-03B-D-R3-C1-R5 = completed_pending_human_review_and_push
+SaaS-03B-D-R3-C1 = blocked_pending_R5_push_then_full_independent_revalidation
+BootstrapTenant = audit_scope_independently_validated_pending_full_R3_C1_review
+UpdateTenantProfile/UpdateTenantSettings/UpdateTenantBranding = blocked_pending_contract_resolution
+SuspendTenant/RestoreTenant/ArchiveTenant = blocked_pending_contract_resolution
+SaaS-03B-D = in_progress
+SaaS-03B-E = blocked_pending_03B_D
+SaaS-03B-F = blocked_pending_previous_sequence
+Phase 4 = not_started
+```
+
+After human review and publication, execute only:
+
+`SaaS-03B-D-R3-C1 - Independent BootstrapTenant Review`.
+
+Do not start another Tenant workflow or later SaaS phase before that review is closed.
+
+---
 ## Current checkpoint — SaaS-03B-D-R3-C1-R5-R2 audit destination materialization
 
 R5-R2 completes the atomic Foundation/caller cutover approved by R5-R2-R1.
