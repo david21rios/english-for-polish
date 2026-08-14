@@ -12,6 +12,7 @@ export const COMMAND_TYPES = Object.freeze({
   RECOVER_PLATFORM_ADMIN: "RecoverPlatformAdmin",
   REVOKE_PLATFORM_ADMIN: "RevokePlatformAdmin",
   BOOTSTRAP_TENANT: "BootstrapTenant",
+  UPDATE_TENANT_PROFILE: "UpdateTenantProfile",
   APPROVE_REGISTRATION_REQUEST: "ApproveRegistrationRequest",
   REJECT_REGISTRATION_REQUEST: "RejectRegistrationRequest",
   CHANGE_MEMBERSHIP_ROLE: "ChangeMembershipRole",
@@ -33,7 +34,10 @@ export const PLATFORM_COMMAND_TYPES = frozen([
   COMMAND_TYPES.RECOVER_PLATFORM_ADMIN,
   COMMAND_TYPES.REVOKE_PLATFORM_ADMIN,
 ]);
-export const ATOMIC_TENANT_COMMAND_TYPES = frozen([COMMAND_TYPES.BOOTSTRAP_TENANT]);
+export const ATOMIC_TENANT_COMMAND_TYPES = frozen([
+  COMMAND_TYPES.BOOTSTRAP_TENANT,
+  COMMAND_TYPES.UPDATE_TENANT_PROFILE,
+]);
 export const COMMAND_RECORD_FIELDS = frozen(["commandId", "commandType", "payloadHash", "actorUid", "actorType", "authority", "tenantId", "status", "stage", "startedAt", "completedAt", "failedAt", "result", "errorCode", "attemptCount", "correlationId", "expiresAt", "leaseExpiresAt", "schemaVersion"]);
 export const COMMAND_RECORD_REQUIRED_FIELDS = COMMAND_RECORD_FIELDS;
 

@@ -1,5 +1,93 @@
 # Orden de implementación SaaS multi-tenant
 
+## Current checkpoint - SaaS-03B-D-R5-R1 UpdateTenantProfile Shared Contract Materialization
+
+R5-R1 materializes the exact UpdateTenantProfile contract closed by R5 in
+`@mipymetic/saas-contracts@0.15.0`.
+
+The shared package now owns:
+
+- `COMMAND_TYPES.UPDATE_TENANT_PROFILE`;
+- completed-only atomic Tenant command-stage authorization;
+- exact UpdateTenantProfile input and patch field constants;
+- exact input validation;
+- behavioral payload projection;
+- exact universal seven-field Tenant command result validation;
+- exact Privileged audit literals and non-PII audit allowlists;
+- runtime exports and generated TypeScript declarations.
+
+The additive public surface is released as:
+
+```text
+@mipymetic/saas-contracts
+0.14.0 -> 0.15.0
+```
+
+Root consumes workspace version 0.15.0.
+Functions consume the exact vendored artifact:
+
+```text
+functions/vendor/mipymetic-saas-contracts-0.15.0.tgz
+```
+
+Canonical artifact evidence:
+
+```text
+entries: 66
+SHA-256: 5c1a5825247376696ecaca3ae99ab8b625759a32e106161602e719e9d6ce6108
+npm shasum: ccb90ce6cd6c6a9f4b50226bd12510dcba46f8bf
+integrity: sha512-yL4Ahx64eqltQ7Zi/ghMQWaMH30jqoJK8+Fan7DWlhtFc2Hj4Faw0Cn/L7iVZeMrqHbuC1HnefIFPzNszZU/mg==
+```
+
+Two independent packs produced the same SHA-256.
+
+Validation is green:
+
+```text
+package tests = 69/69 PASS
+package topology = 5/5 PASS
+package TypeScript check = PASS
+strict NodeNext declarations = PASS
+deterministic declarations = PASS
+artifact reproducibility = PASS
+Functions TypeScript check = PASS
+```
+
+No executable UpdateTenantProfile Functions implementation exists yet.
+
+No changes were made to Firestore Rules, indexes, Storage Rules, Firebase
+configuration or client Firebase initialization.
+
+Current roadmap state:
+
+```text
+SaaS-03B-D-R1 = completed
+SaaS-03B-D-R2 = completed
+SaaS-03B-D-R3 = implemented_and_validated
+SaaS-03B-D-R3-C1 = completed
+SaaS-03B-D-R4 = completed
+SaaS-03B-D-R5 = completed
+SaaS-03B-D-R5-R1 = completed_pending_human_review_and_push
+BootstrapTenant = independently_validated
+UpdateTenantProfile = shared_contract_materialized_pending_R5_R1_push
+UpdateTenantSettings = blocked_pending_UpdateTenantProfile_sequence
+UpdateTenantBranding = blocked_pending_UpdateTenantSettings_sequence
+SuspendTenant = blocked_pending_update_family_completion
+RestoreTenant = blocked_pending_update_family_completion
+ArchiveTenant = blocked_pending_update_family_completion
+SaaS-03B-D = in_progress_ordered_deferred_workflows
+SaaS-03B-E = blocked_pending_03B_D
+SaaS-03B-F = blocked_pending_previous_sequence
+Phase 4 = not_started
+```
+
+After human review and publication of R5-R1, derive only the minimum next
+checkpoint for executable UpdateTenantProfile backend implementation.
+
+Do not start UpdateTenantSettings, UpdateTenantBranding, SuspendTenant,
+RestoreTenant or ArchiveTenant before the UpdateTenantProfile sequence is closed.
+
+---
 ## Current checkpoint - SaaS-03B-D-R5 UpdateTenantProfile Contract Resolution
 
 R5 closes the exact normative command boundary for UpdateTenantProfile.
