@@ -1,5 +1,79 @@
 # Orden de implementación SaaS multi-tenant
 
+## Current checkpoint - SaaS-03B-D-R5 UpdateTenantProfile Contract Resolution
+
+R5 closes the exact normative command boundary for UpdateTenantProfile.
+
+The command remains trusted-backend only and is authorized for an authenticated
+Identity with approved same-Tenant tenant_admin authority and tenant.update.
+
+The canonical external input is:
+
+```text
+{
+  commandId,
+  correlationId,
+  tenantId,
+  patch
+}
+```
+
+The patch is non-empty and may contain only:
+
+- displayName
+- shortName
+- country
+- locale
+- timezone
+
+No caller-controlled membershipId, authority, lifecycle field, timestamp,
+expectedVersion, expectedUpdatedAt or other concurrency token is authorized.
+
+Tenant authority must be derived server-side from authenticated uid through the
+canonical MembershipKey -> Membership lookup, with package validation and exact
+tenant_admin / tenant.update authority.
+
+Concurrency remains transaction/reread based with field-scoped Tenant updates.
+The command must never replace a stale whole-Tenant snapshot. No new persisted
+Tenant version field is introduced.
+
+The stable result remains the universal seven-field Tenant command result.
+Successful execution uses succeeded/completed and produces one Tenant-scoped
+Privileged audit without profile values or Membership identifiers.
+
+R5 is documentation-only. Package materialization and Functions implementation
+have not started.
+
+Current roadmap state:
+
+```text
+SaaS-03B-D-R1 = completed
+SaaS-03B-D-R2 = completed
+SaaS-03B-D-R3 = implemented_and_validated
+SaaS-03B-D-R3-C1 = completed
+SaaS-03B-D-R4 = completed
+SaaS-03B-D-R5 = completed_pending_human_review_and_push
+BootstrapTenant = independently_validated
+UpdateTenantProfile = contract_closed_pending_shared_materialization_after_R5_push
+UpdateTenantSettings = blocked_pending_UpdateTenantProfile_sequence
+UpdateTenantBranding = blocked_pending_UpdateTenantSettings_sequence
+SuspendTenant = blocked_pending_update_family_completion
+RestoreTenant = blocked_pending_update_family_completion
+ArchiveTenant = blocked_pending_update_family_completion
+SaaS-03B-D = in_progress_ordered_deferred_workflows
+SaaS-03B-E = blocked_pending_03B_D
+SaaS-03B-F = blocked_pending_previous_sequence
+Phase 4 = not_started
+```
+
+After human review and publication of R5, derive only the minimum shared-package
+materialization microphase for UpdateTenantProfile. Do not implement the Functions
+command before that shared contract materialization is published.
+
+Do not start UpdateTenantSettings, UpdateTenantBranding, SuspendTenant,
+RestoreTenant or ArchiveTenant.
+
+---
 ## Current checkpoint - SaaS-03B-D-R4 Deferred Tenant Workflow Contract and Sequence Reconciliation
 
 R4 closes the post-BootstrapTenant ordering ambiguity for the remaining six
