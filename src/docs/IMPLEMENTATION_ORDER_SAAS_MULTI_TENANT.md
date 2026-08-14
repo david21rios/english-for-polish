@@ -1,5 +1,62 @@
 # Orden de implementación SaaS multi-tenant
 
+## Current checkpoint - SaaS-03B-D-R4 Deferred Tenant Workflow Contract and Sequence Reconciliation
+
+R4 closes the post-BootstrapTenant ordering ambiguity for the remaining six
+authorized Phase-D Tenant workflows.
+
+The remaining work is split into two ordered families:
+
+```text
+Family A - Tenant update/configuration
+1. UpdateTenantProfile
+2. UpdateTenantSettings
+3. UpdateTenantBranding
+
+Family B - Tenant lifecycle
+4. SuspendTenant
+5. RestoreTenant
+6. ArchiveTenant
+```
+
+The update family must complete before lifecycle implementation begins.
+
+R4 is documentation-only. No package, Functions, Domain, Shared/client, Rules,
+indexes, Firebase configuration, UI, remote Firebase operation or deploy is part
+of this reconciliation.
+
+The next executable family is UpdateTenantProfile first. Its exact payload,
+optionality/nullability, update-token/version binding, replay semantics, audit
+allowlists, resourceType and exhaustive error mapping must be closed before
+technical implementation.
+
+Current roadmap state:
+
+```text
+SaaS-03B-D-R1 = completed
+SaaS-03B-D-R2 = completed
+SaaS-03B-D-R3 = implemented_and_validated
+SaaS-03B-D-R3-C1 = completed
+SaaS-03B-D-R4 = completed_pending_human_review_and_push
+BootstrapTenant = independently_validated
+UpdateTenantProfile = blocked_pending_exact_contract_materialization_after_R4_push
+UpdateTenantSettings = blocked_pending_UpdateTenantProfile_sequence
+UpdateTenantBranding = blocked_pending_UpdateTenantSettings_sequence
+SuspendTenant = blocked_pending_update_family_completion
+RestoreTenant = blocked_pending_update_family_completion
+ArchiveTenant = blocked_pending_update_family_completion
+SaaS-03B-D = in_progress_ordered_deferred_workflows
+SaaS-03B-E = blocked_pending_03B_D
+SaaS-03B-F = blocked_pending_previous_sequence
+Phase 4 = not_started
+```
+
+After human review and publication of R4, inspect only the authoritative
+UpdateTenantProfile contracts and derive the minimum next identifier from the
+published genealogy. Do not begin UpdateTenantSettings, UpdateTenantBranding or
+any lifecycle command before the UpdateTenantProfile sequence is closed.
+
+---
 ## Current checkpoint - SaaS-03B-D-R3-C1 Independent BootstrapTenant Review
 
 R3-C1 completes the full independent post-repair review of BootstrapTenant.
