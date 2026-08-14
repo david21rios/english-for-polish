@@ -1,5 +1,75 @@
 # Orden de implementación SaaS multi-tenant
 
+## Current checkpoint - SaaS-03B-D-R5-R2 UpdateTenantProfile Backend Implementation
+
+R5-R2 implements and validates the executable trusted-backend
+`UpdateTenantProfile` workflow closed normatively by R5 and materialized in the
+shared package by R5-R1.
+
+Implemented backend surface:
+
+```text
+authorization/updateTenantProfileAuthority.ts
+commands/updateTenantProfile.ts
+persistence/updateTenantProfileTransactionStore.ts
+```
+
+with dedicated authority, transaction-store and command tests.
+
+The workflow now enforces:
+
+- verified authenticated actor;
+- persisted Identity coherence;
+- active Tenant;
+- canonical MembershipKey lookup from authenticated UID;
+- authoritative approved Membership;
+- tenant_admin authority;
+- tenant.update capability;
+- package-valid AuthorityResolution;
+- transaction-time Identity/Tenant/MembershipKey/Membership reread;
+- behavioral-payload idempotency;
+- exact replay binding;
+- field-scoped profile update plus server-owned updatedAt;
+- exact privileged Command persistence;
+- exactly one non-PII Tenant audit.
+
+Final validation:
+
+```text
+Functions TypeScript check = PASS
+Functions lint = PASS
+Functions tests = 119/119 PASS
+Focused UpdateTenantProfile = 36/36 PASS
+Shared package tests = 69/69 PASS
+Shared package TypeScript check = PASS
+```
+
+No public UpdateTenantProfile handler exists.
+No protected Firebase file was modified.
+No deploy occurred.
+
+Current roadmap state:
+
+```text
+SaaS-03B-D-R5 = completed
+SaaS-03B-D-R5-R1 = completed
+SaaS-03B-D-R5-R2 = completed_pending_human_review_and_push
+UpdateTenantProfile = backend_implemented_pending_R5_R2_push
+UpdateTenantSettings = blocked_pending_UpdateTenantProfile_sequence
+UpdateTenantBranding = blocked_pending_UpdateTenantSettings_sequence
+SuspendTenant = blocked_pending_update_family_completion
+RestoreTenant = blocked_pending_update_family_completion
+ArchiveTenant = blocked_pending_update_family_completion
+SaaS-03B-D = in_progress_ordered_deferred_workflows
+SaaS-03B-E = blocked_pending_03B_D
+SaaS-03B-F = blocked_pending_previous_sequence
+Phase 4 = not_started
+```
+
+After R5-R2 human review and publication, close the UpdateTenantProfile sequence
+and derive only the minimum next checkpoint for UpdateTenantSettings.
+
+---
 ## Current checkpoint - SaaS-03B-D-R5-R1 UpdateTenantProfile Shared Contract Materialization
 
 R5-R1 materializes the exact UpdateTenantProfile contract closed by R5 in
