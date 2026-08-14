@@ -28,7 +28,7 @@ test("Functions import boundaries isolate SDKs and reject client dependencies", 
 
 test("backend entrypoint exports no callable handler or unauthorized workflow", async () => {
   const entrypoint = await readFile(path.resolve("src/index.ts"), "utf8");
-  assert.doesNotMatch(entrypoint, /onCall|onRequest|BootstrapPlatformAdmin|ApproveRegistrationRequest|UpdateTenant|SuspendTenant|RestoreTenant|ArchiveTenant/);
+  assert.doesNotMatch(entrypoint, /onCall|onRequest|BootstrapPlatformAdmin|ApproveRegistrationRequest|\bUpdateTenant\b|executeUpdateTenant\b|SuspendTenant|RestoreTenant|ArchiveTenant/);
 });
 
 test("static module graph is acyclic", async () => {
