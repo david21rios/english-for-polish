@@ -22,7 +22,7 @@ const invalid = (field, reason) => Object.freeze({ ok: false, issue: Object.free
 };
 
 export const TENANT_PERSISTED_FIELDS = frozen(["tenantId", "tenantType", "displayName", "shortName", "country", "locale", "timezone", "status", "createdAt", "updatedAt", "suspendedAt", "archivedAt"]);
-export const TENANT_SETTINGS_FIELDS = frozen(["tenantId", "defaultLocale", "registrationPolicy", "featureFlags", "supportEmail", "supportUrl", "updatedAt"]);
+export const TENANT_SETTINGS_FIELDS = frozen(["tenantId", "defaultLocale", "registrationPolicy", "featureFlags", "supportEmail", "supportUrl", "version", "updatedAt"]);
 export const REGISTRATION_POLICY_FIELDS = frozen(["openRegistration", "invitationOnly", "institutionalEmailOnly", "manualApprovalRequired"]);
 export const TENANT_BRANDING_FIELDS = frozen(["tenantId", "displayName", "logoUrl", "faviconUrl", "colors", "updatedAt"]);
 export const TENANT_BRAND_COLORS_FIELDS = frozen(["primary", "secondary", "accent"]);
@@ -55,6 +55,7 @@ export const validateTenantSettings = (value) => {
   const validFlags = isPlainObject(flags) && Object.values(flags).every((flag) => typeof flag === "boolean");
   return id(v.tenantId) && isCanonicalBcp47(v.defaultLocale) && validPolicy && validFlags
     && (v.supportEmail === null || text(v.supportEmail)) && (v.supportUrl === null || httpsUrl(v.supportUrl))
+    && typeof v.version === "number" && Number.isInteger(v.version) && v.version >= 1
     && timestamp(v.updatedAt) ? ok(value) : invalid("tenantSettings", "invalid_tenant_settings");
 };
 
