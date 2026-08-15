@@ -1,5 +1,85 @@
 # Orden de implementación SaaS multi-tenant
 
+## Current checkpoint - SaaS-03B-D-R7-R3 UpdateTenantBranding Backend Implementation and Update Family Closure
+
+R7-R3 materializes and validates the trusted-backend UpdateTenantBranding
+workflow after R7-R1 closed its mutation/concurrency semantics and R7-R2
+materialized its portable contract.
+
+The complete ordered update/configuration family is now technically
+implemented:
+
+UpdateTenantProfile = backend_sequence_closed
+UpdateTenantSettings = backend_sequence_closed
+UpdateTenantBranding = backend_sequence_closed
+
+R7 update/configuration family = completed
+
+R7-R3 validation evidence:
+
+UpdateTenantBranding authority = 10/10 PASS
+UpdateTenantBranding transaction store = 9/9 PASS
+UpdateTenantBranding command = 6/6 PASS
+Functions complete suite = 169/169 PASS
+portable Branding contract = 13/13 PASS
+shared package regression = 96/96 PASS
+package TypeScript check = PASS
+git diff --check = PASS
+
+Technical implementation commit:
+
+b8850381f288e2d72d63782d6109d62035dae451
+
+feat(saas): implement update tenant branding backend
+
+No public UpdateTenantBranding handler exists.
+
+No protected Firebase surface was modified.
+
+No Tenant lifecycle implementation has started.
+
+R4 established that the update family must complete before lifecycle
+implementation begins. That dependency is now technically satisfied.
+
+Current roadmap state:
+
+SaaS-03B-D-R5-R2 = completed
+UpdateTenantProfile = backend_sequence_closed
+
+SaaS-03B-D-R6 = completed
+SaaS-03B-D-R6-R1 = completed
+UpdateTenantSettings = backend_sequence_closed
+
+SaaS-03B-D-R7 = completed
+SaaS-03B-D-R7-R1 = completed
+SaaS-03B-D-R7-R2 = completed
+SaaS-03B-D-R7-R3 = completed_pending_documentary_commit_and_push
+UpdateTenantBranding = backend_sequence_closed
+
+R7 update/configuration family = completed
+
+SuspendTenant = ready_for_contract_resolution_after_R7_publication
+RestoreTenant = blocked_pending_SuspendTenant_sequence
+ArchiveTenant = blocked_pending_SuspendTenant_sequence
+
+SaaS-03B-D = in_progress_ordered_deferred_workflows
+SaaS-03B-E = blocked_pending_03B_D
+SaaS-03B-F = blocked_pending_previous_sequence
+Phase 4 = not_started
+
+Historical checkpoints below remain immutable evidence of the state that
+existed when they were created. Their previous
+blocked_pending_update_family_completion values are not rewritten.
+
+After human review, documentary commit and publication of R7, derive only the
+minimum authoritative next checkpoint for SuspendTenant contract resolution.
+
+Do not invent the next identifier before publication.
+
+Do not start RestoreTenant or ArchiveTenant.
+
+---
+
 ## Current checkpoint - SaaS-03B-D-R6-R1 UpdateTenantSettings Mutation and Optimistic Concurrency Contract Resolution
 
 R6 identified that UpdateTenantSettings could not be materialized without first
