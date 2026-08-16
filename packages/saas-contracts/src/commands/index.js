@@ -83,3 +83,19 @@ export {
   validateSuspendTenantInput,
   validateSuspendTenantResult,
 } from "./suspendTenant.js";
+export {
+  RESTORE_TENANT_AUDIT_AFTER_FIELDS,
+  RESTORE_TENANT_AUDIT_BEFORE_FIELDS,
+  RESTORE_TENANT_AUDIT_LEVEL,
+  RESTORE_TENANT_AUDIT_METADATA_FIELDS,
+  RESTORE_TENANT_AUDIT_OPERATION,
+  RESTORE_TENANT_AUDIT_RESULT,
+  RESTORE_TENANT_INPUT_FIELDS,
+  RESTORE_TENANT_OPERATION,
+  RESTORE_TENANT_RESOURCE_TYPE,
+  RESTORE_TENANT_RESULT_FIELDS,
+  RESTORE_TENANT_TARGET_STATE,
+  restoreTenantBehavioralPayload,
+  validateRestoreTenantInput,
+  validateRestoreTenantResult,
+} from "./restoreTenant.js";
