@@ -67,3 +67,19 @@ export {
   validateUpdateTenantBrandingInput,
   validateUpdateTenantBrandingResult,
 } from "./updateTenantBranding.js";
+export {
+  SUSPEND_TENANT_AUDIT_AFTER_FIELDS,
+  SUSPEND_TENANT_AUDIT_BEFORE_FIELDS,
+  SUSPEND_TENANT_AUDIT_LEVEL,
+  SUSPEND_TENANT_AUDIT_METADATA_FIELDS,
+  SUSPEND_TENANT_AUDIT_OPERATION,
+  SUSPEND_TENANT_AUDIT_RESULT,
+  SUSPEND_TENANT_INPUT_FIELDS,
+  SUSPEND_TENANT_OPERATION,
+  SUSPEND_TENANT_RESOURCE_TYPE,
+  SUSPEND_TENANT_RESULT_FIELDS,
+  SUSPEND_TENANT_TARGET_STATE,
+  suspendTenantBehavioralPayload,
+  validateSuspendTenantInput,
+  validateSuspendTenantResult,
+} from "./suspendTenant.js";

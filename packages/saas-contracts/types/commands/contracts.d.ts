@@ -15,6 +15,7 @@ export const COMMAND_TYPES: Readonly<{
     UPDATE_TENANT_PROFILE: "UpdateTenantProfile";
     UPDATE_TENANT_SETTINGS: "UpdateTenantSettings";
     UPDATE_TENANT_BRANDING: "UpdateTenantBranding";
+    SUSPEND_TENANT: "SuspendTenant";
     APPROVE_REGISTRATION_REQUEST: "ApproveRegistrationRequest";
     REJECT_REGISTRATION_REQUEST: "RejectRegistrationRequest";
     CHANGE_MEMBERSHIP_ROLE: "ChangeMembershipRole";
@@ -36,7 +37,7 @@ export const PRIVILEGED_COMMAND_STAGES: Readonly<{
     COMPLETED: "completed";
 }>;
 export const PLATFORM_COMMAND_TYPES: readonly ("BootstrapPlatformAdmins" | "RecoverPlatformAdmin" | "RevokePlatformAdmin")[];
-export const ATOMIC_TENANT_COMMAND_TYPES: readonly ("BootstrapTenant" | "UpdateTenantProfile" | "UpdateTenantSettings" | "UpdateTenantBranding")[];
+export const ATOMIC_TENANT_COMMAND_TYPES: readonly ("BootstrapTenant" | "UpdateTenantProfile" | "UpdateTenantSettings" | "UpdateTenantBranding" | "SuspendTenant")[];
 export const COMMAND_RECORD_FIELDS: readonly string[];
 export const COMMAND_RECORD_REQUIRED_FIELDS: readonly string[];
 export function isPrivilegedCommandStageAllowed(commandType: unknown, stage: unknown): boolean;
