@@ -99,3 +99,19 @@ export {
   validateRestoreTenantInput,
   validateRestoreTenantResult,
 } from "./restoreTenant.js";
+export {
+  ARCHIVE_TENANT_AUDIT_AFTER_FIELDS,
+  ARCHIVE_TENANT_AUDIT_BEFORE_FIELDS,
+  ARCHIVE_TENANT_AUDIT_LEVEL,
+  ARCHIVE_TENANT_AUDIT_METADATA_FIELDS,
+  ARCHIVE_TENANT_AUDIT_OPERATION,
+  ARCHIVE_TENANT_AUDIT_RESULT,
+  ARCHIVE_TENANT_INPUT_FIELDS,
+  ARCHIVE_TENANT_OPERATION,
+  ARCHIVE_TENANT_RESOURCE_TYPE,
+  ARCHIVE_TENANT_RESULT_FIELDS,
+  ARCHIVE_TENANT_TARGET_STATE,
+  archiveTenantBehavioralPayload,
+  validateArchiveTenantInput,
+  validateArchiveTenantResult,
+} from "./archiveTenant.js";

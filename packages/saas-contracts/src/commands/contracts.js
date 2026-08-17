@@ -17,6 +17,7 @@ export const COMMAND_TYPES = Object.freeze({
   UPDATE_TENANT_BRANDING: "UpdateTenantBranding",
   SUSPEND_TENANT: "SuspendTenant",
   RESTORE_TENANT: "RestoreTenant",
+  ARCHIVE_TENANT: "ArchiveTenant",
   APPROVE_REGISTRATION_REQUEST: "ApproveRegistrationRequest",
   REJECT_REGISTRATION_REQUEST: "RejectRegistrationRequest",
   CHANGE_MEMBERSHIP_ROLE: "ChangeMembershipRole",
@@ -45,6 +46,7 @@ export const ATOMIC_TENANT_COMMAND_TYPES = frozen([
   COMMAND_TYPES.UPDATE_TENANT_BRANDING,
   COMMAND_TYPES.SUSPEND_TENANT,
   COMMAND_TYPES.RESTORE_TENANT,
+  COMMAND_TYPES.ARCHIVE_TENANT,
 ]);
 export const COMMAND_RECORD_FIELDS = frozen(["commandId", "commandType", "payloadHash", "actorUid", "actorType", "authority", "tenantId", "status", "stage", "startedAt", "completedAt", "failedAt", "result", "errorCode", "attemptCount", "correlationId", "expiresAt", "leaseExpiresAt", "schemaVersion"]);
 export const COMMAND_RECORD_REQUIRED_FIELDS = COMMAND_RECORD_FIELDS;
