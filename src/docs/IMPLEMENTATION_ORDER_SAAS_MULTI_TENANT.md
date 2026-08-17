@@ -1,4 +1,19 @@
-﻿# Orden de implementación SaaS multi-tenant
+# Orden de implementación SaaS multi-tenant
+
+## Current checkpoint - SaaS-03B-E-R2-R1 RegistrationRequest Shared Persistence Contract Resolution
+
+- `SaaS-03B-E-R1 = completed_and_published`
+- `SaaS-03B-E-R2 = blocked_pending_R2_R1_resolution`
+- `SaaS-03B-E-R2-R1 = blocked_pending_R2_R1_R1`
+- `Target = ApproveRegistrationRequest`
+- `RegistrationRequest root contract = sufficiently_defined_for_future_shared_validation`
+- `RegistrationRequestKey exact persisted shape = unresolved`
+- `R2 direct materialization = not_authorized`
+- `Package mutation = not_authorized`
+- `Functions mutation = not_authorized`
+- `Firebase mutation = not_authorized`
+- `Implementation = not_authorized`
+- `Next checkpoint = SaaS-03B-E-R2-R1-R1 RegistrationRequestKey Exact Persisted Contract Resolution`
 
 ## Current checkpoint - SaaS-03B-E-R1 RegistrationRequest Backend Contract Freeze
 
