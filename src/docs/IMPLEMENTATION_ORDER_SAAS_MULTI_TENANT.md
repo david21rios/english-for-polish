@@ -1,5 +1,20 @@
-# Orden de implementación SaaS multi-tenant
+﻿# Orden de implementación SaaS multi-tenant
 
+## Current checkpoint - SaaS-03B-E-R1 RegistrationRequest Backend Contract Freeze
+
+- `SaaS-03B-D = completed_and_published`
+- `SaaS-03B-E = in_progress`
+- `SaaS-03B-E-R1 = contract_authored_pending_validation`
+- `Selected scope = RegistrationRequest lifecycle`
+- `ApproveRegistrationRequest = contract_frozen_pending_validation`
+- `RejectRegistrationRequest = contract_frozen_pending_validation`
+- `Membership = dependency_only`
+- `Course = out_of_scope`
+- `Enrollment = out_of_scope`
+- `Implementation = not_authorized`
+- `Functions mutation = not_authorized`
+- `Firebase mutation = not_authorized`
+- `Next gate = validate SaaS-03B-E-R1 RegistrationRequest backend contract freeze`
 ## Current checkpoint - SaaS-03B-D Final Tenant Bootstrap / Lifecycle Closure
 
 The authoritative SaaS-03B-D seven-workflow Tenant catalogue is technically complete
