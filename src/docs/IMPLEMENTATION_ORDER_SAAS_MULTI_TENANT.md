@@ -1,5 +1,25 @@
 # Orden de implementación SaaS multi-tenant
 
+## Current checkpoint - SaaS-03B-E-R2-R1-R1 RegistrationRequestKey Exact Persisted Contract Resolution
+
+- `SaaS-03B-E-R1 = completed_and_published`
+- `SaaS-03B-E-R2-R1 = completed_and_published`
+- `SaaS-03B-E-R2-R1-R1 = authored_pending_architecture_review`
+- `Target = RegistrationRequestKey`
+- `Exact persisted fields = uid, requestId, status`
+- `Required fields = uid, requestId, status`
+- `tenantId = path_only`
+- `uidKey = path_only`
+- `updatedAt = absent`
+- `createdAt = absent`
+- `schemaVersion = absent`
+- `Terminal key retention = required`
+- `Root RegistrationRequest remains authoritative = true`
+- `Package materialization = not_started`
+- `Functions implementation = not_authorized`
+- `Firebase mutation = not_authorized`
+- `Next gate = ChatGPT architecture review before R2-R1-R1 documentation staging`
+
 ## Current checkpoint - SaaS-03B-E-R2-R1 RegistrationRequest Shared Persistence Contract Resolution
 
 - `SaaS-03B-E-R1 = completed_and_published`
