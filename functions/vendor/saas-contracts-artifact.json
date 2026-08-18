@@ -1,11 +1,11 @@
 {
   "packageName": "@mipymetic/saas-contracts",
-  "version": "0.20.0",
-  "filename": "mipymetic-saas-contracts-0.20.0.tgz",
-  "sha256": "7d29dfbead17d1ad5ee0aa854486b239751d5d615d51c58ba8541567817140e9",
-  "npmShasum": "c0196ef2307730ec43b3ff4198dbca30a9813fcc",
-  "npmIntegrity": "sha512-Z6joZ0KTb9BlW3MYsYbiZ4sPP6cgoyQoN4L4ZDoFq+rsPmKZt8P4DslG2vnPU4htN0tV2M29FT2JJNgs2K5TSw==",
-  "entryCount": 76,
+  "version": "0.21.0",
+  "filename": "mipymetic-saas-contracts-0.21.0.tgz",
+  "sha256": "772f5ca4023d4fb7d3395c4ea8e45c93f04f1dd0c8384f006d7db78a34d959e9",
+  "npmShasum": "078b577aed1cbf1f6e785e570624d307fd85dee5",
+  "npmIntegrity": "sha512-eHCXyODKrPuo8hbTrVSjsDM5cqeQact6i4lI5X2yDCzy2bg8Es+dt1/cLKmtr974HR8EIuaocnKw5Nvxq+qQNg==",
+  "entryCount": 78,
   "files": [
     "README.md",
     "package.json",
@@ -41,6 +41,7 @@
     "src/persistence/fields.js",
     "src/persistence/index.js",
     "src/persistence/paths.js",
+    "src/persistence/registrationRequestContracts.js",
     "src/persistence/tenantContracts.js",
     "src/validation/identifiers.js",
     "src/validation/index.js",
@@ -78,12 +79,13 @@
     "types/persistence/fields.d.ts",
     "types/persistence/index.d.ts",
     "types/persistence/paths.d.ts",
+    "types/persistence/registrationRequestContracts.d.ts",
     "types/persistence/tenantContracts.d.ts",
     "types/validation/identifiers.d.ts",
     "types/validation/index.d.ts",
     "types/validation/objects.d.ts",
     "types/validation/timestamps.d.ts"
   ],
-  "shasum": "4de6cc4351c99dca8ec8f6389f1342744823522b",
-  "integrity": "sha512-734r3tZxVHjaIEjud4Kv1chwnpfoC3vN3xkECfNBAyISJDHkgOqL5cOfO516jf9ESN6pSnHTD+iZfwXSme6fxw=="
+  "shasum": "078b577aed1cbf1f6e785e570624d307fd85dee5",
+  "integrity": "sha512-eHCXyODKrPuo8hbTrVSjsDM5cqeQact6i4lI5X2yDCzy2bg8Es+dt1/cLKmtr974HR8EIuaocnKw5Nvxq+qQNg=="
 }

@@ -10,6 +10,8 @@ export {
   MEMBERSHIP_REQUIRED_FIELDS,
   REGISTRATION_REQUEST_FIELDS,
   REGISTRATION_REQUEST_REQUIRED_FIELDS,
+  REGISTRATION_REQUEST_KEY_FIELDS,
+  REGISTRATION_REQUEST_KEY_REQUIRED_FIELDS,
   TENANT_FIELDS,
   TENANT_REQUIRED_FIELDS,
 } from "./fields.js";
@@ -39,3 +41,9 @@ export {
   validatePersistedMembership, validatePersistedTenant, validateTenantAdminAuthorityState,
   validateTenantBranding, validateTenantSettings,
 } from "./tenantContracts.js";
+
+export {
+  encodeRegistrationRequestUidKey,
+  validatePersistedRegistrationRequest,
+  validateRegistrationRequestKey,
+} from "./registrationRequestContracts.js";

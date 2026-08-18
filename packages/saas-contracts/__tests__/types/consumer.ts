@@ -50,3 +50,33 @@ void membershipResult;
 void systemResolution;
 void resolutionResult;
 void invalidStatus;
+
+
+import {
+  REGISTRATION_REQUEST_KEY_FIELDS,
+  REGISTRATION_REQUEST_KEY_REQUIRED_FIELDS,
+  encodeRegistrationRequestUidKey,
+  validatePersistedRegistrationRequest,
+  validateRegistrationRequestKey,
+} from "@mipymetic/saas-contracts/persistence";
+
+const registrationRequestKeyFields: readonly string[] =
+  REGISTRATION_REQUEST_KEY_FIELDS;
+
+const registrationRequestKeyRequiredFields: readonly string[] =
+  REGISTRATION_REQUEST_KEY_REQUIRED_FIELDS;
+
+const registrationRequestUidKey: string =
+  encodeRegistrationRequestUidKey("uid-1");
+
+const registrationRequestKeyResult =
+  validateRegistrationRequestKey({});
+
+const persistedRegistrationRequestResult =
+  validatePersistedRegistrationRequest({});
+
+void registrationRequestKeyFields;
+void registrationRequestKeyRequiredFields;
+void registrationRequestUidKey;
+void registrationRequestKeyResult;
+void persistedRegistrationRequestResult;

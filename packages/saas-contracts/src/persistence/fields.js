@@ -10,6 +10,8 @@ export const TENANT_REQUIRED_FIELDS = frozen(["tenantId", "tenantType", "display
 
 export const REGISTRATION_REQUEST_FIELDS = frozen(["requestId", "tenantId", "uid", "requestedRole", "status", "requestedAt", "reviewedAt", "reviewedBy", "approvedMembershipId", "cancelledAt", "expiredAt"]);
 export const REGISTRATION_REQUEST_REQUIRED_FIELDS = frozen(["requestId", "tenantId", "uid", "requestedRole", "status", "requestedAt"]);
+export const REGISTRATION_REQUEST_KEY_FIELDS = frozen(["uid", "requestId", "status"]);
+export const REGISTRATION_REQUEST_KEY_REQUIRED_FIELDS = REGISTRATION_REQUEST_KEY_FIELDS;
 
 export const MEMBERSHIP_FIELDS = frozen(["membershipId", "tenantId", "uid", "role", "status", "originRequestId", "createdAt", "approvedAt", "approvedBy", "updatedAt", "suspendedAt", "removedAt"]);
 export const MEMBERSHIP_REQUIRED_FIELDS = MEMBERSHIP_FIELDS;

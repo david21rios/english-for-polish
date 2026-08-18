@@ -5,6 +5,8 @@ export const TENANT_FIELDS: readonly string[];
 export const TENANT_REQUIRED_FIELDS: readonly string[];
 export const REGISTRATION_REQUEST_FIELDS: readonly string[];
 export const REGISTRATION_REQUEST_REQUIRED_FIELDS: readonly string[];
+export const REGISTRATION_REQUEST_KEY_FIELDS: readonly string[];
+export const REGISTRATION_REQUEST_KEY_REQUIRED_FIELDS: readonly string[];
 export const MEMBERSHIP_FIELDS: readonly string[];
 export const MEMBERSHIP_REQUIRED_FIELDS: readonly string[];
 export const COURSE_FIELDS: readonly string[];
