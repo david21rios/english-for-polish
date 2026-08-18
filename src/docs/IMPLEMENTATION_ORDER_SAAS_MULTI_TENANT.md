@@ -1,5 +1,34 @@
 # Orden de implementación SaaS multi-tenant
 
+## Current checkpoint - SaaS-03B-E-R2 RegistrationRequest Persistence Contract Materialization
+
+- `SaaS-03B-E-R1 = completed_and_published`
+- `SaaS-03B-E-R2-R1 = completed_and_published`
+- `SaaS-03B-E-R2 = technically_complete_pending_documentation_commit_and_human_push`
+- `Target = RegistrationRequest persistence contracts`
+- `RegistrationRequestKey exact persisted fields = uid, requestId, status`
+- `Root RegistrationRequest remains authoritative = true`
+- `Terminal RegistrationRequest key retention = required`
+- `Implicit supersession in ApproveRegistrationRequest = prohibited`
+- `Package authority = materialized`
+- `Package version = 0.21.0`
+- `Root dependency = 0.21.0`
+- `Functions vendor artifact = mipymetic-saas-contracts-0.21.0.tgz`
+- `Package tests = 129/129 PASS`
+- `Targeted RegistrationRequest tests = 9/9 PASS`
+- `Package types = PASS`
+- `Artifact cryptographic parity = PASS`
+- `Artifact reproducibility = PASS`
+- `Functions clean vendor install = PASS`
+- `Functions isolated package import = PASS`
+- `Functions business code mutation = none`
+- `Firebase mutation = none`
+- `Technical commit = f790c667cbc0d82b1ffbcd6d559d7a05b975f906`
+- `R2 closure document = authored_pending_documentation_review_and_commit`
+- `ApproveRegistrationRequest implementation = not_authorized_by_R2_closure_alone`
+- `Push = not_performed`
+- `Next gate = ChatGPT review documentation-only R2 closure diff before staging`
+
 ## Current checkpoint - SaaS-03B-E-R2-R1-R1 RegistrationRequestKey Exact Persisted Contract Resolution
 
 - `SaaS-03B-E-R1 = completed_and_published`
