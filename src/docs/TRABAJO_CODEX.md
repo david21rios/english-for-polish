@@ -131432,3 +131432,43 @@ push = pending_human_action
 
 The next checkpoint must be selected from the explicit SaaS-03B-E roadmap
 after documentary closure.
+
+## SaaS-03B-E RegistrationRequest portable contract sequence closure
+
+The post-R4 architecture gate found no explicit SaaS-03B-E-R5 or later
+SaaS-03B-E checkpoint.
+
+ApproveRegistrationRequest and RejectRegistrationRequest portable contracts are
+both materialized and published.
+
+Their privileged runtime execution remains unimplemented and command-stage
+authorization remains closed.
+
+ExpireRegistrationRequest remains explicitly deferred as a non-blocking
+system/technical scheduler-provider concern.
+
+The authoritative documentary transition is:
+
+```text
+SaaS-03B-E = sequence_complete_pending_documentary_closure_publication
+SaaS-03B-E-R1 = completed_and_published
+SaaS-03B-E-R2 = completed_and_published
+SaaS-03B-E-R3 = completed_and_published
+SaaS-03B-E-R4 = completed_and_published
+post-R4 explicit internal checkpoints = none
+package version = 0.23.0
+ApproveRegistrationRequest portable contract = materialized
+RejectRegistrationRequest portable contract = materialized
+ApproveRegistrationRequest runtime stage authorization = closed
+RejectRegistrationRequest runtime stage authorization = closed
+ExpireRegistrationRequest = deferred_non_blocking
+R5 = not_created
+SaaS-03B-F = blocked_pending_03B_E_sequence_closure_publication
+```
+
+This closure does not authorize runtime RegistrationRequest execution, mutate
+Functions business code, mutate Firebase, or start SaaS-03B-F.
+
+After independent review, controlled documentary commit and human publication,
+the next architecture gate must determine the exact authorized start state and
+scope of SaaS-03B-F.

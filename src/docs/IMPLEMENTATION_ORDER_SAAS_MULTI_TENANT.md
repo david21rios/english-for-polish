@@ -1,5 +1,44 @@
 # Orden de implementación SaaS multi-tenant
 
+## Current checkpoint - SaaS-03B-E RegistrationRequest Portable Contract Sequence Closure
+
+The ordered SaaS-03B-E RegistrationRequest portable-contract sequence has
+reached its documentary closure gate after publication of R4.
+
+Current authoritative state:
+
+```text
+SaaS-03B-E = sequence_complete_pending_documentary_closure_publication
+SaaS-03B-E-R1 = completed_and_published
+SaaS-03B-E-R2 = completed_and_published
+SaaS-03B-E-R3 = completed_and_published
+SaaS-03B-E-R4 = completed_and_published
+post-R4 explicit internal checkpoints = none
+ApproveRegistrationRequest portable contract = materialized
+RejectRegistrationRequest portable contract = materialized
+ApproveRegistrationRequest runtime stage authorization = closed
+RejectRegistrationRequest runtime stage authorization = closed
+ExpireRegistrationRequest = deferred_non_blocking
+package version = 0.23.0
+R5 = not_created
+SaaS-03B-F = blocked_pending_03B_E_sequence_closure_publication
+Phase 4 = not_started
+```
+
+This documentary closure does not authorize RegistrationRequest runtime
+execution and does not start SaaS-03B-F.
+
+No Functions business code or Firebase surface is changed.
+
+After independent review, controlled documentation commit and human
+publication, the next architecture gate must determine the exact authorized
+start state and scope of SaaS-03B-F.
+
+Historical checkpoints below remain immutable evidence of the state that
+existed when they were created.
+
+---
+
 ## Current checkpoint - SaaS-03B-E-R2 RegistrationRequest Persistence Contract Materialization
 
 - `SaaS-03B-E-R1 = completed_and_published`
