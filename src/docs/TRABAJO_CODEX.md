@@ -131323,3 +131323,49 @@ Privileged Backend = not_created
 84. **R3-D:** no iniciado.
 
 85. **03B-B:** no iniciado; permanece bloqueado pendiente de R3/R4.
+
+## SaaS-03B-E-R3 ApproveRegistrationRequest portable command contract materialization
+
+R3 materialized the package-owned portable `ApproveRegistrationRequest`
+command contract without creating privileged Functions business execution.
+
+The command freezes exact input/result surfaces, canonical approved targets,
+`registration_request.review`, behavioral payload derivation and critical
+non-raw audit field allowlists. Runtime stage authorization remains closed.
+
+The package advanced from `0.21.0` to `0.22.0`; root and Functions dependency
+surfaces were aligned and the vendored artifact was replaced by
+`mipymetic-saas-contracts-0.22.0.tgz`.
+
+Final technical evidence:
+
+```text
+technical commit = 0ee4402e10466b188d0578edccca7a952ab356e7
+technical files = 16
+Approve targeted tests = 8/8 PASS
+package tests = 137/137 PASS
+package topology = 5/5 PASS
+artifact entries = 80
+artifact SHA-256 = 30c4a25b1b45c96d430a40bbe927937f0920c110f8edeb0b1407dbcd79346321
+artifact reproducibility = PASS
+Functions clean vendor install = PASS
+Functions isolated Approve import = PASS
+Functions business code = unchanged
+Firebase = unchanged
+Approve runtime stage authorization = false
+```
+
+Current state:
+
+```text
+SaaS-03B-E = in_progress
+SaaS-03B-E-R3 = completed_pending_documentary_review_and_commit
+ApproveRegistrationRequest portable contract = materialized
+ApproveRegistrationRequest privileged runtime = not_implemented
+RejectRegistrationRequest = next_ordered_candidate_not_started
+documentation commit = pending
+push = pending_human_action
+```
+
+R3 does not assign the next checkpoint identifier and does not start
+`RejectRegistrationRequest`.

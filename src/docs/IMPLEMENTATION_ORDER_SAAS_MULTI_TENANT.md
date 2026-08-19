@@ -4487,3 +4487,36 @@ Privileged Backend = not_created
 
 Next: `SaaS-03B-B0-I-R3-B — Foundational enums and status contracts`. Not
 started.
+
+## SaaS-03B-E-R3 ApproveRegistrationRequest portable command contract materialization
+
+The first ordered RegistrationRequest command now has a portable package-owned
+contract. R3 does not implement the privileged backend executor.
+
+The additive public package surface moved from `0.21.0` to `0.22.0`, including
+the exact Functions vendored artifact. The technical commit is
+`0ee4402e10466b188d0578edccca7a952ab356e7`.
+
+Validation closed with `8/8` targeted Approve tests, `137/137` complete package
+tests and `5/5` package-topology tests. Artifact reproducibility, clean vendored
+Functions installation and isolated Approve imports pass. Functions business
+code and Firebase remain unchanged.
+
+```text
+SaaS-03B-E = in_progress
+SaaS-03B-E-R1 = completed_and_published
+SaaS-03B-E-R2 = completed
+SaaS-03B-E-R3 = completed_pending_documentary_review_and_commit
+ApproveRegistrationRequest portable contract = materialized
+ApproveRegistrationRequest privileged runtime = not_implemented
+ApproveRegistrationRequest runtime stage authorization = closed
+RejectRegistrationRequest = next_ordered_candidate_not_started
+technical commit = 0ee4402e10466b188d0578edccca7a952ab356e7
+documentation commit = pending
+push = pending_human_action
+```
+
+The next checkpoint identifier is not assigned by R3. After R3 documentary
+publication, the next architecture gate must determine the minimum authorized
+checkpoint for `RejectRegistrationRequest` or any prerequisite resolution.
+No later RegistrationRequest implementation starts here.
