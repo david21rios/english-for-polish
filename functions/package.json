@@ -14,7 +14,7 @@
     "test": "npm run build && node --test \"lib/__tests__/*.test.js\""
   },
   "dependencies": {
-    "@mipymetic/saas-contracts": "file:vendor/mipymetic-saas-contracts-0.21.0.tgz",
+    "@mipymetic/saas-contracts": "file:vendor/mipymetic-saas-contracts-0.22.0.tgz",
     "firebase-admin": "14.2.0",
     "firebase-functions": "7.3.2"
   },
