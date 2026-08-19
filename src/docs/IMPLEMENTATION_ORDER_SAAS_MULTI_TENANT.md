@@ -4520,3 +4520,63 @@ The next checkpoint identifier is not assigned by R3. After R3 documentary
 publication, the next architecture gate must determine the minimum authorized
 checkpoint for `RejectRegistrationRequest` or any prerequisite resolution.
 No later RegistrationRequest implementation starts here.
+
+## SaaS-03B-E-R4 RejectRegistrationRequest portable command contract materialization
+
+R4 materializes the package-owned portable
+`RejectRegistrationRequest` contract only.
+
+The additive package surface advanced from `0.22.0` to `0.23.0`, including the
+aligned root dependency, Functions vendored dependency, lockfiles, generated
+declarations, artifact manifest and vendored package.
+
+The authoritative portable contract freezes:
+
+```text
+operation = RejectRegistrationRequest
+resourceType = registrationRequest
+requiredCapability = registration_request.review
+targetRequestStatus = rejected
+audit level = privileged
+Membership effects = none
+```
+
+Runtime execution remains intentionally closed.
+
+No Functions business code, Firebase Security Rules, indexes, Storage Rules,
+repository runtime, service runtime, Domain runtime, provider or UI surface was
+modified.
+
+Validation closed with:
+
+```text
+Reject targeted tests = 8/8 PASS
+package tests = 145/145 PASS
+package topology = 5/5 PASS
+check:types = PASS
+build:types = PASS
+artifact entries = 82
+artifact reproducibility = PASS
+Functions clean vendor install = PASS
+isolated Reject import = PASS
+```
+
+Current roadmap state:
+
+```text
+SaaS-03B-E-R4 = completed_pending_documentary_review_and_commit
+RejectRegistrationRequest portable contract = materialized
+RejectRegistrationRequest privileged runtime = not_implemented
+RejectRegistrationRequest runtime stage authorization = closed
+Membership effects = none
+package version = 0.23.0
+technical commit = c67162aa65cc6ed95c6272f21c3664a010b40712
+documentation commit = pending
+push = pending_human_action
+```
+
+R4 does not itself authorize runtime implementation or invent a successor
+checkpoint.
+
+The next checkpoint must be selected from the explicit ordered SaaS-03B-E
+roadmap after documentary closure.

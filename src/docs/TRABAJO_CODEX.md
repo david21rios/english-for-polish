@@ -131369,3 +131369,66 @@ push = pending_human_action
 
 R3 does not assign the next checkpoint identifier and does not start
 `RejectRegistrationRequest`.
+
+## SaaS-03B-E-R4 RejectRegistrationRequest portable command contract materialization
+
+R4 materialized the package-owned portable `RejectRegistrationRequest`
+contract while keeping trusted-backend execution closed.
+
+The portable contract freezes the exact input/result envelopes, derives
+`targetRequestStatus = rejected`, requires
+`registration_request.review`, and defines the privileged audit summary without
+introducing any Membership creation or Membership lifecycle effect.
+
+Runtime authorization remains closed for all currently modeled privileged
+command stages.
+
+No `functions/src/*` business code or Firebase surface changed.
+
+The package advanced from `0.22.0` to `0.23.0`; root and Functions dependency
+surfaces were aligned and the vendored artifact became
+`mipymetic-saas-contracts-0.23.0.tgz`.
+
+Technical validation:
+
+- Reject targeted tests: 8/8 PASS;
+- package tests: 145/145 PASS;
+- package topology: 5/5 PASS;
+- check:types: PASS;
+- build:types: PASS;
+- package dry-run: PASS;
+- artifact entries: 82;
+- artifact SHA-256:
+  `c9b935311bf8e8eff359798f8c0473eb7e80a66939c650d527a31dfd90381143`;
+- artifact reproducibility: PASS;
+- Functions clean vendor install: PASS;
+- isolated Functions Reject import: PASS;
+- runtime stage authorization: closed;
+- Membership effects: none;
+- Functions business code: unchanged;
+- Firebase: unchanged.
+
+Technical commit:
+
+`c67162aa65cc6ed95c6272f21c3664a010b40712`
+
+`feat(saas): materialize reject registration request contract`
+
+Current state:
+
+```text
+SaaS-03B-E-R4 = completed_pending_documentary_review_and_commit
+RejectRegistrationRequest portable contract = materialized
+RejectRegistrationRequest privileged runtime = not_implemented
+RejectRegistrationRequest runtime stage authorization = closed
+Membership effects = none
+Functions business code = unchanged
+Firebase = unchanged
+package version = 0.23.0
+technical commit = c67162aa65cc6ed95c6272f21c3664a010b40712
+documentation commit = pending
+push = pending_human_action
+```
+
+The next checkpoint must be selected from the explicit SaaS-03B-E roadmap
+after documentary closure.
