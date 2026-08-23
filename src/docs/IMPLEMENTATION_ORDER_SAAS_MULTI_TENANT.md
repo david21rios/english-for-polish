@@ -1,5 +1,44 @@
 # Orden de implementación SaaS multi-tenant
 
+## Current checkpoint — SaaS-03B-F-R1 Course command sequence and start gate resolution
+
+`SaaS-03B-F-R1` resolves the missing architecture gate required after the
+published SaaS-03B-E portable sequence closure. SaaS-03B-A-R1 defines F as the
+Course/Enrollment command phase, while Enrollment remains blocked by the
+separate F-R2 uniqueness/re-enrollment policy resolution. No prior published
+genealogy defined F-R1.
+
+The published CreateCourse portable contract is adopted as F's first completed
+portable-contract unit. Following the published RegistrationRequest
+contract-first precedent, F closes all four portable Course contracts before
+authorizing any Functions runtime. It does not authorize CreateCourse runtime
+or any command-stage transition.
+
+```text
+SaaS-03B-F-R1 = completed_pending_human_review_and_push
+CreateCourse portable contract = completed_and_published
+SaaS-03B-F-R1-R1 = ready_not_started
+SaaS-03B-F = in_progress_ordered_course_sequence
+SaaS-03B-F-R2 = defined_pending_enrollment_policy_resolution
+CreateCourse runtime = not_authorized
+SaaS-03B-R = blocked_pending_F
+Phase 04 = not_started
+```
+
+The next and only authorized technical unit is `SaaS-03B-F-R1-R1 — UpdateCourse
+portable contract materialization`. It is package-contract work only; no
+Functions runtime, handler, Rules, UI, Providers, Enrollment, 03B-R or Phase
+04 work is authorized. The ordered Course family is first the four portable
+contracts (CreateCourse, UpdateCourse, ActivateCourse, ArchiveCourse), then the
+four separately authorized runtime/review/publication units in that same order.
+CreateCourse runtime has no identifier yet; `CREATECOURSE_RUNTIME_IDENTIFIER =
+NOT_YET_ASSIGNED` and must be derived as the next published F-R1 descendant
+only after the portable sequence closes. RestoreCourse remains prohibited
+because archived Course is terminal. Historical checkpoints below remain
+immutable.
+
+---
+
 ## Current checkpoint - SaaS-03B-E RegistrationRequest Portable Contract Sequence Closure
 
 The ordered SaaS-03B-E RegistrationRequest portable-contract sequence has
