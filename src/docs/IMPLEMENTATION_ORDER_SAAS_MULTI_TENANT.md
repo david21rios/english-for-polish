@@ -4686,3 +4686,11 @@ checkpoint.
 
 The next checkpoint must be selected from the explicit ordered SaaS-03B-E
 roadmap after documentary closure.
+
+## SaaS-03B-F-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1
+
+Course remote operational inventory authorization resolution is complete as a
+design-only document and pending independent review. Remote execution remains
+not authorized and requires explicit human approval identifying the target
+environment, access class and bounded read-only scope. No Firebase access,
+credential retrieval, migration, backup, runtime or deployment is authorized.
