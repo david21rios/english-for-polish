@@ -4687,6 +4687,14 @@ checkpoint.
 The next checkpoint must be selected from the explicit ordered SaaS-03B-E
 roadmap after documentary closure.
 
+## SaaS-03B-F-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1
+
+Course human remote read-only access approval gate is a defined candidate
+pending independent review. No real approval values are provided; remote
+environment identity remains unverified and remote inventory execution remains
+not authorized. This gate does not authorize Firebase/GCP access, migration,
+backup/export, runtime, stage opening, F-R2, SaaS-03B-R or Phase 04.
+
 ## SaaS-03B-F-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1
 
 Course remote operational inventory authorization resolution is complete as a
