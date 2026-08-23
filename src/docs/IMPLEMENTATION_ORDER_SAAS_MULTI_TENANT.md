@@ -1,5 +1,25 @@
 # Orden de implementación SaaS multi-tenant
 
+## Current checkpoint — Course runtime/migration authorization gate
+
+The four portable Course contracts are now published. The next normative unit
+is `SaaS-03B-F-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1`, which defines the
+writer-inventory, non-CAS cutover, versionless migration, runtime-stage and
+Course runtime-family closure gates. No Course runtime or migration tooling is
+authorized until that resolution and its descendants are independently reviewed
+and published.
+
+```text
+Course portable family = 4_OF_4_COMPLETE_PUBLISHED
+Course runtime = not_authorized
+Course runtime/migration gate = candidate_pending_independent_review
+SaaS-03B-F-R2 = defined_pending_enrollment_policy_resolution
+SaaS-03B-R = blocked_pending_F
+Phase 04 = not_started
+```
+
+---
+
 ## Current checkpoint — SaaS-03B-F-R1 Course command sequence and start gate resolution
 
 `SaaS-03B-F-R1` resolves the missing architecture gate required after the
