@@ -4705,3 +4705,13 @@ design-only document and pending independent review. Remote execution remains
 not authorized and requires explicit human approval identifying the target
 environment, access class and bounded read-only scope. No Firebase access,
 credential retrieval, migration, backup, runtime or deployment is authorized.
+
+## SaaS-03B-F-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1
+
+Course remote read-only session approval instance resolution is
+`resolution_complete_pending_independent_review`. The concrete approval
+instance is `NOT_CREATED`; real values are `NOT_PROVIDED`; remote execution
+remains `NOT_AUTHORIZED`. This resolution defines only the documentary approval
+schema, bounded authorization matrices, quantitative limits, human-input versus
+future-evidence boundary and ceremony. It does not authorize remote access,
+Course runtime, migration, F-R2, Enrollment, SaaS-03B-R or Phase 04.
