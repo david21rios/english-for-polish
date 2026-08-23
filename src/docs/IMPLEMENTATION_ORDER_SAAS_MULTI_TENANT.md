@@ -13,6 +13,8 @@ and published.
 Course portable family = 4_OF_4_COMPLETE_PUBLISHED
 Course runtime = not_authorized
 Course runtime/migration gate = candidate_pending_independent_review
+Course writer inventory/cutover = design_resolution_pending_independent_review
+SaaS-03B-F-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1 = candidate_pending_independent_review
 SaaS-03B-F-R2 = defined_pending_enrollment_policy_resolution
 SaaS-03B-R = blocked_pending_F
 Phase 04 = not_started
