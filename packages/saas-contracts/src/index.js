@@ -46,6 +46,7 @@ export {
   encodeMembershipUidKey,
   validateMembershipKey,
   validatePersistedMembership,
+  validatePersistedCourse,
   encodeRegistrationRequestUidKey,
   validatePersistedRegistrationRequest,
   validateRegistrationRequestKey,

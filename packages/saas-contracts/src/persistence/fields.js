@@ -16,7 +16,7 @@ export const REGISTRATION_REQUEST_KEY_REQUIRED_FIELDS = REGISTRATION_REQUEST_KEY
 export const MEMBERSHIP_FIELDS = frozen(["membershipId", "tenantId", "uid", "role", "status", "originRequestId", "createdAt", "approvedAt", "approvedBy", "updatedAt", "suspendedAt", "removedAt"]);
 export const MEMBERSHIP_REQUIRED_FIELDS = MEMBERSHIP_FIELDS;
 
-export const COURSE_FIELDS = frozen(["courseId", "tenantId", "displayName", "description", "learningLanguage", "supportLanguageCode", "interfaceLanguages", "cefrLevel", "status", "createdAt", "updatedAt", "archivedAt"]);
+export const COURSE_FIELDS = frozen(["courseId", "tenantId", "displayName", "description", "learningLanguage", "supportLanguageCode", "interfaceLanguages", "cefrLevel", "version", "status", "createdAt", "updatedAt", "archivedAt"]);
 export const COURSE_REQUIRED_FIELDS = COURSE_FIELDS;
 
 export const ENROLLMENT_FIELDS = frozen(["enrollmentId", "tenantId", "membershipId", "courseId", "status", "enrolledAt", "updatedAt", "completedAt", "cancelledAt"]);

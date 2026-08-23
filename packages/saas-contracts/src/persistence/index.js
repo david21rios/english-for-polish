@@ -47,3 +47,5 @@ export {
   validatePersistedRegistrationRequest,
   validateRegistrationRequestKey,
 } from "./registrationRequestContracts.js";
+
+export { validatePersistedCourse } from "./courseContracts.js";

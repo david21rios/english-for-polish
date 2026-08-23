@@ -53,7 +53,7 @@ test("export map subpaths resolve through the workspace package", () => {
 });
 
 test("physical field contracts preserve exact values and freezing", () => {
-  assert.deepEqual(contracts.COURSE_FIELDS, ["courseId", "tenantId", "displayName", "description", "learningLanguage", "supportLanguageCode", "interfaceLanguages", "cefrLevel", "status", "createdAt", "updatedAt", "archivedAt"]);
+  assert.deepEqual(contracts.COURSE_FIELDS, ["courseId", "tenantId", "displayName", "description", "learningLanguage", "supportLanguageCode", "interfaceLanguages", "cefrLevel", "version", "status", "createdAt", "updatedAt", "archivedAt"]);
   assert.ok(Object.isFrozen(contracts.COURSE_FIELDS));
   assert.strictEqual(contracts.COURSE_FIELDS, contracts.COURSE_REQUIRED_FIELDS);
 });
