@@ -1,4 +1,5 @@
 import { AUDIT_LEVELS, AUDIT_RESULTS } from "../audit/contracts.js";
+import { CAPABILITY_IDS } from "../domain/capabilities.js";
 import { CEFR_LEVELS, COURSE_STATUSES } from "../domain/course.js";
 import { validateDocumentIdentifier } from "../validation/identifiers.js";
 import { hasExactKeys, isCanonicalBcp47, isPlainObject } from "../validation/objects.js";
@@ -28,7 +29,7 @@ export const UPDATE_COURSE_RESULT_FIELDS = frozen([
 ]);
 export const UPDATE_COURSE_OPERATION = COMMAND_TYPES.UPDATE_COURSE;
 export const UPDATE_COURSE_RESOURCE_TYPE = "course";
-export const UPDATE_COURSE_REQUIRED_CAPABILITY = "course.update";
+export const UPDATE_COURSE_REQUIRED_CAPABILITY = CAPABILITY_IDS.COURSE_UPDATE;
 export const UPDATE_COURSE_AUDIT_OPERATION = "UpdateCourse.update";
 export const UPDATE_COURSE_AUDIT_LEVEL = AUDIT_LEVELS.PRIVILEGED;
 export const UPDATE_COURSE_AUDIT_RESULT = AUDIT_RESULTS.SUCCEEDED;

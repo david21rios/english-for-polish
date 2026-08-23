@@ -8,6 +8,7 @@ import {
   UPDATE_COURSE_AUDIT_METADATA_FIELDS, validateUpdateCourseInput,
   updateCourseBehavioralPayload, validateUpdateCourseResult,
   isPrivilegedCommandStageAllowed,
+  CAPABILITY_IDS,
 } from "../src/index.js";
 
 const base = () => ({
@@ -24,6 +25,7 @@ test("UpdateCourse exposes exact identity, stage and constants", () => {
   assert.equal(UPDATE_COURSE_OPERATION, "UpdateCourse");
   assert.equal(UPDATE_COURSE_RESOURCE_TYPE, "course");
   assert.equal(UPDATE_COURSE_REQUIRED_CAPABILITY, "course.update");
+  assert.equal(UPDATE_COURSE_REQUIRED_CAPABILITY, CAPABILITY_IDS.COURSE_UPDATE);
   assert.equal(UPDATE_COURSE_AUDIT_OPERATION, "UpdateCourse.update");
   assert.equal(isPrivilegedCommandStageAllowed("UpdateCourse", "not_started"), false);
   assert.equal(isPrivilegedCommandStageAllowed("UpdateCourse", "completed"), false);
