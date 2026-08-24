@@ -4715,3 +4715,14 @@ remains `NOT_AUTHORIZED`. This resolution defines only the documentary approval
 schema, bounded authorization matrices, quantitative limits, human-input versus
 future-evidence boundary and ceremony. It does not authorize remote access,
 Course runtime, migration, F-R2, Enrollment, SaaS-03B-R or Phase 04.
+
+## SaaS-03B-F-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1
+
+Course platform governance storage authority architecture resolution is
+`resolution_complete_pending_independent_review`. The selected normative
+authority is a separate governance-plane Firestore project, independent from
+every inspected target project. This is an architecture decision only: no
+project, database, collection, IAM binding or approval instance is created.
+Governance records remain outside tenant data, target-project runtime and
+Course data. Implementation, provisioning, security/IAM resolution, concrete
+approval values and remote inventory remain unauthorized.
