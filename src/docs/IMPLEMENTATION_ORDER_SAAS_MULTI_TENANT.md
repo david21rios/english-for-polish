@@ -4726,3 +4726,42 @@ project, database, collection, IAM binding or approval instance is created.
 Governance records remain outside tenant data, target-project runtime and
 Course data. Implementation, provisioning, security/IAM resolution, concrete
 approval values and remote inventory remain unauthorized.
+
+## SaaS-03B-F-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1
+
+Course platform governance store schema resolution is
+`resolution_complete_pending_independent_review`. It defines only the logical
+approval/session schema, linkage, immutability, atomic claim contract,
+serialization and future query/index requirements for the separately governed
+platform store. No project, database, collection, index, IAM policy, Rules,
+approval instance or session record exists. The next gate is independent schema
+review.
+
+The same unpublished schema resolution now includes its normative completeness
+repair: canonicalization version `1`, SHA-256 fingerprinting, exact claim/
+finalization/CAS/expiry rules, field authority, lifecycle, bounded evidence and
+query classifications. It remains `resolution_complete_pending_final_independent_revalidation`;
+no governance store, index, IAM policy, Rules change or record exists.
+
+The unpublished governance-store schema now contains the field-level
+materialization repair and remains
+`resolution_complete_pending_final_independent_revalidation`. No technical
+implementation, provisioning, IAM, Rules, indexes, approval instance or
+session record is authorized.
+
+The existing unpublished governance-store schema now includes exact
+field-by-field approval and session catalogs, individual logical types,
+authority/mutability/fingerprint/marker rules, cross-record equality and
+bounded evidence mappings. It remains
+`resolution_complete_pending_final_independent_revalidation`; no technical
+implementation or governance provisioning is authorized.
+
+The approval master field-table repair is now materially represented by one
+normative row per persisted approval field, including explicit sentinel and
+validator columns. The schema remains pending final independent revalidation;
+no implementation or provisioning is authorized.
+
+The approval master table has been degrouped and the timestamp and
+null/missing/sentinel audit tables are now explicit. The schema remains
+`resolution_complete_pending_final_independent_revalidation`; no technical
+implementation or provisioning is authorized.
