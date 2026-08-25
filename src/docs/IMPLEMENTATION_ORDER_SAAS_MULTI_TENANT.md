@@ -4765,3 +4765,16 @@ The approval master table has been degrouped and the timestamp and
 null/missing/sentinel audit tables are now explicit. The schema remains
 `resolution_complete_pending_final_independent_revalidation`; no technical
 implementation or provisioning is authorized.
+
+## SaaS-03B-F-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1
+
+Course platform governance store security, IAM and Firestore Rules resolution
+is `resolution_complete_pending_final_binary_rereview`. Governance remains a
+separate Firestore project and platform governance plane with server-side-only
+writes, deny-by-default client reads, a dedicated trusted runtime principal,
+least-privilege IAM and separation of duties. Firestore Rules govern only the
+client SDK boundary and do not secure Admin SDK writes. No provider-specific IAM
+roles, bindings, service accounts, credentials, Rules syntax, provisioning,
+indexes, records, deployment or remote access are authorized. The next gate is
+independent review, followed by provider-specific IAM/principal and exact
+governance Rules resolutions.
