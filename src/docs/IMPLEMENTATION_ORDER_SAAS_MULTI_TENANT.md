@@ -4786,3 +4786,11 @@ is `resolution_complete_pending_final_independent_rereview`. This is documentary
 design only: no principals, service accounts, credentials, bindings, Rules,
 provisioning, records or remote access are authorized. The next gate is
 independent review.
+
+## SaaS-03B-F-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1
+
+Course platform governance store exact Firestore Rules resolution is
+`resolution_complete_pending_final_independent_rereview`. It defines deny-by-default
+client semantics and the Rules/Admin SDK boundary for the separate governance
+project. No Rules syntax, deployment, provisioning, indexes, persistence,
+records or remote access are authorized. The next gate is independent review.
