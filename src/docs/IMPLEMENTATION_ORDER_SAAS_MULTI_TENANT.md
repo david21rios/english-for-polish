@@ -4778,3 +4778,11 @@ roles, bindings, service accounts, credentials, Rules syntax, provisioning,
 indexes, records, deployment or remote access are authorized. The next gate is
 independent review, followed by provider-specific IAM/principal and exact
 governance Rules resolutions.
+
+## SaaS-03B-F-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1
+
+Course platform governance store provider-specific IAM and principal resolution
+is `resolution_complete_pending_final_independent_rereview`. This is documentary IAM
+design only: no principals, service accounts, credentials, bindings, Rules,
+provisioning, records or remote access are authorized. The next gate is
+independent review.
