@@ -4794,3 +4794,16 @@ Course platform governance store exact Firestore Rules resolution is
 client semantics and the Rules/Admin SDK boundary for the separate governance
 project. No Rules syntax, deployment, provisioning, indexes, persistence,
 records or remote access are authorized. The next gate is independent review.
+
+## SaaS-03B-F-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1
+
+Course platform governance store provisioning authorization resolution is
+`resolution_complete_pending_absolute_final_independent_rereview`. It is a documentary
+provisioning-authorization design for a dedicated governance project and
+Firestore database. It provides no project, database, principal, service
+account, IAM binding, Rules, index, collection, credential, remote-access or
+deployment authorization; all real provider values remain `NOT_PROVIDED`, and
+execution remains `NOT_AUTHORIZED`. Firebase Storage is explicitly excluded.
+The next gate is independent review, followed only by separately authorized
+provider-value collection and an execution-plan resolution. Phase 04 remains
+`NOT_STARTED`.
