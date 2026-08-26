@@ -4834,3 +4834,20 @@ future nine-input human/provider value catalog, validation, sensitivity and
 invalidation boundaries only. No values are collected, no secrets enter Git,
 and no provisioning, Firebase/GCP, IAM, Rules, index, persistence or remote
 operation is authorized. The next gate is independent review.
+
+## SaaS-03B-F-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1
+
+Course platform governance store provider value collection and validation
+operational gate is `resolution_complete_pending_absolute_final_independent_rereview`. It defines
+the future three-group human-input ceremony and local documentary validation for
+nine provider values. No values are requested or collected, no remote checks are
+performed, and no provisioning, Firebase/GCP, IAM, Rules, configuration,
+indexes, persistence, Storage or Phase 04 operation is authorized.
+
+The physical document is addressed by the non-normative alias
+`src/docs/SAAS_03B_F_GOV_PROVIDER_VALUE_OPERATIONAL_GATE_RESOLUTION.md`; the full
+contractual identifier above remains authoritative. This alias is governed by a
+repository conservative path-safety threshold of 220 characters and a
+deterministic collision-prevention policy. The current content hash is
+`b302c6e60f0df95da743cfaa61f99da57e4cf07c`; the historical pre-alias hash
+`eededa13d6784f11d87b7834fc9291458cbe5105` is retained as unrecoverable history.
