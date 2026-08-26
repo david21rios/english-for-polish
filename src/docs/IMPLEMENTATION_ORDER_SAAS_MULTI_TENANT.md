@@ -4851,3 +4851,30 @@ repository conservative path-safety threshold of 220 characters and a
 deterministic collision-prevention policy. The current content hash is
 `b302c6e60f0df95da743cfaa61f99da57e4cf07c`; the historical pre-alias hash
 `eededa13d6784f11d87b7834fc9291458cbe5105` is retained as unrecoverable history.
+
+## SaaS-03B-F-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1
+
+**Course platform governance store remote provider verification authorization resolution**
+
+- Parent: the published provider-value operational gate identifier immediately above.
+- Gate: `REMOTE_PROVIDER_VERIFICATION_AUTHORIZATION_RESOLUTION`.
+- Classification: `DOCUMENTARY_REMOTE_PROVIDER_VERIFICATION_AUTHORIZATION_RESOLUTION`.
+- Purpose: define the future read-only provider-check inventory, authentication and remote-access boundary, operator/principal evidence, allowlist/denylist, fail-closed behavior, and evidence/value-state requirements. No provider checks or authentication are executed by this node.
+- Status: `next_direct_child_adopted_pending_resolution`.
+
+`NEXT_DIRECT_CHILD_IDENTITY_NORMATIVE_SOURCE_COUNT = 1`
+`NEXT_DIRECT_CHILD_IDENTITY_DUPLICATE_COUNT = 0`
+`NEXT_DIRECT_CHILD_IDENTITY_CONTRADICTION_COUNT = 0`
+`NEXT_DIRECT_CHILD_IDENTITY_ADOPTED = true`
+`NEXT_DIRECT_CHILD_PARENT_ADOPTED = true`
+`NEXT_DIRECT_CHILD_TITLE_ADOPTED = true`
+`NEXT_DIRECT_CHILD_GATE_ADOPTED = true`
+`NEXT_DIRECT_CHILD_CLASSIFICATION_ADOPTED = true`
+`DIRECT_CHILD_COUNT_ADOPTED = 1`
+`DESCENDANT_BEYOND_DIRECT_CHILD_COUNT = 0`
+`GENEALOGY_DRIFT = 0`
+
+The adopted child is now materially resolved by
+`src/docs/SAAS_03B_F_REMOTE_PROVIDER_VERIFICATION_AUTHORIZATION_RESOLUTION.md`.
+Its status is `resolution_complete_pending_independent_review`; no remote
+verification or authentication is authorized by the resolution.
