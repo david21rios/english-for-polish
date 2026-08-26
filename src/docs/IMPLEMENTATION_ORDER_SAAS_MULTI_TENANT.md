@@ -4807,3 +4807,30 @@ execution remains `NOT_AUTHORIZED`. Firebase Storage is explicitly excluded.
 The next gate is independent review, followed only by separately authorized
 provider-value collection and an execution-plan resolution. Phase 04 remains
 `NOT_STARTED`.
+
+### SaaS-03B-F post-publication next direct child adoption
+
+The published provisioning-authorization resolution establishes the mandatory
+order `provider value collection and validation → execution-plan resolution →
+human approval → remote authentication → provisioning execution`. Collection
+and validation are adopted as one bounded gate because unvalidated values are
+not operationally usable and no independent intermediate lifecycle is defined.
+
+Adopted direct child (not started):
+
+`SaaS-03B-F-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1`
+
+**Course platform governance store provider value collection and validation
+resolution** — `DOCUMENTARY_PROVIDER_VALUE_COLLECTION_VALIDATION_RESOLUTION`.
+This gate may define future human input, validation and secret-handling rules;
+it requests no values and authorizes no technical, Firebase/GCP, IAM, Rules,
+index, persistence or remote operation. No further descendant is adopted.
+
+## SaaS-03B-F-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1
+
+Course platform governance store provider value collection and validation
+resolution is `resolution_complete_pending_independent_review`. It defines the
+future nine-input human/provider value catalog, validation, sensitivity and
+invalidation boundaries only. No values are collected, no secrets enter Git,
+and no provisioning, Firebase/GCP, IAM, Rules, index, persistence or remote
+operation is authorized. The next gate is independent review.
