@@ -4874,7 +4874,29 @@ deterministic collision-prevention policy. The current content hash is
 `DESCENDANT_BEYOND_DIRECT_CHILD_COUNT = 0`
 `GENEALOGY_DRIFT = 0`
 
+The adopted remote-access human-approval child is materially resolved by
+`src/docs/SAAS_03B_F_GOV_REMOTE_ACCESS_HUMAN_APPROVAL_RESOLUTION.md` and is
+`resolution_complete_pending_independent_review`. No approval instance,
+authentication, or remote access is executed by this resolution.
+
 The adopted child is now materially resolved by
 `src/docs/SAAS_03B_F_REMOTE_PROVIDER_VERIFICATION_AUTHORIZATION_RESOLUTION.md`.
 Its status is `resolution_complete_pending_independent_review`; no remote
 verification or authentication is authorized by the resolution.
+
+## SaaS-03B-F-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1
+
+**Course platform governance store remote access human approval resolution**
+
+- Parent: the published remote provider verification authorization resolution.
+- Gate: `REMOTE_ACCESS_HUMAN_APPROVAL_RESOLUTION`.
+- Classification: `DOCUMENTARY_REMOTE_ACCESS_HUMAN_APPROVAL_RESOLUTION`.
+- Purpose: define explicit human approval, operator reference, bounded read-only scope, target distinction, no-mutation boundary, session scope, fail-closed conditions, and handoff to authentication design. No approval or remote access is executed by this node.
+- Status: `next_direct_child_adopted_pending_resolution`.
+
+`NEXT_DIRECT_CHILD_IDENTITY_NORMATIVE_SOURCE_COUNT = 1`
+`NEXT_DIRECT_CHILD_IDENTITY_DUPLICATE_COUNT = 0`
+`NEXT_DIRECT_CHILD_IDENTITY_CONTRADICTION_COUNT = 0`
+`DIRECT_CHILD_COUNT_ADOPTED = 1`
+`DESCENDANT_BEYOND_DIRECT_CHILD_COUNT = 0`
+`GENEALOGY_DRIFT = 0`
