@@ -18,7 +18,19 @@ PROJECT_OWNER_AUTHORITY = MiPyMeTIC S.A.S.
 AUTHENTICATED_PROVIDER_PRINCIPAL = NOT_YET_VERIFIED
 AUTHORIZED_PROVISIONING_PRINCIPAL = NOT_YET_VERIFIED
 APPLICATION_PROJECT_REFERENCE = demo-polish-learning
-GOVERNANCE_PROJECT_TARGET = mipymetic-saas-governance-prod
+GOVERNANCE_PROJECT_TARGET = english-for-polish
+SINGLE_PROJECT_TOPOLOGY_AUTHORITATIVE = true
+PLATFORM_FIREBASE_GCP_PROJECT_ID = english-for-polish
+SECOND_GOVERNANCE_GCP_PROJECT_REQUIRED = false
+CREATE_MIPYMETIC_SAAS_GOVERNANCE_PROD = false
+GOVERNANCE_ISOLATION_MODEL = LOGICAL_WITHIN_APPLICATION_PROJECT
+PREVIOUS_GOVERNANCE_TARGET_SUPERSEDED = true
+PREVIOUS_TARGET_SPECIFIC_APPROVAL_REUSABLE = false
+REAUTHORIZATION_REQUIRED_FOR_CORRECTED_TARGET = true
+NAMED_GOVERNANCE_DATABASE_RUNTIME_COMPATIBILITY_VALIDATED = false
+PROVIDER_VALUE_VALIDATION_COMPLETE = false
+CURRENT_VALIDATED_PROVIDER_VALUE_COUNT = 0
+PROVISIONING_EXECUTION_AUTHORIZATION = false
 TARGET_CONFUSION_PRECHECK_REQUIRED_BEFORE_APPROVAL = true
 TARGET_CONFUSION_PRECHECK_REQUIRED_BEFORE_AUTHENTICATION_ACCEPTANCE = true
 REMOTE_PROVIDER_ACCESS_STATE = NOT_AUTHORIZED
@@ -75,10 +87,12 @@ REMOTE_ACCESS_APPROVAL_EVIDENCE_PERSISTENCE_EXECUTED = false
 
 ## Boundaries
 
-Future approval must show the distinction between `demo-polish-learning` and
-`mipymetic-saas-governance-prod`, require explicit yes/no confirmation, bounded
-scope and session expiry, and keep all credentials outside chat, Git and
-documents. Approval does not authenticate or grant permissions.
+Future approval must show the distinction between the emulator/default
+configuration `demo-polish-learning` and the real platform project
+`english-for-polish`, require explicit yes/no confirmation, bounded scope and
+session expiry, and keep all credentials outside chat, Git and documents.
+`mipymetic-saas-governance-prod` is superseded-target history only. Approval
+does not authenticate or grant permissions.
 
 ```text
 REMOTE_APPROVAL_FORBIDDEN_SCOPE_MODEL_COMPLETE = true

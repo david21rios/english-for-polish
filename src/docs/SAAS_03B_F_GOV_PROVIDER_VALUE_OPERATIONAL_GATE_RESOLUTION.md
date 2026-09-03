@@ -12,7 +12,7 @@ Phase 04 remain unauthorized.
 
 | INPUT_ID | REQUEST_ORDER | REQUEST_GROUP | VALUE_CLASS | REQUEST_ALLOWED | HUMAN_INPUT_REQUIRED | LOCAL_VALIDATION_REQUIRED | REMOTE_VALIDATION_REQUIRED_LATER | DOCUMENTATION_DESTINATION | GIT_ALLOWED | CURRENT_STATE | STOP_ON_FAILURE | NOTES |
 |---|---:|---|---|---:|---:|---:|---:|---|---|---|---:|---|
-| GOVERNANCE_PROJECT_ID | 1 | GROUP_1_TARGET_IDENTITY | PUBLIC_OR_NON_SECRET_IDENTIFIER | future | yes | yes | yes | approved non-secret artifact | conditional after validation | NOT_PROVIDED | yes | dedicated project |
+| GOVERNANCE_PROJECT_ID | 1 | GROUP_1_TARGET_IDENTITY | PUBLIC_OR_NON_SECRET_IDENTIFIER | existing | yes | yes | yes | approved non-secret artifact | conditional after fresh validation | english-for-polish | yes | single shared platform project; logical governance isolation |
 | GOVERNANCE_ENVIRONMENT | 2 | GROUP_1_TARGET_IDENTITY | PUBLIC_OR_NON_SECRET_IDENTIFIER | future | yes | yes | no | approved non-secret artifact | conditional after validation | NOT_PROVIDED | yes | bounded vocabulary |
 | GOVERNANCE_DATABASE_ID | 3 | GROUP_1_TARGET_IDENTITY | PUBLIC_OR_NON_SECRET_IDENTIFIER | future | yes | yes | yes | approved non-secret artifact | conditional after validation | NOT_PROVIDED | yes | explicit, no default |
 | GOVERNANCE_DATABASE_LOCATION | 4 | GROUP_1_TARGET_IDENTITY | PUBLIC_OR_NON_SECRET_IDENTIFIER | future | yes | yes | yes | approved non-secret artifact | conditional after validation | NOT_PROVIDED | yes | provider support later |
@@ -21,6 +21,22 @@ Phase 04 remain unauthorized.
 | PROJECT_OWNER_AUTHORITY | 7 | GROUP_2_OWNERSHIP_AND_BILLING | SENSITIVE_CONFIGURATION | future | yes | yes | yes | redacted/abstract reference | prohibited | NOT_PROVIDED | yes | explicit authority |
 | ORGANIZATION_OR_FOLDER_CONTEXT | 8 | GROUP_2_OWNERSHIP_AND_BILLING | SENSITIVE_CONFIGURATION | future | yes | yes | yes | redacted/abstract reference | prohibited | NOT_PROVIDED | yes | NOT_APPLICABLE needs reason |
 | PROVISIONING_OPERATOR_REAL_IDENTITY | 9 | GROUP_3_OPERATOR | SENSITIVE_CONFIGURATION | future | yes | yes | yes | redacted identifier | prohibited | NOT_PROVIDED | yes | individual accountable operator |
+
+```text
+SINGLE_PROJECT_TOPOLOGY_AUTHORITATIVE = true
+PLATFORM_FIREBASE_GCP_PROJECT_ID = english-for-polish
+SECOND_GOVERNANCE_GCP_PROJECT_REQUIRED = false
+CREATE_MIPYMETIC_SAAS_GOVERNANCE_PROD = false
+GOVERNANCE_ISOLATION_MODEL = LOGICAL_WITHIN_APPLICATION_PROJECT
+GOVERNANCE_DATABASE_ID = governance
+NAMED_GOVERNANCE_DATABASE_RUNTIME_COMPATIBILITY_VALIDATED = false
+PREVIOUS_GOVERNANCE_TARGET_SUPERSEDED = true
+PREVIOUS_TARGET_SPECIFIC_APPROVAL_REUSABLE = false
+REAUTHORIZATION_REQUIRED_FOR_CORRECTED_TARGET = true
+PROVIDER_VALUE_VALIDATION_COMPLETE = false
+CURRENT_VALIDATED_PROVIDER_VALUE_COUNT = 0
+PROVISIONING_EXECUTION_AUTHORIZATION = false
+```
 
 `VALUE_REQUEST_GROUP_COUNT = 3`
 `VALUE_REQUEST_GROUPING_MODEL_COMPLETE = true`
