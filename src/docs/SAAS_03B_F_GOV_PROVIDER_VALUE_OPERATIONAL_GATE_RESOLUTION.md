@@ -245,3 +245,26 @@ CURRENT_LIFECYCLE_DRIFT = 0
 FINAL_LIFECYCLE_MARKER_DEFECTS_RESOLVED = 7_OF_7
 FINAL_LIFECYCLE_MARKER_REPAIR_SCOPE_DRIFT = 0
 ```
+## Real Governance client-denial verification — independently reviewed
+
+The deployed deny-all Rules for the named `governance` database were verified
+against the real provider with Firebase Web SDK `11.10.0`, using an
+unauthenticated normal client and the explicit handle
+`getFirestore(app, "governance")` for project `english-for-polish`.
+
+- Read probe `governanceDenialProbe/readProbe`: `permission-denied`.
+- Write probe `governanceDenialProbe/writeProbe`: `permission-denied`, attempted
+  only after the read denial.
+- Provider operations: one read and one rejected write; persistent data created:
+  `false`.
+- `REAL_GOVERNANCE_CLIENT_READ_DENIAL_VERIFIED = true`.
+- `REAL_GOVERNANCE_CLIENT_WRITE_DENIAL_VERIFIED = true`.
+- `REAL_GOVERNANCE_CLIENT_DENIAL_TEST = PASS`.
+
+This proves only that direct normal Firebase Web clients are denied read/write
+access under the currently deployed Rules. It does not prove IAM isolation,
+Admin SDK denial, privileged-server denial, or future Rules behavior. Admin SDK
+bypasses Firestore Rules; server access remains governed by server/IAM design.
+
+Governance indexes remain undeployed and are not required now because the
+current Governance composite-query requirement count is zero.

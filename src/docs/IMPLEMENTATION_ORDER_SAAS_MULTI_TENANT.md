@@ -4899,3 +4899,9 @@ verification or authentication is authorized by the resolution.
 `DIRECT_CHILD_COUNT_ADOPTED = 1`
 `DESCENDANT_BEYOND_DIRECT_CHILD_COUNT = 0`
 `GENEALOGY_DRIFT = 0`
+### Governance direct-client denial verification
+
+The Governance Firestore direct-client isolation verification is independently
+reviewed and passed. The evidence is bounded to deny-all Rules for the named
+`governance` database and does not complete all of SaaS-03B-F. F-R2, SaaS-03B-R
+and Phase 04 remain governed by their existing roadmap states.
