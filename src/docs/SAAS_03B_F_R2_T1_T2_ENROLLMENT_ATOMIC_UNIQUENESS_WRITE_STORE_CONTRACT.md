@@ -1,6 +1,6 @@
 # SaaS-03B-F-R2-T1/T2 — Enrollment Atomic Uniqueness + Write-Store Boundary
 
-Status: `human_approved_contract_authored_pending_independent_review`
+Status: `human_approved_contract_reviewed_published`
 
 This technical contract materializes the approved implementation boundary for
 F-R2. It does not implement Enrollment or authorize provider, Rules, index,
@@ -53,4 +53,4 @@ Traceability: T1/T2 implement the enforcement consequence of R2-01–R2-03 and
 R2-04/R2-05 terminal history; R2-06 eligibility and no-cascade rules remain;
 R2-07 legacy restrictions remain unchanged.
 
-Implementation authorization: `BLOCKED_PENDING_TECHNICAL_CONTRACT_INDEPENDENT_REVIEW_AND_PUBLICATION`.
+Implementation authorization: `READY_FOR_FIRST_BOUNDED_IMPLEMENTATION_SLICE_AFTER_STATUS_REPAIR_PUBLICATION`.

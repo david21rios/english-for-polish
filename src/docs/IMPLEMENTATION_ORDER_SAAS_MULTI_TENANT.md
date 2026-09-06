@@ -4930,12 +4930,12 @@ when no such incompatibility exists.
 
 Human-approved technical contract authored. The deterministic active logical
 claim and server-side Enrollment write-store transaction boundary are defined;
-physical encoding and implementation remain pending independent review and
-publication.
+physical encoding and implementation remain pending the first bounded
+implementation slice.
 
 ```text
-F-R2-T1 = human_approved_contract_authored_pending_independent_review
-F-R2-T2 = human_approved_contract_authored_pending_independent_review
+F-R2-T1 = human_approved_contract_reviewed_published
+F-R2-T2 = human_approved_contract_reviewed_published
 SaaS-03B-F-R2 = contract_authored_pending_implementation
 SaaS-03B-F = blocked_pending_F-R2_implementation
 SaaS-03B-R = blocked_pending_F
