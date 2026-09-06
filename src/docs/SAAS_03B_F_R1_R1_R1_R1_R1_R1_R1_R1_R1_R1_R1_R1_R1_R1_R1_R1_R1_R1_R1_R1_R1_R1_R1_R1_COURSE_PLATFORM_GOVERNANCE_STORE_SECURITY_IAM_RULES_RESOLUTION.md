@@ -1,4 +1,4 @@
-# SaaS-03B-F-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1 — Course platform governance store security, IAM and Firestore Rules resolution
+# SaaS-03B-F-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1 â€” Course platform governance store security, IAM and Firestore Rules resolution
 
 Status: `resolution_complete_pending_independent_review`
 Parent: published governance-store schema resolution (`cc97dba760e082689a2cd193b008a37861d2d88f`).
@@ -7,11 +7,13 @@ Parent: published governance-store schema resolution (`cc97dba760e082689a2cd193b
 
 This is a documentary security architecture resolution. It authorizes no runtime,
 provisioning, IAM binding, Rules syntax, deployment, records, credentials or remote
-access. The governance store remains a separate Firestore project and platform
-governance plane, independent of target projects, using the hybrid reference model.
+access. The governance store remains a logically isolated platform governance plane within `english-for-polish`, using the named `governance` database and remaining independent of tenant/application authority. The former separate-project wording is superseded historical context.
 
 ```text
-PLATFORM_GOVERNANCE_STORAGE_AUTHORITY = SEPARATE_GOVERNANCE_FIRESTORE_PROJECT
+PLATFORM_GOVERNANCE_STORAGE_AUTHORITY = LOGICAL_GOVERNANCE_WITHIN_PLATFORM_PROJECT
+PLATFORM_FIREBASE_GCP_PROJECT_ID = english-for-polish
+GOVERNANCE_DATABASE_ID = governance
+SEPARATE_GOVERNANCE_PROJECT_REQUIRED = false
 AUTHORITY_PLANE = PLATFORM_GOVERNANCE_PLANE
 TARGET_PROJECT_INDEPENDENCE = true
 HYBRID_REFERENCE_MODEL = PRESERVED
@@ -71,8 +73,8 @@ creation are atomic; only one concurrent winner is permitted.
 | human finalization | `AUTHORIZED_SERVER_PATH` | yes | yes |
 | approval consumption/session creation | `AUTHORIZED_SERVER_PATH` | yes | yes |
 | session evidence/counters/termination | `AUTHORIZED_SERVER_PATH` | yes | yes |
-| approval invalidation | `REQUIRES_FURTHER_RESOLUTION` | — | — |
-| retention deletion | `REQUIRES_FURTHER_RESOLUTION` | — | — |
+| approval invalidation | `REQUIRES_FURTHER_RESOLUTION` | â€” | â€” |
+| retention deletion | `REQUIRES_FURTHER_RESOLUTION` | â€” | â€” |
 
 Every direct client write is forbidden.
 
@@ -174,13 +176,13 @@ Auditor access is read-only; no provider role or direct access is granted here.
 | APPROVAL_DRAFT_UPDATE | AUTHORIZED_SERVER_PATH | DRAFT_CREATOR | true | true | client SDK | CAS required |
 | INDEPENDENT_REVIEW_EVIDENCE_WRITE | AUTHORIZED_SERVER_PATH | INDEPENDENT_REVIEWER | true | true | direct Firestore | bounded evidence |
 | APPROVAL_FINALIZATION | AUTHORIZED_SERVER_PATH | HUMAN_APPROVER | true | true | manual Firestore | immutable freeze |
-| APPROVAL_INVALIDATION | REQUIRES_FURTHER_RESOLUTION | trusted runtime | — | — | all direct paths | unresolved |
+| APPROVAL_INVALIDATION | REQUIRES_FURTHER_RESOLUTION | trusted runtime | â€” | â€” | all direct paths | unresolved |
 | APPROVAL_CONSUMPTION | AUTHORIZED_SERVER_PATH | SESSION_EXECUTOR | true | true | client claim | single-use |
 | SESSION_CREATION | AUTHORIZED_SERVER_PATH | SESSION_EXECUTOR | true | true | client SDK | atomic with claim |
 | SESSION_EVIDENCE_UPDATE | AUTHORIZED_SERVER_PATH | SESSION_EXECUTOR | true | true | client SDK | bounded |
 | SESSION_COUNTER_UPDATE | AUTHORIZED_SERVER_PATH | SESSION_EXECUTOR | true | true | client SDK | monotonic |
 | SESSION_TERMINATION | AUTHORIZED_SERVER_PATH | SESSION_EXECUTOR | true | true | client SDK | terminal |
-| RETENTION_DELETION | REQUIRES_FURTHER_RESOLUTION | — | — | — | all direct paths | unresolved |
+| RETENTION_DELETION | REQUIRES_FURTHER_RESOLUTION | â€” | â€” | â€” | all direct paths | unresolved |
 
 `WRITE_PATH_NORMATIVE_ROW_COUNT = 11`; `WRITE_PATH_CLASSIFICATION_DRIFT = 0`.
 
@@ -196,9 +198,9 @@ Auditor access is read-only; no provider role or direct access is granted here.
 | AUDIT_READ | AUDITOR_READ | AUDITOR | false | true | audit scope |
 | CLAIM_REREAD | SERVER_INTERNAL | trusted runtime | false | true | claim reconciliation |
 | SESSION_CONTINUATION_READ | SERVER_INTERNAL | trusted runtime | false | true | session ID |
-| CONDITIONAL_STATE_LISTING | NOT_AUTHORIZED | — | false | — | not authorized |
-| CONDITIONAL_LIFECYCLE_LISTING | NOT_AUTHORIZED | — | false | — | not authorized |
-| CONDITIONAL_EXPIRY_LISTING | NOT_AUTHORIZED | — | false | — | not authorized |
+| CONDITIONAL_STATE_LISTING | NOT_AUTHORIZED | â€” | false | â€” | not authorized |
+| CONDITIONAL_LIFECYCLE_LISTING | NOT_AUTHORIZED | â€” | false | â€” | not authorized |
+| CONDITIONAL_EXPIRY_LISTING | NOT_AUTHORIZED | â€” | false | â€” | not authorized |
 
 `READ_PATH_NORMATIVE_ROW_COUNT = 11`; `READ_PATH_CLASSIFICATION_DRIFT = 0`.
 

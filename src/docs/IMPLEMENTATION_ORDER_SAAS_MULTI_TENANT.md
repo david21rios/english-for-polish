@@ -1,6 +1,6 @@
-# Orden de implementación SaaS multi-tenant
+# Orden de implementaciÃ³n SaaS multi-tenant
 
-## Current checkpoint — Course runtime/migration authorization gate
+## Current checkpoint â€” Course runtime/migration authorization gate
 
 The four portable Course contracts are now published. The next normative unit
 is `SaaS-03B-F-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1`, which defines the
@@ -28,7 +28,7 @@ Phase 04 = not_started
 
 ---
 
-## Current checkpoint — SaaS-03B-F-R1 Course command sequence and start gate resolution
+## Current checkpoint â€” SaaS-03B-F-R1 Course command sequence and start gate resolution
 
 `SaaS-03B-F-R1` resolves the missing architecture gate required after the
 published SaaS-03B-E portable sequence closure. SaaS-03B-A-R1 defines F as the
@@ -53,7 +53,7 @@ SaaS-03B-R = blocked_pending_F
 Phase 04 = not_started
 ```
 
-The next and only authorized technical unit is `SaaS-03B-F-R1-R1 — UpdateCourse
+The next and only authorized technical unit is `SaaS-03B-F-R1-R1 â€” UpdateCourse
 portable contract materialization`. It is package-contract work only; no
 Functions runtime, handler, Rules, UI, Providers, Enrollment, 03B-R or Phase
 04 work is authorized. The ordered Course family is first the four portable
@@ -800,7 +800,7 @@ After human review and publication, execute only:
 Do not start another Tenant workflow or later SaaS phase before that review is closed.
 
 ---
-## Current checkpoint — SaaS-03B-D-R3-C1-R5-R2 audit destination materialization
+## Current checkpoint â€” SaaS-03B-D-R3-C1-R5-R2 audit destination materialization
 
 R5-R2 completes the atomic Foundation/caller cutover approved by R5-R2-R1.
 Audit destination is explicit and exact; canonical AuthorityResolution is
@@ -829,10 +829,10 @@ SaaS-03B-F = blocked_pending_previous_sequence
 Phase 4 = not_started
 ```
 
-After human review and push, execute only `SaaS-03B-D-R3-C1-R5 —
+After human review and push, execute only `SaaS-03B-D-R3-C1-R5 â€”
 BootstrapTenant Tenant Audit Authority Scope Repair / Specific Review`.
 
-## Current checkpoint — SaaS-03B-D-R3-C1-R5-R2-R1 cutover scope reconciliation
+## Current checkpoint â€” SaaS-03B-D-R3-C1-R5-R2-R1 cutover scope reconciliation
 
 R5-R2-R1 resolves `R5_R2_SCOPE_DEPENDENCY_CONTRADICTION`. The Foundation API
 change and every required caller migration are one atomic technical cutover.
@@ -863,10 +863,10 @@ SaaS-03B-F = blocked_pending_previous_sequence
 Phase 4 = not_started
 ```
 
-After human review and push, resume only `SaaS-03B-D-R3-C1-R5-R2 — Audit
+After human review and push, resume only `SaaS-03B-D-R3-C1-R5-R2 â€” Audit
 Destination Scope Foundation Materialization` under this reconciled scope.
 
-## Current checkpoint — SaaS-03B-D-R3-C1-R5-R1 audit destination contract resolution
+## Current checkpoint â€” SaaS-03B-D-R3-C1-R5-R1 audit destination contract resolution
 
 R5-R1 closes `SHARED_FOUNDATION_AUDIT_AUTHORITY_DESTINATION_SCOPE_GAP`
 without technical changes. `AuthorityResolution.tenantId` remains exclusively
@@ -902,11 +902,11 @@ SaaS-03B-F = blocked_pending_previous_sequence
 Phase 4 = not_started
 ```
 
-After human review and push, execute only `SaaS-03B-D-R3-C1-R5-R2 — Audit
+After human review and push, execute only `SaaS-03B-D-R3-C1-R5-R2 â€” Audit
 Destination Scope Foundation Materialization`. Do not repair BootstrapTenant R5
 until that Foundation checkpoint is published.
 
-## Current checkpoint — SaaS-03B-D-R3-C1-R4 Store authority repair
+## Current checkpoint â€” SaaS-03B-D-R3-C1-R4 Store authority repair
 
 R4 repairs `BOOTSTRAP_TENANT_STORE_ACTOR_AUTHORITY_UNVALIDATED`. The Store now
 consumes the package 0.14.0 runtime validator, restricts valid resolutions to
@@ -938,10 +938,10 @@ SaaS-03B-F = blocked_pending_previous_sequence
 Phase 4 = not_started
 ```
 
-After human review and push, rerun only `SaaS-03B-D-R3-C1 — Independent
+After human review and push, rerun only `SaaS-03B-D-R3-C1 â€” Independent
 BootstrapTenant Review`.
 
-## Current checkpoint — SaaS-03B-D-R3-C1-R4-R1 authority runtime materialization
+## Current checkpoint â€” SaaS-03B-D-R3-C1-R4-R1 authority runtime materialization
 
 The actor matrix closed by R4-R1-R1 is now materialized in
 `@mipymetic/saas-contracts@0.14.0` as a portable exact-shape runtime union and
@@ -971,10 +971,10 @@ SaaS-03B-F = blocked_pending_previous_sequence
 Phase 4 = not_started
 ```
 
-After human review and push, resume only `SaaS-03B-D-R3-C1-R4 —
+After human review and push, resume only `SaaS-03B-D-R3-C1-R4 â€”
 BootstrapTenant Store Actor Authority Validation Repair`.
 
-## Current checkpoint — SaaS-03B-D-R3-C1-R4-R1-R1 authority actor matrix resolution
+## Current checkpoint â€” SaaS-03B-D-R3-C1-R4-R1-R1 authority actor matrix resolution
 
 The attempted R3-C1-R4 Store actor-authority repair stopped correctly because
 `AuthorityResolution` had no authoritative runtime validator. R4-R1 then proved
@@ -1012,16 +1012,16 @@ SaaS-03B-F = blocked_pending_previous_sequence
 Phase 4 = not_started
 ```
 
-After human review and push, resume only `SaaS-03B-D-R3-C1-R4-R1 — Authority
+After human review and push, resume only `SaaS-03B-D-R3-C1-R4-R1 â€” Authority
 Resolution Runtime Contract Resolution and Materialization`. Do not resume the
 Tenant Store repair before shared materialization is published.
 
-**Estado:** plan corregido y listo para aprobación de implementación
-**Estrategia:** expand → migrate → contract
+**Estado:** plan corregido y listo para aprobaciÃ³n de implementaciÃ³n
+**Estrategia:** expand â†’ migrate â†’ contract
 **Regla:** ninguna fase activa enforcement ni elimina compatibilidad antes de
 cumplir su gate.
 
-## Current checkpoint — SaaS-03B-D-R3-C1-R3 audit contract authority repair
+## Current checkpoint â€” SaaS-03B-D-R3-C1-R3 audit contract authority repair
 
 R3-C1-R3 repairs `BOOTSTRAP_TENANT_AUDIT_CONTRACT_LOCALLY_DUPLICATED`.
 BootstrapTenant now consumes package-owned audit literals and enforces exact
@@ -1044,10 +1044,10 @@ SaaS-03B-F = blocked_pending_previous_sequence
 Phase 4 = not_started
 ```
 
-After human review and push, rerun only `SaaS-03B-D-R3-C1 — Independent
+After human review and push, rerun only `SaaS-03B-D-R3-C1 â€” Independent
 BootstrapTenant Review`.
 
-## Previous checkpoint — SaaS-03B-D-R3-C1-R2 Store aggregate validation repair
+## Previous checkpoint â€” SaaS-03B-D-R3-C1-R2 Store aggregate validation repair
 
 R3-C1-R2 closes `BOOTSTRAP_TENANT_STORE_NEW_AGGREGATE_UNVALIDATED`.
 Before its first write, the Tenant Bootstrap Store validates every NEW
@@ -1073,10 +1073,10 @@ SaaS-03B-F = blocked_pending_previous_sequence
 Phase 4 = not_started
 ```
 
-After human review and push, resume only `SaaS-03B-D-R3-C1 — Independent
+After human review and push, resume only `SaaS-03B-D-R3-C1 â€” Independent
 BootstrapTenant Review`. Do not start another Tenant workflow.
 
-## Previous checkpoint — SaaS-03B-D-R3-C1-R2-R1 persisted Membership validator
+## Previous checkpoint â€” SaaS-03B-D-R3-C1-R2-R1 persisted Membership validator
 
 The attempted R3-C1-R2 Store aggregate repair stopped before technical edits
 because the package had no authoritative persisted Membership validator.
@@ -1100,11 +1100,11 @@ SaaS-03B-F = blocked_pending_previous_sequence
 Phase 4 = not_started
 ```
 
-After human review and push, resume only `SaaS-03B-D-R3-C1-R2 —
+After human review and push, resume only `SaaS-03B-D-R3-C1-R2 â€”
 BootstrapTenant Store Aggregate Validation Repair`. Do not rerun R3-C1 until
 R3-C1-R2 is completed and published.
 
-## Current checkpoint — SaaS-03B-D-R3-C1-R1 replay result binding repair
+## Current checkpoint â€” SaaS-03B-D-R3-C1-R1 replay result binding repair
 
 The independent R3-C1 review found
 `BOOTSTRAP_TENANT_REPLAY_RESULT_BINDING_UNVALIDATED`: a structurally valid but
@@ -1128,14 +1128,14 @@ SaaS-03B-F = blocked_pending_previous_sequence
 Phase 4 = not_started
 ```
 
-After human review and push, resume only `SaaS-03B-D-R3-C1 — Independent
+After human review and push, resume only `SaaS-03B-D-R3-C1 â€” Independent
 BootstrapTenant Review`. Do not start another Tenant workflow.
 
-## Previous checkpoint — SaaS-03B-D-R3 BootstrapTenant implementation
+## Previous checkpoint â€” SaaS-03B-D-R3 BootstrapTenant implementation
 
 No implementation identifier was assigned in the published roadmap. After R1
 contract reconciliation and R2 shared materialization, the minimum consistent
-identifier is `SaaS-03B-D-R3 — BootstrapTenant Implementation`.
+identifier is `SaaS-03B-D-R3 â€” BootstrapTenant Implementation`.
 
 BootstrapTenant is implemented as an internal command with no public handler.
 It validates server-derived actor, Auth and Identity evidence, persisted active
@@ -1159,11 +1159,11 @@ SaaS-03B-F = blocked_pending_previous_sequence
 Phase 4 = not_started
 ```
 
-After human review and push, execute only `SaaS-03B-D-R3-C1 — Independent
+After human review and push, execute only `SaaS-03B-D-R3-C1 â€” Independent
 BootstrapTenant Review`. Do not start the six deferred workflows, 03B-E/F or
 Phase 4.
 
-## Previous checkpoint — SaaS-03B-D-R2 shared contract materialization
+## Previous checkpoint â€” SaaS-03B-D-R2 shared contract materialization
 
 R2 materializes only the closed BootstrapTenant shared subset in
 `@mipymetic/saas-contracts@0.12.0`: exact input/hash projection, seven-field
@@ -1186,7 +1186,7 @@ After human review and push, execute only the first BootstrapTenant
 implementation microphase derived from the genealogy. Do not start the six
 deferred workflows, 03B-E/F or Phase 4.
 
-## Previous checkpoint — SaaS-03B-D-R2-R1-R1 Bootstrap envelope/result resolution
+## Previous checkpoint â€” SaaS-03B-D-R2-R1-R1 Bootstrap envelope/result resolution
 
 R2-R1-R1 resolves the contradictions reported by R2-R1 without technical
 materialization. CorrelationId is a required command-envelope/input binding but
@@ -1212,11 +1212,11 @@ SaaS-03B-F = blocked_pending_previous_sequence
 Phase 4 = not_started
 ```
 
-After human review and push, resume only `SaaS-03B-D-R2 — Tenant Bootstrap and
+After human review and push, resume only `SaaS-03B-D-R2 â€” Tenant Bootstrap and
 Lifecycle Shared Contract Materialization`, limited first to the now-closed
 BootstrapTenant shared contracts. Do not implement BootstrapTenant.
 
-## Previous checkpoint — SaaS-03B-D-R2-R1 Bootstrap shared-contract contradiction
+## Previous checkpoint â€” SaaS-03B-D-R2-R1 Bootstrap shared-contract contradiction
 
 R2-R1 recovered several authoritative physical decisions: Tenant, Settings,
 Branding and Membership are legacy-unversioned exact shapes; uidKey is the
@@ -1242,11 +1242,11 @@ SaaS-03B-F = blocked_pending_previous_sequence
 Phase 4 = not_started
 ```
 
-Next execute only `SaaS-03B-D-R2-R1-R1 — BootstrapTenant Command Envelope,
+Next execute only `SaaS-03B-D-R2-R1-R1 â€” BootstrapTenant Command Envelope,
 MembershipKey Origin and Result Contract Resolution`. It is documentation-only
 and must not implement or materialize BootstrapTenant.
 
-## Previous checkpoint — SaaS-03B-D-R2 shared-contract materialization blocker
+## Previous checkpoint â€” SaaS-03B-D-R2 shared-contract materialization blocker
 
 R2 audited the published R1 contract inventory and stopped before technical
 edits with `RESULT C`. Package 0.11.0 still contains only BootstrapTenant among
@@ -1271,11 +1271,11 @@ SaaS-03B-F = blocked_pending_previous_sequence
 Phase 4 = not_started
 ```
 
-Next execute only `SaaS-03B-D-R2-R1 — Tenant Bootstrap Shared Persistence and
+Next execute only `SaaS-03B-D-R2-R1 â€” Tenant Bootstrap Shared Persistence and
 Result Contract Resolution`. It is normative and must not implement
 BootstrapTenant or any other Tenant business command.
 
-## Previous checkpoint — SaaS-03B-D-R1 Tenant bootstrap/lifecycle contract reconciliation
+## Previous checkpoint â€” SaaS-03B-D-R1 Tenant bootstrap/lifecycle contract reconciliation
 
 The published aggregate closure commit
 `9d09725345917760c57cb76b5069b7fc18d9b0dd` advances SaaS-03B-C from its
@@ -1309,11 +1309,11 @@ SaaS-03B-F = blocked_pending_previous_sequence
 Phase 4 = not_started
 ```
 
-After human review and push, execute only `SaaS-03B-D-R2 — Tenant Bootstrap
+After human review and push, execute only `SaaS-03B-D-R2 â€” Tenant Bootstrap
 and Lifecycle Shared Contract Materialization`. R2 closes and physically
 materializes shared contracts without implementing Tenant business commands.
 
-## Previous checkpoint — SaaS-03B-C aggregate privileged platform backend closure
+## Previous checkpoint â€” SaaS-03B-C aggregate privileged platform backend closure
 
 The aggregate closure review passes without technical changes. Foundation, the package-owned schemas, Transaction Store, Bootstrap, Recover and Revoke remain mutually coherent and independently validated. The cross-command matrix preserves `transitionCommandId` as the only target-local owner, treats Registry `lastCommandId` as global history only, rejects command-type reuse/takeover, and keeps every activeCount delta exact and idempotent.
 
@@ -1341,7 +1341,7 @@ Phase 4 = not_started
 
 After human review and push, SaaS-03B-D is the next eligible phase but remains not started in this checkpoint.
 
-## Previous checkpoint — SaaS-03B-C-R6-C1 independent Revoke revalidation
+## Previous checkpoint â€” SaaS-03B-C-R6-C1 independent Revoke revalidation
 
 The complete independent post-repair review passes. R6-C1-R1 makes new Revoke prepare atomic, and R6-C1-R2 requires a read-only Command/Authority/Registry checkpoint proof before any existing Revoke can reach Auth. Forensic review found no scope drift, generic ownership bypass, lifecycle shortcut, orphan command, count/revision drift or audit leak.
 
@@ -1362,7 +1362,7 @@ Phase 4 = not_started
 
 After human review and push, perform only the roadmap aggregate closure review for SaaS-03B-C. Do not start 03B-D or Phase 4.
 
-## Previous checkpoint — SaaS-03B-C-R6-C1-R2 Revoke resume lifecycle repair
+## Previous checkpoint â€” SaaS-03B-C-R6-C1-R2 Revoke resume lifecycle repair
 
 The second independent R6-C1 review found `REVOKE_EXISTING_RESUME_AUTHORITY_LIFECYCLE_UNVALIDATED`: an existing `running/prepared` or `recovery_required/prepared` Revoke was classified from Command binding alone, so an incoherent Authority checkpoint could reach Auth before Store finalization rejected it.
 
@@ -1381,9 +1381,9 @@ SaaS-03B-D = blocked
 Phase 4 = not_started
 ```
 
-After human review and push, rerun only `SaaS-03B-C-R6-C1 — Independent RevokePlatformAdmin Review`. Do not start 03B-D or Phase 4.
+After human review and push, rerun only `SaaS-03B-C-R6-C1 â€” Independent RevokePlatformAdmin Review`. Do not start 03B-D or Phase 4.
 
-## Previous checkpoint — SaaS-03B-C-R6-C1-R1 Revoke prepare atomicity repair
+## Previous checkpoint â€” SaaS-03B-C-R6-C1-R1 Revoke prepare atomicity repair
 
 The independent R6-C1 review found `REVOKE_COMMAND_PREPARE_ATOMICITY_BROKEN`: new Revoke execution created a pending command before the transactional lifecycle and last-admin decision. R6-C1-R1 replaces that write with read-only existing-command inspection and a narrow Revoke-only Store prepare primitive. Command, Authority, Registry decrement/revision and Critical audit now commit together or not at all.
 
@@ -1399,9 +1399,9 @@ SaaS-03B-D = blocked
 Phase 4 = not_started
 ```
 
-After human review and push, rerun only `SaaS-03B-C-R6-C1 — Independent RevokePlatformAdmin Review`. Do not start 03B-D or Phase 4.
+After human review and push, rerun only `SaaS-03B-C-R6-C1 â€” Independent RevokePlatformAdmin Review`. Do not start 03B-D or Phase 4.
 
-## Previous checkpoint — SaaS-03B-C-R6 RevokePlatformAdmin implementation
+## Previous checkpoint â€” SaaS-03B-C-R6 RevokePlatformAdmin implementation
 
 `RevokePlatformAdmin` is implemented as an internal authenticated command. Server-derived actor Identity/Authority and the package capability matrix guard the operation; self-revoke and last-admin revoke fail closed. Prepare owns the target and decrements `activeCount` exactly once, Auth claim removal remains outside Firestore transactions, forward recovery retains ownership, and finalization/replay are idempotent.
 
@@ -1419,9 +1419,9 @@ SaaS-03B-D = blocked
 Phase 4 = not_started
 ```
 
-After human review and push, execute only `SaaS-03B-C-R6-C1 — Independent RevokePlatformAdmin Review`. Do not start 03B-D or Phase 4.
+After human review and push, execute only `SaaS-03B-C-R6-C1 â€” Independent RevokePlatformAdmin Review`. Do not start 03B-D or Phase 4.
 
-## Previous checkpoint — SaaS-03B-C-R5-C1 independent Recover revalidation
+## Previous checkpoint â€” SaaS-03B-C-R5-C1 independent Recover revalidation
 
 The independent post-repair review passes. R5-C1-R1 removed the generic active
 owner capability and R5-C1-R2 made active lifecycle validation precede owner
@@ -1449,7 +1449,7 @@ After human review and push, continue only with the roadmap-authorized
 RevokePlatformAdmin implementation/reconciliation sequence. Do not start
 03B-D or Phase 4.
 
-## Previous checkpoint — SaaS-03B-C-R5-C1-R2 active lifecycle repair
+## Previous checkpoint â€” SaaS-03B-C-R5-C1-R2 active lifecycle repair
 
 R5-C1 revalidation found that the active-claim primitive's shared same-owner
 early return preceded its Authority status check. R5-C1-R2 now validates the
@@ -1473,10 +1473,10 @@ SaaS-03B-D = blocked
 Phase 4 = not_started
 ```
 
-After human review and push, rerun only `SaaS-03B-C-R5-C1 — Independent
+After human review and push, rerun only `SaaS-03B-C-R5-C1 â€” Independent
 RecoverPlatformAdmin Revalidation`. Do not start Revoke, 03B-D or Phase 4.
 
-## Previous checkpoint — SaaS-03B-C-R5-C1-R1 owner-scope repair
+## Previous checkpoint â€” SaaS-03B-C-R5-C1-R1 owner-scope repair
 
 The independent R5-C1 review stopped on
 `RECOVER_TRANSITION_OWNER_FLAG_UNSCOPED`: generic Store mutation exposed a flag
@@ -1502,10 +1502,10 @@ SaaS-03B-D = blocked
 Phase 4 = not_started
 ```
 
-After human review and push, rerun only `SaaS-03B-C-R5-C1 — Independent
+After human review and push, rerun only `SaaS-03B-C-R5-C1 â€” Independent
 RecoverPlatformAdmin Review`. Do not start Revoke, 03B-D or Phase 4.
 
-## Previous checkpoint — SaaS-03B-C-R5 RecoverPlatformAdmin implementation
+## Previous checkpoint â€” SaaS-03B-C-R5 RecoverPlatformAdmin implementation
 
 `RecoverPlatformAdmin` is implemented as an internal break-glass command on
 Authority schema v2 and the narrow Transaction Store ownership primitives.
@@ -1529,10 +1529,10 @@ SaaS-03B-D = blocked
 Phase 4 = not_started
 ```
 
-After human review and push, execute only `SaaS-03B-C-R5-C1 — Independent
+After human review and push, execute only `SaaS-03B-C-R5-C1 â€” Independent
 RecoverPlatformAdmin Review`. Do not implement Revoke, 03B-D or Phase 4 yet.
 
-## Previous checkpoint — SaaS-03B-C-R5-R1-R1 ownership materialization
+## Previous checkpoint â€” SaaS-03B-C-R5-R1-R1 ownership materialization
 
 The shared Recover ownership contract is physically materialized. Platform
 Authority schema v2 preserves the same fields and permits an active Authority
@@ -1558,15 +1558,15 @@ SaaS-03B-D = blocked
 Phase 4 = not_started
 ```
 
-After human review and push, resume only `SaaS-03B-C-R5 —
+After human review and push, resume only `SaaS-03B-C-R5 â€”
 RecoverPlatformAdmin Implementation`. Do not start Revoke, 03B-D or Phase 4.
 
-## Previous checkpoint — SaaS-03B-C-R5-R1 Recover ownership resolution
+## Previous checkpoint â€” SaaS-03B-C-R5-R1 Recover ownership resolution
 
 `SaaS-03B-C-R5` stopped during Audit Before Edit because Authority schema v1
 cannot own an `active` claim-reconciliation transition and cannot authorize a
 new break-glass command to replace a prior transition owner. R5-R1 closes the
-normative policy as **RESULT B — SHARED RECOVER OWNERSHIP CONTRACT GAP**.
+normative policy as **RESULT B â€” SHARED RECOVER OWNERSHIP CONTRACT GAP**.
 
 The selected model keeps a previously active Authority active and counted while
 a Recover command temporarily owns claim reconciliation. An authorized handoff
@@ -1588,11 +1588,11 @@ SaaS-03B-D = blocked
 Phase 4 = not_started
 ```
 
-After human review and push, execute only `SaaS-03B-C-R5-R1-R1 — Recover
+After human review and push, execute only `SaaS-03B-C-R5-R1-R1 â€” Recover
 Platform Authority Ownership Shared Contract Materialization`. Do not resume R5
 until that package/Store boundary is independently available.
 
-## Previous checkpoint — SaaS-03B-C-R4-C1 independent Bootstrap revalidation
+## Previous checkpoint â€” SaaS-03B-C-R4-C1 independent Bootstrap revalidation
 
 The complete independent R4-C1 revalidation after the published R4-C1-R1
 repair is PASS. It independently rejects malformed persisted Identity values,
@@ -1621,7 +1621,7 @@ Phase 4 = not_started
 After human review and push of this documentation-only closure, Recovery may
 begin only in its separate authorized microphase.
 
-## Previous checkpoint — SaaS-03B-C-R4-C1-R1 persisted Identity repair
+## Previous checkpoint â€” SaaS-03B-C-R4-C1-R1 persisted Identity repair
 
 The independent R4-C1 review stopped fail-closed after proving that the
 Bootstrap Firestore Identity boundary accepted exact-key documents with
@@ -1648,7 +1648,7 @@ Phase 4 = not_started
 After human review and push, rerun the complete `SaaS-03B-C-R4-C1` from a
 clean published HEAD. Do not begin Recovery before that independent closure.
 
-## Previous checkpoint — SaaS-03B-C-R4 BootstrapPlatformAdmins
+## Previous checkpoint â€” SaaS-03B-C-R4 BootstrapPlatformAdmins
 
 `SaaS-03B-C-R4` implements the first internal privileged business command on
 the validated Foundation and transaction Store. It uses the exact payload,
@@ -1671,7 +1671,7 @@ No public handler, Recovery/Revoke implementation, package, Domain, Shared,
 Rules, index or Firebase configuration change was introduced. After human
 review and push, continue only with RecoverPlatformAdmin.
 
-## Previous checkpoint — SaaS-03B-C-R3-R7 transaction Store boundary
+## Previous checkpoint â€” SaaS-03B-C-R3-R7 transaction Store boundary
 
 The first `SaaS-03B-C-R3-R7` execution stopped fail-closed as
 `BLOCKED_EMULATOR_RUNTIME_UNAVAILABLE`: the Emulator artifact existed but Java
@@ -1698,7 +1698,7 @@ Phase 4 = not_started
 After human review and push, `SaaS-03B-C` may implement only the already closed
 Bootstrap, Recovery and Revoke contracts. `SaaS-03B-D` remains blocked.
 
-## Previous checkpoint — SaaS-03B-C-R3-R6 stage and timestamp materialization
+## Previous checkpoint â€” SaaS-03B-C-R3-R6 stage and timestamp materialization
 
 `SaaS-03B-C-R3-R6` materializes the published R3-R5 contract without starting
 the Platform Command Transaction Store. `@mipymetic/saas-contracts` advances
@@ -1724,7 +1724,7 @@ Phase 4 = not_started
 After human review and push, start only the Platform Command Transaction Store
 Boundary. Bootstrap, Recovery and Revoke remain unimplemented.
 
-## Previous checkpoint — SaaS-03B-C-R3-R5 privileged command stage resolution
+## Previous checkpoint â€” SaaS-03B-C-R3-R5 privileged command stage resolution
 
 `SaaS-03B-C-R3-R5` closes the persisted checkpoint contract required by the
 future Platform Command Transaction Store. The package-owned catalog to be
@@ -1752,7 +1752,7 @@ Phase 4 = not_started
 After human review and push, materialize schema v2, the stage catalog/matrices,
 and command/audit timestamp shapes together. Do not start the Store yet.
 
-## Previous checkpoint — SaaS-03B-C-R3-R4 Registry validation and timestamp boundary
+## Previous checkpoint â€” SaaS-03B-C-R3-R4 Registry validation and timestamp boundary
 
 `SaaS-03B-C-R3-R4` materializes the two published prerequisites for the
 Platform Command Transaction Store: the package-owned frozen registry state
@@ -1779,7 +1779,7 @@ Phase 4 = not_started
 After human review and push, the Platform Command Transaction Store Boundary
 becomes `ready_not_started`. Do not start it in this microphase.
 
-## Previous checkpoint — SaaS-03B-C-R3-R3 Registry contract resolution
+## Previous checkpoint â€” SaaS-03B-C-R3-R3 Registry contract resolution
 
 `SaaS-03B-C-R3-R3` closes the exact Platform Authority Registry state and
 last-command contract required before its runtime validator can be
@@ -1809,7 +1809,7 @@ After human review and push, resume the technical Registry Validation and
 Server-Owned Timestamp Boundary prerequisite. Do not start the Transaction
 Store or business commands yet.
 
-## Current checkpoint — SaaS-03B-C-R3-R2 transition ownership materialization
+## Current checkpoint â€” SaaS-03B-C-R3-R2 transition ownership materialization
 
 `SaaS-03B-C-R3-R2` materializes the already approved portable timestamp,
 independent Authority/Registry schema versions, and Platform Authority
@@ -1834,7 +1834,7 @@ Phase 4 = not_started
 After human review and push, the Platform Command Transaction Store Boundary
 becomes `ready_not_started`. Do not begin it in this microphase.
 
-## Current checkpoint — SaaS-03B-C-R3-R1 portable timestamp resolution
+## Current checkpoint â€” SaaS-03B-C-R3-R1 portable timestamp resolution
 
 `SaaS-03B-C-R3-R1` closes the portable persisted timestamp policy required by
 Platform Authority Transition Ownership. The logical shared value is a
@@ -1865,7 +1865,7 @@ After human review and push, resume Transition Ownership and materialize this
 primitive together with the Authority validator. Do not start the Transaction
 Store or 03B-C yet.
 
-## Current checkpoint — SaaS-03B-C-R3 authority schema versioning resolution
+## Current checkpoint â€” SaaS-03B-C-R3 authority schema versioning resolution
 
 `SaaS-03B-C-R3` closes the persisted-schema policy that blocked transition
 ownership. The current 12-field Platform Authority is classified as a legacy,
@@ -1894,7 +1894,7 @@ Phase 4 = not_started
 After human review and push, resume the ownership resolution. Do not implement
 the Transaction Store or 03B-C yet.
 
-## Current checkpoint — SaaS-03B-C-R2 BootstrapPlatformAdmins reconciliation
+## Current checkpoint â€” SaaS-03B-C-R2 BootstrapPlatformAdmins reconciliation
 
 `SaaS-03B-C-R2` closes the two BootstrapPlatformAdmins gaps found by the first
 03B-C implementation audit. `correlationId` is required operator input and the
@@ -1921,7 +1921,7 @@ Phase 4 = not_started
 
 After human review and push, `SaaS-03B-C` becomes `ready_to_implement`.
 
-## Current checkpoint — SaaS-03B-C-R1-R1 revoke capability resolution
+## Current checkpoint â€” SaaS-03B-C-R1-R1 revoke capability resolution
 
 The shared contract gap found by `SaaS-03B-C-R1` is resolved by the subordinate
 microphase `SaaS-03B-C-R1-R1`. Package-owned capability
@@ -1945,7 +1945,7 @@ Phase 4 = not_started
 
 After human review and push, `SaaS-03B-C` becomes `ready_to_implement`.
 
-## Current checkpoint — SaaS-03B-C-R1 platform recovery/revocation contracts
+## Current checkpoint â€” SaaS-03B-C-R1 platform recovery/revocation contracts
 
 The post-foundation scope audit proved that `RecoverPlatformAdmin` and
 `RevokePlatformAdmin` had names and lifecycle outlines but no executable command
@@ -1974,7 +1974,7 @@ Next after human review and push: resolve the missing package-owned revoke
 capability in an explicitly scoped shared-contract microphase. Do not implement
 03B-C or begin 03B-D.
 
-## Current checkpoint — SaaS-03B-B-C1-R2 independent foundation closure
+## Current checkpoint â€” SaaS-03B-B-C1-R2 independent foundation closure
 
 The complete independent post-R2-R3 review validates persisted-record shape and
 status invariants, authorization/config repairs, transaction/audit/error
@@ -1997,7 +1997,7 @@ Privileged Backend Foundation = independently_validated
 Next after human review and push: reconstruct the exact SaaS-03B-C contract
 from the current normative sources. Do not start it from historical memory.
 
-## Current checkpoint — SaaS-03B-B-C1-R2-R3 command record status invariants repair
+## Current checkpoint â€” SaaS-03B-B-C1-R2-R3 command record status invariants repair
 
 Independent C1-R2 revalidation found that R2-R2 validated `leaseExpiresAt` as a
 nullable timestamp without enforcing its approved relationship with command
@@ -2017,7 +2017,7 @@ Privileged Backend Foundation = repaired_pending_independent_revalidation
 Next after human review and push: reexecute the independent full C1-R2
 validation. Do not start 03B-C.
 
-## Current checkpoint — SaaS-03B-B-C1-R2-R2 persisted command record repair
+## Current checkpoint â€” SaaS-03B-B-C1-R2-R2 persisted command record repair
 
 The independent C1-R2 revalidation proved that persisted Firestore command data
 was cast directly to `CommandRecord`, allowing a partial succeeded record to be
@@ -2039,7 +2039,7 @@ Privileged Backend Foundation = repaired_pending_independent_revalidation
 Next after human review and push: reexecute the independent full C1 validation.
 Do not start 03B-C.
 
-## Current checkpoint — SaaS-03B-B-C1-R2-R1 identifier validation repair
+## Current checkpoint â€” SaaS-03B-B-C1-R2-R1 identifier validation repair
 
 The independent post-repair review found that three Functions consumers treated
 the result-based `validateDocumentIdentifier` contract as throwing and therefore
@@ -2062,7 +2062,7 @@ Bootstrap platform_admin = not_started
 Next after human review and push: perform a post-identifier-repair independent
 full C1 revalidation. Do not start 03B-C.
 
-## Current checkpoint — SaaS-03B-B-C1-R1 authority coherence repair
+## Current checkpoint â€” SaaS-03B-B-C1-R1 authority coherence repair
 
 Independent C1 characterization proved that the original foundation accepted a
 mismatched persisted Identity and ignored unknown configuration keys. R1 now
@@ -2082,7 +2082,7 @@ Bootstrap platform_admin = not_started
 
 Next after human review and push: run `SaaS-03B-B-C1-R2`. Do not start 03B-C.
 
-## Current checkpoint — SaaS-03B-B-R1 package topology reconciliation and foundation completion
+## Current checkpoint â€” SaaS-03B-B-R1 package topology reconciliation and foundation completion
 
 The resumed 03B-B worktree consumes the canonical
 `@mipymetic/saas-contracts@0.6.1` artifact exclusively. R1 corrected the single
@@ -2105,7 +2105,7 @@ Privileged business commands = not_started
 Next after human review and push: execute the independent `SaaS-03B-B-C1`
 foundation review. Do not begin SaaS-03B-C before that gate.
 
-## Current checkpoint — SaaS-03B-B0-I-R4-C1-R2 post-repair revalidation
+## Current checkpoint â€” SaaS-03B-B0-I-R4-C1-R2 post-repair revalidation
 
 The independent post-repair review confirms package `0.6.1` is runtime-correct,
 strict-TypeScript-consumable, pure and byte-reproducible. JavaScript/JSDoc stays
@@ -2127,7 +2127,7 @@ Next after human review and push: resume the existing partial 03B-B foundation,
 cut over its vendored dependency from 0.6.0 to 0.6.1, retire 0.6.0 when safe,
 and resolve the five remaining foundation-local TypeScript errors.
 
-## Current checkpoint — SaaS-03B-B0-I-R4-C1-R1 TypeScript declaration repair
+## Current checkpoint â€” SaaS-03B-B0-I-R4-C1-R1 TypeScript declaration repair
 
 The first strict TypeScript consumer exposed a post-R4-C1 packaging defect: the
 `0.6.0` artifact had no declaration surface. R4-C1-R1 repairs that surface
@@ -2147,7 +2147,7 @@ Privileged Backend = partial_uncommitted_not_completed
 Next after human review and push: independent post-repair R4-C1 revalidation.
 The package/artifact change makes that review mandatory before resuming 03B-B.
 
-## Current checkpoint — SaaS-03B-B0-I-R4-C1 independent final review
+## Current checkpoint â€” SaaS-03B-B0-I-R4-C1 independent final review
 
 The independent R4-C1 review confirms R4 `RESULT A` and closes the physical
 pure-contract extraction. Package authority, compatibility adapters, residual
@@ -2166,12 +2166,12 @@ SaaS-03B-B = ready_not_started
 Privileged Backend = not_created
 ```
 
-Next after human review and push: `SaaS-03B-B — Privileged backend
+Next after human review and push: `SaaS-03B-B â€” Privileged backend
 foundation`. It was not started by this review.
 
-## Historical checkpoint — SaaS-03B-B0-I-R4 final package closure
+## Historical checkpoint â€” SaaS-03B-B0-I-R4 final package closure
 
-R4 selected `RESULT A — NO ADDITIONAL TECHNICAL MIGRATION`. The final audit
+R4 selected `RESULT A â€” NO ADDITIONAL TECHNICAL MIGRATION`. The final audit
 found zero defective/unexplained duplication and zero missing approved shared
 validators or runtime schemas. All nine Domain adapters and the eight earlier
 client adapters remain legitimate compatibility surfaces; no technical change,
@@ -2192,7 +2192,7 @@ Privileged Backend = not_created
 Next after human review and push: `SaaS-03B-B0-I-R4-C1`. R4-C1 and 03B-B were
 not started.
 
-## Historical checkpoint — SaaS-03B-B0-I-R3-C1 independent final review
+## Historical checkpoint â€” SaaS-03B-B0-I-R3-C1 independent final review
 
 The final R3 review revalidated the published lint-gate reconciliation and the
 deterministic-EOL repair. All R3 authority, compatibility, purity, artifact,
@@ -2214,7 +2214,7 @@ Privileged Backend = not_created
 Next after human review and push: `SaaS-03B-B0-I-R4`. R4 and 03B-B were not
 started by this review.
 
-## Historical checkpoint — SaaS-03B-B0-I-R3-C1-R2 artifact reproducibility repair
+## Historical checkpoint â€” SaaS-03B-B0-I-R3-C1-R2 artifact reproducibility repair
 
 R3-C1-R2 selected `SOLUTION_A`. The package now has a repository-controlled LF
 policy and a regression test over all 30 shipped source files. Independent
@@ -2235,7 +2235,7 @@ Privileged Backend = not_created
 Next after human review and push: re-execute `SaaS-03B-B0-I-R3-C1`. R4 is not
 started.
 
-## Historical checkpoint — SaaS-03B-B0-I-R3-C1-R1 global lint gate reconciliation
+## Historical checkpoint â€” SaaS-03B-B0-I-R3-C1-R1 global lint gate reconciliation
 
 The first independent R3-C1 review found that every R3 gate passed except the
 repository-global lint command. R3-C1-R1 selected `RESOLUTION_A`: a clean
@@ -2260,7 +2260,7 @@ Privileged Backend = not_created
 Next after human review and push: re-execute `SaaS-03B-B0-I-R3-C1` with the
 reconciled lint gate. R4 is not started.
 
-## Historical checkpoint — SaaS-03B-B0-I-R3-H residual authority closure
+## Historical checkpoint â€” SaaS-03B-B0-I-R3-H residual authority closure
 
 R3-H selected `RESULT_A`: 21 migrated contracts retain package physical
 authority through Domain compatibility reexports; 12 JSDoc shapes remain
@@ -2281,10 +2281,10 @@ PURE_CONTRACT_PHYSICAL_EXTRACTION = residual_authority_reconciled
 Privileged Backend = not_created
 ```
 
-Next after human review and push: `SaaS-03B-B0-I-R3-C1 — Independent Final
+Next after human review and push: `SaaS-03B-B0-I-R3-C1 â€” Independent Final
 Review of R3`. It is not started.
 
-## Current checkpoint — SaaS-03B-B0-I-R3-G error/result reconciliation
+## Current checkpoint â€” SaaS-03B-B0-I-R3-G error/result reconciliation
 
 R3-G selected `RESULT_A`: Shared `RepositoryError`, its nine client codes and
 Firebase mapping remain the client compatibility surface. Package common/backend
@@ -2301,7 +2301,7 @@ PURE_CONTRACT_PHYSICAL_EXTRACTION = error_result_surfaces_reconciled
 Privileged Backend = not_created
 ```
 
-Next after human review and push: `SaaS-03B-B0-I-R3-H — Residual duplication
+Next after human review and push: `SaaS-03B-B0-I-R3-H â€” Residual duplication
 elimination and final authority closure`. It is not started.
 
 > Course gate definitive status: `SaaS-03A.5R-B2 = completed`, Course runtime
@@ -2311,16 +2311,16 @@ elimination and final authority closure`. It is not started.
 
 ## Convenciones transversales
 
-- `tenantId` es la frontera técnica.
-- Los datos académicos pertenecen al tenant.
+- `tenantId` es la frontera tÃ©cnica.
+- Los datos acadÃ©micos pertenecen al tenant.
 - Firebase Authentication/token es autoridad de `emailVerified`.
 - `status` es autoridad de lifecycle de membership.
-- Toda migración es idempotente, reanudable, auditable y ensayada.
-- El cutover usa mantenimiento corto por dominio según ADR-008.
+- Toda migraciÃ³n es idempotente, reanudable, auditable y ensayada.
+- El cutover usa mantenimiento corto por dominio segÃºn ADR-008.
 - Las reglas usan deny-by-default y se prueban negativamente entre dos tenants.
 - Los feature flags tienen owner, valor seguro y fecha de retirada.
 
-## 00 — Documentación y baseline
+## 00 â€” DocumentaciÃ³n y baseline
 
 ### Objetivo
 
@@ -2329,38 +2329,38 @@ Aprobar ADR, contrato de datos, estados, ownership y alcance del tenant legacy.
 ### Archivos
 
 - actualizar `src/docs/*`;
-- no modificar código.
+- no modificar cÃ³digo.
 
 ### Dependencias
 
-Auditoría SaaS, ADR-001 a ADR-009 y auditoría histórica.
+AuditorÃ­a SaaS, ADR-001 a ADR-009 y auditorÃ­a histÃ³rica.
 
 ### Datos, reglas y migraciones
 
-Ninguna mutación.
+Ninguna mutaciÃ³n.
 
 ### Pruebas
 
-- revisión de términos;
-- verificación de diagramas;
+- revisiÃ³n de tÃ©rminos;
+- verificaciÃ³n de diagramas;
 - `git diff --check`.
 
-### Aceptación y gate
+### AceptaciÃ³n y gate
 
 - tenant receptor de datos legacy designado;
 - decisiones sin alternativas abiertas;
-- responsables de seguridad y migración asignados.
+- responsables de seguridad y migraciÃ³n asignados.
 
 ### Riesgo y rollback
 
-Contradicción documental. Rollback limitado a documentación.
+ContradicciÃ³n documental. Rollback limitado a documentaciÃ³n.
 
-## 01A — Inventario remoto y Emulator scaffolding
+## 01A â€” Inventario remoto y Emulator scaffolding
 
 ### Objetivo
 
 Capturar el estado remoto real y preparar una infraestructura local sin escribir
-todavía reglas funcionales definitivas.
+todavÃ­a reglas funcionales definitivas.
 
 ### Crear
 
@@ -2373,14 +2373,14 @@ tests/rules/helpers/
 ```
 
 Los archivos de reglas pueden crearse como copias verificadas del estado remoto
-o scaffolding deny-by-default para paths todavía inexistentes, no como contrato
+o scaffolding deny-by-default para paths todavÃ­a inexistentes, no como contrato
 tenant definitivo.
 
 ### Modificar
 
 - `package.json`: scripts de emulador y pruebas;
-- documentación de entornos;
-- `src/firebase.js` sólo si se necesita conexión explícita al emulador.
+- documentaciÃ³n de entornos;
+- `src/firebase.js` sÃ³lo si se necesita conexiÃ³n explÃ­cita al emulador.
 
 ### Dependencias
 
@@ -2389,8 +2389,8 @@ Fase 00. Puede avanzar en paralelo con 01B.
 ### Datos, reglas y migraciones
 
 - inventario read-only de Auth, colecciones, subcolecciones, Storage, reglas e
-  índices;
-- ninguna migración.
+  Ã­ndices;
+- ninguna migraciÃ³n.
 
 ### Pruebas
 
@@ -2398,7 +2398,7 @@ Fase 00. Puede avanzar en paralelo con 01B.
 - fixtures no contienen datos reales;
 - ruleset remoto queda archivado y comparado.
 
-### Aceptación y gate
+### AceptaciÃ³n y gate
 
 Baseline reproducible y diferencias remotas conocidas. Las reglas definitivas
 esperan 01B.
@@ -2408,7 +2408,7 @@ esperan 01B.
 Riesgo de asumir que reglas locales son remotas. No desplegar. Rollback:
 retirar scaffolding.
 
-## 01B — Contratos, estados y matriz de capacidades
+## 01B â€” Contratos, estados y matriz de capacidades
 
 ### Objetivo
 
@@ -2417,51 +2417,51 @@ Cerrar modelos puros antes de escribir reglas o repositorios funcionales.
 01B se entrega mediante subfases aprobadas de forma independiente. `01B.1`
 define exclusivamente el modelo organizacional (`Tenant`, `Membership`,
 `TenantSettings`, `TenantBranding` y sus enums) en
-`src/domain/organization/`. Completar 01B.1 no satisface por sí solo el gate de
+`src/domain/organization/`. Completar 01B.1 no satisface por sÃ­ solo el gate de
 01B ni habilita SaaS-02.
 
 `01B.2` depende del vocabulario organizacional de 01B.1 y define exclusivamente
-el modelo académico puro (`Course`, `Enrollment`, `LearningLanguage`,
+el modelo acadÃ©mico puro (`Course`, `Enrollment`, `LearningLanguage`,
 `InterfaceLanguage` y sus enums) en `src/domain/academic/`. Completar 01B.2
-tampoco satisface por sí solo el gate de 01B ni habilita SaaS-02.
+tampoco satisface por sÃ­ solo el gate de 01B ni habilita SaaS-02.
 
 `01B.3` depende de MembershipRole definido en 01B.1 y modela exclusivamente la
 identidad global y la solicitud de acceso institucional (`Identity`,
 `RegistrationRequest`, `RegistrationPolicy` y `AccessState`) en
-`src/domain/identity/`. Completar 01B.3 tampoco satisface por sí solo el gate de
+`src/domain/identity/`. Completar 01B.3 tampoco satisface por sÃ­ solo el gate de
 01B ni habilita SaaS-02.
 
 `01B.4` depende de los roles y estados definidos en 01B.1 y 01B.3. Define
-exclusivamente el catálogo declarativo de capacidades, PlatformRole, scopes,
+exclusivamente el catÃ¡logo declarativo de capacidades, PlatformRole, scopes,
 matriz por rol y AuthorizationContext en `src/domain/authorization/`. No
-implementa evaluación y tampoco satisface por sí solo el gate de 01B ni
+implementa evaluaciÃ³n y tampoco satisface por sÃ­ solo el gate de 01B ni
 habilita SaaS-02.
 
-`01B.5` referencia los estados y roles ya aprobados para documentar creación,
+`01B.5` referencia los estados y roles ya aprobados para documentar creaciÃ³n,
 actores y transiciones de RegistrationRequest, Membership, Enrollment, Course
-y Tenant en `src/domain/workflow/`. No implementa máquinas de estado y tampoco
-satisface por sí solo el gate de 01B ni habilita SaaS-02.
+y Tenant en `src/domain/workflow/`. No implementa mÃ¡quinas de estado y tampoco
+satisface por sÃ­ solo el gate de 01B ni habilita SaaS-02.
 
 `01B.5A` reconcilia de forma controlada RegistrationRequestStatus,
 MembershipStatus y las capacidades `course.activate` y
-`platform.tenant_archive`, sin implementar lógica ni habilitar SaaS-02.
+`platform.tenant_archive`, sin implementar lÃ³gica ni habilitar SaaS-02.
 
-`01B.6` documenta el modelo relacional lógico, ownership, cardinalidades,
-dependencias y Aggregate Roots sin diseñar persistencia. Tampoco satisface por
-sí solo el gate de 01B ni habilita SaaS-02.
+`01B.6` documenta el modelo relacional lÃ³gico, ownership, cardinalidades,
+dependencias y Aggregate Roots sin diseÃ±ar persistencia. Tampoco satisface por
+sÃ­ solo el gate de 01B ni habilita SaaS-02.
 
-`01B.7` realiza la revisión cruzada de Architecture Freeze. `01B.7A` reconcilia
-exclusivamente sus cinco hallazgos altos: identidad canónica de Membership,
+`01B.7` realiza la revisiÃ³n cruzada de Architecture Freeze. `01B.7A` reconcilia
+exclusivamente sus cinco hallazgos altos: identidad canÃ³nica de Membership,
 precedencia de AccessState, capacidades self de Identity, idioma de soporte de
-Course y frontera idempotente de aprobación. Los resultados quedan
-`resolved_pending_reaudit`; sólo una reauditoría posterior puede declarar el
+Course y frontera idempotente de aprobaciÃ³n. Los resultados quedan
+`resolved_pending_reaudit`; sÃ³lo una reauditorÃ­a posterior puede declarar el
 freeze y habilitar el gate hacia SaaS-02.
 
 `01B.7B` reaudita el gate y `01B.7C` reconcilia exclusivamente sus seis
 bloqueadores: AccessState tenant-scoped, BCP 47, RegistrationPolicy compuesto,
-retirada self de Membership, eliminación de `membership.review` y ownership de
+retirada self de Membership, eliminaciÃ³n de `membership.review` y ownership de
 `interfaceLocale`. Los cierres permanecen
-`resolved_pending_final_reaudit`; SaaS-02 continúa bloqueada hasta la decisión
+`resolved_pending_final_reaudit`; SaaS-02 continÃºa bloqueada hasta la decisiÃ³n
 independiente de 01B.7D.
 
 `01B.7D` reaudita directamente contratos y documentos, cierra todos los
@@ -2470,23 +2470,23 @@ la enmienda aditiva SaaS-02B.4A lo evoluciona posteriormente a Domain 1.1.0 sin
 revocar el Freeze.
 SaaS-01B queda finalizada.
 
-`02A.1` define los Persistence Roots, referencias y fronteras lógicas sin diseño
-físico. `02A.2` completa invariantes, operaciones, integridad referencial,
-retención, idempotencia y concurrencia conceptual. Con 02A.2, el modelo lógico
-de persistencia queda completo. `02B.1` inicia la fase tecnológica mediante el
-catálogo de patrones de acceso Firestore, todavía sin decidir topología física,
-paths, índices ni reglas. `02B.2` selecciona y documenta la topología híbrida,
-document shapes, referencias, lookups y fronteras atómicas sin implementar
-queries, reglas o índices. `02B.3` define 45 Query Contracts, índices
-documentales, ordenamientos, cursores y límites conceptuales para los 70 Access
+`02A.1` define los Persistence Roots, referencias y fronteras lÃ³gicas sin diseÃ±o
+fÃ­sico. `02A.2` completa invariantes, operaciones, integridad referencial,
+retenciÃ³n, idempotencia y concurrencia conceptual. Con 02A.2, el modelo lÃ³gico
+de persistencia queda completo. `02B.1` inicia la fase tecnolÃ³gica mediante el
+catÃ¡logo de patrones de acceso Firestore, todavÃ­a sin decidir topologÃ­a fÃ­sica,
+paths, Ã­ndices ni reglas. `02B.2` selecciona y documenta la topologÃ­a hÃ­brida,
+document shapes, referencias, lookups y fronteras atÃ³micas sin implementar
+queries, reglas o Ã­ndices. `02B.3` define 45 Query Contracts, Ã­ndices
+documentales, ordenamientos, cursores y lÃ­mites conceptuales para los 70 Access
 Patterns sin modificar Firebase. `02B.4` define autoridad de escritura,
 transactions, concurrencia, idempotencia, lookups, audit y errores, pero queda
 incompleta hasta revalidar los dos gaps de capability. `02B.4A` aplica una
 enmienda aditiva controlada: incorpora `registration_request.cancel_self` y
 `membership.restore`, evoluciona el dominio congelado a 1.1.0 y queda
 `completed_pending_revalidation`. SaaS-02B.4 sigue incompleta hasta esa
-revalidación. `02B.4B` cierra FWC-001/002 pero detecta FWR-001/002/003.
-`02B.4C` enlaza las transiciones, añade `platform.tenant_restore`, formaliza
+revalidaciÃ³n. `02B.4B` cierra FWC-001/002 pero detecta FWR-001/002/003.
+`02B.4C` enlaza las transiciones, aÃ±ade `platform.tenant_restore`, formaliza
 RestoreTenant/UpdateTenantProfile/PlatformUpdateTenantMetadata y evoluciona a
 Domain 1.2.0 con estado `completed_pending_revalidation`. SaaS-02B.4 y SaaS-02B
 siguen incompletas. `02B.4D` revalida esas correcciones y detecta exclusivamente
@@ -2496,7 +2496,7 @@ patterns; su estado es `completed_pending_revalidation`. SaaS-02B.4 permanece
 INCOMPLETE hasta SaaS-02B.4F, SaaS-02B permanece INCOMPLETE, SaaS-02C no ha
 comenzado y el Mandatory Firebase Security Review Gate sigue PENDING.
 
-La revalidación independiente `02B.4F` verifica y cierra FWR-005/006/007 sin
+La revalidaciÃ³n independiente `02B.4F` verifica y cierra FWR-005/006/007 sin
 alterar arquitectura. El estado definitivo es:
 
 ```text
@@ -2518,7 +2518,7 @@ El gate no ha sido ejecutado y SaaS-02C no ha comenzado.
 
 El Mandatory Firebase Security Review Gate audita paths, actores, CRUD, campos,
 transiciones, collection groups, backend-only, client candidates y riesgos. El
-informe `FIREBASE_SECURITY_REVIEW_GATE.md` aprueba la preparación para el diseño
+informe `FIREBASE_SECURITY_REVIEW_GATE.md` aprueba la preparaciÃ³n para el diseÃ±o
 documental de Firestore Rules:
 
 ```text
@@ -2526,8 +2526,8 @@ Mandatory Firebase Security Review Gate = APPROVED
 SaaS-02C = next, not started
 ```
 
-SaaS-02C deberá comenzar por diseño documental de Firestore Rules, no por
-implementación directa. Storage continúa deny-all hasta que exista un modelo de
+SaaS-02C deberÃ¡ comenzar por diseÃ±o documental de Firestore Rules, no por
+implementaciÃ³n directa. Storage continÃºa deny-all hasta que exista un modelo de
 recursos y ownership aprobado.
 
 ### Crear
@@ -2569,7 +2569,7 @@ src/domain/workflow/tenantWorkflow.js
 
 ### Modificar
 
-Ningún consumidor funcional.
+NingÃºn consumidor funcional.
 
 ### Dependencias
 
@@ -2584,7 +2584,7 @@ Fase 00. Puede avanzar en paralelo con 01A.
 - access state;
 - invitation;
 - audit event;
-- códigos lingüísticos.
+- cÃ³digos lingÃ¼Ã­sticos.
 
 ### Reglas
 
@@ -2595,11 +2595,11 @@ Especificar pseudoreglas y matriz; no desplegar rules definitivas.
 - normalizadores e invariantes;
 - precedencia de estados;
 - requisitos por rol;
-- `status` canónico;
+- `status` canÃ³nico;
 - `tenant_selection_required`;
-- valores inválidos fail-closed.
+- valores invÃ¡lidos fail-closed.
 
-### Aceptación y gate
+### AceptaciÃ³n y gate
 
 - contratos aprobados;
 - no hay `institutionId` nuevo ni rol `admin`;
@@ -2608,9 +2608,9 @@ Especificar pseudoreglas y matriz; no desplegar rules definitivas.
 
 ### Riesgo y rollback
 
-Bajo: módulos puros no conectados. Rollback: retirar artefactos nuevos.
+Bajo: mÃ³dulos puros no conectados. Rollback: retirar artefactos nuevos.
 
-## 02 — Reglas, índices y pruebas de aislamiento
+## 02 â€” Reglas, Ã­ndices y pruebas de aislamiento
 
 ### Objetivo
 
@@ -2624,9 +2624,9 @@ firestore.indexes.json
 tests/rules/firestore.*
 ```
 
-Las referencias históricas de esta fase a `storage.rules` y
+Las referencias histÃ³ricas de esta fase a `storage.rules` y
 `tests/rules/storage.*` quedan
-`superseded_for_current_no_storage_release`. La versión SaaS actual es
+`superseded_for_current_no_storage_release`. La versiÃ³n SaaS actual es
 Firestore-only; `storage.rules` permanece deny-all y fuera del gate.
 
 ### Dependencias
@@ -2642,7 +2642,7 @@ Firestore-only; `storage.rules` permanece deny-all y fuera del gate.
 - Storage tenant-aware: `superseded_for_current_no_storage_release`;
 - platform role global;
 - invitaciones no legibles por clientes;
-- auditoría append-only mediante backend.
+- auditorÃ­a append-only mediante backend.
 
 ### Migraciones
 
@@ -2653,30 +2653,30 @@ Ninguna.
 - tenant A no lee/escribe B;
 - cada rol y estado;
 - course/enrollment cruzado;
-- usuario anónimo;
-- platform admin sin acceso tenant implícito;
+- usuario anÃ³nimo;
+- platform admin sin acceso tenant implÃ­cito;
 - Storage: excluido del gate vigente no-Storage;
 - campos protegidos;
-- consultas previstas e índices.
+- consultas previstas e Ã­ndices.
 
-### Aceptación y gate
+### AceptaciÃ³n y gate
 
-Suite de reglas verde en emulador y revisión de seguridad. No conectar UI antes.
-Para la versión vigente, esta aceptación se limita a Firestore. Storage requiere
-una fase arquitectónica futura independiente y no bloquea 03A.
+Suite de reglas verde en emulador y revisiÃ³n de seguridad. No conectar UI antes.
+Para la versiÃ³n vigente, esta aceptaciÃ³n se limita a Firestore. Storage requiere
+una fase arquitectÃ³nica futura independiente y no bloquea 03A.
 
 ### Riesgo y rollback
 
-Divergencia con producción. Despliegue sólo tras plan de compatibilidad; rollback
+Divergencia con producciÃ³n. Despliegue sÃ³lo tras plan de compatibilidad; rollback
 al ruleset baseline versionado.
 
-## 03A — Repositorios tenant-aware
+## 03A â€” Repositorios tenant-aware
 
 ### Objetivo
 
-Añadir persistencia en modo expand sin retirar servicios legacy.
+AÃ±adir persistencia en modo expand sin retirar servicios legacy.
 
-### Crear en una fase de implementación posterior
+### Crear en una fase de implementaciÃ³n posterior
 
 ```text
 src/services/saas/identity/identityRepository.js
@@ -2690,11 +2690,11 @@ src/services/saas/enrollments/enrollmentRepository.js
 ### Modificar
 
 - extraer por dominio desde `firestoreService.js`;
-- conservar adaptadores legacy con nombre explícito.
+- conservar adaptadores legacy con nombre explÃ­cito.
 
 ### Dependencias
 
-Fase 02 cerrada bajo la política vigente Firestore-only y aprobación humana de
+Fase 02 cerrada bajo la polÃ­tica vigente Firestore-only y aprobaciÃ³n humana de
 SaaS-02C.2H.
 
 ### Modelo/reglas
@@ -2703,7 +2703,7 @@ Paths aprobados y `tenantId` obligatorio.
 
 ### Migraciones
 
-Sólo fixtures/staging.
+SÃ³lo fixtures/staging.
 
 ### Pruebas
 
@@ -2713,24 +2713,24 @@ Sólo fixtures/staging.
 - errores y timestamps;
 - consultas acotadas.
 
-### Aceptación y gate
+### AceptaciÃ³n y gate
 
-Ningún repositorio institucional permite consulta global u omitir tenant.
-Identity es la única raíz global explícita. 03A no contiene Storage/Media,
-AuditLog físico, invitaciones backend, foros, progreso, tests legacy,
+NingÃºn repositorio institucional permite consulta global u omitir tenant.
+Identity es la Ãºnica raÃ­z global explÃ­cita. 03A no contiene Storage/Media,
+AuditLog fÃ­sico, invitaciones backend, foros, progreso, tests legacy,
 presentations ni soporte.
 
 ### Riesgo y rollback
 
 Coexistencia temporal de capas. Mitigar con flags y fecha de retiro.
 
-## 03B — Backend privilegiado y bootstrap
+## 03B â€” Backend privilegiado y bootstrap
 
-### Estado de auditoría contractual (2026-08-05)
+### Estado de auditorÃ­a contractual (2026-08-05)
 
 `SaaS-03B-A` completed the architecture, authority, security and persistence
 audit. It did not create backend code. The next required microphase is
-`SaaS-03B-A-R1 — privileged backend, bootstrap, command, audit and environment
+`SaaS-03B-A-R1 â€” privileged backend, bootstrap, command, audit and environment
 contract resolution`, with state `required_not_started`.
 
 Implementation is not ready until R1 freezes the persistent platform authority,
@@ -2758,7 +2758,7 @@ Tenant/first-admin creation. No implementation or deployment has started.
 
 B0 completed the design-only inventory for pure contracts. Because physical
 movement was not authorized, the ordered next microphase is
-`SaaS-03B-B0-I — pure contract physical extraction and compatibility adapters`.
+`SaaS-03B-B0-I â€” pure contract physical extraction and compatibility adapters`.
 
 ```text
 SaaS-03B-A-R1 = completed
@@ -2791,15 +2791,15 @@ Crear operaciones que nunca deben ejecutarse desde el navegador.
 ### Crear
 
 - backend/Functions equivalente;
-- invitación/aceptación/revocación;
-- roles y suspensión;
-- creación de tenant y primer `tenant_admin`;
+- invitaciÃ³n/aceptaciÃ³n/revocaciÃ³n;
+- roles y suspensiÃ³n;
+- creaciÃ³n de tenant y primer `tenant_admin`;
 - bootstrap out-of-band de `platform_admin`;
-- auditoría de plataforma/tenant.
+- auditorÃ­a de plataforma/tenant.
 
 ### Modificar
 
-- configuración de despliegue;
+- configuraciÃ³n de despliegue;
 - reglas para bloquear mutaciones cliente.
 
 ### Dependencias
@@ -2810,46 +2810,46 @@ Fase 02. Puede avanzar en paralelo con 03A, coordinando schemas.
 
 Script Admin SDK de un solo uso:
 
-1. lista explícita UID + correo verificado;
-2. precondición de cero `platform_admin`;
-3. asignación claim + registro restringido;
+1. lista explÃ­cita UID + correo verificado;
+2. precondiciÃ³n de cero `platform_admin`;
+3. asignaciÃ³n claim + registro restringido;
 4. evento auditable;
-5. verificación de ambas cuentas;
-6. inutilización/retirada del script.
+5. verificaciÃ³n de ambas cuentas;
+6. inutilizaciÃ³n/retirada del script.
 
-`DEFAULT_ADMINS` mantiene sólo acceso legacy temporal.
+`DEFAULT_ADMINS` mantiene sÃ³lo acceso legacy temporal.
 
 ### Invitaciones
 
 - token aleatorio de un solo uso y hash persistido;
 - HMAC del correo normalizado con secreto servidor;
-- email cifrado/restringido sólo si es necesario;
-- colección no legible por clientes;
-- aceptación backend;
-- expiración, revocación y replay protection;
+- email cifrado/restringido sÃ³lo si es necesario;
+- colecciÃ³n no legible por clientes;
+- aceptaciÃ³n backend;
+- expiraciÃ³n, revocaciÃ³n y replay protection;
 - mensajes neutrales;
-- retención y purga de vencidas.
+- retenciÃ³n y purga de vencidas.
 
 ### Pruebas
 
-Bootstrap único, recuperación, no escalada, invitaciones concurrentes,
-expiración, revocación, email incorrecto, replay y auditoría.
+Bootstrap Ãºnico, recuperaciÃ³n, no escalada, invitaciones concurrentes,
+expiraciÃ³n, revocaciÃ³n, email incorrecto, replay y auditorÃ­a.
 
-### Aceptación y gate
+### AceptaciÃ³n y gate
 
-Dos `platform_admin` verificados sin memberships automáticas. Operaciones
+Dos `platform_admin` verificados sin memberships automÃ¡ticas. Operaciones
 privilegiadas no son ejecutables directamente por cliente.
 
 ### Riesgo y rollback
 
-Pérdida de acceso. Mantener puente legacy detrás de flag hasta verificar
-recuperación; no eliminar constante.
+PÃ©rdida de acceso. Mantener puente legacy detrÃ¡s de flag hasta verificar
+recuperaciÃ³n; no eliminar constante.
 
-## 04 — Providers en shadow mode
+## 04 â€” Providers en shadow mode
 
 ### Objetivo
 
-Construir resolución de sesión sin bloquear todavía el flujo legacy.
+Construir resoluciÃ³n de sesiÃ³n sin bloquear todavÃ­a el flujo legacy.
 
 ### Crear
 
@@ -2865,22 +2865,22 @@ src/domain/access/resolveAccessState.js
 ### Modificar
 
 - `main.jsx` para providers en shadow mode;
-- telemetría segura de divergencias;
-- no reemplazar aún `PrivateRoute`/`AdminRoute`.
+- telemetrÃ­a segura de divergencias;
+- no reemplazar aÃºn `PrivateRoute`/`AdminRoute`.
 
 ### Dependencias
 
-03A; integración privilegiada depende de 03B.
+03A; integraciÃ³n privilegiada depende de 03B.
 
 ### Comportamiento
 
 - resuelve memberships sin enforcement;
-- `activeTenantId` vive en sesión/pestaña, preferentemente `sessionStorage`;
+- `activeTenantId` vive en sesiÃ³n/pestaÃ±a, preferentemente `sessionStorage`;
 - `lastActiveTenantId` es preferencia opcional;
 - revalida membership;
 - Firebase Auth/token manda sobre `emailVerified`;
 - un snapshot Firestore es informativo;
-- curso/enrollment se resuelve según rol.
+- curso/enrollment se resuelve segÃºn rol.
 
 ### Migraciones
 
@@ -2888,10 +2888,10 @@ Ninguna.
 
 ### Pruebas
 
-Comparar resolución legacy/nueva, varias pestañas, logout, tenant suspendido,
-roles, refresh y caché.
+Comparar resoluciÃ³n legacy/nueva, varias pestaÃ±as, logout, tenant suspendido,
+roles, refresh y cachÃ©.
 
-### Aceptación y gate
+### AceptaciÃ³n y gate
 
 Shadow mode no cambia rutas ni acceso y produce resultados reconciliables.
 
@@ -2899,18 +2899,18 @@ Shadow mode no cambia rutas ni acceso y produce resultados reconciliables.
 
 Lecturas adicionales/loaders. Desactivar provider/flag sin alterar datos.
 
-## 05 — Bootstrap de datos de acceso legacy
+## 05 â€” Bootstrap de datos de acceso legacy
 
 ### Objetivo
 
-Crear el contexto mínimo que necesitan los usuarios actuales antes del
+Crear el contexto mÃ­nimo que necesitan los usuarios actuales antes del
 enforcement.
 
 ### Crear/migrar
 
-1. tenant legacy explícitamente aprobado;
+1. tenant legacy explÃ­citamente aprobado;
 2. curso legacy con `learningLanguageCode` y `supportLanguageCode`;
-3. memberships mínimas para usuarios legacy;
+3. memberships mÃ­nimas para usuarios legacy;
 4. roles mapeados y revisados;
 5. enrollments legacy activos para estudiantes;
 6. `lastActiveTenantId` opcional;
@@ -2936,20 +2936,20 @@ Ventana de mantenimiento para cambios de perfil/membership si son mutables.
 - admins legacy no obtienen privilegios globales/tenant indebidos;
 - conteos y roles reconciliados.
 
-### Aceptación y gate
+### AceptaciÃ³n y gate
 
-100 % de usuarios activos resolubles o lista explícita de excepciones aprobada.
+100 % de usuarios activos resolubles o lista explÃ­cita de excepciones aprobada.
 
 ### Riesgo y rollback
 
 Mapeo de roles incorrecto. Conservar documentos legacy y desactivar consumers
 nuevos.
 
-## 06 — Activación progresiva de guardas
+## 06 â€” ActivaciÃ³n progresiva de guardas
 
 ### Objetivo
 
-Sustituir validación legacy por máquina de estados y capacidades.
+Sustituir validaciÃ³n legacy por mÃ¡quina de estados y capacidades.
 
 ### Crear
 
@@ -2974,41 +2974,41 @@ Fase 05 reconciliada y 03B operativo.
 ### Estados y acceso por rol
 
 - `student`: membership aprobada + enrollment/curso activos;
-- `teacher`: membership aprobada; curso por operación;
+- `teacher`: membership aprobada; curso por operaciÃ³n;
 - `tenant_admin`: membership aprobada; sin enrollment;
-- `platform_admin`: contexto global sin acceso tenant implícito.
+- `platform_admin`: contexto global sin acceso tenant implÃ­cito.
 
 `tenant_selection_required`:
 
-- condición: varias memberships aprobadas/activas y ninguna selección válida;
+- condiciÃ³n: varias memberships aprobadas/activas y ninguna selecciÃ³n vÃ¡lida;
 - ruta: `/select-workspace`;
-- redirección: desde rutas tenant privadas;
+- redirecciÃ³n: desde rutas tenant privadas;
 - mensaje: seleccionar espacio de trabajo;
 - acciones: seleccionar, logout, consultar estados;
-- pruebas: selección, suspensión, back/refresh y pestañas.
+- pruebas: selecciÃ³n, suspensiÃ³n, back/refresh y pestaÃ±as.
 
-### Activación
+### ActivaciÃ³n
 
-Feature flag por cohorte, métricas y rollback inmediato.
+Feature flag por cohorte, mÃ©tricas y rollback inmediato.
 
 ### Pruebas
 
-Todos los estados, URL directa, cambio tenant, cambio rol, logout, múltiples
+Todos los estados, URL directa, cambio tenant, cambio rol, logout, mÃºltiples
 memberships y ausencia de enrollment por rol.
 
-### Aceptación y gate
+### AceptaciÃ³n y gate
 
-Ningún usuario legacy válido queda bloqueado; tenant A no abre B.
+NingÃºn usuario legacy vÃ¡lido queda bloqueado; tenant A no abre B.
 
 ### Riesgo y rollback
 
 Loops/bloqueo. Apagar flag y volver a guardas legacy.
 
-## 07 — i18n shell y Auth
+## 07 â€” i18n shell y Auth
 
 ### Objetivo
 
-Localizar interfaz pública y shell sin depender de una sesión autenticada.
+Localizar interfaz pÃºblica y shell sin depender de una sesiÃ³n autenticada.
 
 ### Crear
 
@@ -3026,12 +3026,12 @@ perfil e `html lang`.
 
 ### Dependencias
 
-01B para locale contract. Puede comenzar antes de 04; la sincronización
+01B para locale contract. Puede comenzar antes de 04; la sincronizaciÃ³n
 autenticada depende de Session.
 
-### Resolución
+### ResoluciÃ³n
 
-Selección Welcome → temporal pre-registro → perfil → tenant default → plataforma.
+SelecciÃ³n Welcome â†’ temporal pre-registro â†’ perfil â†’ tenant default â†’ plataforma.
 Session sincroniza `interfaceLocale` tras autenticar. Nunca modifica idiomas del
 curso.
 
@@ -3041,27 +3041,27 @@ Fallback `pl-PL`; evitar escritura masiva si el resolver maneja ausencia.
 
 ### Pruebas
 
-Anónimo, autenticado, precedencia, persistencia, fallback, fechas/números,
-`html lang` y separación de idiomas académicos.
+AnÃ³nimo, autenticado, precedencia, persistencia, fallback, fechas/nÃºmeros,
+`html lang` y separaciÃ³n de idiomas acadÃ©micos.
 
-### Aceptación y gate
+### AceptaciÃ³n y gate
 
 Welcome/Auth funcionan sin Session y el shell no mezcla locales iniciales.
 
 ### Riesgo y rollback
 
-Catálogo incompleto. Fallback al locale de plataforma.
+CatÃ¡logo incompleto. Fallback al locale de plataforma.
 
-## 08A — Repositorios académicos por dominio
+## 08A â€” Repositorios acadÃ©micos por dominio
 
 ### Objetivo
 
-Crear paths tenant/course sin migrar todavía producción.
+Crear paths tenant/course sin migrar todavÃ­a producciÃ³n.
 
 ### Entregas separadas
 
-1. cursos, niveles y módulos;
-2. lecciones conservando estructura íntegra;
+1. cursos, niveles y mÃ³dulos;
+2. lecciones conservando estructura Ã­ntegra;
 3. definiciones de tests;
 4. temas y misiones.
 
@@ -3076,33 +3076,33 @@ Crear paths tenant/course sin migrar todavía producción.
 
 ### Pruebas
 
-Dos tenants, mismo idioma, mismo A1, drafts, ownership, estructura de lección y
-denegación cruzada.
+Dos tenants, mismo idioma, mismo A1, drafts, ownership, estructura de lecciÃ³n y
+denegaciÃ³n cruzada.
 
-### Aceptación y gate
+### AceptaciÃ³n y gate
 
-Todos los repositorios académicos exigen tenant/curso y tienen mappings legacy.
+Todos los repositorios acadÃ©micos exigen tenant/curso y tienen mappings legacy.
 
 ### Riesgo y rollback
 
-Adapters inconsistentes. No conectar consumidores hasta validación.
+Adapters inconsistentes. No conectar consumidores hasta validaciÃ³n.
 
-## 08B — Migración y cutover de contenido
+## 08B â€” MigraciÃ³n y cutover de contenido
 
 ### Objetivo
 
-Migrar cursos, niveles, módulos, lecciones, tests, temas y misiones por dominio.
+Migrar cursos, niveles, mÃ³dulos, lecciones, tests, temas y misiones por dominio.
 
 ### Dependencias
 
-08A y mappings aprobados. Providers existen y reglas están probadas.
+08A y mappings aprobados. Providers existen y reglas estÃ¡n probadas.
 
 ### Estrategia por dominio
 
 1. snapshot;
 2. bloqueo temporal de escrituras;
 3. delta final;
-4. reconciliación IDs/referencias/conteos/hashes;
+4. reconciliaciÃ³n IDs/referencias/conteos/hashes;
 5. reglas + consumers;
 6. smoke tests;
 7. reapertura.
@@ -3112,28 +3112,28 @@ como alternativa futura.
 
 ### Modificar
 
-Paneles académicos y páginas de curso/tema/misión, dominio por dominio.
+Paneles acadÃ©micos y pÃ¡ginas de curso/tema/misiÃ³n, dominio por dominio.
 
 ### Pruebas
 
-Integridad pedagógica, publicaciones, rutas lazy, referencias, restauración y
+Integridad pedagÃ³gica, publicaciones, rutas lazy, referencias, restauraciÃ³n y
 aislamiento.
 
-### Aceptación y gate
+### AceptaciÃ³n y gate
 
-Reconciliación 100 % o excepciones aprobadas; lectura nueva activa y legacy
+ReconciliaciÃ³n 100 % o excepciones aprobadas; lectura nueva activa y legacy
 intacto.
 
 ### Riesgo y rollback
 
-Pérdida/duplicación. Revertir consumidores/rules y reabrir legacy; no borrar
+PÃ©rdida/duplicaciÃ³n. Revertir consumidores/rules y reabrir legacy; no borrar
 origen.
 
-## 09 — Progreso, tests e inscripciones
+## 09 â€” Progreso, tests e inscripciones
 
 ### Objetivo
 
-Migrar estado académico a enrollment después de mappings de contenido.
+Migrar estado acadÃ©mico a enrollment despuÃ©s de mappings de contenido.
 
 ### Modificar
 
@@ -3144,7 +3144,7 @@ Migrar estado académico a enrollment después de mappings de contenido.
 
 08B reconciliada y enrollments de 05.
 
-### Migración
+### MigraciÃ³n
 
 Por dominio con mantenimiento:
 
@@ -3154,27 +3154,27 @@ Por dominio con mantenimiento:
 - mission attempts;
 - XP/timestamps/completed flags.
 
-Definir fuente canónica y reconciliar duplicados antes de copiar.
+Definir fuente canÃ³nica y reconciliar duplicados antes de copiar.
 
 ### Pruebas
 
-Nivel por idioma, XP idempotente, reintentos, históricos, múltiples tenants,
+Nivel por idioma, XP idempotente, reintentos, histÃ³ricos, mÃºltiples tenants,
 enrollment suspendido y concurrencia.
 
-### Aceptación y gate
+### AceptaciÃ³n y gate
 
 Conteos, XP, tests e historiales reconciliados; dashboard usa enrollment.
 
 ### Riesgo y rollback
 
-Mayor riesgo de regresión. Mantener legacy read-only y revertir consumers.
+Mayor riesgo de regresiÃ³n. Mantener legacy read-only y revertir consumers.
 
-## 10A — Onboarding de estudiantes
+## 10A â€” Onboarding de estudiantes
 
 ### Objetivo
 
-País → tenant → oferta → locale → identidad → verificación → solicitud →
-aprobación → enrollment.
+PaÃ­s â†’ tenant â†’ oferta â†’ locale â†’ identidad â†’ verificaciÃ³n â†’ solicitud â†’
+aprobaciÃ³n â†’ enrollment.
 
 ### Dependencias
 
@@ -3184,20 +3184,20 @@ aprobación → enrollment.
 
 Welcome, Register, Login, rutas y servicios de onboarding.
 
-### Pruebas/aceptación
+### Pruebas/aceptaciÃ³n
 
-Políticas de acceso, email existente sin enumeración, estados y tenant aislado.
-Ningún rol privilegiado es seleccionable.
+PolÃ­ticas de acceso, email existente sin enumeraciÃ³n, estados y tenant aislado.
+NingÃºn rol privilegiado es seleccionable.
 
 ### Rollback
 
 Pausar nuevas solicitudes mediante feature flag.
 
-## 10B — Invitaciones y aprobaciones
+## 10B â€” Invitaciones y aprobaciones
 
 ### Objetivo
 
-Activar teacher/tenant_admin por invitación y cola de estudiantes.
+Activar teacher/tenant_admin por invitaciÃ³n y cola de estudiantes.
 
 ### Dependencias
 
@@ -3205,23 +3205,23 @@ Activar teacher/tenant_admin por invitación y cola de estudiantes.
 
 ### Modificar
 
-Auth UI, acceptance pages y administración de memberships.
+Auth UI, acceptance pages y administraciÃ³n de memberships.
 
-### Pruebas/aceptación
+### Pruebas/aceptaciÃ³n
 
-Identidad existente/nueva, TTL, revocación, replay, cambio email, concurrencia y
-auditoría.
+Identidad existente/nueva, TTL, revocaciÃ³n, replay, cambio email, concurrencia y
+auditorÃ­a.
 
 ### Rollback
 
-Revocar invitaciones pendientes y desactivar emisión; memberships existentes
+Revocar invitaciones pendientes y desactivar emisiÃ³n; memberships existentes
 permanecen.
 
-## 10C — Panel docente
+## 10C â€” Panel docente
 
 ### Objetivo
 
-Permitir operaciones pedagógicas por capacidad y curso seleccionado.
+Permitir operaciones pedagÃ³gicas por capacidad y curso seleccionado.
 
 ### Dependencias
 
@@ -3229,9 +3229,9 @@ Permitir operaciones pedagógicas por capacidad y curso seleccionado.
 
 ### Modificar
 
-Navegación, paneles académicos, revisiones y reportes.
+NavegaciÃ³n, paneles acadÃ©micos, revisiones y reportes.
 
-### Pruebas/aceptación
+### Pruebas/aceptaciÃ³n
 
 Teacher sin enrollment, cursos asignados, ownership tenant y ausencia de
 privilegios administrativos.
@@ -3240,51 +3240,51 @@ privilegios administrativos.
 
 Desactivar feature; contenido permanece tenant-owned.
 
-## 10D — Panel tenant_admin
+## 10D â€” Panel tenant_admin
 
 ### Objetivo
 
-Gestionar memberships, políticas, cursos y branding del tenant activo.
+Gestionar memberships, polÃ­ticas, cursos y branding del tenant activo.
 
 ### Dependencias
 
-10B y repositorios académicos. Puede avanzar en paralelo con 10C.
+10B y repositorios acadÃ©micos. Puede avanzar en paralelo con 10C.
 
-### Pruebas/aceptación
+### Pruebas/aceptaciÃ³n
 
-Sin enrollment, sin acceso a otro tenant, sin `platform_admin`, auditoría y
-límites de configuración.
+Sin enrollment, sin acceso a otro tenant, sin `platform_admin`, auditorÃ­a y
+lÃ­mites de configuraciÃ³n.
 
 ### Rollback
 
 Desactivar panel; backend y datos permanecen.
 
-## 11A — Foro y soporte
+## 11A â€” Foro y soporte
 
 ### Objetivo
 
 Separar foro institucional/curso de soporte global de plataforma.
 
-### Clasificación
+### ClasificaciÃ³n
 
-- tenant: foro, reportes institucionales y soporte académico contextual;
-- global: contacto comercial, mensajes públicos pre-registro y soporte general
+- tenant: foro, reportes institucionales y soporte acadÃ©mico contextual;
+- global: contacto comercial, mensajes pÃºblicos pre-registro y soporte general
   MiPyMeTIC.
 
 ### Dependencias
 
-06, 08B y clasificación de datos.
+06, 08B y clasificaciÃ³n de datos.
 
 ### Pruebas/cutover
 
-Mantenimiento por dominio, aislamiento, moderación, retención y datos públicos.
+Mantenimiento por dominio, aislamiento, moderaciÃ³n, retenciÃ³n y datos pÃºblicos.
 
-### Aceptación
+### AceptaciÃ³n
 
-Ningún foro tenant es global; datos de plataforma no se asignan artificialmente
+NingÃºn foro tenant es global; datos de plataforma no se asignan artificialmente
 a un tenant.
 
-## 11B — Storage y presentaciones
+## 11B â€” Storage y presentaciones
 
 ### Objetivo
 
@@ -3296,7 +3296,7 @@ Migrar documentos y blobs sin redirects transparentes.
 - persistir `legacyStoragePath`;
 - leer ruta nueva y fallback legacy controlado;
 - verificar referencias/documentos/blobs;
-- eliminar legacy sólo en fase 12 tras aprobación.
+- eliminar legacy sÃ³lo en fase 12 tras aprobaciÃ³n.
 
 ### Dependencias
 
@@ -3306,25 +3306,25 @@ Migrar documentos y blobs sin redirects transparentes.
 
 Rules Storage, cargas/descargas, referencias rotas, hashes y mantenimiento.
 
-### Aceptación
+### AceptaciÃ³n
 
 100 % de referencias resueltas y tenant aislado.
 
-## 11C — Gateway IA, cuotas y observabilidad
+## 11C â€” Gateway IA, cuotas y observabilidad
 
 ### Objetivo
 
-Proteger claves y atribuir consumo por tenant/curso/operación.
+Proteger claves y atribuir consumo por tenant/curso/operaciÃ³n.
 
 ### Dependencias
 
-03B, 08B y contrato lingüístico.
+03B, 08B y contrato lingÃ¼Ã­stico.
 
 ### Modificar
 
-`services/ai/*`, consumidores y configuración backend, preservando GeminiAudit.
+`services/ai/*`, consumidores y configuraciÃ³n backend, preservando GeminiAudit.
 
-### Pruebas/aceptación
+### Pruebas/aceptaciÃ³n
 
 Cuotas, errores, privacidad, idioma del curso, aislamiento y ausencia de clave
 en cliente productivo.
@@ -3333,22 +3333,22 @@ en cliente productivo.
 
 Feature flag/fallback controlado; no mezclar con rollback Storage.
 
-## 12 — Contract, limpieza y retirada legacy
+## 12 â€” Contract, limpieza y retirada legacy
 
 ### Objetivo
 
-Retirar compatibilidad sólo después de observación y aprobación.
+Retirar compatibilidad sÃ³lo despuÃ©s de observaciÃ³n y aprobaciÃ³n.
 
 ### Modificar/eliminar
 
 - `organizationId`, statuses legacy y rol `admin/user`;
-- `isActive` de membership si se conservó temporalmente;
+- `isActive` de membership si se conservÃ³ temporalmente;
 - `DEFAULT_ADMINS`;
 - rutas/consumers legacy;
-- métodos equivalentes de `firestoreService.js`;
+- mÃ©todos equivalentes de `firestoreService.js`;
 - blobs legacy aprobados;
 - CSS confirmado no cargado;
-- documentación y README.
+- documentaciÃ³n y README.
 
 ### Dependencias
 
@@ -3357,21 +3357,21 @@ Todas las reconciliaciones completas. Bootstrap verificado antes de retirar
 
 ### Pruebas
 
-Búsqueda legacy, rules, build, lint, integración, restauración, visual CSS y
-auditoría de datos.
+BÃºsqueda legacy, rules, build, lint, integraciÃ³n, restauraciÃ³n, visual CSS y
+auditorÃ­a de datos.
 
-### Aceptación y gate
+### AceptaciÃ³n y gate
 
-Cero autorización/rutas legacy, cero referencias rotas, documentación igual a
-producción.
+Cero autorizaciÃ³n/rutas legacy, cero referencias rotas, documentaciÃ³n igual a
+producciÃ³n.
 
 ### Riesgo y rollback
 
 Consumidor oculto. Release anterior y backups; no destruir datos nuevos.
 
-## SaaS-02C — Security Rules
+## SaaS-02C â€” Security Rules
 
-`02C.1` completa el diseño normativo de Firestore Security Rules sin modificar
+`02C.1` completa el diseÃ±o normativo de Firestore Security Rules sin modificar
 Firebase: deny-by-default, helpers, presupuesto, 10 paths, 45 Query Contracts,
 19 transiciones, dos client writes Identity y backend-only completo.
 
@@ -3384,7 +3384,7 @@ Storage Rules Design Gate = Not ready
 
 SaaS-02C.2 no ha comenzado. Storage conserva postura deny-all.
 
-### SaaS-02C.1A / SaaS-02C.1B — Legacy Rules reconciliation
+### SaaS-02C.1A / SaaS-02C.1B â€” Legacy Rules reconciliation
 
 ```text
 SaaS-02C.1 = completed
@@ -3401,7 +3401,7 @@ SaaS-02C.2 must begin in shadow deny-by-default mode. Legacy Rules must not be
 removed until their consumers are migrated. The owner-provided legacy Rules are
 a compatibility reference, not the SaaS authorization source.
 
-### SaaS-02C.2A — Composite baseline and SaaS shadow deny-by-default
+### SaaS-02C.2A â€” Composite baseline and SaaS shadow deny-by-default
 
 ```text
 SaaS-02C.2A = completed
@@ -3457,7 +3457,7 @@ separately authorized contract-reconciliation phase and B2.2 is blocked. No
 Rule, consumer or test was changed.
 
 SaaS-02C.2G-B2.1A applied the approved minimal consumer correction: Welcome
-now validates its trimmed name at 2–100 characters before writing the unchanged
+now validates its trimmed name at 2â€“100 characters before writing the unchanged
 messages payload. Rules and the orphaned public-message service writer remain
 unchanged. Mandatory human review of the Welcome component change is required
 before SaaS-02C.2G-B2.1B. B2.2 remains blocked pending B2.1 closure.
@@ -3703,9 +3703,9 @@ SaaS-02C.2G = completed
 SaaS-02C.2H = completed
 SaaS-02C.2H-C1 = completed_pending_human_push
 Phase 02 current no-storage scope = completed
-03A — Repositorios tenant-aware = ready_not_started
-04 — Providers en shadow mode = blocked_by_03A
-06 — Activación progresiva de guardas = blocked_by_previous_phases
+03A â€” Repositorios tenant-aware = ready_not_started
+04 â€” Providers en shadow mode = blocked_by_03A
+06 â€” ActivaciÃ³n progresiva de guardas = blocked_by_previous_phases
 ```
 
 The exact 03A scope is documented in
@@ -3716,9 +3716,9 @@ The first implementation step is deliberately split by responsibility:
 
 ```text
 SaaS-03A = in_progress
-SaaS-03A.1A — Shared SaaS Firestore repository infrastructure = completed
-SaaS-03A.1A-C1 — Human review and controlled commits = completed_pending_human_push
-SaaS-03A.1B — IdentityRepository = ready_not_started
+SaaS-03A.1A â€” Shared SaaS Firestore repository infrastructure = completed
+SaaS-03A.1A-C1 â€” Human review and controlled commits = completed_pending_human_push
+SaaS-03A.1B â€” IdentityRepository = ready_not_started
 ```
 
 `SaaS-03A.1A` may create only shared Firestore dependency, path/ID guard,
@@ -3746,7 +3746,7 @@ Storage resource or remote Firebase resource was changed.
 SaaS-03A = in_progress
 SaaS-03A.1B = completed
 SaaS-03A.1B-C1 = completed_pending_human_push
-SaaS-03A.2 — TenantRepository = ready_not_started
+SaaS-03A.2 â€” TenantRepository = ready_not_started
 ```
 
 SaaS-03A.2 was identified but not started.
@@ -3763,13 +3763,13 @@ SaaS-03A.2 = in_progress
 SaaS-03A.2A = completed
 SaaS-03A.2A-C1 = completed_pending_human_push
 SaaS-03A.2B = deferred_pending_rules_and_access_policy
-SaaS-03A.3 — RegistrationRequestRepository = in_progress
+SaaS-03A.3 â€” RegistrationRequestRepository = in_progress
 SaaS-03A.3A = incomplete_superseded_by_resolution
-SaaS-03A.3A-R1 — RegistrationRequest query, pagination, cursor and index contract resolution = completed
+SaaS-03A.3A-R1 â€” RegistrationRequest query, pagination, cursor and index contract resolution = completed
 SaaS-03A.3A-R1-C1 = completed_pending_human_push
-SaaS-03A.3A-R2 — RegistrationRequestRepository shadow implementation = ready_not_started
-SaaS-03A.3I — RegistrationRequest index materialization = pending_after_R2
-SaaS-03A.3R — RegistrationRequest Firestore Emulator validation = pending_after_index_materialization
+SaaS-03A.3A-R2 â€” RegistrationRequestRepository shadow implementation = ready_not_started
+SaaS-03A.3I â€” RegistrationRequest index materialization = pending_after_R2
+SaaS-03A.3R â€” RegistrationRequest Firestore Emulator validation = pending_after_index_materialization
 ```
 
 Settings and Branding remain deferred because current client Rules deny their
@@ -3825,7 +3825,7 @@ SaaS-03A.3I = ready_not_started
 SaaS-03A.3R = blocked_by_indexes
 ```
 
-### SaaS-03A.3R-A — RegistrationRequest runtime suite
+### SaaS-03A.3R-A â€” RegistrationRequest runtime suite
 
 The Firestore-only integration suite is implemented with 52 isolated cases and
 the fixed demo project. It remains unexecuted until human review; the canonical
@@ -3839,7 +3839,7 @@ SaaS-03A.3R-A = completed_pending_human_test_review
 SaaS-03A.3R-B = blocked_pending_3R_A_review
 ```
 
-Next: `SaaS-03A.3R-A-C1 — RegistrationRequest runtime suite review and
+Next: `SaaS-03A.3R-A-C1 â€” RegistrationRequest runtime suite review and
 controlled commits`. 03A.3R-B remains blocked and no MembershipRepository work
 starts here.
 
@@ -3855,7 +3855,7 @@ SaaS-03A.3R-A-C1 = completed_pending_human_push
 SaaS-03A.3R-B = ready_not_started
 ```
 
-### SaaS-03A.3R-B1 — RegistrationRequest runtime CI integration
+### SaaS-03A.3R-B1 â€” RegistrationRequest runtime CI integration
 
 The existing manual workflow now contains a deterministic RegistrationRequest
 precheck and a second, independent Firestore-only runtime session after the
@@ -3917,9 +3917,9 @@ RegistrationRequestRepository = completed_in_shadow_mode
 SaaS-03A.4 = ready_not_started
 ```
 
-Next: SaaS-03A.4 — MembershipRepository. It is not started here.
+Next: SaaS-03A.4 â€” MembershipRepository. It is not started here.
 
-### SaaS-03A.4A — MembershipRepository contract and query audit
+### SaaS-03A.4A â€” MembershipRepository contract and query audit
 
 The audit confirms the canonical Membership root, 12-field physical projection,
 three statuses, three tenant roles, owner history reads, client-denied keys and
@@ -3938,11 +3938,11 @@ SaaS-03A.4B = blocked
 MembershipRepository = not_created
 ```
 
-Next: `SaaS-03A.4A-R1 — Membership query, pagination, cursor, admin-policy and
+Next: `SaaS-03A.4A-R1 â€” Membership query, pagination, cursor, admin-policy and
 index contract resolution`. Do not create MembershipRepository before that
 contract review is complete.
 
-### SaaS-03A.4A-R1 — Membership query, pagination, cursor and index resolution
+### SaaS-03A.4A-R1 â€” Membership query, pagination, cursor and index resolution
 
 R1 freezes the three client-self APIs and explicitly excludes all admin,
 platform, key, lifecycle, and write operations. Both list scopes support the
@@ -3962,7 +3962,7 @@ MembershipRepository = not_created
 
 Next: R1 human contract review. Do not implement 03A.4B before that review.
 
-### SaaS-03A.4B — MembershipRepository implementation
+### SaaS-03A.4B â€” MembershipRepository implementation
 
 After R1 approval, the client-self repository is implemented in shadow mode
 with the three frozen APIs, strict serializer, closed options, deterministic
@@ -3981,12 +3981,12 @@ SaaS-03A.4I = ready_not_started
 ```
 
 C1 confirms the contract and corrects one fail-closed tenant result-path check;
-23 focused unit tests pass. Next: `SaaS-03A.4I — Membership index
+23 focused unit tests pass. Next: `SaaS-03A.4I â€” Membership index
 materialization`. It remains unstarted and no index JSON changes here.
 
-### SaaS-03A.4I — Membership index materialization
+### SaaS-03A.4I â€” Membership index materialization
 
-Eight R1 indexes are materialized in local configuration: FI-MEM-005–008 and
+Eight R1 indexes are materialized in local configuration: FI-MEM-005â€“008 and
 FI-CG-001/002/006/007. The four RegistrationRequest indexes remain unchanged,
 `fieldOverrides` remains empty, and no deployment or runtime execution occurs.
 
@@ -4005,7 +4005,7 @@ MembershipRepository = implemented_shadow
 Next: 03A.4R-A Membership repository runtime test suite. It is ready but not
 started here; no workflow change or runtime execution occurs in C1.
 
-### SaaS-03A.4R-A — Membership repository runtime test suite
+### SaaS-03A.4R-A â€” Membership repository runtime test suite
 
 The Firestore-only suite is prepared with 81 statically reconciled cases: 44
 ALLOW and 37 DENY, classified as 44 SUCCESS, 26 RULES_DENY, 11 CONTRACT_ERROR,
@@ -4023,7 +4023,7 @@ SaaS-03A.4R-B = ready_not_started
 MembershipRepository = implemented_shadow
 ```
 
-Next: `SaaS-03A.4R-B1 — Membership runtime CI integration`; it remains
+Next: `SaaS-03A.4R-B1 â€” Membership runtime CI integration`; it remains
 unstarted.
 
 ## SaaS-03A.4R-B1 CI integration result
@@ -4041,7 +4041,7 @@ SaaS-03A.4R-B2 = blocked_pending_manual_push_and_workflow
 MembershipRepository = implemented_shadow
 ```
 
-Next: `SaaS-03A.4R-B2 — Membership runtime execution and closure`. It was not
+Next: `SaaS-03A.4R-B2 â€” Membership runtime execution and closure`. It was not
 started; owner push and a new manual workflow execution are required first.
 
 ## SaaS-03A.4R-B1-FIX1
@@ -4076,7 +4076,7 @@ MembershipRepository = completed_in_shadow_mode
 SaaS-03A.5A = ready_not_started
 ```
 
-Next: `SaaS-03A.5A — CourseRepository contract and query audit`. It will audit
+Next: `SaaS-03A.5A â€” CourseRepository contract and query audit`. It will audit
 the physical model, Rules-compatible client reads, query/pagination/cursor
 contracts, and conceptual indexes before implementation. It is not started.
 
@@ -4098,7 +4098,7 @@ SaaS-03A.5B = blocked
 CourseRepository = not_created
 ```
 
-Next: `SaaS-03A.5A-R1 — Course query, pagination, cursor and index contract
+Next: `SaaS-03A.5A-R1 â€” Course query, pagination, cursor and index contract
 resolution`. No implementation, index materialization or runtime work starts.
 
 ## SaaS-03A.5A-R1 Course contract resolution
@@ -4117,7 +4117,7 @@ SaaS-03A.5B = ready_not_started
 CourseRepository = not_created
 ```
 
-Next: human review of R1 followed by `SaaS-03A.5B — CourseRepository
+Next: human review of R1 followed by `SaaS-03A.5B â€” CourseRepository
 implementation`. 5B is not started here.
 
 ## SaaS-03A.5B CourseRepository implementation
@@ -4137,7 +4137,7 @@ CourseRepository = implemented_shadow
 SaaS-03A.5B-C1 = next_not_started
 ```
 
-Next: `SaaS-03A.5B-C1 — CourseRepository implementation review and controlled
+Next: `SaaS-03A.5B-C1 â€” CourseRepository implementation review and controlled
 commits`. It is not started here.
 
 ## SaaS-03A.5B-C1 CourseRepository review and controlled commits
@@ -4157,7 +4157,7 @@ CourseRepository = implemented_shadow
 SaaS-03A.5I = ready_not_started
 ```
 
-Next: `SaaS-03A.5I — Course index materialization`. It remains not started.
+Next: `SaaS-03A.5I â€” Course index materialization`. It remains not started.
 
 ## SaaS-03A.5I Course index materialization
 
@@ -4170,7 +4170,7 @@ SaaS-03A.5I-C1 = next_not_started
 SaaS-03A.5R-A = blocked_pending_5I_review_and_commit
 ```
 
-Next: `SaaS-03A.5I-C1 — Course index review and controlled commits`. It is not
+Next: `SaaS-03A.5I-C1 â€” Course index review and controlled commits`. It is not
 started.
 
 ## Current R3-C checkpoint
@@ -4216,7 +4216,7 @@ PURE_CONTRACT_PHYSICAL_EXTRACTION = lifecycle_transition_contracts_migrated
 Privileged Backend = not_created
 ```
 
-Next after human review and push: `SaaS-03B-B0-I-R3-E — Capabilities and
+Next after human review and push: `SaaS-03B-B0-I-R3-E â€” Capabilities and
 Authorization Matrices`. It is not started.
 
 ## SaaS-03B-B0-I-R3-E capability authorization migration
@@ -4238,12 +4238,12 @@ PURE_CONTRACT_PHYSICAL_EXTRACTION = capability_authorization_contracts_migrated
 Privileged Backend = not_created
 ```
 
-Next after human review and push: `SaaS-03B-B0-I-R3-F — CEFR and Language
+Next after human review and push: `SaaS-03B-B0-I-R3-F â€” CEFR and Language
 Contracts`. It is not started.
 
 ## SaaS-03B-B0-I-R3-F CEFR and language reconciliation
 
-R3-F selected `RESULT_A`: the exact frozen A1–C2 `CEFR_LEVELS` contract moved
+R3-F selected `RESULT_A`: the exact frozen A1â€“C2 `CEFR_LEVELS` contract moved
 to package physical authority, while the JSDoc-only `LearningLanguage` and
 `InterfaceLanguage` shapes remain Domain-owned pending R3-H. Canonical BCP 47
 validation was already package-owned and was not duplicated. Legacy CEFR
@@ -4259,7 +4259,7 @@ PURE_CONTRACT_PHYSICAL_EXTRACTION = cefr_contract_migrated_languages_reconciled
 Privileged Backend = not_created
 ```
 
-Next after human review and push: `SaaS-03B-B0-I-R3-G — Errors / Results
+Next after human review and push: `SaaS-03B-B0-I-R3-G â€” Errors / Results
 Reconciliation`. It is not started.
 
 ## SaaS-03B-B0-I-R3-B foundational enum/status migration
@@ -4276,7 +4276,7 @@ PURE_CONTRACT_PHYSICAL_EXTRACTION = foundational_statuses_migrated
 Privileged Backend = not_created
 ```
 
-Next: `SaaS-03B-B0-I-R3-C — Roles and authority contracts`. Not started.
+Next: `SaaS-03B-B0-I-R3-C â€” Roles and authority contracts`. Not started.
 
 ## SaaS-03A.5R-B2 Course runtime closure
 
@@ -4309,7 +4309,7 @@ CourseRepository = implemented_shadow
 SaaS-03A.5R-A = ready_not_started
 ```
 
-Next: `SaaS-03A.5R-A — Course repository runtime test suite`. It is not started.
+Next: `SaaS-03A.5R-A â€” Course repository runtime test suite`. It is not started.
 
 ## SaaS-03A.5R-A Course repository runtime test suite
 
@@ -4322,7 +4322,7 @@ SaaS-03A.5R-A-C1 = completed_pending_human_push
 SaaS-03A.5R-B1 = ready_not_started
 ```
 
-Next: `SaaS-03A.5R-B1 — Course runtime CI integration`. It is ready but not
+Next: `SaaS-03A.5R-B1 â€” Course runtime CI integration`. It is ready but not
 started.
 
 ## SaaS-03A.5R-B1 Course runtime CI integration
@@ -4412,7 +4412,7 @@ SaaS-03A.6R-A = blocked_pending_6I_review_and_commit
 EnrollmentRepository = implemented_shadow
 ```
 
-The next microphase is `SaaS-03A.6I-C1 — Enrollment index review and
+The next microphase is `SaaS-03A.6I-C1 â€” Enrollment index review and
 controlled commits` (`next_not_started`). It is not initiated.
 
 ## SaaS-03A.6I-C1 Enrollment index review
@@ -4427,7 +4427,7 @@ EnrollmentRepository = implemented_shadow
 SaaS-03A.6R-A = ready_not_started
 ```
 
-The next phase is `SaaS-03A.6R-A — Enrollment repository runtime test suite`.
+The next phase is `SaaS-03A.6R-A â€” Enrollment repository runtime test suite`.
 It is ready but not initiated.
 
 ## SaaS-03A.6R-A Enrollment runtime suite
@@ -4443,7 +4443,7 @@ SaaS-03A.6R-B = blocked_pending_6R_A_review
 EnrollmentRepository = implemented_shadow
 ```
 
-The next phase is `SaaS-03A.6R-A-C1 — Enrollment runtime suite review and
+The next phase is `SaaS-03A.6R-A-C1 â€” Enrollment runtime suite review and
 controlled commits`. It is not initiated.
 
 ## SaaS-03A.6R-A-C1 Enrollment runtime suite review
@@ -4457,7 +4457,7 @@ SaaS-03A.6R-B1 = ready_not_started
 EnrollmentRepository = implemented_shadow
 ```
 
-The next phase is `SaaS-03A.6R-B1 — Enrollment runtime CI integration`; it is
+The next phase is `SaaS-03A.6R-B1 â€” Enrollment runtime CI integration`; it is
 not initiated.
 
 ## SaaS-03A.6R-B1 Enrollment runtime CI integration
@@ -4509,7 +4509,7 @@ EnrollmentRepository = completed_in_shadow_mode
 SaaS-03B = ready_not_started
 ```
 
-The next ordered phase is `SaaS-03B — Backend privilegiado y bootstrap`. It
+The next ordered phase is `SaaS-03B â€” Backend privilegiado y bootstrap`. It
 creates server-only privileged operations, invitation lifecycle, Tenant and
 first-admin bootstrap, out-of-band platform-admin bootstrap and audit. Phase 02
 is its documented dependency; coordination with the completed 03A schemas is
@@ -4519,7 +4519,7 @@ required. It is not initiated.
 
 R1 selecciona un package npm workspace privado para frontend/tests y un artifact
 `npm pack` versionado dentro del futuro `functions/` deploy source. Domain 1.2.0
-permanece normativo; su implementación portable se mueve al package en R3 con
+permanece normativo; su implementaciÃ³n portable se mueve al package en R3 con
 compatibility reexports. El bloqueo queda resuelto contractualmente, no
 implementado.
 
@@ -4538,7 +4538,7 @@ PACKAGE_TOPOLOGY_BLOCKER = resolved
 Privileged Backend = not_created
 ```
 
-Next: `SaaS-03B-B0-I-R2 — package topology implementation`, no iniciada.
+Next: `SaaS-03B-B0-I-R2 â€” package topology implementation`, no iniciada.
 
 ## SaaS-03B-B0-I-R2 package topology implementation
 
@@ -4555,12 +4555,12 @@ PURE_CONTRACT_PHYSICAL_EXTRACTION = topology_implemented_pending_domain_migratio
 Privileged Backend = not_created
 ```
 
-Next: `SaaS-03B-B0-I-R2-C1 — package topology review and controlled commits`.
+Next: `SaaS-03B-B0-I-R2-C1 â€” package topology review and controlled commits`.
 No iniciada.
 
 ## SaaS-03B-B0-I-R2-C1 package topology closure
 
-La revisión independiente confirmó commits aislados, package/exports,
+La revisiÃ³n independiente confirmÃ³ commits aislados, package/exports,
 workspace/lockfiles, instalaciones limpias, Functions aislado, artifact
 reproducible, adapters y regresiones.
 
@@ -4573,12 +4573,12 @@ PACKAGE_TOPOLOGY_BLOCKER = resolved
 Privileged Backend = not_created
 ```
 
-Next: `SaaS-03B-B0-I-R3 — Domain authority migration`. No iniciada.
+Next: `SaaS-03B-B0-I-R3 â€” Domain authority migration`. No iniciada.
 
 ## SaaS-03B-B0-I-R3-A Domain authority inventory
 
 The read-only inventory identified 40 Domain contracts and approved an
-incremental B–H/C1 plan. Twenty-seven executable contracts require package
+incremental Bâ€“H/C1 plan. Twenty-seven executable contracts require package
 authority plus Domain reexports; thirteen structural/cross-aggregate contracts
 remain temporary Domain authority.
 
@@ -4591,7 +4591,7 @@ PURE_CONTRACT_PHYSICAL_EXTRACTION = domain_inventory_completed
 Privileged Backend = not_created
 ```
 
-Next: `SaaS-03B-B0-I-R3-B — Foundational enums and status contracts`. Not
+Next: `SaaS-03B-B0-I-R3-B â€” Foundational enums and status contracts`. Not
 started.
 
 ## SaaS-03B-E-R3 ApproveRegistrationRequest portable command contract materialization
@@ -4720,8 +4720,7 @@ Course runtime, migration, F-R2, Enrollment, SaaS-03B-R or Phase 04.
 
 Course platform governance storage authority architecture resolution is
 `resolution_complete_pending_independent_review`. The selected normative
-authority is a separate governance-plane Firestore project, independent from
-every inspected target project. This is an architecture decision only: no
+authority is logically isolated within the single platform project `english-for-polish`, using the intended named Governance database. This is an architecture decision only: no
 project, database, collection, IAM binding or approval instance is created.
 Governance records remain outside tenant data, target-project runtime and
 Course data. Implementation, provisioning, security/IAM resolution, concrete
@@ -4770,7 +4769,7 @@ implementation or provisioning is authorized.
 
 Course platform governance store security, IAM and Firestore Rules resolution
 is `resolution_complete_pending_final_binary_rereview`. Governance remains a
-separate Firestore project and platform governance plane with server-side-only
+logically isolated platform governance plane within `english-for-polish`, with server-side-only
 writes, deny-by-default client reads, a dedicated trusted runtime principal,
 least-privilege IAM and separation of duties. Firestore Rules govern only the
 client SDK boundary and do not secure Admin SDK writes. No provider-specific IAM
@@ -4811,8 +4810,8 @@ provider-value collection and an execution-plan resolution. Phase 04 remains
 ### SaaS-03B-F post-publication next direct child adoption
 
 The published provisioning-authorization resolution establishes the mandatory
-order `provider value collection and validation → execution-plan resolution →
-human approval → remote authentication → provisioning execution`. Collection
+order `provider value collection and validation â†’ execution-plan resolution â†’
+human approval â†’ remote authentication â†’ provisioning execution`. Collection
 and validation are adopted as one bounded gate because unvalidated values are
 not operationally usable and no independent intermediate lifecycle is defined.
 
@@ -4821,7 +4820,7 @@ Adopted direct child (not started):
 `SaaS-03B-F-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1`
 
 **Course platform governance store provider value collection and validation
-resolution** — `DOCUMENTARY_PROVIDER_VALUE_COLLECTION_VALIDATION_RESOLUTION`.
+resolution** â€” `DOCUMENTARY_PROVIDER_VALUE_COLLECTION_VALIDATION_RESOLUTION`.
 This gate may define future human input, validation and secret-handling rules;
 it requests no values and authorizes no technical, Firebase/GCP, IAM, Rules,
 index, persistence or remote operation. No further descendant is adopted.
