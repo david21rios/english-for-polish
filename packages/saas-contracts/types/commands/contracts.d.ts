@@ -39,7 +39,7 @@ export const PRIVILEGED_COMMAND_STAGES: Readonly<{
     COMPLETED: "completed";
 }>;
 export const PLATFORM_COMMAND_TYPES: readonly ("BootstrapPlatformAdmins" | "RecoverPlatformAdmin" | "RevokePlatformAdmin")[];
-export const ATOMIC_TENANT_COMMAND_TYPES: readonly ("BootstrapTenant" | "UpdateTenantProfile" | "UpdateTenantSettings" | "UpdateTenantBranding" | "SuspendTenant" | "RestoreTenant" | "ArchiveTenant")[];
+export const ATOMIC_TENANT_COMMAND_TYPES: readonly ("BootstrapTenant" | "UpdateTenantProfile" | "UpdateTenantSettings" | "UpdateTenantBranding" | "SuspendTenant" | "RestoreTenant" | "ArchiveTenant" | "CreateEnrollment")[];
 export const COMMAND_RECORD_FIELDS: readonly string[];
 export const COMMAND_RECORD_REQUIRED_FIELDS: readonly string[];
 export function isPrivilegedCommandStageAllowed(commandType: unknown, stage: unknown): boolean;

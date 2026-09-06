@@ -4936,6 +4936,8 @@ implementation slice.
 ```text
 F-R2-T1 = human_approved_contract_reviewed_published
 F-R2-T2 = human_approved_contract_reviewed_published
+CreateEnrollment portable contract = authored_pending_independent_review
+CreateEnrollment runtime = blocked_pending_contract_independent_review_and_publication
 SaaS-03B-F-R2 = contract_authored_pending_implementation
 SaaS-03B-F = blocked_pending_F-R2_implementation
 SaaS-03B-R = blocked_pending_F

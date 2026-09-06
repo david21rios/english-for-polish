@@ -14,7 +14,7 @@ test("privileged command stages and schema v2 are canonical", () => {
 test("only approved platform commands use the stage catalog", () => {
   assert.deepEqual(PLATFORM_COMMAND_TYPES, [COMMAND_TYPES.BOOTSTRAP_PLATFORM_ADMINS, COMMAND_TYPES.RECOVER_PLATFORM_ADMIN, COMMAND_TYPES.REVOKE_PLATFORM_ADMIN]);
   for (const type of PLATFORM_COMMAND_TYPES) for (const stage of Object.values(PRIVILEGED_COMMAND_STAGES)) assert.equal(isPrivilegedCommandStageAllowed(type, stage), true);
-  for (const type of Object.values(COMMAND_TYPES).filter((type) => !PLATFORM_COMMAND_TYPES.includes(type))) assert.equal(isPrivilegedCommandStageAllowed(type, PRIVILEGED_COMMAND_STAGES.NOT_STARTED), false);
+  for (const type of Object.values(COMMAND_TYPES).filter((type) => !PLATFORM_COMMAND_TYPES.includes(type) && type !== COMMAND_TYPES.CREATE_ENROLLMENT)) assert.equal(isPrivilegedCommandStageAllowed(type, PRIVILEGED_COMMAND_STAGES.NOT_STARTED), false);
   assert.equal(isPrivilegedCommandStageAllowed(COMMAND_TYPES.REVOKE_PLATFORM_ADMIN, "unknown"), false);
 });
 
