@@ -4905,3 +4905,23 @@ The Governance Firestore direct-client isolation verification is independently
 reviewed and passed. The evidence is bounded to deny-all Rules for the named
 `governance` database and does not complete all of SaaS-03B-F. F-R2, SaaS-03B-R
 and Phase 04 remain governed by their existing roadmap states.
+## SaaS-03B-F-R2 — Enrollment uniqueness / duplicate / re-enrollment policy
+
+The F-R2 normative contract is authored from approved decisions R2-01 through
+R2-07. Enrollment uniqueness is tenant-scoped by
+`tenantId + membershipId + courseId`, applies only to `pending`/`active`, and
+preserves `completed`/`cancelled` history. Runtime implementation remains
+unauthorized pending the later implementation; legacy compatibility remediation
+is conditional on detecting incompatible records.
+
+```text
+SaaS-03B-F-R2 = contract_authored_pending_implementation
+SaaS-03B-F = blocked_pending_F-R2_implementation
+SaaS-03B-R = blocked_pending_F
+Phase 04 = not_started
+```
+
+Legacy compatibility is assessed before future Enrollment writes where
+relevant. A separately authorized remediation/migration gate is required only
+if incompatible legacy records are detected; no migration gate is required
+when no such incompatibility exists.
