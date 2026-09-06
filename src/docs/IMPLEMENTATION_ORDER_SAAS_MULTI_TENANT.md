@@ -4925,3 +4925,19 @@ Legacy compatibility is assessed before future Enrollment writes where
 relevant. A separately authorized remediation/migration gate is required only
 if incompatible legacy records are detected; no migration gate is required
 when no such incompatibility exists.
+
+## SaaS-03B-F-R2-T1/T2 — Enrollment atomic uniqueness + write-store boundary
+
+Human-approved technical contract authored. The deterministic active logical
+claim and server-side Enrollment write-store transaction boundary are defined;
+physical encoding and implementation remain pending independent review and
+publication.
+
+```text
+F-R2-T1 = human_approved_contract_authored_pending_independent_review
+F-R2-T2 = human_approved_contract_authored_pending_independent_review
+SaaS-03B-F-R2 = contract_authored_pending_implementation
+SaaS-03B-F = blocked_pending_F-R2_implementation
+SaaS-03B-R = blocked_pending_F
+Phase 04 = not_started
+```
