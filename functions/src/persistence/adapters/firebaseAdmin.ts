@@ -3,10 +3,13 @@ import { getAuth, type Auth } from "firebase-admin/auth";
 import { getFirestore, type Firestore } from "firebase-admin/firestore";
 import type { BootstrapAuthPort } from "../../commands/bootstrapPlatformAdmins.js";
 import type { JsonValue } from "../../contracts/types.js";
+import { createGovernanceDatabaseHandle } from "./governanceDb.js";
 
 export interface FirebaseAdminServices {
   readonly app: App;
   readonly auth: Auth;
+  readonly applicationDb: Firestore;
+  readonly governanceDb: Firestore;
   readonly firestore: Firestore;
 }
 
@@ -14,7 +17,9 @@ export const initializeFirebaseAdmin = (projectId?: string): FirebaseAdminServic
   const app = getApps().length === 0
     ? initializeApp(projectId === undefined ? { credential: applicationDefault() } : { credential: applicationDefault(), projectId })
     : getApp();
-  return Object.freeze({ app, auth: getAuth(app), firestore: getFirestore(app) });
+  const applicationDb = getFirestore(app);
+  const governanceDb = createGovernanceDatabaseHandle(app).firestore;
+  return Object.freeze({ app, auth: getAuth(app), applicationDb, governanceDb, firestore: applicationDb });
 };
 
 export const createFirebaseAdminBootstrapAuthPort = (auth: Auth): BootstrapAuthPort => Object.freeze({
