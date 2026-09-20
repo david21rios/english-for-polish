@@ -2,7 +2,8 @@ import { COMMAND_RECORD_FIELDS, COMMAND_SCHEMA_VERSION, COMMAND_STATUSES, COMMAN
 import { validateDocumentIdentifier } from "@mipymetic/saas-contracts/validation";
 import { BACKEND_ERROR_CODES } from "@mipymetic/saas-contracts/errors";
 import type { AuthorityResolution, CommandEnvelope, CommandRecord, JsonValue } from "../contracts/types.js";
-import { serverOwnedTimestamp, type ServerOwnedTimestamp } from "../persistence/ports.js";
+import { serverOwnedTimestamp, type ServerOwnedTimestamp, type TransactionPort } from "../persistence/ports.js";
+import { privilegedCommandDocumentPath } from "@mipymetic/saas-contracts/persistence";
 import { BackendError } from "../errors/backendError.js";
 
 const commandTypes = new Set<string>(Object.values(COMMAND_TYPES));
@@ -124,3 +125,7 @@ export const createPendingCommandRecord = (input: {
 export type PendingCommandWrite = Readonly<Omit<CommandRecord, "startedAt"> & { readonly startedAt: ServerOwnedTimestamp }>;
 
 export const sanitizeCommandResult = (result: JsonValue): JsonValue => result;
+
+export const completeCommandRecordInTransaction = (transaction: TransactionPort, record: CommandRecord, result: JsonValue): void => {
+  transaction.update(privilegedCommandDocumentPath(record.commandId), { status: COMMAND_STATUSES.SUCCEEDED, stage: PRIVILEGED_COMMAND_STAGES.COMPLETED, completedAt: serverOwnedTimestamp(), failedAt: null, result, errorCode: null, leaseExpiresAt: null });
+};

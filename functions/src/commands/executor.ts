@@ -24,7 +24,7 @@ export const prepareCommandExecution = async (input: {
   const payloadHash = canonicalPayloadHash(input.envelope.commandType, input.envelope.payload);
   return input.dependencies.transactionRunner.run(async (transaction: TransactionPort) => {
     const path = privilegedCommandDocumentPath(input.envelope.commandId);
-    const snapshot = await transaction.get(path);
+    const snapshot = await transaction.get(path, "privileged_command");
     const existing = snapshot.exists ? validatePersistedCommandRecord(snapshot.data) : null;
     const decision = decideIdempotency(existing, payloadHash);
     if (decision.kind === "replay" || decision.kind === "resume") return Object.freeze({ decision: decision.kind, record: decision.record });

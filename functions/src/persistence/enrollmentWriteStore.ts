@@ -3,7 +3,7 @@ import { enrollmentDocumentPath } from "@mipymetic/saas-contracts/persistence";
 import { validateDocumentIdentifier } from "@mipymetic/saas-contracts/validation";
 import { BackendError } from "../errors/backendError.js";
 import { runAuthoritativeTransaction } from "./transactionBoundary.js";
-import { serverOwnedTimestamp, type TransactionRunnerPort } from "./ports.js";
+import { serverOwnedTimestamp, type TransactionPort, type TransactionRunnerPort } from "./ports.js";
 
 export interface EnrollmentWriteInput {
   readonly tenantId: string;
@@ -41,41 +41,30 @@ const validClaim = (data: Readonly<Record<string, unknown>> | null, input: Enrol
 
 export const enrollmentClaimDocumentPath = claimPath;
 
+const createPendingBody = async (transaction: TransactionPort, input: EnrollmentWriteInput): Promise<void> => {
+  const normalized = Object.freeze({ tenantId: identifier(input.tenantId, "tenantId"), membershipId: identifier(input.membershipId, "membershipId"), courseId: identifier(input.courseId, "courseId"), enrollmentId: identifier(input.enrollmentId, "enrollmentId") });
+  const claim = await transaction.get(claimPath(normalized));
+  if (claim.exists) {
+    const data = claim.data;
+    if (!validClaim(data, normalized)) return fail("FAILED_PRECONDITION", "Enrollment logical claim is malformed or inconsistent.");
+    const claimData = data as Readonly<Record<string, unknown>>;
+    const holder = await transaction.get(enrollmentDocumentPath(normalized.tenantId, String(claimData.enrollmentId)));
+    if (!holder.exists || !holder.data || holder.data.tenantId !== normalized.tenantId || holder.data.membershipId !== normalized.membershipId || holder.data.courseId !== normalized.courseId || holder.data.enrollmentId !== claimData.enrollmentId || !["pending", "active"].includes(String(holder.data.status))) return fail("FAILED_PRECONDITION", "Enrollment logical claim holder is malformed or inconsistent.");
+    return fail("CONFLICT", "Enrollment logical claim is already owned.");
+  }
+  const now = serverOwnedTimestamp();
+  transaction.create(enrollmentDocumentPath(normalized.tenantId, normalized.enrollmentId), { enrollmentId: normalized.enrollmentId, tenantId: normalized.tenantId, membershipId: normalized.membershipId, courseId: normalized.courseId, status: "pending", enrolledAt: now, updatedAt: now, completedAt: null, cancelledAt: null });
+  transaction.create(claimPath(normalized), { tenantId: normalized.tenantId, membershipId: normalized.membershipId, courseId: normalized.courseId, enrollmentId: normalized.enrollmentId, status: "pending", createdAt: now, updatedAt: now });
+};
+
+export const createPendingInTransaction = createPendingBody;
+
 export const createEnrollmentWriteStore = (runner: TransactionRunnerPort): EnrollmentWriteStore =>
   Object.freeze({
     createPending: async (input: EnrollmentWriteInput): Promise<void> => {
-      const normalized = Object.freeze({ tenantId: identifier(input.tenantId, "tenantId"), membershipId: identifier(input.membershipId, "membershipId"), courseId: identifier(input.courseId, "courseId"), enrollmentId: identifier(input.enrollmentId, "enrollmentId") });
       return runAuthoritativeTransaction(
       runner,
-      async ({ transaction }) => {
-        const claim = await transaction.get(claimPath(normalized));
-        if (claim.exists) {
-          const data = claim.data;
-          if (!validClaim(data, normalized)) {
-            return fail("FAILED_PRECONDITION", "Enrollment logical claim is malformed or inconsistent.");
-          }
-          const claimData = data as Readonly<Record<string, unknown>>;
-          const holder = await transaction.get(enrollmentDocumentPath(normalized.tenantId, String(claimData.enrollmentId)));
-          if (!holder.exists || !holder.data || holder.data.tenantId !== normalized.tenantId
-            || holder.data.membershipId !== normalized.membershipId || holder.data.courseId !== normalized.courseId
-            || holder.data.enrollmentId !== claimData.enrollmentId || !["pending", "active"].includes(String(holder.data.status))) {
-            return fail("FAILED_PRECONDITION", "Enrollment logical claim holder is malformed or inconsistent.");
-          }
-          return fail("CONFLICT", "Enrollment logical claim is already owned.");
-        }
-        const now = serverOwnedTimestamp();
-        transaction.create(enrollmentDocumentPath(normalized.tenantId, normalized.enrollmentId), {
-          enrollmentId: normalized.enrollmentId, tenantId: normalized.tenantId,
-          membershipId: normalized.membershipId, courseId: normalized.courseId,
-          status: "pending", enrolledAt: now, updatedAt: now,
-          completedAt: null, cancelledAt: null,
-        });
-        transaction.create(claimPath(normalized), {
-          tenantId: normalized.tenantId, membershipId: normalized.membershipId,
-          courseId: normalized.courseId, enrollmentId: normalized.enrollmentId,
-          status: "pending", createdAt: now, updatedAt: now,
-        });
-      },
+      async ({ transaction }) => createPendingBody(transaction, input),
       );
     },
   });
