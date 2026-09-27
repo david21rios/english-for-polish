@@ -41,16 +41,40 @@ authorized. Legacy compatibility remains conditional on detected incompatibility
 
 ## Boundaries and deferred details
 
-The exact collection/path, claim schema, tuple encoding/hash, store/interface
-name, adapter, indexes, Rules, and migration handling remain
-`IMPLEMENTATION_DETAIL_PENDING_DERIVATION` (or a separately approved technical
-decision where architectural). No second idempotency model, actor matrix, or
-product foundation is introduced. Server-authoritative Admin SDK writes do not
-require a Rules change under the current architecture; no index change is
-authorized by this contract.
+The F-R2 implementation now materializes the approved deterministic claim and
+write-store boundary at the exact repository paths and adapter interfaces used
+by CreateEnrollment. No second idempotency model, actor matrix, or product
+foundation is introduced. Server-authoritative Admin SDK writes do not require
+a Rules change under the current architecture; no index change is authorized
+by this contract. Migration handling and lifecycle command mechanics remain
+deferred.
 
 Traceability: T1/T2 implement the enforcement consequence of R2-01–R2-03 and
 R2-04/R2-05 terminal history; R2-06 eligibility and no-cascade rules remain;
 R2-07 legacy restrictions remain unchanged.
 
-Implementation authorization: `READY_FOR_FIRST_BOUNDED_IMPLEMENTATION_SLICE_AFTER_STATUS_REPAIR_PUBLICATION`.
+## Final technical closure
+
+Accepted real local Firestore Emulator evidence validates the implemented
+boundary for first create, duplicate prevention, claim-holder semantics,
+recovery, authoritative Course/Membership checks, tenant isolation, and real
+transaction rollback. The command-preparation transaction and authoritative
+Enrollment transaction remain separate, and the write-store primitive does not
+introduce a nested transaction.
+
+- `SAAS_03B_F_R2_RUNTIME_VALIDATION = COMPLETE`
+- `CREATE_ENROLLMENT_REAL_EMULATOR_PARITY = 13_OF_13_PASS`
+- `CREATE_ENROLLMENT_REAL_EMULATOR_MATRIX = COMPLETE`
+- `REAL_FIRESTORE_ROLLBACK_CLOSURE = COMPLETE`
+- `SAAS_03B_F_TECHNICAL_STATUS = COMPLETE`
+- `SAAS_03B_F_TECHNICAL_CLOSURE_REVIEW = PASS`
+- `F_IMPLEMENTATION_BASELINE = 6dbcf546302c4a8b60c2cbed2b93fe2fb053e18d`
+- `F_CODE_PUBLICATION_STATE = IMPLEMENTATION_PRESENT_AT_HEAD_AND_ORIGIN`
+- `F_CLOSURE_RECORD_PUBLICATION_STATE = LOCAL_UPDATE_PENDING_HUMAN_REVIEW`
+
+Rules, indexes, provider deployment, Governance changes, frontend/UI work,
+and broader terminal-operation mechanics remain deferred/out of scope. The
+vendored `@mipymetic/saas-contracts` `0.28.0` artifact remains aligned with
+SHA-256 `824a22cca58f41fd250c8718728ffe2eab77e2660af5825ef364b8470ece2826`.
+
+Implementation authorization: `TECHNICALLY_CLOSED_PENDING_CLOSURE_RECORD_PUBLICATION`.
