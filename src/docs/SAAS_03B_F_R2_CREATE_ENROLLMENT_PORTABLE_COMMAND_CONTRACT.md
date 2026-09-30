@@ -38,11 +38,11 @@ close the current F-R2 command contract and runtime boundary:
 - `SAAS_03B_F_TECHNICAL_CLOSURE_REVIEW = PASS`
 - `F_IMPLEMENTATION_BASELINE = 6dbcf546302c4a8b60c2cbed2b93fe2fb053e18d`
 - `F_CODE_PUBLICATION_STATE = IMPLEMENTATION_PRESENT_AT_HEAD_AND_ORIGIN`
-- `F_CLOSURE_RECORD_PUBLICATION_STATE = LOCAL_UPDATE_PENDING_HUMAN_REVIEW`
+- `F_CLOSURE_RECORD_PUBLICATION_STATE = PUBLISHED`
 
 Accepted historical validation is `179/179 PASS` SaaS contracts, `265/265
 PASS` Functions, and `13/13 PASS` direct CreateEnrollment tests. The vendored
 `@mipymetic/saas-contracts` `0.28.0` artifact is aligned with SHA-256
 `824a22cca58f41fd250c8718728ffe2eab77e2660af5825ef364b8470ece2826`.
 
-Status: `TECHNICALLY_CLOSED_PENDING_CLOSURE_RECORD_PUBLICATION`.
+Status: `CLOSED_AND_PUBLISHED`.

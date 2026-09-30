@@ -21,20 +21,36 @@ Course deployed state/version inventory = design_resolution_pending_independent_
 SaaS-03B-F-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1 = candidate_pending_independent_review
 Course versionless-write prevention/cutover = design_resolution_pending_independent_review
 SaaS-03B-F-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1 = candidate_pending_independent_review
-SaaS-03B-F-R2 = defined_pending_enrollment_policy_resolution
-SaaS-03B-R = blocked_pending_F
-Phase 04 = not_started
+SaaS-03B-F-R2 = CLOSED_AND_PUBLISHED
+SaaS-03B-R = READY_FOR_DEFINITION
+Phase 04 = BLOCKED_ONLY_BY_SAAS_03B_R
 ```
+
+### Current post-F handoff — SaaS-03B-R definition boundary
+
+```text
+SaaS-03B-R = READY_FOR_DEFINITION
+parent = SaaS-03B
+prerequisite = SaaS-03B-F CLOSED_AND_PUBLISHED
+purpose = integrated Emulator/runtime/security/CI/shadow closure
+known required validation categories = negative isolation; replay; failure recovery; existing security/runtime/CI/shadow gates; real Emulator validation
+remote/deployment operations = NOT_AUTHORIZED; separate human authorization required
+```
+
+SaaS-03B-R is the only remaining major product block before Phase 04. The next
+dedicated gate defines R; this reconciliation does not define or implement it.
 
 ---
 
-## Current checkpoint â€” SaaS-03B-F-R1 Course command sequence and start gate resolution
+## Historical checkpoint (superseded) â€” SaaS-03B-F-R1 Course command sequence and start gate resolution
 
 `SaaS-03B-F-R1` resolves the missing architecture gate required after the
 published SaaS-03B-E portable sequence closure. SaaS-03B-A-R1 defines F as the
-Course/Enrollment command phase, while Enrollment remains blocked by the
-separate F-R2 uniqueness/re-enrollment policy resolution. No prior published
-genealogy defined F-R1.
+Course/Enrollment command phase, and the separate F-R2 uniqueness/re-enrollment
+policy resolution is now CLOSED_AND_PUBLISHED. Enrollment/F-R2 work is closed
+and published; F no longer blocks progress, and SaaS-03B-R is the only
+remaining major block before Phase 04. No prior published genealogy defined
+F-R1.
 
 The published CreateCourse portable contract is adopted as F's first completed
 portable-contract unit. Following the published RegistrationRequest
@@ -46,11 +62,11 @@ or any command-stage transition.
 SaaS-03B-F-R1 = completed_pending_human_review_and_push
 CreateCourse portable contract = completed_and_published
 SaaS-03B-F-R1-R1 = ready_not_started
-SaaS-03B-F = in_progress_ordered_course_sequence
-SaaS-03B-F-R2 = defined_pending_enrollment_policy_resolution
+SaaS-03B-F = CLOSED_AND_PUBLISHED
+SaaS-03B-F-R2 = CLOSED_AND_PUBLISHED
 CreateCourse runtime = not_authorized
-SaaS-03B-R = blocked_pending_F
-Phase 04 = not_started
+SaaS-03B-R = READY_FOR_DEFINITION
+Phase 04 = BLOCKED_ONLY_BY_SAAS_03B_R
 ```
 
 The next and only authorized technical unit is `SaaS-03B-F-R1-R1 â€” UpdateCourse
@@ -64,6 +80,22 @@ NOT_YET_ASSIGNED` and must be derived as the next published F-R1 descendant
 only after the portable sequence closes. RestoreCourse remains prohibited
 because archived Course is terminal. Historical checkpoints below remain
 immutable.
+
+### Current live roadmap after F publication
+
+The F-R1 checkpoint above is superseded by the published F closure. Current
+roadmap state is:
+
+```text
+SaaS-03B-F = CLOSED_AND_PUBLISHED
+SaaS-03B-F-R2 = CLOSED_AND_PUBLISHED
+Enrollment/CreateEnrollment work covered by F-R2 = CLOSED_AND_PUBLISHED
+Previous F-R1 authorization restriction = SUPERSEDED
+SaaS-03B-R = READY_FOR_DEFINITION
+Remaining major block before Phase 04 = SaaS-03B-R
+Phase 04 = BLOCKED_ONLY_BY_SAAS_03B_R
+Phase 04 entry requires R defined, executed, technically closed, and published
+```
 
 ---
 
@@ -4910,15 +4942,15 @@ and Phase 04 remain governed by their existing roadmap states.
 The F-R2 normative contract is authored from approved decisions R2-01 through
 R2-07. Enrollment uniqueness is tenant-scoped by
 `tenantId + membershipId + courseId`, applies only to `pending`/`active`, and
-preserves `completed`/`cancelled` history. Runtime implementation remains
-unauthorized pending the later implementation; legacy compatibility remediation
-is conditional on detecting incompatible records.
+preserves `completed`/`cancelled` history. F-R2 runtime is
+CLOSED_AND_PUBLISHED; legacy compatibility remediation remains conditional on
+detecting incompatible records.
 
 ```text
-SaaS-03B-F-R2 = contract_authored_pending_implementation
-SaaS-03B-F = blocked_pending_F-R2_implementation
-SaaS-03B-R = blocked_pending_F
-Phase 04 = not_started
+SaaS-03B-F-R2 = CLOSED_AND_PUBLISHED
+SaaS-03B-F = CLOSED_AND_PUBLISHED
+SaaS-03B-R = READY_FOR_DEFINITION
+Phase 04 = BLOCKED_ONLY_BY_SAAS_03B_R
 ```
 
 Legacy compatibility is assessed before future Enrollment writes where
@@ -4930,16 +4962,16 @@ when no such incompatibility exists.
 
 Human-approved technical contract authored. The deterministic active logical
 claim and server-side Enrollment write-store transaction boundary are defined;
-physical encoding and implementation remain pending the first bounded
-implementation slice.
+T1/T2 physical encoding and implementation are CLOSED_AND_PUBLISHED.
 
 ```text
 F-R2-T1 = human_approved_contract_reviewed_published
 F-R2-T2 = human_approved_contract_reviewed_published
-CreateEnrollment portable contract = authored_pending_independent_review
-CreateEnrollment runtime = blocked_pending_contract_independent_review_and_publication
-SaaS-03B-F-R2 = contract_authored_pending_implementation
-SaaS-03B-F = blocked_pending_F-R2_implementation
-SaaS-03B-R = blocked_pending_F
-Phase 04 = not_started
+CreateEnrollment portable contract = CLOSED_AND_PUBLISHED
+CreateEnrollment runtime = CLOSED_AND_PUBLISHED
+F-R2 Emulator matrix = PUBLISHED
+SaaS-03B-F-R2 = CLOSED_AND_PUBLISHED
+SaaS-03B-F = CLOSED_AND_PUBLISHED
+SaaS-03B-R = READY_FOR_DEFINITION
+Phase 04 = BLOCKED_ONLY_BY_SAAS_03B_R
 ```

@@ -84,7 +84,7 @@ Runtime validation is complete at implementation baseline
 - `SAAS_03B_F_TECHNICAL_STATUS = COMPLETE`
 - `SAAS_03B_F_TECHNICAL_CLOSURE_REVIEW = PASS`
 - `F_CODE_PUBLICATION_STATE = IMPLEMENTATION_PRESENT_AT_HEAD_AND_ORIGIN`
-- `F_CLOSURE_RECORD_PUBLICATION_STATE = LOCAL_UPDATE_PENDING_HUMAN_REVIEW`
+- `F_CLOSURE_RECORD_PUBLICATION_STATE = PUBLISHED`
 
 Validation was local-only (`demo-polish-learning` and loopback Firestore
 Emulator) with synthetic credentials. No ADC, real credentials, provider,
