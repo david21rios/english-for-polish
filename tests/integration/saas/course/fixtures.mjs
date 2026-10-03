@@ -38,7 +38,7 @@ const course = ({ tenantId = TENANTS.a, courseId, status = "active", displayName
   courseId, tenantId, displayName, description: `Course ${courseId}`,
   learningLanguage: { languageCode: learning, displayName: learning.toUpperCase() },
   supportLanguageCode: support, interfaceLanguages: [{ locale: "pl-PL", displayName: "Polski" }],
-  cefrLevel, status, createdAt: at(minute), updatedAt: at(minute), archivedAt: status === "archived" ? at(minute + 1) : null
+  cefrLevel, version: 1, status, createdAt: at(minute), updatedAt: at(minute), archivedAt: status === "archived" ? at(minute + 1) : null
 });
 export const COURSE_FIXTURES = Object.freeze([
   course({ courseId: "course-active-a1", displayName: "Alpha", cefrLevel: "A1", minute: 10 }),
