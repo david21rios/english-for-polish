@@ -5,6 +5,7 @@ import { BrowserRouter } from "react-router-dom";
 import ErrorBoundary from "./components/shared/ErrorMessage";
 
 import App from "./App";
+import { SessionProvider } from "./context/SessionContext.jsx";
 
 import "./index.css";
 
@@ -121,8 +122,9 @@ const bootstrapApplication = () => {
 
           <BrowserRouter>
 
-
+            <SessionProvider>
               <App />
+            </SessionProvider>
 
 
           </BrowserRouter>
