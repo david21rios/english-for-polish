@@ -6,6 +6,7 @@ import ErrorBoundary from "./components/shared/ErrorMessage";
 
 import App from "./App";
 import { SessionProvider } from "./context/SessionContext.jsx";
+import { TenantProvider } from "./context/TenantContext.jsx";
 
 import "./index.css";
 
@@ -123,7 +124,9 @@ const bootstrapApplication = () => {
           <BrowserRouter>
 
             <SessionProvider>
-              <App />
+              <TenantProvider>
+                <App />
+              </TenantProvider>
             </SessionProvider>
 
 
