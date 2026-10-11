@@ -1,6 +1,100 @@
 # Orden de implementaciÃ³n SaaS multi-tenant
 
-## Current checkpoint â€” Course runtime/migration authorization gate
+## Current live handoff - SaaS-03B-R roadmap reconciliation
+
+The published SaaS-03B-F work is closed. SaaS-03B-R is materially defined and
+technically closed pending publication. R1 is not materialized in the current
+repository lineage, and no source-backed R4 identifier exists; no additional
+technical R gate remains.
+
+```text
+SaaS-03B-F = CLOSED_AND_PUBLISHED
+SaaS-03B-R technical status = CLOSED_PENDING_PUBLICATION
+SaaS-03B-R1 = NOT_DEFINED_IN_CURRENT_REPOSITORY_LINEAGE
+SaaS-03B-R2 = CLOSED_AND_PUBLISHED
+SaaS-03B-R3 = CLOSED_AND_PUBLISHED
+source-backed R4 identifier = NONE
+remaining R technical gate count = 0
+pre-Phase04 blocking obligation count = 0
+Phase 04 handoff = READY_PENDING_R_PUBLICATION
+Phase 04 current authorization = BLOCKED_PENDING_R_PUBLICATION
+publication status = NOT_YET_PUBLISHED
+```
+
+### SaaS-03B-R current definition
+
+Purpose: integrated Emulator/runtime/security/CI/shadow closure after the
+published F implementation. The scope was limited to reconciling and closing
+the local runtime, security, CI, isolation, shadow/non-regression, and handoff
+evidence. That technical closure is complete. Provider access, deployment,
+cutover, schema changes, and Phase 04 implementation are outside this R scope.
+
+Published R evidence already accepted:
+
+| Work unit | Current evidence |
+| --- | --- |
+| `SaaS-03B-R2` - cross-surface isolation coverage | Published commit `eb0cafcc7c55468f1d14bfc3ae82cec877afa186`; runtime test `tests/integration/saas/crossSurfaceIsolation.runtime.test.mjs`; `CLOSED_AND_PUBLISHED`. |
+| `SaaS-03B-R3` - server-only boundaries in CI | Published commit `7da3c6af7e2954a58b2e21e3a5a9372325168a49`; sources `tests/rules/serverOnlyBoundaries.test.mjs`, `.github/workflows/firestore-rules-runtime.yml`, and `package.json`; `CLOSED_AND_PUBLISHED`. |
+| `SaaS-03B-R1` | No current repository definition or published lineage; it is not invented by this reconciliation. |
+
+Current R obligation status:
+
+| Acceptance dimension | Status |
+| --- | --- |
+| Contract parity | `PROVEN` |
+| Vendored artifact parity | `PROVEN` |
+| Runtime validators | `PROVEN` |
+| Functions validation | `PROVEN` |
+| Rules runtime | `PROVEN` |
+| Cross-surface isolation | `PROVEN` |
+| Server-only boundaries | `PROVEN` |
+| Emulator integration | `PROVEN` |
+| Privileged runtime | `PROVEN` |
+| Registration runtime | `PROVEN` |
+| Membership runtime | `PROVEN` |
+| Course runtime | `PROVEN` |
+| Enrollment runtime | `PROVEN` |
+| Command idempotency | `PROVEN` |
+| Security regression | `PROVEN` |
+| CI enforcement | `PROVEN` |
+| Legacy non-regression | `PROVEN` |
+| Command replay | `PROVEN` |
+| Command recovery | `PROVEN` |
+| Shadow-read boundary | `PROVEN_FOR_PHASE04_HANDOFF` (`PHASE04_EXECUTION_SCOPE`) |
+| Phase 04 handoff | `READY_PENDING_R_PUBLICATION` |
+
+### R technical closure
+
+`SAAS_03B_R_INTEGRATED_CLOSURE_VALIDATION` has resolved the remaining
+validation dimensions. R has zero remaining technical gates and zero
+pre-Phase04 blocking obligations. The shadow-read implementation remains
+explicitly classified as Phase 04 execution scope; the R obligation is the
+proven handoff boundary, not provider implementation. No additional SaaS-03B
+technical implementation is required before publication.
+
+Separate human authorization is still required to publish this closure record.
+Until that publication succeeds, R remains `CLOSED_PENDING_PUBLICATION` and
+Phase 04 remains `BLOCKED_PENDING_R_PUBLICATION`.
+
+### Phase 04 handoff
+
+`04 - Providers en shadow mode` remains blocked only until the R closure is
+published. Its purpose is to build session resolution without blocking the
+legacy flow. Its first authorized scope is the shadow provider/context
+boundary: `SessionContext`, `TenantContext`, and `CourseContext`; `useSession`;
+`useActiveTenant`; `resolveAccessState`; shadow provider mounting at
+`src/main.jsx`; and safe divergence telemetry. The existing `PrivateRoute` and
+`AdminRoute` remain authoritative until a later, separately authorized change.
+Phase 04 does not authorize SaaS access enforcement replacement, `PrivateRoute`
+replacement, `AdminRoute` replacement, migrations, dual-write, legacy cutover,
+or real-provider access.
+
+All roadmap sections below this handoff are preserved historical checkpoints;
+their older status labels are not the current authoritative SaaS-03B-R state.
+
+---
+
+## Historical checkpoint (superseded) - Course runtime/migration authorization gate
 
 The four portable Course contracts are now published. The next normative unit
 is `SaaS-03B-F-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1-R1`, which defines the
@@ -26,7 +120,7 @@ SaaS-03B-R = READY_FOR_DEFINITION
 Phase 04 = BLOCKED_ONLY_BY_SAAS_03B_R
 ```
 
-### Current post-F handoff — SaaS-03B-R definition boundary
+### Historical post-F handoff (superseded) - SaaS-03B-R definition boundary
 
 ```text
 SaaS-03B-R = READY_FOR_DEFINITION
@@ -81,10 +175,10 @@ only after the portable sequence closes. RestoreCourse remains prohibited
 because archived Course is terminal. Historical checkpoints below remain
 immutable.
 
-### Current live roadmap after F publication
+### Historical live roadmap after F publication (superseded)
 
-The F-R1 checkpoint above is superseded by the published F closure. Current
-roadmap state is:
+The F-R1 checkpoint above is superseded by the published F closure. The
+historical roadmap state at that checkpoint was:
 
 ```text
 SaaS-03B-F = CLOSED_AND_PUBLISHED
