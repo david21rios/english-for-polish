@@ -2,23 +2,23 @@
 
 ## Current live handoff - SaaS-03B-R roadmap reconciliation
 
-The published SaaS-03B-F work is closed. SaaS-03B-R is materially defined and
-technically closed pending publication. R1 is not materialized in the current
+The published SaaS-03B-F work is closed. SaaS-03B-R is materially defined,
+technically closed, and published. R1 is not materialized in the current
 repository lineage, and no source-backed R4 identifier exists; no additional
 technical R gate remains.
 
 ```text
 SaaS-03B-F = CLOSED_AND_PUBLISHED
-SaaS-03B-R technical status = CLOSED_PENDING_PUBLICATION
+SaaS-03B-R technical status = CLOSED_AND_PUBLISHED
 SaaS-03B-R1 = NOT_DEFINED_IN_CURRENT_REPOSITORY_LINEAGE
 SaaS-03B-R2 = CLOSED_AND_PUBLISHED
 SaaS-03B-R3 = CLOSED_AND_PUBLISHED
 source-backed R4 identifier = NONE
 remaining R technical gate count = 0
 pre-Phase04 blocking obligation count = 0
-Phase 04 handoff = READY_PENDING_R_PUBLICATION
-Phase 04 current authorization = BLOCKED_PENDING_R_PUBLICATION
-publication status = NOT_YET_PUBLISHED
+Phase 04 handoff = READY_FOR_PHASE04_OPENING_GATE
+Phase 04 current authorization = READY_FOR_PHASE04_OPENING_GATE
+publication status = PUBLISHED
 ```
 
 ### SaaS-03B-R current definition
@@ -61,7 +61,7 @@ Current R obligation status:
 | Command replay | `PROVEN` |
 | Command recovery | `PROVEN` |
 | Shadow-read boundary | `PROVEN_FOR_PHASE04_HANDOFF` (`PHASE04_EXECUTION_SCOPE`) |
-| Phase 04 handoff | `READY_PENDING_R_PUBLICATION` |
+| Phase 04 handoff | `READY_FOR_PHASE04_OPENING_GATE` |
 
 ### R technical closure
 
@@ -70,16 +70,15 @@ validation dimensions. R has zero remaining technical gates and zero
 pre-Phase04 blocking obligations. The shadow-read implementation remains
 explicitly classified as Phase 04 execution scope; the R obligation is the
 proven handoff boundary, not provider implementation. No additional SaaS-03B
-technical implementation is required before publication.
+technical implementation is required; the closure record is now published.
 
-Separate human authorization is still required to publish this closure record.
-Until that publication succeeds, R remains `CLOSED_PENDING_PUBLICATION` and
-Phase 04 remains `BLOCKED_PENDING_R_PUBLICATION`.
+The R closure publication is reconciled in this roadmap. R remains
+`CLOSED_AND_PUBLISHED`, and Phase 04 is `READY_FOR_PHASE04_OPENING_GATE`.
 
 ### Phase 04 handoff
 
-`04 - Providers en shadow mode` remains blocked only until the R closure is
-published. Its purpose is to build session resolution without blocking the
+`04 - Providers en shadow mode` is ready for its opening-gate recheck. Its
+purpose is to build session resolution without blocking the
 legacy flow. Its first authorized scope is the shadow provider/context
 boundary: `SessionContext`, `TenantContext`, and `CourseContext`; `useSession`;
 `useActiveTenant`; `resolveAccessState`; shadow provider mounting at
