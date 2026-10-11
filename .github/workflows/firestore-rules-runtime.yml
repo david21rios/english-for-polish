@@ -44,6 +44,34 @@ jobs:
       - name: Install locked dependencies
         run: npm ci
 
+      - name: Install locked Functions dependencies
+        working-directory: functions
+        run: npm ci
+
+      - name: Run repository static and index validation
+        run: npm test
+
+      - name: Run SaaS contracts tests
+        run: npm run test:saas-contracts
+
+      - name: Run SaaS contracts type check
+        run: npm run --workspace @mipymetic/saas-contracts check:types
+
+      - name: Run SaaS contracts package dry-run
+        run: npm run pack:saas-contracts:dry-run
+
+      - name: Run Functions type check
+        working-directory: functions
+        run: npm run check
+
+      - name: Run Functions lint
+        working-directory: functions
+        run: npm run lint
+
+      - name: Run Functions build and tests
+        working-directory: functions
+        run: npm test
+
       - name: Show local Firebase CLI version
         run: ./node_modules/.bin/firebase --version
 
