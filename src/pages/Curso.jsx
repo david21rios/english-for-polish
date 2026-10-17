@@ -1,11 +1,18 @@
 // src/pages/Curso.jsx
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 
 import { auth, db } from "../firebase";
+import { useActiveTenant } from "../hooks/useActiveTenant.js";
+import { useCourse } from "../hooks/useCourse.js";
+import {
+  CLASSIFICATIONS,
+  compareShadowDivergence,
+  createDivergenceObserver
+} from "../domain/access/shadowDivergence.js";
 import { getCourseLevelsForUser } from "../services/courses/courseService";
 
 import CourseHero from "../components/cursos/CourseHero";
@@ -19,12 +26,19 @@ const normalizeCurrentLevel = (level = "") => {
 
 const Curso = () => {
   const navigate = useNavigate();
+  const courseShadow = useCourse();
+  const activeTenant = useActiveTenant();
 
   const [levels, setLevels] = useState([]);
   const [userAgeGroup, setUserAgeGroup] = useState(null);
   const [currentLevel, setCurrentLevel] = useState("A1");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const divergenceObserverRef = useRef(null);
+
+  if (divergenceObserverRef.current === null) {
+    divergenceObserverRef.current = createDivergenceObserver();
+  }
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -77,6 +91,44 @@ const Curso = () => {
 
     return () => unsubscribe();
   }, [navigate]);
+
+  useEffect(() => {
+    const activeTenantId = activeTenant?.activeTenantId;
+    const shadowTenantId = courseShadow?.course?.tenantId;
+    const tenantMismatch = typeof activeTenantId === "string" &&
+      activeTenantId.length > 0 &&
+      typeof shadowTenantId === "string" &&
+      shadowTenantId.length > 0 &&
+      activeTenantId !== shadowTenantId;
+    const safeObservation = compareShadowDivergence({
+      legacy: { levels, loading, error },
+      shadow: {
+        loading: courseShadow?.loading,
+        resolved: courseShadow?.resolved,
+        resolutionState: courseShadow?.resolutionState,
+        error: {
+          code: courseShadow?.error?.code,
+          operation: courseShadow?.error?.operation
+        }
+      },
+      tenantMismatch
+    });
+
+    if (safeObservation.classification === CLASSIFICATIONS.DIVERGENCE) {
+      divergenceObserverRef.current.observe(safeObservation);
+    }
+  }, [
+    activeTenant?.activeTenantId,
+    courseShadow?.course?.tenantId,
+    courseShadow?.error?.code,
+    courseShadow?.error?.operation,
+    courseShadow?.loading,
+    courseShadow?.resolutionState,
+    courseShadow?.resolved,
+    error,
+    levels,
+    loading
+  ]);
 
   const handleOpenLevel = (level) => {
     if (level.isLocked) return;
