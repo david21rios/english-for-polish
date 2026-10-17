@@ -5,6 +5,7 @@ import { BrowserRouter } from "react-router-dom";
 import ErrorBoundary from "./components/shared/ErrorMessage";
 
 import App from "./App";
+import { CourseProvider } from "./context/CourseContext.jsx";
 import { SessionProvider } from "./context/SessionContext.jsx";
 import { TenantProvider } from "./context/TenantContext.jsx";
 
@@ -125,7 +126,9 @@ const bootstrapApplication = () => {
 
             <SessionProvider>
               <TenantProvider>
-                <App />
+                <CourseProvider>
+                  <App />
+                </CourseProvider>
               </TenantProvider>
             </SessionProvider>
 
