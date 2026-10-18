@@ -122,6 +122,61 @@ flowchart TD
 
 Mappings de contenido preceden progreso. Reconciliación precede retirada.
 
+## 4A. Current Phase 05 entry boundary
+
+Phase 04 is `CLOSED` with legacy authority preserved. Its providers and
+divergence telemetry remain shadow/observational only; guards, dual-write,
+migration, and cutover are not active. Phase 05 is therefore authorized only
+for policy-bound migration design, not for provider data operations.
+
+The approved migration tenant is the immutable opaque
+`legacyTenantId = 7c2f5a4e-91d8-4b73-a6c1-2f4e8d9b3a57`. `organizationId` and
+`institutionId` require an explicit mapping table; missing or conflicting
+values are quarantined. Role conversion is evidence-gated (`admin` to
+`tenant_admin` only when tenant-scoped; `user` to `student` only with
+supporting evidence; unknown/null quarantined). Enrollment creation requires
+an explicit unambiguous tenant/membership/course relationship. Exact target
+matches are idempotent no-ops; authority conflicts require quarantine and human
+review; destructive overwrite is forbidden.
+
+The next dependency-safe design child is
+`PHASE05_LEGACY_MIGRATION_MAPPING_AND_DRY_RUN_CONTRACT`. It precedes any
+membership/enrollment bootstrap and defines candidate inputs, mappings,
+classification, quarantine reasons, dry-run results, audit/idempotency fields,
+and rollback ownership. No provider read/write or runtime cutover is included.
+
+The Phase 05 design flow is:
+
+```mermaid
+flowchart LR
+  SRC[Legacy candidate inputs] --> TENANT[Fixed legacyTenantId]
+  TENANT --> MAP[Explicit organization/institution mapping]
+  MAP --> ROLE[Evidence-gated role classification]
+  ROLE --> ENR[Explicit enrollment evidence]
+  ENR --> CMP[Semantic target comparison]
+  CMP --> Q[Quarantine / human review]
+  CMP --> N[Idempotent no-op]
+  CMP --> C[Eligible proposed create]
+  Q --> AUD[Dry-run audit/report]
+  N --> AUD
+  C --> AUD
+  AUD --> R[Future separately authorized execution]
+```
+
+The immutable tenant ID, explicit mapping-table version, semantic comparison,
+deterministic idempotency key, audit projection, and human-review boundary are
+hard dependencies of every later candidate. A missing or conflicting mapping,
+unknown role, ambiguous Enrollment relationship, or target conflict terminates
+the candidate at quarantine/review; it cannot flow to a proposed create.
+
+The first dependency-safe design child is
+`PHASE05_LEGACY_MIGRATION_MAPPING_AND_DRY_RUN_CONTRACT`. It defines the
+candidate envelope, mapping record, closed classification and reason-code
+sets, dry-run input/result/report schemas, proposed operations, ordering,
+audit, and rollback ownership. The dry-run is zero-write and does not activate
+dual-write, guards, or cutover. Future execution remains a separate human-
+authorized gate.
+
 ## 5. Cutover por dominio
 
 ```mermaid

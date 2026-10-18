@@ -91,6 +91,503 @@ or real-provider access.
 All roadmap sections below this handoff are preserved historical checkpoints;
 their older status labels are not the current authoritative SaaS-03B-R state.
 
+## Current authoritative handoff - Phase 04 closure and Phase 05 entry
+
+This section supersedes older Phase 04/05 status labels below it. Phase 04 is
+technically closed: the provider/context surfaces and safe divergence
+telemetry remain observational, the legacy routes remain authoritative, and no
+guard, dual-write, migration, or cutover was activated. The accepted Phase 04
+work establishes the shadow architecture and the technical prerequisites for
+the next migration-design boundary without claiming provider migration or
+production cutover.
+
+```text
+PHASE04_STATUS = CLOSED
+PHASE04_LEGACY_AUTHORITY = PRESERVED
+PHASE04_GUARDS = NOT_ACTIVATED
+PHASE04_DUAL_WRITE = NOT_ACTIVATED
+PHASE04_CUTOVER = NOT_ACTIVATED
+PHASE04_PROVIDER_MIGRATION = NOT_PERFORMED
+PHASE05_STATUS = AUTHORIZED_FOR_POLICY_BOUND_MIGRATION_DESIGN
+PHASE05_POLICY_STATUS = APPROVED_AND_RECORDED
+PHASE05_IMPLEMENTATION_STATUS = NOT_STARTED
+MIGRATION_STATUS = NOT_ACTIVE
+CUTOVER_STATUS = NOT_ACTIVE
+```
+
+### Product Owner policy record
+
+The approved canonical legacy tenant is the stable opaque identifier
+`7c2f5a4e-91d8-4b73-a6c1-2f4e8d9b3a57`. It is immutable once referenced by
+migration records, is never regenerated, and is not derived from
+`organizationId`, `institutionId`, or legacy course/level identifiers. A
+future change requires an explicit Product Owner architecture/policy decision
+before irreversible migration dependencies exist.
+
+The Phase 05 policy package is:
+
+```text
+LEGACY_TENANT_ID = 7c2f5a4e-91d8-4b73-a6c1-2f4e8d9b3a57
+LEGACY_TENANT_ID_CLASSIFICATION = STABLE_OPAQUE_PRODUCT_OWNER_SELECTED_ID
+ORGANIZATION_INSTITUTION_MAPPING_POLICY = EXPLICIT_MAPPING_TABLE_WITH_QUARANTINE_FOR_MISSING_OR_CONFLICTING_VALUES
+LEGACY_ADMIN_ROLE_MAPPING = TENANT_SCOPED_ADMIN_TO_TENANT_ADMIN_ONLY
+LEGACY_USER_ROLE_MAPPING = USER_TO_STUDENT_ONLY_WITH_SUPPORTING_EVIDENCE
+UNKNOWN_ROLE_POLICY = QUARANTINE
+ENROLLMENT_BOOTSTRAP_POLICY = CREATE_ONLY_EXPLICIT_UNAMBIGUOUS
+AMBIGUOUS_ENROLLMENT_POLICY = REQUIRE_HUMAN_REVIEW
+TARGET_MATCH_POLICY = NO_OP_IDEMPOTENT
+TARGET_CONFLICT_POLICY = QUARANTINE_AND_HUMAN_REVIEW
+DESTRUCTIVE_OVERWRITE_ALLOWED = NO
+LEGACY_AUTHORITY_REMAINS = YES
+DUAL_WRITE_ALLOWED = NO
+GUARD_ACTIVATION_ALLOWED = NO
+CUTOVER_ALLOWED = NO
+```
+
+`organizationId` and `institutionId` are migration evidence/input only; neither
+is canonical Tenant authority by default, and they are not assumed to be
+aliases. Missing mappings are quarantined. Conflicting mappings are
+quarantined and require human review.
+
+The legacy `admin` role may map to `tenant_admin` only when tenant scope is
+proven for the approved tenant. Global or ambiguous administrators are
+quarantined for human review. The legacy `user` role may map to `student` only
+with supporting tenant/course evidence. `teacher` is never inferred, and
+unknown/null roles receive no SaaS Membership write and remain under legacy
+authority.
+
+Legacy access is not canonical Enrollment evidence. `currentLevel`, level, or
+progress alone does not authorize Enrollment creation. A later migration may
+create an Enrollment only from an explicit, unambiguous, tenant-owned,
+course-owned, and membership-compatible relationship. Ambiguous evidence is
+sent to human review.
+
+For an existing SaaS target, an exact semantic match is `NO_OP_IDEMPOTENT`.
+Tenant, role, course, claim, holder, or other authority conflicts are
+`QUARANTINE_AND_HUMAN_REVIEW`; invalid source data is quarantined. No deletion,
+silent ownership reassignment, replacement, or destructive overwrite is
+authorized.
+
+### Phase 05 entry boundary
+
+Phase 05 is authorized only for policy-bound migration design. The next design
+may define the legacy candidate inventory, explicit mapping and quarantine
+contracts, dry-run classification, audit records, idempotency keys, and
+rollback ownership. Every candidate must have a deterministic decision,
+per-record classification, source and target references, a run identifier, and
+an audit result. Newly created migration-owned records require a compensation
+strategy; rollback must never delete pre-existing canonical SaaS state.
+
+Provider reads/writes, migration execution, SaaS record creation, runtime guard
+activation, dual-write, cutover, and destructive reconciliation remain outside
+this entry record.
+
+The first dependency-safe technical/design child is
+`PHASE05_LEGACY_MIGRATION_MAPPING_AND_DRY_RUN_CONTRACT`. It will define the
+candidate inputs, stable `legacyTenantId` usage, organization/institution
+mapping representation, role and Enrollment evidence classifications, conflict
+and quarantine reasons, dry-run result schema, audit fields, idempotency keys,
+and the distinction between migration-owned and pre-existing targets. It must
+remain documentation/design-only until a separate execution gate authorizes
+provider operations.
+
+### Phase 05 mapping and dry-run contract
+
+This is a documentation/design contract only. It does not read migration
+data, write provider data, create SaaS records, or implement a migration
+runner. Its contract version is `phase05-legacy-mapping-dry-run-v1`.
+
+The fixed migration tenant is:
+
+```text
+LEGACY_TENANT_ID = 7c2f5a4e-91d8-4b73-a6c1-2f4e8d9b3a57
+LEGACY_TENANT_ID_IMMUTABLE = YES
+```
+
+#### Candidate envelope
+
+Every future candidate is represented by this design-level shape. Unknown
+source details are represented as `null` plus a discovery classification; they
+are never guessed.
+
+```ts
+type LegacyMigrationCandidate = {
+  candidateId: string;
+  candidateType:
+    | "organization_institution_mapping"
+    | "identity_migration"
+    | "membership_role_migration"
+    | "course_mapping"
+    | "enrollment_bootstrap";
+  sourceReference: {
+    collectionPath: string | null;
+    entityKind: string;
+    recordId: string;
+  };
+  sourceIdentity: {
+    legacyUid: string | null;
+    stableLegacySourceId: string;
+  };
+  legacyAuthorityScope: string;
+  target: {
+    tenantId: string;
+    entityType: "tenant" | "identity" | "membership" | "course" | "enrollment";
+    targetId: string | null;
+    targetReference: string | null;
+  };
+  mappingEvidence: {
+    mappingTableId: string | null;
+    mappingTableVersion: string;
+    organizationId: string | null;
+    institutionId: string | null;
+    evidenceCodes: string[];
+  };
+  roleEvidence: {
+    legacyRole: "admin" | "user" | string | null;
+    evidenceCodes: string[];
+  };
+  enrollmentEvidence: {
+    evidenceCodes: string[];
+    relationshipReference: string | null;
+  } | null;
+  targetComparison: {
+    outcome: "TARGET_ABSENT" | "SEMANTIC_MATCH" | "CONFLICT" | "UNCOMPARABLE";
+    comparedFields: string[];
+    evidenceCodes: string[];
+  };
+  classification:
+    | "ELIGIBLE_CREATE"
+    | "NO_OP_IDEMPOTENT"
+    | "QUARANTINE"
+    | "HUMAN_REVIEW_REQUIRED"
+    | "UNSUPPORTED_SOURCE"
+    | "SOURCE_DISCOVERY_REQUIRED";
+  quarantineReasonCodes: string[];
+  humanReviewRequired: boolean;
+  idempotencyKey: string;
+  auditCorrelationId: string;
+};
+```
+
+`candidateId` is a report identity; `stableLegacySourceId` is the source
+identity used for repeatability. `runId` is deliberately absent from the
+candidate identity so that a new dry-run cannot change the logical candidate.
+
+#### Candidate types and repository evidence
+
+| Candidate type | Repository-backed reason | Evidence boundary |
+| --- | --- | --- |
+| `organization_institution_mapping` | Legacy user profiles persist `organizationId`; the approved policy requires explicit organization/institution mapping. | Institution storage and exact ownership semantics remain source discovery. |
+| `identity_migration` | Legacy Auth/profile users are keyed by Firebase `uid`; SaaS identity is `identities/{uid}`. | Identity has no tenant, role, or academic authority. |
+| `membership_role_migration` | Legacy roles are `admin`/`user`; SaaS membership paths are tenant-scoped and roles are `student`/`teacher`/`tenant_admin`. | Role conversion is evidence-gated. |
+| `course_mapping` | Legacy course service reads `levels/{levelId}` with nested modules/lessons; SaaS courses are tenant-scoped. | A level-to-course identity mapping is not inferred. |
+| `enrollment_bootstrap` | Legacy users expose current level/progress evidence; SaaS enrollments are tenant/membership/course scoped. | Access or progress alone is not canonical enrollment. |
+
+There is no `tenant_creation` candidate type: the tenant target is fixed by
+the Product Owner decision and tenant creation is outside this contract.
+
+#### Explicit organization/institution mapping
+
+The mapping table is the only ownership resolution mechanism. Its exact
+design-level record is:
+
+```ts
+type OrganizationInstitutionMapping = {
+  mappingTableId: string;
+  mappingTableVersion: string;
+  mappingId: string;
+  legacySourceKind: "organization" | "institution";
+  legacyOrganizationId: string | null;
+  legacyInstitutionId: string | null;
+  targetTenantId: "7c2f5a4e-91d8-4b73-a6c1-2f4e8d9b3a57";
+  mappingStatus: "approved" | "quarantined" | "superseded";
+  provenanceCode: "PRODUCT_OWNER_APPROVED_MAPPING";
+  approvalEvidenceCode: string;
+  reviewReference: string | null;
+  effectiveLogicalTime: string | null;
+  schemaVersion: string;
+};
+```
+
+Names, approximate string matches, aliases, and precedence are not mapping
+rules. Zero rows produce
+`MISSING_ORGANIZATION_INSTITUTION_MAPPING` and quarantine. One approved,
+non-conflicting row deterministically maps the source to the fixed tenant.
+More than one row for the same source that disagrees on target or scope
+produces `CONFLICTING_ORGANIZATION_INSTITUTION_MAPPING`, quarantine, and human
+review. Missing or conflicting values never fall back to inference.
+
+#### Role mapping
+
+`admin` maps to `tenant_admin` only when all of the following are present:
+
+- the source role is exactly `admin`;
+- an approved mapping row targets the fixed tenant;
+- source evidence proves tenant-scoped, rather than global/platform, authority;
+- the identity and source record are valid and stable.
+
+Otherwise the result is `QUARANTINE` with
+`INSUFFICIENT_ADMIN_TENANT_SCOPE` and human review required for unknown scope.
+Global or ambiguous administrators are never silently narrowed to
+`tenant_admin`.
+
+`user` maps to `student` only when the source identity, approved tenant
+mapping, and supporting tenant/course relationship evidence are present. A
+legacy role literal alone is insufficient. If that evidence is unavailable,
+the result is `QUARANTINE` with `INSUFFICIENT_USER_ROLE_EVIDENCE` and human
+review required. `teacher` is never inferred. Unknown or null roles produce
+`UNKNOWN_LEGACY_ROLE`, no Membership proposal, and quarantine.
+
+#### Enrollment evidence contract
+
+An enrollment candidate is eligible only when all of these are explicit and
+unambiguous:
+
+1. stable legacy person/user identity;
+2. the approved tenant mapping;
+3. a valid target Membership or deterministic Membership proposal;
+4. a valid target Course or deterministic Course mapping;
+5. source evidence that explicitly supports the person-to-course relationship;
+6. no conflicting target state.
+
+The legacy `currentLevel`, level, progress, or existence of a user/course is
+not sufficient by itself. Ambiguous or incomplete relationships produce
+`HUMAN_REVIEW_REQUIRED` plus `AMBIGUOUS_ENROLLMENT_EVIDENCE` and remain
+quarantined until resolved.
+
+#### Target comparison
+
+The comparison outcome is one of `TARGET_ABSENT`, `SEMANTIC_MATCH`, `CONFLICT`,
+or `UNCOMPARABLE`.
+
+- `TARGET_ABSENT` is eligible for proposed `CREATE` only after all evidence
+  and mapping checks pass.
+- `SEMANTIC_MATCH` produces `NO_OP_IDEMPOTENT`.
+- `CONFLICT` produces `HUMAN_REVIEW_REQUIRED`,
+  `CONFLICTING_TARGET_STATE`, and proposed `NO_WRITE`.
+- `UNCOMPARABLE` produces `HUMAN_REVIEW_REQUIRED`,
+  `TARGET_COMPARISON_IMPOSSIBLE`, and proposed `NO_WRITE`.
+
+Semantic comparison uses stable business fields only: identity uses `uid`;
+membership uses `tenantId`, `membershipId`, `uid`, `role`, and `status`;
+course uses `tenantId`, `courseId`, and stable course identity/language fields;
+enrollment uses `tenantId`, `enrollmentId`, `membershipId`, `courseId`, and
+stable enrollment status/ownership fields. Server timestamps and other
+ephemeral fields are not semantic identity.
+
+Destructive overwrite, deletion, silent conflict resolution, role escalation,
+cutover, and guard activation are never proposed.
+
+#### Classification and quarantine taxonomy
+
+The closed top-level classification set is:
+
+```text
+ELIGIBLE_CREATE
+NO_OP_IDEMPOTENT
+QUARANTINE
+HUMAN_REVIEW_REQUIRED
+UNSUPPORTED_SOURCE
+SOURCE_DISCOVERY_REQUIRED
+```
+
+Stable quarantine reason codes are:
+
+| Reason code | Trigger | Review | Retry after correction | Blocked while unresolved |
+| --- | --- | --- | --- | --- |
+| `MISSING_ORGANIZATION_INSTITUTION_MAPPING` | No mapping row exists. | NO | YES | YES |
+| `CONFLICTING_ORGANIZATION_INSTITUTION_MAPPING` | Multiple rows disagree. | YES | YES | YES |
+| `UNKNOWN_LEGACY_ROLE` | Role is null or outside `admin`/`user`. | NO | YES | YES |
+| `INSUFFICIENT_ADMIN_TENANT_SCOPE` | Admin scope is global, absent, or ambiguous. | YES | YES | YES |
+| `INSUFFICIENT_USER_ROLE_EVIDENCE` | User lacks approved tenant/course evidence. | YES | YES | YES |
+| `AMBIGUOUS_ENROLLMENT_EVIDENCE` | Relationship cannot be resolved uniquely. | YES | YES | YES |
+| `CONFLICTING_TARGET_STATE` | Existing target disagrees on authority/business identity. | YES | NO until review | YES |
+| `TARGET_COMPARISON_IMPOSSIBLE` | Target cannot be safely compared. | YES | YES | YES |
+| `UNSUPPORTED_LEGACY_SOURCE_STATE` | Source state is outside the contract. | YES | NO | YES |
+| `MISSING_MANDATORY_SOURCE_IDENTITY` | Stable source identity is absent. | NO | YES | YES |
+| `MALFORMED_SOURCE_DATA` | Source values fail required shape validation. | NO | YES | YES |
+| `SOURCE_FIELD_NOT_DISCOVERED` | Required source field/path is not yet established. | NO | YES | YES |
+
+`HUMAN_REVIEW_REQUIRED` is the classification for a quarantined candidate
+whose resolution requires a human decision. `QUARANTINE` is the blocked
+classification for invalid or unknown data that has no automatic approval
+path. `UNSUPPORTED_SOURCE` and `SOURCE_DISCOVERY_REQUIRED` remain non-writable
+until their source boundary is documented.
+
+#### Dry-run request
+
+```ts
+type LegacyMigrationDryRunInput = {
+  migrationContractVersion: "phase05-legacy-mapping-dry-run-v1";
+  legacyTenantId: "7c2f5a4e-91d8-4b73-a6c1-2f4e8d9b3a57";
+  runId: string;
+  correlationId: string;
+  mode: "DRY_RUN";
+  sourceSelection: {
+    sourceKinds: string[];
+    boundedSourceReferences: string[] | null;
+  };
+  mappingTableId: string;
+  mappingTableVersion: string;
+  candidateFilters: {
+    candidateTypes: string[] | null;
+    stableSourceIds: string[] | null;
+  };
+  operatorBoundary: {
+    actorType: "human_operator" | "system_process";
+    actorReference: string | null;
+  };
+};
+```
+
+Required fields are every field above except `boundedSourceReferences`,
+`candidateTypes`, `stableSourceIds`, and `actorReference`, which are optional
+bounded filters/context. `runId` may be unique per run; it is not an
+idempotency identity. No secrets or raw sensitive source payloads belong in
+this input.
+
+#### Per-candidate result
+
+```ts
+type LegacyMigrationDryRunCandidateResult = {
+  runId: string;
+  candidateId: string;
+  candidateType: string;
+  stableSourceReference: { collectionPath: string | null; recordId: string };
+  targetReference: string | null;
+  targetTenantId: "7c2f5a4e-91d8-4b73-a6c1-2f4e8d9b3a57";
+  classification: string;
+  reasonCodes: string[];
+  evidenceSummary: { mappingCodes: string[]; roleCodes: string[]; enrollmentCodes: string[] };
+  targetComparison: { outcome: string; comparedFields: string[]; evidenceCodes: string[] };
+  proposedOperations: ("CREATE" | "NO_OP" | "NO_WRITE")[];
+  noOp: boolean;
+  quarantined: boolean;
+  humanReviewRequired: boolean;
+  migrationIdempotencyKey: string;
+  auditMetadata: { correlationId: string; mappingTableVersion: string };
+  migrationContractVersion: "phase05-legacy-mapping-dry-run-v1";
+};
+```
+
+#### Aggregate report
+
+```ts
+type LegacyMigrationDryRunReport = {
+  runId: string;
+  legacyTenantId: "7c2f5a4e-91d8-4b73-a6c1-2f4e8d9b3a57";
+  mappingTableVersion: string;
+  migrationContractVersion: "phase05-legacy-mapping-dry-run-v1";
+  counts: {
+    totalCandidates: number;
+    eligibleCreate: number;
+    noOpIdempotent: number;
+    quarantined: number;
+    humanReviewRequired: number;
+    unsupportedSource: number;
+    sourceDiscoveryRequired: number;
+  };
+  countsByCandidateType: Record<string, number>;
+  countsByReasonCode: Record<string, number>;
+  startedLogicalTime: string;
+  completedLogicalTime: string;
+  writesOccurred: false;
+  executionAuthorized: false;
+};
+```
+
+Dry-run is strictly `READ / CLASSIFY / REPORT / PROPOSE`. Its invariants are
+`DRY_RUN_WRITES = ZERO`, `DRY_RUN_DESTRUCTIVE_OPERATIONS = ZERO`,
+`DRY_RUN_GUARD_CHANGES = ZERO`, `DRY_RUN_DUAL_WRITE = NO`, and
+`DRY_RUN_CUTOVER = NO`. A report never authorizes execution.
+
+#### Proposed operations and idempotency
+
+The only proposed operation literals are `CREATE`, `NO_OP`, and `NO_WRITE`.
+An eligible absent target proposes `CREATE`; a semantic match proposes
+`NO_OP`; every quarantine, conflict, uncomparable target, unsupported source,
+or discovery gap proposes `NO_WRITE`.
+
+`MIGRATION_IDEMPOTENCY_KEY` is the deterministic canonical tuple:
+
+```text
+phase05-legacy-mapping-dry-run-v1 |
+candidateType |
+legacyTenantId |
+stableSourceReference |
+targetEntityType |
+targetId-or-null
+```
+
+The tuple may be encoded or hashed for storage, but it must not include
+`runId`, wall-clock timestamps, or randomUUID. The same unchanged source and
+mapping state therefore yields the same candidate identity and result across
+dry runs. Exact target matches remain no-ops; conflicts remain quarantined;
+dry runs cannot create state.
+
+The deterministic report sort key is:
+
+```text
+candidateType + "\\0" + collectionPath-or-empty + "\\0" + recordId + "\\0" + targetReference-or-empty
+```
+
+Provider query order is never used as the result order.
+
+#### Audit, human review, and rollback
+
+The dry-run audit projection records `runId`, `candidateId`, source reference,
+target reference, fixed tenant ID, mapping-table version, contract version,
+classification, reason codes, proposed operation, operator/system actor
+boundary, logical run timing, and human-review status. It does not write an
+audit record in this gate.
+
+Future execution audit additionally reserves actual operation result,
+created-target reference, before/expected-target evidence references, and
+compensation/rollback result. Human review outcomes are limited to
+`MAPPING_APPROVED_OR_CORRECTED`, `ROLE_EVIDENCE_ACCEPTED`,
+`ROLE_EVIDENCE_REJECTED`, `ENROLLMENT_EVIDENCE_ACCEPTED`,
+`ENROLLMENT_EVIDENCE_REJECTED`, `TARGET_CONFLICT_RESOLVED_OUTSIDE_MIGRATION`,
+and `REMAIN_QUARANTINED`; no outcome auto-resolves or mutates data here.
+
+Rollback is human-controlled by the designated migration owner boundary in a
+future explicitly authorized execution gate; no personal identity is baked
+into this contract. Every executed create must carry run/candidate/idempotency
+evidence. Compensation may remove only state proven to be created by that
+migration run. It must never delete or overwrite pre-existing canonical SaaS
+state, silently restore ambiguous legacy state, or transfer authority. Dry-run
+has no rollback because it writes nothing.
+
+#### Source discovery boundary and status
+
+The following are established by current source: legacy `users/{uid}` profile
+and Auth identity semantics; legacy `admin`/`user` role literals;
+`organizationId` profile usage; legacy `levels/{levelId}` with nested
+modules/lessons; SaaS identity, tenant, membership, course, and enrollment
+path conventions; SaaS membership roles; and read-only repository shapes.
+
+The following remain explicitly `SOURCE_DISCOVERY_REQUIRED`: exact legacy
+institution collection/path and ownership fields; complete organization /
+institution mapping rows; deterministic level-to-course ID correspondence;
+canonical legacy enrollment relationship fields; source pagination and stable
+ordering for every legacy collection; and the exact source fields that prove
+tenant scope for an `admin` or course ownership for a `user`.
+
+These are technical discovery items, not unresolved Product Owner policy.
+`HUMAN_DECISION_REQUIRED = NO`. Until supplied, the affected candidates remain
+`SOURCE_DISCOVERY_REQUIRED` or quarantined and cannot produce writes.
+
+```text
+PHASE05_IMPLEMENTATION_STATUS = NOT_STARTED
+MIGRATION_STATUS = NOT_ACTIVE
+MIGRATION_READS = NONE
+MIGRATION_WRITES = NONE
+DUAL_WRITE_ALLOWED = NO
+GUARD_ACTIVATION_ALLOWED = NO
+CUTOVER_ALLOWED = NO
+CUTOVER_STATUS = NOT_ACTIVE
+PROVIDER_ACCESS = NONE
+```
+
 ---
 
 ## Historical checkpoint (superseded) - Course runtime/migration authorization gate
