@@ -108,11 +108,17 @@ PHASE04_GUARDS = NOT_ACTIVATED
 PHASE04_DUAL_WRITE = NOT_ACTIVATED
 PHASE04_CUTOVER = NOT_ACTIVATED
 PHASE04_PROVIDER_MIGRATION = NOT_PERFORMED
-PHASE05_STATUS = AUTHORIZED_FOR_POLICY_BOUND_MIGRATION_DESIGN
+PHASE05_STATUS = ACTIVE_LOCAL_FOUNDATION_VALIDATED
 PHASE05_POLICY_STATUS = APPROVED_AND_RECORDED
-PHASE05_IMPLEMENTATION_STATUS = NOT_STARTED
+PHASE05_IMPLEMENTATION_STATUS = LOCAL_MAPPING_AND_DRY_RUN_FOUNDATION_IMPLEMENTED_AND_VALIDATED
 MIGRATION_STATUS = NOT_ACTIVE
 CUTOVER_STATUS = NOT_ACTIVE
+PHASE05_PROVIDER_READ_AUTHORIZATION = NOT_GRANTED
+PHASE05_PROVIDER_ACCESS = NONE
+PHASE05_PROVIDER_MUTATION_ALLOWED = NO
+PHASE05_SOURCE_DISCOVERY_STATUS = PENDING
+PHASE05_MIGRATION_EXECUTION_STATUS = NOT_STARTED
+PHASE05_NEXT_GATE = PHASE05_READ_ONLY_SOURCE_DISCOVERY_AND_PROVIDER_BINDING_AUTHORIZATION
 ```
 
 ### Product Owner policy record
@@ -170,30 +176,38 @@ authorized.
 
 ### Phase 05 entry boundary
 
-Phase 05 is authorized only for policy-bound migration design. The next design
-may define the legacy candidate inventory, explicit mapping and quarantine
-contracts, dry-run classification, audit records, idempotency keys, and
-rollback ownership. Every candidate must have a deterministic decision,
-per-record classification, source and target references, a run identifier, and
-an audit result. Newly created migration-owned records require a compensation
-strategy; rollback must never delete pre-existing canonical SaaS state.
+Phase 05 is active for the locally validated policy-bound mapping and dry-run
+foundation. The next gate may define the legacy candidate inventory, explicit
+mapping and quarantine contracts, dry-run classification, audit records,
+idempotency keys, and rollback ownership. Every candidate must have a
+deterministic decision, per-record classification, source and target
+references, a run identifier, and an audit result. Newly created
+migration-owned records require a compensation strategy; rollback must never
+delete pre-existing canonical SaaS state.
 
 Provider reads/writes, migration execution, SaaS record creation, runtime guard
 activation, dual-write, cutover, and destructive reconciliation remain outside
 this entry record.
 
-The first dependency-safe technical/design child is
-`PHASE05_LEGACY_MIGRATION_MAPPING_AND_DRY_RUN_CONTRACT`. It will define the
+Phase 06 remains blocked until Phase 05 source discovery, provider binding,
+migration execution, technical closure, and publication are separately
+authorized and complete.
+
+The first dependency-safe child is
+`PHASE05_LEGACY_MIGRATION_MAPPING_AND_DRY_RUN_CONTRACT`. Its local
+deterministic mapping and dry-run foundation is implemented and validated; it
+defines the
 candidate inputs, stable `legacyTenantId` usage, organization/institution
 mapping representation, role and Enrollment evidence classifications, conflict
 and quarantine reasons, dry-run result schema, audit fields, idempotency keys,
 and the distinction between migration-owned and pre-existing targets. It must
-remain documentation/design-only until a separate execution gate authorizes
-provider operations.
+remain provider-neutral and zero-write until the separate read-only source
+discovery and provider-binding gate authorizes provider operations.
 
 ### Phase 05 mapping and dry-run contract
 
-This is a documentation/design contract only. It does not read migration
+The repository now contains the locally validated deterministic mapping and
+dry-run foundation. This gate remains zero-write: it does not read migration
 data, write provider data, create SaaS records, or implement a migration
 runner. Its contract version is `phase05-legacy-mapping-dry-run-v1`.
 
@@ -577,7 +591,7 @@ These are technical discovery items, not unresolved Product Owner policy.
 `SOURCE_DISCOVERY_REQUIRED` or quarantined and cannot produce writes.
 
 ```text
-PHASE05_IMPLEMENTATION_STATUS = NOT_STARTED
+PHASE05_IMPLEMENTATION_STATUS = LOCAL_MAPPING_AND_DRY_RUN_FOUNDATION_IMPLEMENTED_AND_VALIDATED
 MIGRATION_STATUS = NOT_ACTIVE
 MIGRATION_READS = NONE
 MIGRATION_WRITES = NONE

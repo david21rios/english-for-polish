@@ -126,8 +126,9 @@ Mappings de contenido preceden progreso. Reconciliación precede retirada.
 
 Phase 04 is `CLOSED` with legacy authority preserved. Its providers and
 divergence telemetry remain shadow/observational only; guards, dual-write,
-migration, and cutover are not active. Phase 05 is therefore authorized only
-for policy-bound migration design, not for provider data operations.
+migration, and cutover are not active. Phase 05 is active for the locally
+validated policy-bound mapping/dry-run foundation; provider data operations
+remain unauthorized.
 
 The approved migration tenant is the immutable opaque
 `legacyTenantId = 7c2f5a4e-91d8-4b73-a6c1-2f4e8d9b3a57`. `organizationId` and
@@ -139,11 +140,23 @@ an explicit unambiguous tenant/membership/course relationship. Exact target
 matches are idempotent no-ops; authority conflicts require quarantine and human
 review; destructive overwrite is forbidden.
 
-The next dependency-safe design child is
-`PHASE05_LEGACY_MIGRATION_MAPPING_AND_DRY_RUN_CONTRACT`. It precedes any
-membership/enrollment bootstrap and defines candidate inputs, mappings,
-classification, quarantine reasons, dry-run results, audit/idempotency fields,
-and rollback ownership. No provider read/write or runtime cutover is included.
+The first dependency-safe child is
+`PHASE05_LEGACY_MIGRATION_MAPPING_AND_DRY_RUN_CONTRACT`. Its local
+deterministic mapping/dry-run foundation is implemented and validated; it
+precedes any membership/enrollment bootstrap and defines candidate inputs,
+mappings, classification, quarantine reasons, dry-run results,
+audit/idempotency fields, and rollback ownership. No provider read/write or
+runtime cutover is included.
+
+```text
+PHASE05_IMPLEMENTATION_STATUS = LOCAL_MAPPING_AND_DRY_RUN_FOUNDATION_IMPLEMENTED_AND_VALIDATED
+PHASE05_PROVIDER_READ_AUTHORIZATION = NOT_GRANTED
+PHASE05_PROVIDER_ACCESS = NONE
+PHASE05_PROVIDER_MUTATION_ALLOWED = NO
+PHASE05_SOURCE_DISCOVERY_STATUS = PENDING
+PHASE05_MIGRATION_EXECUTION_STATUS = NOT_STARTED
+NEXT_PHASE05_GATE = PHASE05_READ_ONLY_SOURCE_DISCOVERY_AND_PROVIDER_BINDING_AUTHORIZATION
+```
 
 The Phase 05 design flow is:
 
