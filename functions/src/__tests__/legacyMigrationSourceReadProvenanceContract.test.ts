@@ -95,7 +95,7 @@ test("source records require canonical provenance and typed provider binding con
   assert.equal(record.providerBinding.selectedDatabaseId, "(default)");
 });
 
-test("canonical source resolution proves exactly seven sources and rejects unknown ids", () => {
+test("canonical source resolution proves exactly eight sources and rejects unknown ids", () => {
   const resolvedIds = PROVEN_LEGACY_SOURCE_DESCRIPTORS.map((descriptor) => {
     const plan = resolveLegacyMigrationProviderSourcePlanForLogicalSource(descriptor.logicalSourceId);
     assert.equal(plan.kind, "resolved");

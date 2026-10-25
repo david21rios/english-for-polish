@@ -18,6 +18,10 @@ import {
   type StableSourceReference,
   type TargetReference,
 } from "./legacyMigrationTypes.js";
+import type {
+  LessonCollectionReadRequest,
+  LessonCollectionReadResult,
+} from "./legacyLessonSourceDiscoveryContracts.js";
 
 export type {
   LegacyEnrollmentSourceEvidence,
@@ -37,6 +41,19 @@ export type {
 export interface LegacyMigrationSourceReadPort {
   readCandidates(): Promise<LegacyMigrationSourceReadResult>;
 }
+
+/**
+ * Additive bounded-list boundary for source discovery.  The existing
+ * point-read port remains intentionally zero-argument and unchanged.
+ */
+export interface LegacyMigrationCollectionReadPort {
+  listDocuments(request: LessonCollectionReadRequest): Promise<LessonCollectionReadResult>;
+}
+
+export type {
+  LessonCollectionReadRequest,
+  LessonCollectionReadResult,
+} from "./legacyLessonSourceDiscoveryContracts.js";
 
 export type LegacyMigrationTargetReadResult = CanonicalTargetProjection;
 

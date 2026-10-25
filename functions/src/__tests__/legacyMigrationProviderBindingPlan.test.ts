@@ -94,13 +94,13 @@ test("FIRESTORE-only binding requires explicit project and database", () => {
   assert.equal(result.plan.entries[0]?.selectedDatabaseId, "legacy-database");
 });
 
-test("mixed AUTH and FIRESTORE plan binds one Auth and six Firestore entries", () => {
+test("mixed AUTH and FIRESTORE plan binds one Auth and seven Firestore entries", () => {
   const sourcePlan = makeSourcePlan(PROVEN_LEGACY_SOURCE_DESCRIPTORS.map((descriptor) => descriptor.logicalSourceId));
   const result = deriveLegacyMigrationProviderBindingPlan(sourcePlan, bind());
   assert.equal(result.kind, "resolved");
   if (result.kind !== "resolved") return;
   assert.equal(result.plan.entries.filter((entry) => entry.providerSurface === "AUTH").length, 1);
-  assert.equal(result.plan.entries.filter((entry) => entry.providerSurface === "FIRESTORE").length, 6);
+  assert.equal(result.plan.entries.filter((entry) => entry.providerSurface === "FIRESTORE").length, 7);
   assert.equal(result.plan.selectedProjectId, "legacy-project");
   assert.equal(result.plan.selectedDatabaseId, "legacy-database");
   assert.equal(result.plan.entries.find((entry) => entry.logicalSourceId === "legacy.level")?.provenanceInput.logicalSourceId, "legacy.level");

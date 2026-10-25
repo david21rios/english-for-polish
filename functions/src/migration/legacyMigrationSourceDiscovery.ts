@@ -77,6 +77,13 @@ export const PROVEN_LEGACY_SOURCE_DESCRIPTORS: readonly LegacyMigrationSourceDes
     discoveryStrategyVersion: LEGACY_MIGRATION_SOURCE_DISCOVERY_STRATEGY_VERSION,
   },
   {
+    logicalSourceId: "legacy.level_lesson",
+    sourceKind: "level_lesson",
+    collectionPathTemplate: "levels/{levelId}/lessons/{lessonId}",
+    schemaVariant: LEGACY_MIGRATION_SOURCE_SCHEMA_VARIANT,
+    discoveryStrategyVersion: LEGACY_MIGRATION_SOURCE_DISCOVERY_STRATEGY_VERSION,
+  },
+  {
     logicalSourceId: "legacy.level_module_lesson",
     sourceKind: "level_module_lesson",
     collectionPathTemplate: "levels/{levelId}/modules/{moduleId}/lessons/{lessonId}",

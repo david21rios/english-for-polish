@@ -60,9 +60,9 @@ test("Firestore adapter resolves the exact path and normalizes a document", asyn
   assert.deepEqual(result.records[0]?.providerBinding.resolvedPathBindings, { uid: "uid-1" });
 });
 
-test("Firestore adapter preserves canonical binding and path coherence for all six Firestore sources", async () => {
+test("Firestore adapter preserves canonical binding and path coherence for the existing six adapter-supported Firestore sources", async () => {
   const firestoreSourceIds = PROVEN_LEGACY_SOURCE_DESCRIPTORS
-    .filter((descriptor) => descriptor.logicalSourceId !== "legacy.auth_identity")
+    .filter((descriptor) => descriptor.logicalSourceId !== "legacy.auth_identity" && descriptor.logicalSourceId !== "legacy.level_lesson")
     .map((descriptor) => descriptor.logicalSourceId);
   assert.equal(firestoreSourceIds.length, 6);
   for (const sourceId of firestoreSourceIds) {
