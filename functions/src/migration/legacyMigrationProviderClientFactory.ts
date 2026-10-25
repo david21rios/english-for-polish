@@ -7,6 +7,12 @@ import {
 import type { LegacyMigrationSourceReadPort } from "./legacyMigrationReadPorts.js";
 import { createLegacyMigrationAuthReadAdapter } from "./legacyMigrationAuthReadAdapter.js";
 import { createLegacyMigrationFirestoreReadAdapter } from "./legacyMigrationFirestoreReadAdapter.js";
+import {
+  createLegacyMigrationFirestoreCollectionReadAdapter,
+  isLessonCollectionSource,
+  type LegacyMigrationFirestoreCollectionReadDependency,
+} from "./legacyMigrationFirestoreCollectionReadAdapter.js";
+import type { LegacyMigrationCollectionReadPort } from "./legacyMigrationReadPorts.js";
 
 export type LegacyMigrationRawAuthUser = Readonly<Record<string, unknown>>;
 
@@ -29,9 +35,16 @@ export type LegacyMigrationFirestoreReadDependency = Readonly<{
   getDocument: (path: string) => Promise<LegacyMigrationRawFirestoreDocument>;
 }>;
 
+export type { LegacyMigrationFirestoreCollectionReadDependency } from "./legacyMigrationFirestoreCollectionReadAdapter.js";
+
 export type LegacyMigrationProviderClientResolver = Readonly<{
   resolveAuth: (app: LegacyMigrationAppHandle, projectId: string) => LegacyMigrationAuthReadDependency;
   resolveFirestore: (app: LegacyMigrationAppHandle, projectId: string, databaseId: string) => LegacyMigrationFirestoreReadDependency;
+  resolveFirestoreCollection?: (
+    app: LegacyMigrationAppHandle,
+    projectId: string,
+    databaseId: string,
+  ) => LegacyMigrationFirestoreCollectionReadDependency;
 }>;
 
 export type LegacyMigrationProviderClients = Readonly<{
@@ -39,6 +52,7 @@ export type LegacyMigrationProviderClients = Readonly<{
   selectedDatabaseId?: string;
   auth?: LegacyMigrationAuthReadDependency;
   firestore?: LegacyMigrationFirestoreReadDependency;
+  firestoreCollection?: LegacyMigrationFirestoreCollectionReadDependency;
 }>;
 
 export type LegacyMigrationProviderClientFactoryFailureReason =
@@ -64,6 +78,9 @@ const hasAuth = (plan: LegacyMigrationReadOnlyProviderAdapterPlan): boolean =>
 
 const hasFirestore = (plan: LegacyMigrationReadOnlyProviderAdapterPlan): boolean =>
   plan.entries.some((entry) => entry.providerSurface === "FIRESTORE");
+
+const hasLessonCollection = (plan: LegacyMigrationReadOnlyProviderAdapterPlan): boolean =>
+  plan.entries.some((entry) => entry.providerSurface === "FIRESTORE" && isLessonCollectionSource(entry.logicalSourceId));
 
 const reject = (reason: LegacyMigrationProviderClientFactoryFailureReason): LegacyMigrationProviderClientFactoryResult => ({
   kind: "unsupported_or_conflicting_binding",
@@ -98,9 +115,13 @@ export const createLegacyMigrationProviderClients = (
       selectedDatabaseId?: string;
       auth?: LegacyMigrationAuthReadDependency;
       firestore?: LegacyMigrationFirestoreReadDependency;
+      firestoreCollection?: LegacyMigrationFirestoreCollectionReadDependency;
     } = { selectedProjectId: plan.selectedProjectId };
     if (hasAuth(plan)) clients.auth = resolver.resolveAuth(app, plan.selectedProjectId);
     if (hasFirestore(plan)) clients.firestore = resolver.resolveFirestore(app, plan.selectedProjectId, plan.selectedDatabaseId!);
+    if (hasLessonCollection(plan) && resolver.resolveFirestoreCollection !== undefined) {
+      clients.firestoreCollection = resolver.resolveFirestoreCollection(app, plan.selectedProjectId, plan.selectedDatabaseId!);
+    }
     if (plan.selectedDatabaseId !== undefined) clients.selectedDatabaseId = plan.selectedDatabaseId;
     return { kind: "resolved", clients: Object.freeze(clients) };
   } catch (error) {
@@ -130,5 +151,25 @@ export const createLegacyMigrationSourceReadPort = (
     entry,
     dependency: clients.firestore,
     pathBindings: runtimeBindings.pathBindings ?? {},
+  });
+};
+
+export const createLegacyMigrationCollectionReadPort = (
+  entry: LegacyMigrationReadOnlyProviderAdapterFirestoreEntry,
+  clients: LegacyMigrationProviderClients,
+): LegacyMigrationCollectionReadPort => {
+  if (!isLessonCollectionSource(entry.logicalSourceId)
+    || entry.providerSurface !== "FIRESTORE"
+    || !nonEmpty(clients.selectedProjectId)
+    || entry.selectedProjectId !== clients.selectedProjectId
+    || !nonEmpty(clients.selectedDatabaseId)
+    || entry.selectedDatabaseId !== clients.selectedDatabaseId
+    || clients.firestoreCollection === undefined) {
+    throw new LegacyMigrationDryRunError("SOURCE_DISCOVERY_REQUIRED", "Collection source binding is incomplete.");
+  }
+  return createLegacyMigrationFirestoreCollectionReadAdapter({
+    dependency: clients.firestoreCollection,
+    selectedProjectId: clients.selectedProjectId,
+    selectedDatabaseId: clients.selectedDatabaseId,
   });
 };

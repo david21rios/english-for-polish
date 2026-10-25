@@ -3,6 +3,7 @@ import test from "node:test";
 import type { App } from "firebase-admin/app";
 import {
   createLegacyMigrationProviderClients,
+  createLegacyMigrationCollectionReadPort,
   type LegacyMigrationProviderClientResolver,
 } from "../migration/legacyMigrationProviderClientFactory.js";
 import {
@@ -105,4 +106,74 @@ test("client construction and composition do not perform provider reads", () => 
   const calls = { auth: 0, firestore: 0, databaseIds: [], reads: [] as number[] };
   createLegacyMigrationProviderClients(app("legacy-project"), planFor(["legacy.user_profile"]), resolverFor(calls));
   assert.deepEqual(calls.reads, []);
+});
+
+test("factory composes the optional collection capability with the explicit database", () => {
+  const calls = { collection: 0, databaseIds: [] as string[] };
+  const resolver: LegacyMigrationProviderClientResolver = {
+    ...resolverFor({ auth: 0, firestore: 0, databaseIds: [], reads: [] }),
+    resolveFirestoreCollection: (_app, _projectId, databaseId) => {
+      calls.collection += 1;
+      calls.databaseIds.push(databaseId);
+      return Object.freeze({ runCollectionPageQuery: async () => [] });
+    },
+  };
+  const plan = planFor(["legacy.level_lesson"]);
+  const result = createLegacyMigrationProviderClients(app("legacy-project"), plan, resolver);
+  assert.equal(result.kind, "resolved");
+  if (result.kind !== "resolved") return;
+  assert.equal(calls.collection, 1);
+  assert.deepEqual(calls.databaseIds, ["legacy-database"]);
+  assert.ok(result.clients.firestoreCollection);
+  assert.equal(typeof result.clients.firestoreCollection?.runCollectionPageQuery, "function");
+});
+
+test("factory does not compose a lesson collection capability for unrelated Firestore sources", () => {
+  let collectionResolverCalls = 0;
+  const resolver: LegacyMigrationProviderClientResolver = {
+    ...resolverFor({ auth: 0, firestore: 0, databaseIds: [], reads: [] }),
+    resolveFirestoreCollection: () => {
+      collectionResolverCalls += 1;
+      return Object.freeze({ runCollectionPageQuery: async () => [] });
+    },
+  };
+  const result = createLegacyMigrationProviderClients(app("legacy-project"), planFor(["legacy.user_profile"]), resolver);
+  assert.equal(result.kind, "resolved");
+  assert.equal(collectionResolverCalls, 0);
+});
+
+test("collection port composition is additive and remains read-only", () => {
+  const plan = planFor(["legacy.level_lesson"]);
+  const resolver: LegacyMigrationProviderClientResolver = {
+    ...resolverFor({ auth: 0, firestore: 0, databaseIds: [], reads: [] }),
+    resolveFirestoreCollection: () => Object.freeze({ runCollectionPageQuery: async () => [] }),
+  };
+  const result = createLegacyMigrationProviderClients(app("legacy-project"), plan, resolver);
+  assert.equal(result.kind, "resolved");
+  if (result.kind !== "resolved") return;
+  const entry = plan.entries.find((candidate) => candidate.providerSurface === "FIRESTORE");
+  assert.ok(entry?.providerSurface === "FIRESTORE");
+  const port = createLegacyMigrationCollectionReadPort(entry, result.clients);
+  assert.equal(typeof port.listDocuments, "function");
+  assert.equal("readCandidates" in port, false);
+  assert.equal("set" in port, false);
+});
+
+test("collection port rejects non-lesson or missing collection capabilities", () => {
+  const userPlan = planFor(["legacy.user_profile"]);
+  const baseResolver = resolverFor({ auth: 0, firestore: 0, databaseIds: [], reads: [] });
+  const userResult = createLegacyMigrationProviderClients(app("legacy-project"), userPlan, baseResolver);
+  assert.equal(userResult.kind, "resolved");
+  if (userResult.kind !== "resolved") return;
+  const userEntry = userPlan.entries.find((candidate) => candidate.providerSurface === "FIRESTORE");
+  assert.ok(userEntry?.providerSurface === "FIRESTORE");
+  assert.throws(() => createLegacyMigrationCollectionReadPort(userEntry, userResult.clients));
+
+  const lessonPlan = planFor(["legacy.level_lesson"]);
+  const lessonResult = createLegacyMigrationProviderClients(app("legacy-project"), lessonPlan, baseResolver);
+  assert.equal(lessonResult.kind, "resolved");
+  if (lessonResult.kind !== "resolved") return;
+  const lessonEntry = lessonPlan.entries.find((candidate) => candidate.providerSurface === "FIRESTORE");
+  assert.ok(lessonEntry?.providerSurface === "FIRESTORE");
+  assert.throws(() => createLegacyMigrationCollectionReadPort(lessonEntry, lessonResult.clients));
 });
