@@ -2,369 +2,293 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import path from "node:path";
 import {
+  COMPLETENESS_LABEL,
   FIRST_READ_AUTHORIZATION_ENV,
   FIRST_READ_AUTHORIZATION_VALUE,
-  FIRST_READ_APP_NAME,
-  FIRST_READ_BUDGET,
   FIRST_READ_PACKET,
-  createBoundedGetFirestore,
+  MAX_DOCUMENTS,
+  PROJECT_ID,
+  QUOTA_PROJECT_ENV,
+  REST_ENDPOINT,
+  RESPONSE_BYTE_LIMIT,
+  createRunQueryBody,
   inspectCredentialEnvironment,
-  isPathWithinRepository,
   runPhase05FirstBoundedProviderRead,
-  validateFrozenPacket,
 } from "../scripts/migration/phase05FirstBoundedProviderRead.mjs";
 
-const compiled = (relative) => import(new URL(`../functions/lib/migration/${relative}`, import.meta.url));
-const migration = await (async () => {
-  const [source, binding, resolver, factory] = await Promise.all([
-    compiled("legacyMigrationProviderSourcePlan.js"),
-    compiled("legacyMigrationProviderBindingPlan.js"),
-    compiled("legacyMigrationFirebaseAdminProviderResolver.js"),
-    compiled("legacyMigrationProviderClientFactory.js"),
-  ]);
+const token = "mocked-token-do-not-print";
+const prefix = "projects/english-for-polish/databases/(default)/documents/levels/A1/lessons/";
+const makeDoc = (index, fields = {}) => ({
+  name: `${prefix}lesson-${index}`,
+  fields: {
+    lessonId: { stringValue: `lesson-${index}` },
+    title: { stringValue: `Title ${index}` },
+    orderInModule: { integerValue: String(index) },
+    status: { booleanValue: true },
+    ...fields,
+  },
+  createTime: "PRIVATE_CREATE_TIME",
+  updateTime: "PRIVATE_UPDATE_TIME",
+  unexpected: { stringValue: "PRIVATE_UNPROJECTED" },
+});
+
+const response = (entries, { ok = true, status = 200 } = {}) => {
+  const bytes = new TextEncoder().encode(JSON.stringify(entries));
   return {
-    resolveLegacyMigrationProviderSourcePlanForLogicalSource: source.resolveLegacyMigrationProviderSourcePlanForLogicalSource,
-    deriveLegacyMigrationProviderBindingPlan: binding.deriveLegacyMigrationProviderBindingPlan,
-    createLegacyMigrationFirebaseAdminProviderResolver: resolver.createLegacyMigrationFirebaseAdminProviderResolver,
-    createLegacyMigrationCollectionReadPort: factory.createLegacyMigrationCollectionReadPort,
+    ok,
+    status,
+    body: new ReadableStream({ start(controller) { controller.enqueue(bytes); controller.close(); } }),
   };
-})();
+};
 
-const doc = (id, pathName = `levels/A1/lessons/${id}`, projectedFields = { lessonId: id, title: `Title ${id}` }) => ({
-  documentId: id,
-  documentPath: pathName,
-  projectedFields,
-});
-
-const providerDoc = (id, pathName = `levels/A1/lessons/${id}`, data = { title: `Title ${id}` }) => ({
-  id,
-  ref: { path: pathName },
-  data: () => data,
-});
-
-const runtimeHarness = ({
-  authorization = FIRST_READ_AUTHORIZATION_VALUE,
-  existingApps = [],
-  projectId = FIRST_READ_PACKET.projectId,
-    result = { kind: "provider-documents", documents: [] },
-  queryError,
-  cleanupError,
-  credentialEnv = undefined,
-  missingCompiledTargetIndex = -1,
-} = {}) => {
-  const calls = {
-    loadAdmin: 0, loadMigration: 0, credential: 0, initialize: 0, delete: 0,
-    resolveAuth: 0, resolvePoint: 0, resolveCollection: 0, getFirestore: 0, get: 0,
-    compiledTargetChecks: [], output: [],
-    request: null,
-  };
-  const app = { name: FIRST_READ_APP_NAME, options: { projectId } };
-  const query = {
-    select: () => query,
-    orderBy: () => query,
-    startAfter: () => query,
-    limit: () => query,
-    get: async () => {
-      calls.get += 1;
-      if (queryError) throw queryError;
-      return { docs: result.documents ?? [] };
-    },
-  };
-  const admin = {
-    getApps: () => existingApps,
-    applicationDefault: () => { calls.credential += 1; return { fakeCredential: true }; },
-    initializeApp: (options, name) => { calls.initialize += 1; assert.equal(name, FIRST_READ_APP_NAME); return { ...app, options: { ...options, projectId } }; },
-    deleteApp: async () => { calls.delete += 1; if (cleanupError) throw cleanupError; },
-  };
-  const instrumentedMigration = {
-    ...migration,
-    createLegacyMigrationFirebaseAdminProviderResolver: (input) => {
-      const resolver = migration.createLegacyMigrationFirebaseAdminProviderResolver(input);
-      return Object.freeze({
-        ...resolver,
-        resolveFirestoreCollection: (...args) => {
-          calls.resolveCollection += 1;
-          return resolver.resolveFirestoreCollection(...args);
-        },
-      });
-    },
-  };
+const fixture = ({ authorization = FIRST_READ_AUTHORIZATION_VALUE, quota = PROJECT_ID, credentialPath, fileExists, realpath, responseValue, fetchError, existingApps = [] } = {}) => {
+  const calls = { adc: 0, token: 0, init: 0, delete: 0, fetch: 0, output: [] };
+  const app = { name: "phase05-first-bounded-lesson-read" };
+  const credential = { getAccessToken: async () => { calls.token += 1; return { access_token: token }; } };
   const runtime = {
     env: {
       [FIRST_READ_AUTHORIZATION_ENV]: authorization,
-      ...(credentialEnv === undefined ? {} : { GOOGLE_APPLICATION_CREDENTIALS: credentialEnv }),
+      [QUOTA_PROJECT_ENV]: quota,
+      ...(credentialPath === undefined ? {} : { GOOGLE_APPLICATION_CREDENTIALS: credentialPath }),
     },
-    repositoryRoot: "C:\\repo",
+    repositoryRoot: "C:\\workspace\\polish-learning",
+    pathApi: path.win32,
+    fileExists: fileExists ?? (() => true),
+    realpath: realpath ?? ((value) => path.win32.resolve(value)),
+    adminApi: {
+      applicationDefault: () => { calls.adc += 1; return credential; },
+      getApps: () => existingApps,
+      initializeApp: async () => { calls.init += 1; return app; },
+      deleteApp: async () => { calls.delete += 1; },
+    },
+    fetch: async (...args) => {
+      calls.fetch += 1;
+      calls.fetchArgs = args;
+      if (fetchError) throw fetchError;
+      return responseValue ?? response([]);
+    },
+    output: (value) => calls.output.push(value),
+  };
+  return { calls, runtime };
+};
+
+test("frozen request is the exact single projected StructuredQuery", () => {
+  assert.deepEqual(createRunQueryBody(), {
+    structuredQuery: {
+      from: [{ collectionId: "lessons" }],
+      select: { fields: ["lessonId", "levelId", "level", "nivel", "moduleId", "moduleTitle", "title", "titulo", "orderInModule", "status"].map((fieldPath) => ({ fieldPath })) },
+      orderBy: [{ field: { fieldPath: "__name__" }, direction: "ASCENDING" }],
+      limit: 5,
+    },
+  });
+  assert.equal(FIRST_READ_PACKET.fieldProjection.length, 10);
+});
+
+test("arming and quota guards fail before ADC, token, and network", async () => {
+  for (const authorization of [undefined, "wrong"]) {
+    const { calls, runtime } = fixture({ authorization });
+    if (authorization === undefined) delete runtime.env[FIRST_READ_AUTHORIZATION_ENV];
+    const report = await runPhase05FirstBoundedProviderRead(runtime);
+    assert.equal(report.category, "EXECUTION_NOT_AUTHORIZED");
+    assert.equal(calls.adc + calls.token + calls.fetch, 0);
+  }
+  for (const quota of [undefined, "wrong-project"]) {
+    const { calls, runtime } = fixture({ quota });
+    if (quota === undefined) delete runtime.env[QUOTA_PROJECT_ENV];
+    const report = await runPhase05FirstBoundedProviderRead(runtime);
+    assert.equal(report.category, "QUOTA_PROJECT_INVALID");
+    assert.equal(calls.adc + calls.token + calls.fetch, 0);
+  }
+});
+
+test("unset and external credential paths allow mocked ADC progression", async () => {
+  const unset = fixture();
+  const unsetReport = await runPhase05FirstBoundedProviderRead(unset.runtime);
+  assert.equal(unsetReport.status, "SUCCESS");
+  assert.equal(unsetReport.credentialEnvironmentResult, "DEFAULT_ADC_ALLOWED");
+  assert.equal(unset.calls.adc, 1);
+  assert.equal(unset.calls.fetch, 1);
+
+  const external = fixture({ credentialPath: "C:\\secrets\\adc.json" });
+  const externalReport = await runPhase05FirstBoundedProviderRead(external.runtime);
+  assert.equal(externalReport.status, "SUCCESS");
+  assert.equal(externalReport.credentialEnvironmentResult, "EXTERNAL_CREDENTIAL_PATH_ALLOWED");
+  assert.equal(external.calls.adc, 1);
+  assert.equal(external.calls.fetch, 1);
+});
+
+test("repository root and descendant credential paths fail before ADC or network", async () => {
+  for (const credentialPath of [
+    "C:\\workspace\\polish-learning",
+    "C:\\workspace\\polish-learning\\credentials\\service-account.json",
+  ]) {
+    const { calls, runtime } = fixture({ credentialPath });
+    const report = await runPhase05FirstBoundedProviderRead(runtime);
+    assert.equal(report.category, "REPOSITORY_LOCAL_CREDENTIAL_PATH_REJECTED");
+    assert.equal(calls.adc, 0);
+    assert.equal(calls.token, 0);
+    assert.equal(calls.fetch, 0);
+    assert.equal(JSON.stringify(report).includes(credentialPath), false);
+  }
+});
+
+test("relative and traversal paths are normalized before repository containment checks", () => {
+  const inspect = (configuredPath) => inspectCredentialEnvironment({
+    env: { GOOGLE_APPLICATION_CREDENTIALS: configuredPath },
+    repositoryRoot: "C:\\workspace\\polish-learning",
     pathApi: path.win32,
     fileExists: () => true,
-    compiledTargetExists: (target) => {
-      const index = calls.compiledTargetChecks.length;
-      calls.compiledTargetChecks.push(target);
-      return index !== missingCompiledTargetIndex;
-    },
     realpath: (value) => path.win32.resolve(value),
-    loadAdmin: async () => { calls.loadAdmin += 1; return admin; },
-    loadMigration: async () => { calls.loadMigration += 1; return instrumentedMigration; },
-    getCollectionFirestore: (_targetApp, databaseId) => {
-      calls.getFirestore += 1;
-      assert.equal(databaseId, "(default)");
-      return { collection: (collectionPath) => { assert.equal(collectionPath, FIRST_READ_PACKET.collectionPath); return query; } };
-    },
-    documentId: () => "__document_id__",
-    deleteApp: admin.deleteApp,
-    output: (report) => calls.output.push(report),
-  };
-  const report = runPhase05FirstBoundedProviderRead(runtime);
-  return { calls, report };
-};
-
-const runAndCollect = async (options) => {
-  const h = runtimeHarness(options);
-  const report = await h.report;
-  return { ...h, report };
-};
-
-test("importing the harness is inert and exports the frozen packet", () => {
-  assert.equal(validateFrozenPacket(), true);
-  assert.equal(Object.isFrozen(FIRST_READ_PACKET), true);
-  assert.equal(Object.isFrozen(FIRST_READ_PACKET.fieldProjection), true);
-  assert.equal(FIRST_READ_BUDGET.maxQueryGetUpperBound, 1);
-});
-
-test("frozen packet has the exact approved scope and ordered projection", () => {
-  assert.deepEqual(FIRST_READ_PACKET, {
-    logicalSourceId: "legacy.level_lesson",
-    sourceSurface: "DIRECT_LEVEL_LESSON",
-    levelId: "A1",
-    sourceKind: "level_lesson",
-    projectId: "english-for-polish",
-    databaseId: "(default)",
-    collectionPath: "levels/A1/lessons",
-    fieldProjection: ["lessonId", "levelId", "level", "nivel", "moduleId", "moduleTitle", "title", "titulo", "orderInModule", "status"],
-    pageSize: 5,
-    providerLimit: 5,
-    pageToken: null,
-    maxPages: 1,
-    maxDocuments: 5,
-    maxOtherDatabases: 0,
-    maxOtherLevels: 0,
-    order: "DOCUMENT_PATH_ASC",
-    schemaVariant: "legacy-v1",
-    discoveryStrategyVersion: "phase05-source-discovery-v1",
-    readPurposeVersion: "phase05-lesson-inventory-v1",
   });
-  assert.equal(validateFrozenPacket({ ...FIRST_READ_PACKET, collectionPath: "levels/A2/lessons" }), false);
+  assert.equal(inspect("credentials\\service-account.json").category, "REPOSITORY_LOCAL_CREDENTIAL_PATH_REJECTED");
+  assert.equal(inspect("nested\\..\\credentials\\service-account.json").category, "REPOSITORY_LOCAL_CREDENTIAL_PATH_REJECTED");
+  assert.equal(inspect("..\\polish-learning\\credentials\\service-account.json").category, "REPOSITORY_LOCAL_CREDENTIAL_PATH_REJECTED");
 });
 
-test("arming guard rejects absent, empty, and wrong values before loading credentials", async () => {
-  for (const authorization of [null, "", "wrong"]) {
-    const { calls, report } = await runAndCollect({ authorization });
-    assert.equal(report.category, "EXECUTION_NOT_AUTHORIZED");
-    assert.equal(calls.loadAdmin, 0);
-    assert.equal(calls.credential, 0);
-    assert.equal(calls.initialize, 0);
-    assert.equal(calls.loadMigration, 0);
-    assert.equal(calls.get, 0);
-    assert.equal(calls.compiledTargetChecks.length, 0);
-  }
-});
-
-test("ADC path check allows absent or external existing path and rejects missing/in-repo paths", () => {
-  const inspect = (envPath, exists = true, canonical = (value) => path.win32.resolve(value)) => inspectCredentialEnvironment({
-    env: envPath === undefined ? {} : { GOOGLE_APPLICATION_CREDENTIALS: envPath },
-    repositoryRoot: "C:\\Repo",
+test("similar-prefix sibling is external and malformed paths fail closed", () => {
+  const shared = {
+    repositoryRoot: "C:\\workspace\\polish-learning",
     pathApi: path.win32,
-    fileExists: () => exists,
-    realpath: canonical,
+    fileExists: () => true,
+  };
+  const sibling = inspectCredentialEnvironment({
+    ...shared,
+    env: { GOOGLE_APPLICATION_CREDENTIALS: "C:\\workspace\\polish-learning-backup\\credential.json" },
+    realpath: (value) => path.win32.resolve(value),
   });
-  assert.equal(inspect(undefined).ok, true);
-  assert.equal(inspect("C:\\Secrets\\adc.json").ok, true);
-  assert.deepEqual(inspect("C:\\Secrets\\missing.json", false), { ok: false, category: "ADC_PATH_MISSING" });
-  assert.equal(inspect("C:\\Repo").category, "ADC_PATH_INSIDE_REPOSITORY");
-  assert.equal(inspect("C:\\Repo\\nested\\adc.json").category, "ADC_PATH_INSIDE_REPOSITORY");
-  assert.equal(inspect("C:\\repo\\nested\\adc.json").category, "ADC_PATH_INSIDE_REPOSITORY");
-  assert.equal(inspect("C:\\RepoSibling\\adc.json").ok, true);
-  assert.equal(isPathWithinRepository("C:\\Repo", "C:\\Repo", path.win32), true);
-  assert.equal(isPathWithinRepository("C:\\RepoSibling\\file.json", "C:\\Repo", path.win32), false);
-});
-
-test("credential path failures do not reveal the credential path", async () => {
-  const { calls, report } = await runAndCollect({
-    credentialEnv: "C:\\repo\\private.json",
+  assert.deepEqual(sibling, { ok: true, result: "EXTERNAL_CREDENTIAL_PATH_ALLOWED" });
+  const malformed = inspectCredentialEnvironment({
+    ...shared,
+    env: { GOOGLE_APPLICATION_CREDENTIALS: "C:\\secrets\\unresolvable.json" },
+    realpath: () => { throw new Error("SECRET_PATH_MUST_NOT_ESCAPE"); },
   });
-  assert.equal(report.category, "ADC_PATH_INSIDE_REPOSITORY");
-  assert.equal(JSON.stringify(report).includes("private.json"), false);
-  assert.equal(calls.loadAdmin, 0);
-  assert.equal(calls.compiledTargetChecks.length, 0);
+  assert.deepEqual(malformed, { ok: false, category: "CREDENTIAL_PATH_INVALID" });
 });
 
-test("armed execution with all build output absent stops before ADC or app initialization", async () => {
-  const { calls, report } = await runAndCollect({ missingCompiledTargetIndex: 0 });
-  assert.equal(report.status, "FAILURE");
-  assert.equal(report.category, "BUILD_OUTPUT_REQUIRED");
-  assert.equal(calls.compiledTargetChecks.length, 1);
-  assert.equal(calls.loadAdmin, 0);
-  assert.equal(calls.credential, 0);
-  assert.equal(calls.initialize, 0);
-  assert.equal(calls.loadMigration, 0);
-  assert.equal(calls.resolveCollection, 0);
-  assert.equal(calls.getFirestore, 0);
-  assert.equal(calls.get, 0);
-  assert.equal(calls.delete, 0);
-  assert.equal(JSON.stringify(report).includes("C:\\repo"), false);
+test("all local preflight guards run before ADC and credential rejection reveals no path", async () => {
+  const { calls, runtime } = fixture({
+    credentialPath: "C:\\workspace\\polish-learning\\private\\secret.json",
+  });
+  const report = await runPhase05FirstBoundedProviderRead(runtime);
+  assert.equal(report.category, "REPOSITORY_LOCAL_CREDENTIAL_PATH_REJECTED");
+  assert.equal(calls.adc + calls.token + calls.fetch, 0);
+  const serialized = JSON.stringify(report);
+  for (const forbidden of ["private", "secret.json", token, "Authorization"]) assert.equal(serialized.includes(forbidden), false);
 });
 
-test("partial build output stops before ADC or app initialization", async () => {
-  const { calls, report } = await runAndCollect({ missingCompiledTargetIndex: 3 });
-  assert.equal(report.category, "BUILD_OUTPUT_REQUIRED");
-  assert.equal(calls.compiledTargetChecks.length, 4);
-  assert.equal(calls.loadAdmin, 0);
-  assert.equal(calls.credential, 0);
-  assert.equal(calls.initialize, 0);
-  assert.equal(calls.loadMigration, 0);
-  assert.equal(calls.resolveCollection, 0);
-  assert.equal(calls.get, 0);
-  assert.equal(calls.delete, 0);
-});
-
-test("all four compiled targets pass preflight before the fake runtime proceeds", async () => {
-  const { calls, report } = await runAndCollect();
+test("one ADC, one token, one REST fetch uses exact endpoint, headers, and body", async () => {
+  const { calls, runtime } = fixture({ responseValue: response([{ document: makeDoc(1) }]) });
+  const report = await runPhase05FirstBoundedProviderRead(runtime);
   assert.equal(report.status, "SUCCESS");
-  assert.equal(calls.compiledTargetChecks.length, 4);
-  assert.deepEqual(calls.compiledTargetChecks, [
-    "C:\\repo\\functions\\lib\\migration\\legacyMigrationProviderSourcePlan.js",
-    "C:\\repo\\functions\\lib\\migration\\legacyMigrationProviderBindingPlan.js",
-    "C:\\repo\\functions\\lib\\migration\\legacyMigrationFirebaseAdminProviderResolver.js",
-    "C:\\repo\\functions\\lib\\migration\\legacyMigrationProviderClientFactory.js",
-  ]);
-  assert.equal(calls.credential, 1);
-  assert.equal(calls.initialize, 1);
-  assert.equal(calls.get, 1);
+  assert.equal(calls.adc, 1);
+  assert.equal(calls.token, 1);
+  assert.equal(calls.fetch, 1);
+  const [url, init] = calls.fetchArgs;
+  assert.equal(url, REST_ENDPOINT);
+  assert.equal(init.method, "POST");
+  assert.equal(init.redirect, "error");
+  assert.equal(init.headers.Authorization, `Bearer ${token}`);
+  assert.equal(init.headers["x-goog-user-project"], PROJECT_ID);
+  assert.equal(init.headers["Content-Type"], "application/json");
+  assert.deepEqual(JSON.parse(init.body), createRunQueryBody());
+  assert.equal(report.completeness, COMPLETENESS_LABEL);
+  assert.equal(JSON.stringify(report).includes(token), false);
+  assert.equal(JSON.stringify(calls.output).includes(token), false);
 });
 
-test("named app collision fails before credential construction or initialization", async () => {
-  const { calls, report } = await runAndCollect({ existingApps: [{ name: FIRST_READ_APP_NAME }] });
-  assert.equal(report.category, "APP_NAME_COLLISION");
-  assert.equal(calls.credential, 0);
-  assert.equal(calls.initialize, 0);
-  assert.equal(calls.loadMigration, 0);
-  assert.equal(calls.delete, 0);
-});
-
-test("valid flow initializes and deletes exactly one named app and uses collection only", async () => {
-  const { calls, report } = await runAndCollect();
-  assert.equal(report.status, "SUCCESS");
-  assert.equal(calls.credential, 1);
-  assert.equal(calls.initialize, 1);
-  assert.equal(calls.delete, 1);
-  assert.equal(calls.resolveAuth, 0);
-  assert.equal(calls.resolvePoint, 0);
-  assert.equal(calls.getFirestore, 1);
-  assert.equal(calls.get, 1);
-  assert.equal(report.counters.appInitializationCount, 1);
-  assert.equal(report.counters.getFirestoreResolutionCount, 1);
-  assert.equal(report.counters.collectionDependencyInvocationCount, 1);
-  assert.equal(report.counters.queryGetUpperBound, 1);
-});
-
-test("wrong app project stops before resolver/query and still deletes owned app", async () => {
-  const { calls, report } = await runAndCollect({ projectId: "wrong-project" });
-  assert.equal(report.category, "PROJECT_BINDING_MISMATCH");
-  assert.equal(calls.loadMigration, 0);
-  assert.equal(calls.getFirestore, 0);
-  assert.equal(calls.get, 0);
-  assert.equal(calls.delete, 1);
-});
-
-test("collection-only composition resolves no Auth or point capability", async () => {
-  const { calls, report } = await runAndCollect();
-  assert.equal(report.status, "SUCCESS");
-  assert.equal(calls.resolveAuth, 0);
-  assert.equal(calls.resolvePoint, 0);
-  assert.equal(calls.getFirestore, 1);
-});
-
-test("getFirestore instrumentation rejects a second resolution", () => {
-  const counters = { getFirestoreResolutionCount: 0 };
-  let actual = 0;
-  const bounded = createBoundedGetFirestore(() => { actual += 1; return {}; }, counters);
-  bounded({}, "(default)");
-  assert.throws(() => bounded({}, "(default)"), /budget exceeded/u);
-  assert.equal(actual, 1);
-  assert.equal(counters.getFirestoreResolutionCount, 1);
-});
-
-test("one listDocuments invocation is bounded by the published one-get bridge invariant", async () => {
-  const { calls, report } = await runAndCollect();
-  assert.equal(report.counters.collectionDependencyInvocationCount, 1);
-  assert.equal(report.counters.queryGetUpperBound, 1);
-  assert.equal(calls.get, 1);
-});
-
-test("full page reports token presence and never follows it", async () => {
-  const documents = Array.from({ length: 5 }, (_, index) => providerDoc(`A1_${index + 1}`));
-  const { calls, report } = await runAndCollect({ result: { kind: "provider-documents", documents } });
-  assert.equal(report.status, "SUCCESS");
-  assert.equal(report.returnedDocumentCount, 5);
-  assert.equal(report.nextPageTokenPresent, true);
-  assert.equal(calls.resolveCollection, 1);
-  assert.equal(calls.getFirestore, 1);
-  assert.equal(calls.get, 1);
-  assert.equal(report.counters.paginationFollowupCount, 0);
-  assert.equal(report.completeness, "PARTIAL_OR_UNKNOWN_PAGE_ONLY");
-});
-
-test("short and empty pages remain page-local and do not trigger fallback", async () => {
-  for (const documents of [[], [providerDoc("A1_1"), providerDoc("A1_2")]]) {
-    const { calls, report } = await runAndCollect({ result: { kind: "provider-documents", documents } });
+test("zero, short, five, and excess provider entries remain page-local and at most five", async () => {
+  for (const count of [0, 2, 5, 8]) {
+    const { calls, runtime } = fixture({ responseValue: response(Array.from({ length: count }, (_, i) => ({ document: makeDoc(i + 1) }))) });
+    const report = await runPhase05FirstBoundedProviderRead(runtime);
     assert.equal(report.status, "SUCCESS");
-    assert.equal(report.completeness, "PARTIAL_OR_UNKNOWN_PAGE_ONLY");
-    assert.equal(report.returnedDocumentCount, documents.length);
-    assert.equal(calls.resolveCollection, 1);
-    assert.equal(calls.get, 1);
+    assert.equal(report.returnedDocumentCount, Math.min(count, MAX_DOCUMENTS));
+    assert.equal(report.documents.length <= 5, true);
+    assert.equal(report.completeness, "PAGE_LOCAL_PARTIAL_OR_UNKNOWN");
+    assert.equal(calls.fetch, 1);
+    assert.equal(calls.token, 1);
   }
 });
 
-test("provider failures stop without retry and raw error strings are not emitted", async () => {
-  const { calls, report } = await runAndCollect({
-    queryError: Object.assign(new Error("secret credential and token"), { code: 7 }),
+test("response is sanitized to approved scalar fields and safe identity only", async () => {
+  const { runtime } = fixture({ responseValue: response([{ document: makeDoc(1, {
+    level: { stringValue: "A1" },
+    nivel: { nullValue: "NULL_VALUE" },
+    moduleId: { integerValue: "9007199254740993" },
+    moduleTitle: { mapValue: { fields: { private: { stringValue: "DO_NOT_LEAK" } } } },
+    title: { stringValue: "Lesson" },
+    titulo: { arrayValue: { values: [{ stringValue: "DO_NOT_LEAK" }] } },
+    orderInModule: { doubleValue: 2.5 },
+    status: { booleanValue: true },
+  }) }]) });
+  const report = await runPhase05FirstBoundedProviderRead(runtime);
+  assert.deepEqual(report.documents[0], {
+    documentId: "lesson-1",
+    documentPath: "levels/A1/lessons/lesson-1",
+    projectedFields: { lessonId: "lesson-1", level: "A1", nivel: null, title: "Lesson", orderInModule: 2.5, status: true },
   });
-  assert.equal(report.status, "FAILURE");
-  assert.equal(calls.get, 1);
-  assert.equal(calls.delete, 1);
-  assert.equal(report.counters.retryCount, 0);
-  assert.equal(JSON.stringify(report).includes("secret credential and token"), false);
-});
-
-test("success output contains only approved projected fields and redacts token", async () => {
-  const documents = Array.from({ length: 5 }, (_, index) => providerDoc(`A1_${index + 1}`, undefined, {
-    title: index === 0 ? "Allowed" : `Title ${index + 1}`,
-  }));
-  const report = (await runAndCollect({ result: { kind: "provider-documents", documents } })).report;
   const serialized = JSON.stringify(report);
-  assert.equal(report.status, "SUCCESS");
-  assert.deepEqual(report.documents[0].projectedFields, { title: "Allowed" });
-  assert.equal(report.nextPageTokenPresent, true);
-  for (const forbidden of ["RAW_CONTINUATION_SECRET", "checksum"]) {
+  for (const forbidden of ["PRIVATE_CREATE_TIME", "PRIVATE_UPDATE_TIME", "PRIVATE_UNPROJECTED", "DO_NOT_LEAK", "mapValue", "arrayValue"]) {
     assert.equal(serialized.includes(forbidden), false);
   }
-  assert.equal(Object.hasOwn(report, "nextPageToken"), false);
 });
 
-test("cleanup failures are reported separately and do not mask primary outcomes", async () => {
-  const success = await runAndCollect({ cleanupError: new Error("cleanup secret") });
-  assert.equal(success.report.status, "SUCCESS_WITH_CLEANUP_FAILURE");
-  assert.equal(success.report.cleanupFailure, "CLEANUP_FAILED");
-  const failure = await runAndCollect({ queryError: new Error("provider secret"), cleanupError: new Error("cleanup secret") });
-  assert.equal(failure.report.status, "FAILURE");
-  assert.equal(failure.report.category, "COLLECTION_READ_FAILED");
-  assert.equal(failure.report.cleanupFailure, "CLEANUP_FAILED");
-  assert.equal(JSON.stringify(failure.report).includes("secret"), false);
+test("HTTP failures, thrown fetch, redirect errors, and malformed response never retry or leak", async () => {
+  const cases = [503, 500, 429, 403].map((status) => fixture({ responseValue: response([], { ok: false, status }) }));
+  cases.push(
+    fixture({ fetchError: new Error("SECRET_TOKEN oauth.google.com private body") }),
+    fixture({ responseValue: response("not-json") }),
+    fixture({ responseValue: { ok: true, body: null } }),
+  );
+  for (const { calls, runtime } of cases) {
+    const report = await runPhase05FirstBoundedProviderRead(runtime);
+    assert.equal(report.status, "FAILURE");
+    assert.equal(calls.fetch, 1);
+    assert.equal(calls.token, 1);
+    assert.equal(JSON.stringify(report).includes("SECRET_TOKEN"), false);
+    assert.equal(JSON.stringify(report).includes("oauth.google.com"), false);
+  }
 });
 
-test("collection outputs project the frozen identity and request shape", async () => {
-  const { calls, report } = await runAndCollect();
+test("oversized streamed response is cancelled and fails without retry", async () => {
+  let cancelled = false;
+  const { calls, runtime } = fixture({ responseValue: {
+    ok: true,
+    body: new ReadableStream({
+      start(controller) { controller.enqueue(new Uint8Array(RESPONSE_BYTE_LIMIT)); controller.enqueue(new Uint8Array(1)); },
+      cancel() { cancelled = true; },
+    }),
+  } });
+  const report = await runPhase05FirstBoundedProviderRead(runtime);
+  assert.equal(report.category, "RESPONSE_TOO_LARGE");
+  assert.equal(calls.fetch, 1);
+  assert.equal(cancelled, true);
+  assert.equal(JSON.stringify(report).includes("["), false);
+});
+
+test("REST framing and document identity are fail-closed", async () => {
+  for (const entries of [{ document: makeDoc(1) }, [null], [{ document: { ...makeDoc(1), name: "outside/path" } }]]) {
+    const { calls, runtime } = fixture({ responseValue: response(entries) });
+    const report = await runPhase05FirstBoundedProviderRead(runtime);
+    assert.equal(report.status, "FAILURE");
+    assert.equal(calls.fetch, 1);
+  }
+  const { runtime } = fixture({ responseValue: response([{ readTime: "ignored" }]) });
+  const validEmpty = await runPhase05FirstBoundedProviderRead(runtime);
+  assert.equal(validEmpty.status, "SUCCESS");
+  assert.equal(validEmpty.returnedDocumentCount, 0);
+});
+
+test("a response at the byte limit can be parsed and app cleanup is bounded", async () => {
+  const validJson = `${JSON.stringify([{ readTime: "2026-11-07T00:00:00Z" }])}${" ".repeat(RESPONSE_BYTE_LIMIT - Buffer.byteLength(JSON.stringify([{ readTime: "2026-11-07T00:00:00Z" }])) )}`;
+  const exactBytes = new TextEncoder().encode(validJson);
+  assert.equal(exactBytes.byteLength, RESPONSE_BYTE_LIMIT);
+  const { calls, runtime } = fixture({ responseValue: {
+    ok: true,
+    body: new ReadableStream({ start(controller) { controller.enqueue(exactBytes); controller.close(); } }),
+  } });
+  const report = await runPhase05FirstBoundedProviderRead(runtime);
   assert.equal(report.status, "SUCCESS");
-  assert.equal(calls.get, 1);
-  assert.equal(FIRST_READ_BUDGET.maxQueryGetUpperBound, 1);
+  assert.equal(calls.init, 1);
+  assert.equal(calls.delete, 1);
+  assert.equal(RESPONSE_BYTE_LIMIT, 65536);
 });

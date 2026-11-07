@@ -5,89 +5,40 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 export const FIRST_READ_AUTHORIZATION_ENV = "PHASE05_FIRST_BOUNDED_PROVIDER_READ_AUTHORIZATION";
 export const FIRST_READ_AUTHORIZATION_VALUE = "phase05-direct-a1-read-v1";
-export const FIRST_READ_APP_NAME = "phase05-first-bounded-lesson-read";
+export const QUOTA_PROJECT_ENV = "GOOGLE_CLOUD_QUOTA_PROJECT";
+export const PROJECT_ID = "english-for-polish";
+export const DATABASE_ID = "(default)";
+export const COLLECTION_PATH = "levels/A1/lessons";
+export const REST_ENDPOINT = "https://firestore.googleapis.com/v1/projects/english-for-polish/databases/(default)/documents/levels/A1:runQuery";
+export const RESPONSE_BYTE_LIMIT = 65536;
+export const MAX_DOCUMENTS = 5;
+export const COMPLETENESS_LABEL = "PAGE_LOCAL_PARTIAL_OR_UNKNOWN";
 export const FIRST_READ_PACKET = Object.freeze({
-  logicalSourceId: "legacy.level_lesson",
-  sourceSurface: "DIRECT_LEVEL_LESSON",
-  levelId: "A1",
-  sourceKind: "level_lesson",
-  projectId: "english-for-polish",
-  databaseId: "(default)",
-  collectionPath: "levels/A1/lessons",
+  projectId: PROJECT_ID,
+  databaseId: DATABASE_ID,
+  collectionPath: COLLECTION_PATH,
+  collectionId: "lessons",
   fieldProjection: Object.freeze([
     "lessonId", "levelId", "level", "nivel", "moduleId", "moduleTitle", "title", "titulo", "orderInModule", "status",
   ]),
-  pageSize: 5,
-  providerLimit: 5,
-  pageToken: null,
+  maxDocuments: MAX_DOCUMENTS,
   maxPages: 1,
-  maxDocuments: 5,
-  maxOtherDatabases: 0,
-  maxOtherLevels: 0,
   order: "DOCUMENT_PATH_ASC",
-  schemaVariant: "legacy-v1",
-  discoveryStrategyVersion: "phase05-source-discovery-v1",
-  readPurposeVersion: "phase05-lesson-inventory-v1",
-});
-export const FIRST_READ_BUDGET = Object.freeze({
-  maxFirebaseAppInitializations: 1,
-  maxGetFirestoreCalls: 1,
-  maxCollectionDependencyInvocations: 1,
-  maxQueryGetUpperBound: 1,
-  maxReturnedDocuments: 5,
-  maxAuthUserReads: 0,
-  maxPointFirestoreReads: 0,
-  maxModuleInventoryReads: 0,
-  maxNestedLessonReads: 0,
-  maxFirestoreWrites: 0,
-  maxProviderWrites: 0,
-  maxMigrationMutations: 0,
-  maxAutomaticRetries: 0,
-  maxAutomaticPaginationFollowups: 0,
 });
 
-const packetExpected = Object.freeze({
-  ...FIRST_READ_PACKET,
-  fieldProjection: [...FIRST_READ_PACKET.fieldProjection],
+const safeError = (category, stage) => ({
+  status: "FAILURE",
+  category,
+  stage,
+  message: "The bounded lesson read stopped safely.",
 });
-const requestKeys = Object.freeze([
-  "logicalSourceId", "sourceSurface", "projectId", "databaseId", "collectionPath", "fieldProjection",
-  "pageSize", "pageToken", "maxPages", "maxDocuments", "order", "schemaVariant",
-  "discoveryStrategyVersion", "readPurposeVersion",
-]);
-const allowedProjectedFields = new Set(FIRST_READ_PACKET.fieldProjection);
-const requiredCompiledMigrationTargets = Object.freeze([
-  Object.freeze(["functions", "lib", "migration", "legacyMigrationProviderSourcePlan.js"]),
-  Object.freeze(["functions", "lib", "migration", "legacyMigrationProviderBindingPlan.js"]),
-  Object.freeze(["functions", "lib", "migration", "legacyMigrationFirebaseAdminProviderResolver.js"]),
-  Object.freeze(["functions", "lib", "migration", "legacyMigrationProviderClientFactory.js"]),
-]);
-const safeFailureCodes = new Set([
-  "INVALID_REQUEST", "DESCRIPTOR_NOT_ALLOWLISTED", "SOURCE_DISCOVERY_REQUIRED", "PROVIDER_BINDING_MISMATCH",
-  "PERMISSION_DENIED", "NOT_FOUND", "MALFORMED_PROVIDER_RESPONSE", "PAGINATION_LOOP", "READ_BOUND_EXCEEDED",
-  "PARTIAL_INVENTORY", "UNSUPPORTED_PROJECTION", "PROVIDER_UNAVAILABLE", "PROVIDER_READ_FAILED",
-]);
 
-export const validateFrozenPacket = (packet = FIRST_READ_PACKET) => {
-  const expected = packetExpected;
-  const scalarKeys = Object.keys(expected).filter((key) => key !== "fieldProjection");
-  if (scalarKeys.some((key) => packet?.[key] !== expected[key])) return false;
-  return Array.isArray(packet?.fieldProjection)
-    && packet.fieldProjection.length === expected.fieldProjection.length
-    && packet.fieldProjection.every((field, index) => field === expected.fieldProjection[index]);
-};
-
-const isWindowsPathApi = (pathApi) => pathApi === path.win32;
-
-export const isPathWithinRepository = (candidate, repositoryRoot, pathApi = path) => {
-  const resolve = (value) => pathApi.resolve(value);
-  const root = resolve(repositoryRoot);
-  const target = resolve(candidate);
-  const relative = pathApi.relative(root, target);
-  const comparison = isWindowsPathApi(pathApi) ? relative.toLowerCase() : relative;
-  return comparison === "" || (!pathApi.isAbsolute(relative)
-    && comparison !== ".."
-    && !comparison.startsWith(`..${pathApi.sep}`));
+const isPathWithinRepository = (candidate, repositoryRoot, pathApi) => {
+  const relative = pathApi.relative(repositoryRoot, candidate);
+  const comparable = pathApi === path.win32 ? relative.toLowerCase() : relative;
+  return comparable === "" || (!pathApi.isAbsolute(relative)
+    && comparable !== ".."
+    && !comparable.startsWith(`..${pathApi.sep}`));
 };
 
 export const inspectCredentialEnvironment = ({
@@ -97,302 +48,222 @@ export const inspectCredentialEnvironment = ({
   fileExists = fs.existsSync,
   realpath = (value) => fs.realpathSync.native(value),
 }) => {
-  const rawPath = env?.GOOGLE_APPLICATION_CREDENTIALS;
-  if (typeof rawPath !== "string" || rawPath.trim() === "") return { ok: true, mode: "ADC_SOURCE_UNSPECIFIED" };
-  let resolvedRoot;
-  let resolvedCredential;
+  const configuredPath = env?.GOOGLE_APPLICATION_CREDENTIALS;
+  if (configuredPath === undefined || configuredPath === "") {
+    return { ok: true, result: "DEFAULT_ADC_ALLOWED" };
+  }
+  if (typeof configuredPath !== "string" || configuredPath.trim() === "") {
+    return { ok: false, category: "CREDENTIAL_PATH_INVALID" };
+  }
   try {
-    if (!fileExists(rawPath)) return { ok: false, category: "ADC_PATH_MISSING" };
-    resolvedRoot = realpath(repositoryRoot);
-    resolvedCredential = realpath(rawPath);
+    const absoluteConfiguredPath = pathApi.isAbsolute(configuredPath)
+      ? pathApi.resolve(configuredPath)
+      : pathApi.resolve(repositoryRoot, configuredPath);
+    if (!fileExists(absoluteConfiguredPath)) return { ok: false, category: "CREDENTIAL_PATH_INVALID" };
+    const resolvedRoot = realpath(repositoryRoot);
+    const resolvedCredential = realpath(absoluteConfiguredPath);
+    if (isPathWithinRepository(resolvedCredential, resolvedRoot, pathApi)) {
+      return { ok: false, category: "REPOSITORY_LOCAL_CREDENTIAL_PATH_REJECTED" };
+    }
+    return { ok: true, result: "EXTERNAL_CREDENTIAL_PATH_ALLOWED" };
   } catch {
-    return { ok: false, category: "ADC_PATH_MISSING" };
+    return { ok: false, category: "CREDENTIAL_PATH_INVALID" };
   }
-  if (isPathWithinRepository(resolvedCredential, resolvedRoot, pathApi)) {
-    return { ok: false, category: "ADC_PATH_INSIDE_REPOSITORY" };
-  }
-  return { ok: true, mode: "ADC_EXTERNAL_FILE_PRESENT" };
 };
 
-const makeCounters = () => ({
-  appInitializationCount: 0,
-  getFirestoreResolutionCount: 0,
-  collectionDependencyInvocationCount: 0,
-  queryGetUpperBound: 1,
-  returnedDocumentCount: 0,
-  authUserReadCount: 0,
-  pointFirestoreReadCount: 0,
-  firestoreWriteCount: 0,
-  providerWriteCount: 0,
-  migrationMutationCount: 0,
-  retryCount: 0,
-  paginationFollowupCount: 0,
-  otherDatabaseReadCount: 0,
-  otherLevelReadCount: 0,
+const getRepositoryRoot = () => path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
+
+export const createRunQueryBody = () => ({
+  structuredQuery: {
+    from: [{ collectionId: "lessons" }],
+    select: { fields: FIRST_READ_PACKET.fieldProjection.map((fieldPath) => ({ fieldPath })) },
+    orderBy: [{ field: { fieldPath: "__name__" }, direction: "ASCENDING" }],
+    limit: MAX_DOCUMENTS,
+  },
 });
 
-export const createBoundedGetFirestore = (getFirestore, counters) => (app, databaseId) => {
-  if (counters.getFirestoreResolutionCount >= FIRST_READ_BUDGET.maxGetFirestoreCalls) {
-    throw new Error("getFirestore budget exceeded");
+const scalarFromRestValue = (value) => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return undefined;
+  const entries = Object.entries(value);
+  if (entries.length !== 1) return undefined;
+  const [type, raw] = entries[0];
+  if (type === "stringValue" && typeof raw === "string") return raw;
+  if (type === "integerValue" && (typeof raw === "string" || typeof raw === "number")) {
+    const number = Number(raw);
+    return Number.isSafeInteger(number) ? number : undefined;
   }
-  counters.getFirestoreResolutionCount += 1;
-  return getFirestore(app, databaseId);
+  if (type === "doubleValue" && typeof raw === "number" && Number.isFinite(raw)) return raw;
+  if (type === "booleanValue" && typeof raw === "boolean") return raw;
+  if (type === "nullValue" && raw === "NULL_VALUE") return null;
+  return undefined;
 };
 
-const safeMessageFor = (category) => ({
-  EXECUTION_NOT_AUTHORIZED: "Execution arming value is absent or invalid.",
-  ADC_PATH_MISSING: "The configured external ADC file is unavailable.",
-  ADC_PATH_INSIDE_REPOSITORY: "Credential paths inside the repository are rejected.",
-  APP_NAME_COLLISION: "The reserved Firebase App name is already in use.",
-  APP_INITIALIZATION_FAILED: "Firebase App initialization failed.",
-  PROJECT_BINDING_MISMATCH: "Firebase App project binding did not match the frozen packet.",
-  SOURCE_PLAN_INVALID: "The frozen source plan could not be resolved.",
-  COLLECTION_READ_FAILED: "The bounded collection read failed.",
-  CLEANUP_FAILED: "Firebase App cleanup failed.",
-  PACKET_INVALID: "The frozen authorization packet failed validation.",
-  RUNTIME_CONFIGURATION_INVALID: "The harness runtime configuration is incomplete.",
-  BUILD_OUTPUT_REQUIRED: "Functions build output is required before provider execution.",
-})[category] ?? "The bounded provider read stopped safely.";
+const safeDocumentIdentity = (name) => {
+  if (typeof name !== "string") return null;
+  const prefix = "projects/english-for-polish/databases/(default)/documents/levels/A1/lessons/";
+  if (!name.startsWith(prefix)) return null;
+  const suffix = name.slice(prefix.length);
+  if (!suffix || suffix.includes("/") || suffix === "." || suffix === "..") return null;
+  return { documentId: suffix, documentPath: `levels/A1/lessons/${suffix}` };
+};
 
-const hasRequiredCompiledMigrationTargets = (repositoryRoot, pathApi, fileExists) => {
+const sanitizeDocument = (document) => {
+  if (!document || typeof document !== "object" || Array.isArray(document)
+    || (document.fields !== undefined && (!document.fields || typeof document.fields !== "object" || Array.isArray(document.fields)))) return null;
+  const identity = safeDocumentIdentity(document.name);
+  if (!identity) return null;
+  const projectedFields = {};
+  for (const field of FIRST_READ_PACKET.fieldProjection) {
+    const value = scalarFromRestValue(document.fields?.[field]);
+    if (value !== undefined) projectedFields[field] = value;
+  }
+  return { ...identity, projectedFields };
+};
+
+const readBoundedResponse = async (response) => {
+  if (!response?.body || typeof response.body.getReader !== "function") {
+    throw Object.assign(new Error(), { safeCategory: "MALFORMED_RESPONSE" });
+  }
+  const reader = response.body.getReader();
+  const chunks = [];
+  let total = 0;
   try {
-    return requiredCompiledMigrationTargets.every((segments) => fileExists(pathApi.resolve(repositoryRoot, ...segments)));
-  } catch {
-    return false;
-  }
-};
-
-const safeProjectedFields = (fields) => {
-  const result = {};
-  if (fields && typeof fields === "object" && !Array.isArray(fields)) {
-    for (const [key, value] of Object.entries(fields)) {
-      if (allowedProjectedFields.has(key)
-        && (value === null || ["string", "number", "boolean"].includes(typeof value))) result[key] = value;
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (!(value instanceof Uint8Array)) throw Object.assign(new Error(), { safeCategory: "MALFORMED_RESPONSE" });
+      if (total + value.byteLength > RESPONSE_BYTE_LIMIT) {
+        try { await reader.cancel(); } catch { /* Stop consuming; never retry. */ }
+        throw Object.assign(new Error(), { safeCategory: "RESPONSE_TOO_LARGE" });
+      }
+      total += value.byteLength;
+      chunks.push(value);
     }
+  } finally {
+    try { reader.releaseLock(); } catch { /* No data is exposed. */ }
   }
-  return result;
+  const bytes = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
+  try {
+    return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+  } catch {
+    throw Object.assign(new Error(), { safeCategory: "MALFORMED_RESPONSE" });
+  }
 };
 
-const sanitizePage = (page, counters) => {
-  const documents = Array.isArray(page?.documents) ? page.documents.slice(0, FIRST_READ_BUDGET.maxReturnedDocuments) : [];
-  counters.returnedDocumentCount = documents.length;
-  return {
-    status: "SUCCESS",
-    returnedDocumentCount: documents.length,
-    documents: documents.map((document) => ({
-      documentId: typeof document?.documentId === "string" ? document.documentId : "",
-      documentPath: typeof document?.documentPath === "string" ? document.documentPath : "",
-      projectedFields: safeProjectedFields(document?.projectedFields),
-    })),
-    pageIndex: Number.isInteger(page?.pageIndex) && page.pageIndex >= 0 ? page.pageIndex : 0,
-    completeness: "PARTIAL_OR_UNKNOWN_PAGE_ONLY",
-    nextPageTokenPresent: typeof page?.nextPageToken === "string" && page.nextPageToken.length > 0,
-    counters: { ...counters },
-  };
+const consumeRunQueryResponse = async (response) => {
+  if (!response || response.ok !== true) throw Object.assign(new Error(), { safeCategory: "PROVIDER_READ_FAILED" });
+  const text = await readBoundedResponse(response);
+  let entries;
+  try { entries = JSON.parse(text); } catch { throw Object.assign(new Error(), { safeCategory: "MALFORMED_RESPONSE" }); }
+  if (!Array.isArray(entries)) throw Object.assign(new Error(), { safeCategory: "MALFORMED_RESPONSE" });
+  const documents = [];
+  for (const entry of entries) {
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) throw Object.assign(new Error(), { safeCategory: "MALFORMED_RESPONSE" });
+    const allowedEntryKeys = new Set(["document", "transaction", "readTime", "skippedResults"]);
+    if (Object.keys(entry).some((key) => !allowedEntryKeys.has(key))) throw Object.assign(new Error(), { safeCategory: "MALFORMED_RESPONSE" });
+    if (!Object.hasOwn(entry, "document")) {
+      if (Object.hasOwn(entry, "transaction") && typeof entry.transaction !== "string") throw Object.assign(new Error(), { safeCategory: "MALFORMED_RESPONSE" });
+      if (Object.hasOwn(entry, "readTime") && typeof entry.readTime !== "string") throw Object.assign(new Error(), { safeCategory: "MALFORMED_RESPONSE" });
+      if (Object.hasOwn(entry, "skippedResults") && (!Number.isInteger(entry.skippedResults) || entry.skippedResults < 0)) throw Object.assign(new Error(), { safeCategory: "MALFORMED_RESPONSE" });
+      continue;
+    }
+    if (documents.length >= MAX_DOCUMENTS) continue;
+    const document = sanitizeDocument(entry.document);
+    if (!document) throw Object.assign(new Error(), { safeCategory: "MALFORMED_RESPONSE" });
+    documents.push(document);
+  }
+  return documents;
 };
 
-const emitSafely = (sink, report) => {
-  try { sink?.(report); } catch { /* Output failures never trigger another provider operation. */ }
-};
+const getAdminApi = (runtime) => runtime.adminApi ?? (() => {
+  const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
+  return createRequire(path.join(repositoryRoot, "functions", "package.json"))("firebase-admin/app");
+})();
 
-const validatePreQueryBudget = (request, counters) => validateFrozenPacket()
-  && request.projectId === "english-for-polish"
-  && request.databaseId === "(default)"
-  && request.collectionPath === "levels/A1/lessons"
-  && request.sourceSurface === "DIRECT_LEVEL_LESSON"
-  && request.pageSize === 5
-  && request.pageToken === null
-  && request.maxPages === 1
-  && request.maxDocuments === 5
-  && request.order === "DOCUMENT_PATH_ASC"
-  && counters.collectionDependencyInvocationCount === 0
-  && counters.authUserReadCount === 0
-  && counters.pointFirestoreReadCount === 0
-  && counters.firestoreWriteCount === 0
-  && counters.retryCount === 0
-  && counters.paginationFollowupCount === 0
-  && counters.otherDatabaseReadCount === 0
-  && counters.otherLevelReadCount === 0;
+/** One-shot REST reader. Runtime injection is for local mocks only; production uses native fetch. */
+export const runPhase05FirstBoundedProviderRead = async (runtime = {}) => {
+  const env = runtime.env ?? process.env;
+  if (env[FIRST_READ_AUTHORIZATION_ENV] !== FIRST_READ_AUTHORIZATION_VALUE) return safeError("EXECUTION_NOT_AUTHORIZED", "ARMING_GUARD");
+  if (env[QUOTA_PROJECT_ENV] !== PROJECT_ID) return safeError("QUOTA_PROJECT_INVALID", "QUOTA_PROJECT_GUARD");
+  const credentialEnvironment = inspectCredentialEnvironment({
+    env,
+    repositoryRoot: runtime.repositoryRoot ?? getRepositoryRoot(),
+    pathApi: runtime.pathApi ?? path,
+    fileExists: runtime.fileExists ?? fs.existsSync,
+    realpath: runtime.realpath ?? ((value) => fs.realpathSync.native(value)),
+  });
+  if (!credentialEnvironment.ok) return safeError(credentialEnvironment.category, "CREDENTIAL_PATH_GUARD");
 
-export const runPhase05FirstBoundedProviderRead = async (runtime) => {
-  const counters = makeCounters();
   let app;
   let ownsApp = false;
-  let primaryReport;
-  const output = typeof runtime?.output === "function" ? runtime.output : () => {};
-  const reportFailure = (category, stage, extra = {}) => ({
-    status: "FAILURE", category, message: safeMessageFor(category), stage, counters: { ...counters }, ...extra,
-  });
-
-  if (!validateFrozenPacket()) primaryReport = reportFailure("PACKET_INVALID", "PACKET_VALIDATION");
-  else if (runtime?.env?.[FIRST_READ_AUTHORIZATION_ENV] !== FIRST_READ_AUTHORIZATION_VALUE) {
-    primaryReport = reportFailure("EXECUTION_NOT_AUTHORIZED", "ARMING_GUARD");
-  } else {
-    const credentialCheck = inspectCredentialEnvironment({
-      env: runtime.env,
-      repositoryRoot: runtime.repositoryRoot,
-      pathApi: runtime.pathApi ?? path,
-      fileExists: runtime.fileExists ?? fs.existsSync,
-      realpath: runtime.realpath ?? ((value) => fs.realpathSync.native(value)),
+  let report;
+  try {
+    const admin = getAdminApi(runtime);
+    const credential = (runtime.applicationDefault ?? admin.applicationDefault)();
+    if (!credential || typeof credential.getAccessToken !== "function") throw Object.assign(new Error(), { safeCategory: "TOKEN_ACQUISITION_FAILED" });
+    const appName = "phase05-first-bounded-lesson-read";
+    if ((runtime.getApps ?? admin.getApps)().some((candidate) => candidate?.name === appName)) {
+      throw Object.assign(new Error(), { safeCategory: "APP_NAME_COLLISION" });
+    }
+    app = await (runtime.initializeApp ?? admin.initializeApp)(
+      { credential, projectId: PROJECT_ID }, appName,
+    );
+    ownsApp = true;
+    const access = await credential.getAccessToken();
+    const token = access?.access_token;
+    if (typeof token !== "string" || token.length === 0) throw Object.assign(new Error(), { safeCategory: "TOKEN_ACQUISITION_FAILED" });
+    const fetchFn = runtime.fetch ?? globalThis.fetch;
+    if (typeof fetchFn !== "function") throw Object.assign(new Error(), { safeCategory: "PROVIDER_READ_FAILED" });
+    const response = await fetchFn(REST_ENDPOINT, {
+      method: "POST",
+      redirect: "error",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+        "x-goog-user-project": PROJECT_ID,
+      },
+      body: JSON.stringify(createRunQueryBody()),
     });
-    if (!credentialCheck.ok) primaryReport = reportFailure(credentialCheck.category, "CREDENTIAL_PRECHECK");
-    else if (!hasRequiredCompiledMigrationTargets(
-      runtime.repositoryRoot,
-      runtime.pathApi ?? path,
-      runtime.compiledTargetExists ?? fs.existsSync,
-    )) primaryReport = reportFailure("BUILD_OUTPUT_REQUIRED", "COMPILED_TARGET_PREFLIGHT");
-    else if (typeof runtime.loadAdmin !== "function" || typeof runtime.loadMigration !== "function") {
-      primaryReport = reportFailure("RUNTIME_CONFIGURATION_INVALID", "RUNTIME_CONFIGURATION");
-    } else {
-      let admin;
-      let migration;
+    const documents = await consumeRunQueryResponse(response);
+    report = {
+      status: "SUCCESS",
+      providerTransport: "REST_ONE_SHOT",
+      endpoint: REST_ENDPOINT,
+      method: "POST",
+      returnedDocumentCount: documents.length,
+      documents,
+      completeness: COMPLETENESS_LABEL,
+      maxDocuments: MAX_DOCUMENTS,
+      maxPages: 1,
+      fieldProjectionCount: FIRST_READ_PACKET.fieldProjection.length,
+      credentialEnvironmentResult: credentialEnvironment.result,
+    };
+  } catch (error) {
+    const category = ["RESPONSE_TOO_LARGE", "MALFORMED_RESPONSE", "PROVIDER_READ_FAILED", "TOKEN_ACQUISITION_FAILED", "APP_NAME_COLLISION"].includes(error?.safeCategory)
+      ? error.safeCategory
+      : "PROVIDER_READ_FAILED";
+    report = safeError(category, category === "TOKEN_ACQUISITION_FAILED" ? "TOKEN_ACQUISITION" : "REST_RUNQUERY");
+  } finally {
+    if (ownsApp) {
       try {
-        admin = await runtime.loadAdmin();
-        const existingApps = admin.getApps();
-        if (existingApps.some((candidate) => candidate?.name === FIRST_READ_APP_NAME)) {
-          primaryReport = reportFailure("APP_NAME_COLLISION", "APP_COLLISION");
-        } else {
-          if (counters.appInitializationCount >= FIRST_READ_BUDGET.maxFirebaseAppInitializations) {
-            primaryReport = reportFailure("APP_INITIALIZATION_FAILED", "APP_INITIALIZATION");
-          } else {
-            counters.appInitializationCount += 1;
-            app = await admin.initializeApp({
-              credential: admin.applicationDefault(),
-              projectId: FIRST_READ_PACKET.projectId,
-            }, FIRST_READ_APP_NAME);
-            ownsApp = true;
-          }
-          if (!primaryReport && app?.options?.projectId !== FIRST_READ_PACKET.projectId) {
-            primaryReport = reportFailure("PROJECT_BINDING_MISMATCH", "PROJECT_BINDING");
-          }
-          if (!primaryReport) {
-            migration = await runtime.loadMigration();
-            const sourcePlan = migration.resolveLegacyMigrationProviderSourcePlanForLogicalSource(FIRST_READ_PACKET.logicalSourceId);
-            const bound = migration.deriveLegacyMigrationProviderBindingPlan(sourcePlan, {
-              projectId: FIRST_READ_PACKET.projectId,
-              databaseId: FIRST_READ_PACKET.databaseId,
-            });
-            if (bound?.kind !== "resolved" || bound.plan.entries.length !== 1
-              || bound.plan.entries[0]?.sourceKind !== FIRST_READ_PACKET.sourceKind) {
-              primaryReport = reportFailure("SOURCE_PLAN_INVALID", "SOURCE_PLAN");
-            } else {
-              const resolver = migration.createLegacyMigrationFirebaseAdminProviderResolver({
-                runtime: {
-                  collectionQueryRuntime: {
-                    getFirestore: createBoundedGetFirestore(runtime.getCollectionFirestore, counters),
-                    documentId: () => runtime.documentId(),
-                  },
-                },
-              });
-              const collectionDependency = resolver.resolveFirestoreCollection(
-                app, FIRST_READ_PACKET.projectId, FIRST_READ_PACKET.databaseId,
-              );
-              const clients = Object.freeze({
-                selectedProjectId: FIRST_READ_PACKET.projectId,
-                selectedDatabaseId: FIRST_READ_PACKET.databaseId,
-                firestoreCollection: collectionDependency,
-              });
-              const port = migration.createLegacyMigrationCollectionReadPort(bound.plan.entries[0], clients);
-              const request = Object.freeze(Object.fromEntries(requestKeys.map((key) => [key, FIRST_READ_PACKET[key]])));
-              if (!validatePreQueryBudget(request, counters)) {
-                primaryReport = reportFailure("PACKET_INVALID", "PRE_QUERY_ASSERTION");
-              } else if (counters.collectionDependencyInvocationCount >= FIRST_READ_BUDGET.maxCollectionDependencyInvocations) {
-                primaryReport = reportFailure("COLLECTION_READ_FAILED", "QUERY_BUDGET");
-              } else {
-                counters.collectionDependencyInvocationCount += 1;
-                const result = await port.listDocuments(request);
-                if (result?.kind === "failure") {
-                  const code = safeFailureCodes.has(result.failure?.code) ? result.failure.code : "PROVIDER_READ_FAILED";
-                  primaryReport = reportFailure("COLLECTION_READ_FAILED", "COLLECTION_READ", {
-                    failureCode: code,
-                    safeFailureMessage: "The adapter reported a normalized read failure.",
-                  });
-                } else if (result?.kind === "page") {
-                  primaryReport = sanitizePage(result.page, counters);
-                } else {
-                  primaryReport = reportFailure("COLLECTION_READ_FAILED", "COLLECTION_READ", {
-                    failureCode: "MALFORMED_PROVIDER_RESPONSE",
-                  });
-                }
-              }
-            }
-          }
-        }
-      } catch (error) {
-        const category = error?.message === "getFirestore budget exceeded"
-          ? "COLLECTION_READ_FAILED"
-          : app === undefined ? "APP_INITIALIZATION_FAILED" : "COLLECTION_READ_FAILED";
-        primaryReport = reportFailure(category, app === undefined ? "APP_INITIALIZATION" : "COLLECTION_COMPOSITION");
+        const admin = getAdminApi(runtime);
+        await (runtime.deleteApp ?? admin.deleteApp)(app);
+      } catch {
+        if (report?.status === "SUCCESS") report = safeError("CLEANUP_FAILED", "APP_CLEANUP");
       }
     }
   }
-
-  if (!primaryReport) primaryReport = reportFailure("RUNTIME_CONFIGURATION_INVALID", "RUNTIME_CONFIGURATION");
-  if (ownsApp) {
-    try {
-      await (runtime.deleteApp ?? (await runtime.loadAdmin()).deleteApp)(app);
-    } catch {
-      primaryReport = { ...primaryReport, cleanupFailure: "CLEANUP_FAILED" };
-      if (primaryReport.status === "SUCCESS") primaryReport.status = "SUCCESS_WITH_CLEANUP_FAILURE";
-    }
-  }
-  primaryReport.counters = { ...counters };
-  emitSafely(output, primaryReport);
-  return primaryReport;
+  try { (runtime.output ?? (() => {}))(report); } catch { /* Output is best-effort; never triggers another request. */ }
+  return report;
 };
 
-const createProductionRuntime = () => {
-  const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
-  const functionsPackage = path.join(repositoryRoot, "functions", "package.json");
-  const functionsRequire = createRequire(functionsPackage);
-  const loadAdmin = async () => {
-    const appApi = functionsRequire("firebase-admin/app");
-    return {
-      getApps: appApi.getApps,
-      applicationDefault: appApi.applicationDefault,
-      initializeApp: appApi.initializeApp,
-      deleteApp: appApi.deleteApp,
-    };
-  };
-  const loadMigration = async () => {
-    const compiledRoot = path.join(repositoryRoot, "functions", "lib", "migration");
-    const importModule = (name) => import(pathToFileURL(path.join(compiledRoot, name)).href);
-    const [source, binding, resolver, factory] = await Promise.all([
-      importModule("legacyMigrationProviderSourcePlan.js"),
-      importModule("legacyMigrationProviderBindingPlan.js"),
-      importModule("legacyMigrationFirebaseAdminProviderResolver.js"),
-      importModule("legacyMigrationProviderClientFactory.js"),
-    ]);
-    return {
-      resolveLegacyMigrationProviderSourcePlanForLogicalSource: source.resolveLegacyMigrationProviderSourcePlanForLogicalSource,
-      deriveLegacyMigrationProviderBindingPlan: binding.deriveLegacyMigrationProviderBindingPlan,
-      createLegacyMigrationFirebaseAdminProviderResolver: resolver.createLegacyMigrationFirebaseAdminProviderResolver,
-      createLegacyMigrationCollectionReadPort: factory.createLegacyMigrationCollectionReadPort,
-    };
-  };
-  return {
-    env: process.env,
-    repositoryRoot,
-    loadAdmin,
-    loadMigration,
-    getCollectionFirestore: (app, databaseId) => functionsRequire("firebase-admin/firestore").getFirestore(app, databaseId),
-    documentId: () => functionsRequire("firebase-admin/firestore").FieldPath.documentId(),
-    deleteApp: async (app) => (await loadAdmin()).deleteApp(app),
-    output: (report) => process.stdout.write(`${JSON.stringify(report)}\n`),
-  };
-};
-
-const isDirectExecution = () => {
-  const invokedPath = process.argv[1];
-  return typeof invokedPath === "string"
-    && pathToFileURL(path.resolve(invokedPath)).href === import.meta.url;
-};
+const isDirectExecution = () => typeof process.argv[1] === "string"
+  && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url;
 
 if (isDirectExecution()) {
-  runPhase05FirstBoundedProviderRead(createProductionRuntime()).then((report) => {
-    if (report.status !== "SUCCESS") process.exitCode = 1;
-  }).catch(() => {
-    process.stdout.write(`${JSON.stringify({ status: "FAILURE", category: "RUNTIME_CONFIGURATION_INVALID" })}\n`);
-    process.exitCode = 1;
-  });
+  runPhase05FirstBoundedProviderRead({ env: process.env, output: (report) => process.stdout.write(`${JSON.stringify(report)}\n`) })
+    .then((report) => { if (report.status !== "SUCCESS") process.exitCode = 1; })
+    .catch(() => { process.stdout.write(`${JSON.stringify(safeError("PROVIDER_READ_FAILED", "RUNTIME"))}\n`); process.exitCode = 1; });
 }
