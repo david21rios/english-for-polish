@@ -47,12 +47,15 @@ export const NESTED_ENDPOINT = `https://firestore.googleapis.com/v1/${NESTED_RES
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const APP_NAME = "phase05-a1-1-paired-inventory-read";
 
-const safeFailure = (failureCode, stage, requestCount = 0, totalResponseBytes = 0) => Object.freeze({
+const safeFailure = (failureCode, stage, requestCount = 0, totalResponseBytes = 0, oversizeEvidence) => Object.freeze({
   status: "FAILED",
   failureCode,
   stage,
   requestCount,
   totalResponseBytes,
+  ...(failureCode === "PROVIDER_RESPONSE_TOO_LARGE" && oversizeEvidence
+    ? { oversizeEvidence: Object.freeze(oversizeEvidence) }
+    : {}),
   limits: Object.freeze({
     maxProviderRequests: MAX_PROVIDER_REQUESTS,
     maxLogicalDocumentReads: MAX_LOGICAL_DOCUMENT_READS,
@@ -78,13 +81,26 @@ const cancelBody = async (response) => {
   try { await response?.body?.cancel?.(); } catch { /* No provider body or error escapes. */ }
 };
 
+const oversizedFailure = (oversizeEvidence) => Object.assign(new Error(), {
+  safeFailureCode: "PROVIDER_RESPONSE_TOO_LARGE",
+  oversizeEvidence,
+});
+
 const readBoundedBody = async (response, byteLimit, decode) => {
   const declaredLength = response?.headers?.get?.("content-length");
   if (declaredLength !== null && declaredLength !== undefined) {
     if (!/^[0-9]+$/u.test(declaredLength)) throw Object.assign(new Error(), { safeFailureCode: "PROVIDER_RESPONSE_INVALID" });
-    if (Number(declaredLength) > byteLimit) {
+    const exactDeclaredLength = BigInt(declaredLength);
+    if (exactDeclaredLength > BigInt(byteLimit)) {
       await cancelBody(response);
-      throw Object.assign(new Error(), { safeFailureCode: "PROVIDER_RESPONSE_TOO_LARGE" });
+      const oversizeEvidence = {
+        mode: "DECLARED_CONTENT_LENGTH",
+        responseByteLimit: byteLimit,
+        ...(exactDeclaredLength <= BigInt(Number.MAX_SAFE_INTEGER)
+          ? { declaredContentLengthBytes: Number(exactDeclaredLength) }
+          : {}),
+      };
+      throw oversizedFailure(oversizeEvidence);
     }
   }
   if (!response?.body) return { byteLength: 0, text: "" };
@@ -99,7 +115,11 @@ const readBoundedBody = async (response, byteLimit, decode) => {
       if (!(value instanceof Uint8Array)) throw Object.assign(new Error(), { safeFailureCode: "PROVIDER_RESPONSE_INVALID" });
       if (total + value.byteLength > byteLimit) {
         try { await reader.cancel(); } catch { /* Never retry oversized responses. */ }
-        throw Object.assign(new Error(), { safeFailureCode: "PROVIDER_RESPONSE_TOO_LARGE" });
+        throw oversizedFailure({
+          mode: "STREAMED_RESPONSE_BODY",
+          responseByteLimit: byteLimit,
+          minimumObservedResponseBytesAtFailure: byteLimit + 1,
+        });
       }
       total += value.byteLength;
       if (decode) chunks.push(value);
@@ -185,11 +205,22 @@ const fetchTarget = async ({ runtime, endpoint, nested, token, requestCount, tot
   try {
     body = await readBoundedBody(response, byteLimit, response.status === 200);
   } catch (error) {
-    return { ok: false, result: safeFailure(error?.safeFailureCode ?? "PROVIDER_RESPONSE_INVALID", nested ? "NESTED_GET" : "DIRECT_GET", requestCount, totalResponseBytes) };
+    const failureCode = error?.safeFailureCode ?? "PROVIDER_RESPONSE_INVALID";
+    return { ok: false, result: safeFailure(
+      failureCode,
+      nested ? "NESTED_GET" : "DIRECT_GET",
+      requestCount,
+      totalResponseBytes,
+      failureCode === "PROVIDER_RESPONSE_TOO_LARGE" ? error?.oversizeEvidence : undefined,
+    ) };
   }
   const nextTotal = totalResponseBytes + body.byteLength;
   if (nextTotal > TOTAL_RESPONSE_BYTE_LIMIT) {
-    return { ok: false, result: safeFailure("PROVIDER_RESPONSE_TOO_LARGE", nested ? "NESTED_GET" : "DIRECT_GET", requestCount, nextTotal) };
+    return { ok: false, result: safeFailure("PROVIDER_RESPONSE_TOO_LARGE", nested ? "NESTED_GET" : "DIRECT_GET", requestCount, nextTotal, {
+      mode: "PAIR_TOTAL_RESPONSE_BYTES",
+      pairObservedResponseBytes: nextTotal,
+      pairResponseByteLimit: TOTAL_RESPONSE_BYTE_LIMIT,
+    }) };
   }
   if (response.status === 404) return { ok: true, result: { result: "MISSING", target: nested ? NESTED_DOCUMENT_PATH : DIRECT_DOCUMENT_PATH }, byteLength: body.byteLength, totalResponseBytes: nextTotal, valueNodeCount: 0 };
   const parsed = parseFoundResponse(body.text, nested);
