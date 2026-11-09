@@ -14,6 +14,8 @@ import {
 
 export const AUTHORIZATION_ENV = "PHASE05_A1_1_PAIRED_INVENTORY_READ_AUTHORIZATION";
 export const AUTHORIZATION_VALUE = "phase05-a1-1-paired-inventory-read-v1";
+export const STREAM_SIZE_MEASUREMENT_AUTHORIZATION_ENV = "PHASE05_A1_1_STREAM_SIZE_MEASUREMENT_AUTHORIZATION";
+export const STREAM_SIZE_MEASUREMENT_AUTHORIZATION_VALUE = "phase05-a1-1-stream-size-measurement-v1";
 export const QUOTA_PROJECT_ENV = "GOOGLE_CLOUD_QUOTA_PROJECT";
 export const PROJECT_ID = "english-for-polish";
 export const DATABASE_ID = "(default)";
@@ -25,6 +27,7 @@ export const NESTED_DOCUMENT_PATH = "levels/A1/modules/A1_M01_pruebaa1/lessons/A
 export const DIRECT_RESPONSE_BYTE_LIMIT = 65536;
 export const NESTED_RESPONSE_BYTE_LIMIT = 65536;
 export const TOTAL_RESPONSE_BYTE_LIMIT = 131072;
+export const DIAGNOSTIC_STREAM_MEASUREMENT_STOP_THRESHOLD_BYTES = 1048576;
 export const MAX_PROVIDER_REQUESTS = 2;
 export const MAX_LOGICAL_DOCUMENT_READS = 2;
 export const MAX_QUERY_REQUESTS = 0;
@@ -47,7 +50,7 @@ export const NESTED_ENDPOINT = `https://firestore.googleapis.com/v1/${NESTED_RES
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const APP_NAME = "phase05-a1-1-paired-inventory-read";
 
-const safeFailure = (failureCode, stage, requestCount = 0, totalResponseBytes = 0, oversizeEvidence) => Object.freeze({
+const safeFailure = (failureCode, stage, requestCount = 0, totalResponseBytes = 0, oversizeEvidence, streamSizeMeasurement) => Object.freeze({
   status: "FAILED",
   failureCode,
   stage,
@@ -55,6 +58,9 @@ const safeFailure = (failureCode, stage, requestCount = 0, totalResponseBytes = 
   totalResponseBytes,
   ...(failureCode === "PROVIDER_RESPONSE_TOO_LARGE" && oversizeEvidence
     ? { oversizeEvidence: Object.freeze(oversizeEvidence) }
+    : {}),
+  ...(failureCode === "PROVIDER_RESPONSE_TOO_LARGE" && streamSizeMeasurement
+    ? { streamSizeMeasurement: Object.freeze(streamSizeMeasurement) }
     : {}),
   limits: Object.freeze({
     maxProviderRequests: MAX_PROVIDER_REQUESTS,
@@ -81,12 +87,13 @@ const cancelBody = async (response) => {
   try { await response?.body?.cancel?.(); } catch { /* No provider body or error escapes. */ }
 };
 
-const oversizedFailure = (oversizeEvidence) => Object.assign(new Error(), {
+const oversizedFailure = (oversizeEvidence, streamSizeMeasurement) => Object.assign(new Error(), {
   safeFailureCode: "PROVIDER_RESPONSE_TOO_LARGE",
   oversizeEvidence,
+  streamSizeMeasurement,
 });
 
-const readBoundedBody = async (response, byteLimit, decode) => {
+const readBoundedBody = async (response, byteLimit, decode, { measureStreamSize = false } = {}) => {
   const declaredLength = response?.headers?.get?.("content-length");
   if (declaredLength !== null && declaredLength !== undefined) {
     if (!/^[0-9]+$/u.test(declaredLength)) throw Object.assign(new Error(), { safeFailureCode: "PROVIDER_RESPONSE_INVALID" });
@@ -108,21 +115,115 @@ const readBoundedBody = async (response, byteLimit, decode) => {
   const reader = response.body.getReader();
   const chunks = [];
   let total = 0;
-  try {
+  const streamedOversizeEvidence = {
+    mode: "STREAMED_RESPONSE_BODY",
+    responseByteLimit: byteLimit,
+    minimumObservedResponseBytesAtFailure: byteLimit + 1,
+  };
+
+  const measureOversizedStream = async (initialMeasuredResponseBytes) => {
+    let measuredResponseBytes = initialMeasuredResponseBytes;
+    const ceiling = DIAGNOSTIC_STREAM_MEASUREMENT_STOP_THRESHOLD_BYTES;
+
+    if (measuredResponseBytes > ceiling) {
+      try { await reader.cancel(); } catch { /* Never retry oversized responses. */ }
+      throw oversizedFailure(streamedOversizeEvidence, {
+        outcome: "DIAGNOSTIC_CEILING_EXCEEDED",
+        minimumMeasuredResponseBytes: ceiling + 1,
+        diagnosticHardCeilingBytes: ceiling,
+      });
+    }
+
     while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      if (!(value instanceof Uint8Array)) throw Object.assign(new Error(), { safeFailureCode: "PROVIDER_RESPONSE_INVALID" });
-      if (total + value.byteLength > byteLimit) {
-        try { await reader.cancel(); } catch { /* Never retry oversized responses. */ }
-        throw oversizedFailure({
-          mode: "STREAMED_RESPONSE_BODY",
-          responseByteLimit: byteLimit,
-          minimumObservedResponseBytesAtFailure: byteLimit + 1,
+      let item;
+      try {
+        item = await reader.read();
+      } catch {
+        throw oversizedFailure(streamedOversizeEvidence, {
+          outcome: "MEASUREMENT_INCOMPLETE",
+          minimumMeasuredResponseBytes: measuredResponseBytes,
+          diagnosticHardCeilingBytes: ceiling,
         });
       }
-      total += value.byteLength;
+      if (item.done) {
+        item = undefined;
+        throw oversizedFailure(streamedOversizeEvidence, {
+          outcome: "EXACT_TOTAL_MEASURED",
+          measuredResponseBytes,
+          diagnosticHardCeilingBytes: ceiling,
+        });
+      }
+      let chunk = item.value;
+      if (!(chunk instanceof Uint8Array)) {
+        chunk = undefined;
+        item = undefined;
+        throw oversizedFailure(streamedOversizeEvidence, {
+          outcome: "MEASUREMENT_INCOMPLETE",
+          minimumMeasuredResponseBytes: measuredResponseBytes,
+          diagnosticHardCeilingBytes: ceiling,
+        });
+      }
+      const chunkByteLength = chunk.byteLength;
+      if (!Number.isSafeInteger(chunkByteLength) || chunkByteLength < 0
+        || chunkByteLength > Number.MAX_SAFE_INTEGER - measuredResponseBytes) {
+        chunk = undefined;
+        item = undefined;
+        throw oversizedFailure(streamedOversizeEvidence, {
+          outcome: "MEASUREMENT_INCOMPLETE",
+          minimumMeasuredResponseBytes: measuredResponseBytes,
+          diagnosticHardCeilingBytes: ceiling,
+        });
+      }
+      const exceedsCeiling = chunkByteLength > ceiling - measuredResponseBytes;
+      if (!exceedsCeiling) measuredResponseBytes += chunkByteLength;
+      chunk = undefined;
+      item = undefined;
+      if (exceedsCeiling) {
+        try { await reader.cancel(); } catch { /* Never retry oversized responses. */ }
+        throw oversizedFailure(streamedOversizeEvidence, {
+          outcome: "DIAGNOSTIC_CEILING_EXCEEDED",
+          minimumMeasuredResponseBytes: ceiling + 1,
+          diagnosticHardCeilingBytes: ceiling,
+        });
+      }
+    }
+  };
+
+  try {
+    while (true) {
+      let readResult = await reader.read();
+      if (readResult.done) {
+        readResult = undefined;
+        break;
+      }
+      let value = readResult.value;
+      if (!(value instanceof Uint8Array)) {
+        value = undefined;
+        readResult = undefined;
+        throw Object.assign(new Error(), { safeFailureCode: "PROVIDER_RESPONSE_INVALID" });
+      }
+      const chunkByteLength = value.byteLength;
+      if (!Number.isSafeInteger(chunkByteLength) || chunkByteLength < 0
+        || chunkByteLength > Number.MAX_SAFE_INTEGER - total) {
+        chunks.length = 0;
+        value = undefined;
+        readResult = undefined;
+        try { await reader.cancel(); } catch { /* Never retry oversized responses. */ }
+        throw oversizedFailure(streamedOversizeEvidence);
+      }
+      const nextTotal = total + chunkByteLength;
+      if (chunkByteLength > byteLimit - total) {
+        chunks.length = 0;
+        value = undefined;
+        readResult = undefined;
+        if (measureStreamSize) await measureOversizedStream(nextTotal);
+        try { await reader.cancel(); } catch { /* Never retry oversized responses. */ }
+        throw oversizedFailure(streamedOversizeEvidence);
+      }
+      total = nextTotal;
       if (decode) chunks.push(value);
+      value = undefined;
+      readResult = undefined;
     }
   } finally {
     try { reader.releaseLock(); } catch { /* No response details are exposed. */ }
@@ -180,7 +281,7 @@ const parseFoundResponse = (text, nested) => {
   return parsed.ok ? { ok: true, record: parsed.record, valueNodeCount: parsed.valueNodeCount } : parsed;
 };
 
-const fetchTarget = async ({ runtime, endpoint, nested, token, requestCount, totalResponseBytes }) => {
+const fetchTarget = async ({ runtime, endpoint, nested, token, requestCount, totalResponseBytes, measureStreamSize }) => {
   const fetchFn = runtime.fetch ?? globalThis.fetch;
   if (typeof fetchFn !== "function") return { ok: false, result: safeFailure("PROVIDER_FETCH_FAILED", nested ? "NESTED_GET" : "DIRECT_GET", requestCount, totalResponseBytes) };
   let response;
@@ -203,7 +304,7 @@ const fetchTarget = async ({ runtime, endpoint, nested, token, requestCount, tot
   const byteLimit = nested ? NESTED_RESPONSE_BYTE_LIMIT : DIRECT_RESPONSE_BYTE_LIMIT;
   let body;
   try {
-    body = await readBoundedBody(response, byteLimit, response.status === 200);
+    body = await readBoundedBody(response, byteLimit, response.status === 200, { measureStreamSize });
   } catch (error) {
     const failureCode = error?.safeFailureCode ?? "PROVIDER_RESPONSE_INVALID";
     return { ok: false, result: safeFailure(
@@ -212,6 +313,7 @@ const fetchTarget = async ({ runtime, endpoint, nested, token, requestCount, tot
       requestCount,
       totalResponseBytes,
       failureCode === "PROVIDER_RESPONSE_TOO_LARGE" ? error?.oversizeEvidence : undefined,
+      failureCode === "PROVIDER_RESPONSE_TOO_LARGE" ? error?.streamSizeMeasurement : undefined,
     ) };
   }
   const nextTotal = totalResponseBytes + body.byteLength;
@@ -255,6 +357,14 @@ const runWithExpectedPolicyVersions = async (runtime = {}, expectedPolicyVersion
   if (typeof env.GOOGLE_APPLICATION_CREDENTIALS === "string" && env.GOOGLE_APPLICATION_CREDENTIALS.length > 0) {
     return emit(runtime, safeFailure("CREDENTIAL_ENVIRONMENT_REJECTED", "CREDENTIAL_GUARD"));
   }
+  const diagnosticAuthorization = env[STREAM_SIZE_MEASUREMENT_AUTHORIZATION_ENV];
+  const diagnosticAuthorizationIsPresent = diagnosticAuthorization !== undefined
+    && diagnosticAuthorization !== null
+    && diagnosticAuthorization !== "";
+  if (diagnosticAuthorizationIsPresent && diagnosticAuthorization !== STREAM_SIZE_MEASUREMENT_AUTHORIZATION_VALUE) {
+    return emit(runtime, safeFailure("DIAGNOSTIC_AUTHORIZATION_INVALID", "DIAGNOSTIC_AUTHORIZATION_GUARD"));
+  }
+  const measureNestedStreamSize = diagnosticAuthorization === STREAM_SIZE_MEASUREMENT_AUTHORIZATION_VALUE;
 
   let app;
   let ownsApp = false;
@@ -277,13 +387,13 @@ const runWithExpectedPolicyVersions = async (runtime = {}, expectedPolicyVersion
     if (typeof token !== "string" || token.length === 0) return emit(runtime, safeFailure("TOKEN_ACQUISITION_FAILED", "TOKEN_ACQUISITION"));
 
     requestCount += 1;
-    const direct = await fetchTarget({ runtime, endpoint: DIRECT_ENDPOINT, nested: false, token, requestCount, totalResponseBytes });
+    const direct = await fetchTarget({ runtime, endpoint: DIRECT_ENDPOINT, nested: false, token, requestCount, totalResponseBytes, measureStreamSize: false });
     if (!direct.ok) return emit(runtime, direct.result);
     totalResponseBytes = direct.totalResponseBytes;
     valueNodeCount += direct.valueNodeCount;
 
     requestCount += 1;
-    const nested = await fetchTarget({ runtime, endpoint: NESTED_ENDPOINT, nested: true, token, requestCount, totalResponseBytes });
+    const nested = await fetchTarget({ runtime, endpoint: NESTED_ENDPOINT, nested: true, token, requestCount, totalResponseBytes, measureStreamSize: measureNestedStreamSize });
     if (!nested.ok) return emit(runtime, nested.result);
     totalResponseBytes = nested.totalResponseBytes;
     valueNodeCount += nested.valueNodeCount;

@@ -4,6 +4,7 @@ import {
   AUTHORIZATION_ENV,
   AUTHORIZATION_VALUE,
   COMPLETENESS_LABEL,
+  DIAGNOSTIC_STREAM_MEASUREMENT_STOP_THRESHOLD_BYTES,
   DIRECT_ENDPOINT,
   DIRECT_RESOURCE_NAME,
   NESTED_ENDPOINT,
@@ -11,6 +12,8 @@ import {
   POLICY_VERSIONS,
   PROJECT_ID,
   QUOTA_PROJECT_ENV,
+  STREAM_SIZE_MEASUREMENT_AUTHORIZATION_ENV,
+  STREAM_SIZE_MEASUREMENT_AUTHORIZATION_VALUE,
   runPhase05A1_1PairedInventoryRead,
   runPhase05A1_1PairedInventoryReadForTest,
 } from "../scripts/migration/phase05A1_1PairedInventoryRead.mjs";
@@ -34,8 +37,11 @@ const streamedResponse = (status, chunks, declaredLength = null, counters = {}) 
     getReader() {
       return {
         async read() {
+          counters.reads = (counters.reads ?? 0) + 1;
           if (index >= chunks.length) return { done: true };
-          return { done: false, value: new TextEncoder().encode(chunks[index++]) };
+          const chunk = chunks[index++];
+          if (chunk instanceof Error) throw chunk;
+          return { done: false, value: chunk instanceof Uint8Array ? chunk : new TextEncoder().encode(chunk) };
         },
         async cancel() { counters.cancel = (counters.cancel ?? 0) + 1; },
         releaseLock() {},
@@ -85,6 +91,21 @@ test("argument, arming, quota, and credential guards run before ADC", async () =
     assert.equal(calls.token, 0);
     assert.equal(calls.fetch.length, 0);
   }
+});
+
+test("invalid diagnostic authorization fails closed before ADC and is not exposed", async () => {
+  const invalidValue = "private-invalid-diagnostic-value";
+  const { result, calls } = await runWith({ env: {
+    ...armedEnv(),
+    [STREAM_SIZE_MEASUREMENT_AUTHORIZATION_ENV]: invalidValue,
+  } });
+  assert.equal(result.status, "FAILED");
+  assert.equal(result.failureCode, "DIAGNOSTIC_AUTHORIZATION_INVALID");
+  assert.equal(result.stage, "DIAGNOSTIC_AUTHORIZATION_GUARD");
+  assert.equal(calls.adc, 0);
+  assert.equal(calls.token, 0);
+  assert.equal(calls.fetch.length, 0);
+  assert.equal(JSON.stringify(result).includes(invalidValue), false);
 });
 
 test("policy-version mismatch fails at its guard before ADC, token, or fetch", async () => {
@@ -257,6 +278,158 @@ test("streamed overflow uses the same threshold evidence across chunk layouts an
     assert.equal(calls.fetch.length, 1);
     assert.equal(JSON.stringify(result).includes("stream-marker-"), false);
   }
+});
+
+test("normal mode cancels on primary-cap crossing without reading the remaining stream", async () => {
+  for (const diagnosticValue of [undefined, ""]) {
+    const counters = {};
+    const env = { ...armedEnv() };
+    if (diagnosticValue !== undefined) env[STREAM_SIZE_MEASUREMENT_AUTHORIZATION_ENV] = diagnosticValue;
+    const { result, calls } = await runWith({
+      env,
+      responses: [streamedResponse(200, ["x".repeat(65536), "y", "private-unread-marker"], null, counters)],
+    });
+    assert.equal(result.status, "FAILED");
+    assert.equal(result.failureCode, "PROVIDER_RESPONSE_TOO_LARGE");
+    assert.deepEqual(result.oversizeEvidence, {
+      mode: "STREAMED_RESPONSE_BODY",
+      responseByteLimit: 65536,
+      minimumObservedResponseBytesAtFailure: 65537,
+    });
+    assert.equal(Object.hasOwn(result, "streamSizeMeasurement"), false);
+    assert.equal(counters.cancel, 1);
+    assert.equal(counters.reads, 2);
+    assert.equal(calls.fetch.length, 1);
+  }
+});
+
+test("armed diagnostic does not continue measuring a direct streamed overflow", async () => {
+  const counters = {};
+  const { result, calls } = await runWith({
+    env: {
+      ...armedEnv(),
+      [STREAM_SIZE_MEASUREMENT_AUTHORIZATION_ENV]: STREAM_SIZE_MEASUREMENT_AUTHORIZATION_VALUE,
+    },
+    responses: [streamedResponse(200, ["x".repeat(65536), "direct-crossing-marker", "unread-direct-marker"], null, counters)],
+  });
+
+  assert.equal(result.status, "FAILED");
+  assert.equal(result.stage, "DIRECT_GET");
+  assert.equal(result.failureCode, "PROVIDER_RESPONSE_TOO_LARGE");
+  assert.deepEqual(result.oversizeEvidence, {
+    mode: "STREAMED_RESPONSE_BODY",
+    responseByteLimit: 65536,
+    minimumObservedResponseBytesAtFailure: 65537,
+  });
+  assert.equal(Object.hasOwn(result, "streamSizeMeasurement"), false);
+  assert.equal(counters.reads, 2);
+  assert.equal(counters.cancel, 1);
+  assert.equal(calls.fetch.length, 1);
+  assert.equal(result.requestCount, 1);
+  assert.equal(JSON.stringify(result).includes("direct-crossing-marker"), false);
+});
+
+test("armed nested diagnostic counts the same stream exactly through EOF without changing failure accounting", async () => {
+  const directBody = JSON.stringify(restDocument(DIRECT_RESOURCE_NAME, { title: { stringValue: "x" } }));
+  const paddedDirectBody = `${directBody}${" ".repeat(187 - Buffer.byteLength(directBody))}`;
+  assert.equal(Buffer.byteLength(paddedDirectBody), 187);
+
+  const layouts = [
+    ["a".repeat(40000), "b".repeat(30000), "private-body-marker"],
+    ["c".repeat(65536), "d".repeat(4464), "private-body-marker"],
+  ];
+  for (const chunks of layouts) {
+    const counters = {};
+    const nestedResponse = streamedResponse(200, chunks, null, counters);
+    const { result, calls } = await runWith({
+      env: {
+        ...armedEnv(),
+        [STREAM_SIZE_MEASUREMENT_AUTHORIZATION_ENV]: STREAM_SIZE_MEASUREMENT_AUTHORIZATION_VALUE,
+      },
+      responses: [response(200, paddedDirectBody), nestedResponse],
+    });
+    const expectedBytes = chunks.reduce((sum, chunk) => sum + Buffer.byteLength(chunk), 0);
+    assert.equal(result.status, "FAILED");
+    assert.equal(result.failureCode, "PROVIDER_RESPONSE_TOO_LARGE");
+    assert.equal(result.stage, "NESTED_GET");
+    assert.equal(result.requestCount, 2);
+    assert.equal(result.totalResponseBytes, 187);
+    assert.deepEqual(result.oversizeEvidence, {
+      mode: "STREAMED_RESPONSE_BODY",
+      responseByteLimit: 65536,
+      minimumObservedResponseBytesAtFailure: 65537,
+    });
+    assert.deepEqual(result.streamSizeMeasurement, {
+      outcome: "EXACT_TOTAL_MEASURED",
+      measuredResponseBytes: expectedBytes,
+      diagnosticHardCeilingBytes: DIAGNOSTIC_STREAM_MEASUREMENT_STOP_THRESHOLD_BYTES,
+    });
+    assert.equal(Object.hasOwn(result, "directResult"), false);
+    assert.equal(counters.cancel ?? 0, 0);
+    assert.equal(counters.reads, chunks.length + 1);
+    assert.equal(calls.fetch.length, 2);
+    assert.equal(calls.token, 1);
+    const serialized = JSON.stringify(result);
+    assert.equal(serialized.includes("private-body-marker"), false);
+    assert.equal(serialized.includes("test-token"), false);
+  }
+});
+
+test("armed diagnostic stops at ceiling with deterministic lower bound and no further read", async () => {
+  const counters = {};
+  const { result, calls } = await runWith({
+    env: {
+      ...armedEnv(),
+      [STREAM_SIZE_MEASUREMENT_AUTHORIZATION_ENV]: STREAM_SIZE_MEASUREMENT_AUTHORIZATION_VALUE,
+    },
+    responses: [
+      response(200, JSON.stringify(restDocument(DIRECT_RESOURCE_NAME))),
+      streamedResponse(200, ["x".repeat(65537), "private-crossing-marker" + "y".repeat(1048576), "unread-marker"], null, counters),
+    ],
+  });
+  assert.equal(result.status, "FAILED");
+  assert.equal(result.failureCode, "PROVIDER_RESPONSE_TOO_LARGE");
+  assert.equal(result.stage, "NESTED_GET");
+  assert.equal(result.requestCount, 2);
+  assert.deepEqual(result.streamSizeMeasurement, {
+    outcome: "DIAGNOSTIC_CEILING_EXCEEDED",
+    minimumMeasuredResponseBytes: 1048577,
+    diagnosticHardCeilingBytes: DIAGNOSTIC_STREAM_MEASUREMENT_STOP_THRESHOLD_BYTES,
+  });
+  assert.equal(Object.hasOwn(result.streamSizeMeasurement, "measuredResponseBytes"), false);
+  assert.equal(counters.cancel, 1);
+  assert.equal(counters.reads, 2);
+  assert.equal(calls.fetch.length, 2);
+  const serialized = JSON.stringify(result);
+  assert.equal(serialized.includes("private-crossing-marker"), false);
+  assert.equal(serialized.includes("unread-marker"), false);
+});
+
+test("armed diagnostic stream error reports only safely counted lower bound", async () => {
+  const transportMarker = "private-transport-error-marker";
+  const counters = {};
+  const { result, calls } = await runWith({
+    env: {
+      ...armedEnv(),
+      [STREAM_SIZE_MEASUREMENT_AUTHORIZATION_ENV]: STREAM_SIZE_MEASUREMENT_AUTHORIZATION_VALUE,
+    },
+    responses: [
+      response(200, JSON.stringify(restDocument(DIRECT_RESOURCE_NAME))),
+      streamedResponse(200, ["x".repeat(40000), "y".repeat(30000), new Error(transportMarker)], null, counters),
+    ],
+  });
+  assert.equal(result.status, "FAILED");
+  assert.equal(result.failureCode, "PROVIDER_RESPONSE_TOO_LARGE");
+  assert.equal(result.stage, "NESTED_GET");
+  assert.deepEqual(result.streamSizeMeasurement, {
+    outcome: "MEASUREMENT_INCOMPLETE",
+    minimumMeasuredResponseBytes: 70000,
+    diagnosticHardCeilingBytes: DIAGNOSTIC_STREAM_MEASUREMENT_STOP_THRESHOLD_BYTES,
+  });
+  const serialized = JSON.stringify(result);
+  assert.equal(serialized.includes(transportMarker), false);
+  assert.equal(calls.fetch.length, 2);
+  assert.equal(counters.reads, 3);
 });
 
 test("nested response oversize fails after the direct read without retry or body leakage", async () => {
