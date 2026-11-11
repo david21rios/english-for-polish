@@ -179,29 +179,70 @@ test("nested unexpected status and malformed response fail without retries", asy
 });
 
 test("per-response byte limit accepts exact boundary and rejects one byte over", async () => {
-  const padDocument = (name, fields) => {
+  const padDocument = (name, fields, targetBytes) => {
     const text = JSON.stringify(restDocument(name, fields));
-    return `${text}${" ".repeat(65536 - Buffer.byteLength(text))}`;
+    assert.ok(Buffer.byteLength(text) <= targetBytes);
+    return `${text}${" ".repeat(targetBytes - Buffer.byteLength(text))}`;
   };
-  const direct = padDocument(DIRECT_RESOURCE_NAME, {});
-  const nested = padDocument(NESTED_RESOURCE_NAME, { moduleId: { stringValue: "A1_M01_pruebaa1" } });
-  const atLimit = await runWith({ responses: [response(200, direct), response(200, nested)] });
+  const direct = padDocument(DIRECT_RESOURCE_NAME, {}, 393216);
+  const atLimit = await runWith({ responses: [response(200, direct), response(404)] });
   assert.equal(atLimit.result.status, "SUCCESS");
-  assert.equal(atLimit.result.totalResponseBytes, 131072);
-  const oversized = await runWith({ responses: [response(200, "x".repeat(65537)), response(200, JSON.stringify(restDocument(NESTED_RESOURCE_NAME)))] });
+  assert.equal(atLimit.result.totalResponseBytes, 393216);
+  const observedNestedDirect = padDocument(DIRECT_RESOURCE_NAME, {}, 187);
+  const observedNestedBody = padDocument(NESTED_RESOURCE_NAME, { moduleId: { stringValue: "A1_M01_pruebaa1" } }, 300126);
+  const observedPair = await runWith({ responses: [response(200, observedNestedDirect), response(200, observedNestedBody)] });
+  assert.equal(observedPair.result.status, "SUCCESS");
+  assert.equal(observedPair.result.directResult.result, "FOUND");
+  assert.equal(observedPair.result.nestedResult.result, "FOUND");
+  assert.equal(observedPair.result.totalResponseBytes, 300313);
+  const oversized = await runWith({ responses: [response(200, "x".repeat(393217)), response(200, JSON.stringify(restDocument(NESTED_RESOURCE_NAME)))] });
   assert.equal(oversized.result.status, "FAILED");
   assert.equal(oversized.result.failureCode, "PROVIDER_RESPONSE_TOO_LARGE");
   assert.deepEqual(oversized.result.oversizeEvidence, {
     mode: "STREAMED_RESPONSE_BODY",
-    responseByteLimit: 65536,
-    minimumObservedResponseBytesAtFailure: 65537,
+    responseByteLimit: 393216,
+    minimumObservedResponseBytesAtFailure: 393217,
   });
   assert.equal(oversized.calls.fetch.length, 1);
 });
 
+test("pair-total byte limit accepts exact boundary and rejects one byte over while each response is below per-response cap", async () => {
+  const padDocument = (name, fields, targetBytes) => {
+    const text = JSON.stringify(restDocument(name, fields));
+    assert.ok(Buffer.byteLength(text) <= targetBytes);
+    return `${text}${" ".repeat(targetBytes - Buffer.byteLength(text))}`;
+  };
+  const equalityDirect = padDocument(DIRECT_RESOURCE_NAME, { title: { stringValue: "direct" } }, 262144);
+  const equalityNested = padDocument(NESTED_RESOURCE_NAME, { moduleId: { stringValue: "A1_M01_pruebaa1" } }, 262144);
+  const equality = await runWith({ responses: [response(200, equalityDirect), response(200, equalityNested)] });
+  assert.equal(Buffer.byteLength(equalityDirect), 262144);
+  assert.equal(Buffer.byteLength(equalityNested), 262144);
+  assert.equal(equality.result.status, "SUCCESS");
+  assert.equal(equality.result.totalResponseBytes, 524288);
+  assert.equal(equality.result.limits.totalResponseByteLimit, 524288);
+
+  const overflowDirect = padDocument(DIRECT_RESOURCE_NAME, { title: { stringValue: "direct" } }, 262144);
+  const overflowNested = padDocument(NESTED_RESOURCE_NAME, { moduleId: { stringValue: "A1_M01_pruebaa1" } }, 262145);
+  const overflow = await runWith({ responses: [response(200, overflowDirect), response(200, overflowNested)] });
+  assert.equal(Buffer.byteLength(overflowDirect), 262144);
+  assert.equal(Buffer.byteLength(overflowNested), 262145);
+  assert.ok(Buffer.byteLength(overflowDirect) < 393216);
+  assert.ok(Buffer.byteLength(overflowNested) < 393216);
+  assert.equal(overflow.result.status, "FAILED");
+  assert.equal(overflow.result.stage, "NESTED_GET");
+  assert.equal(overflow.result.failureCode, "PROVIDER_RESPONSE_TOO_LARGE");
+  assert.deepEqual(overflow.result.oversizeEvidence, {
+    mode: "PAIR_TOTAL_RESPONSE_BYTES",
+    pairObservedResponseBytes: 524289,
+    pairResponseByteLimit: 524288,
+  });
+  assert.equal(overflow.result.totalResponseBytes, 524289);
+  assert.equal(overflow.calls.fetch.length, 2);
+});
+
 test("declared Content-Length one byte over is sanitized, cancels the body, and stops before nested request", async () => {
   const counters = {};
-  const secretHeader = "65537";
+  const secretHeader = "393217";
   const declaredOversizeResponse = streamedResponse(200, ["private-body-marker"], secretHeader, counters);
   const { result, calls } = await runWith({ responses: [
     declaredOversizeResponse,
@@ -209,8 +250,8 @@ test("declared Content-Length one byte over is sanitized, cancels the body, and 
   ] });
   assert.deepEqual(result.oversizeEvidence, {
     mode: "DECLARED_CONTENT_LENGTH",
-    responseByteLimit: 65536,
-    declaredContentLengthBytes: 65537,
+    responseByteLimit: 393216,
+    declaredContentLengthBytes: 393217,
   });
   assert.equal(result.failureCode, "PROVIDER_RESPONSE_TOO_LARGE");
   assert.equal(result.stage, "DIRECT_GET");
@@ -229,7 +270,7 @@ test("valid very large decimal Content-Length is compared exactly and omits unsa
   ] });
   assert.deepEqual(result.oversizeEvidence, {
     mode: "DECLARED_CONTENT_LENGTH",
-    responseByteLimit: 65536,
+    responseByteLimit: 393216,
   });
   assert.equal(Object.hasOwn(result.oversizeEvidence, "declaredContentLengthBytes"), false);
   assert.equal(JSON.stringify(result).includes(veryLargeDeclaredLength), false);
@@ -257,8 +298,8 @@ test("malformed direct Content-Length remains invalid and has no oversize eviden
 
 test("streamed overflow uses the same threshold evidence across chunk layouts and cancels without retry", async () => {
   const layouts = [
-    ["stream-marker-", "x".repeat(65537 - "stream-marker-".length)],
-    ["stream-marker-" + "x".repeat(40000 - "stream-marker-".length), "x".repeat(25537)],
+    ["stream-marker-", "x".repeat(393217 - "stream-marker-".length)],
+    ["stream-marker-" + "x".repeat(250000 - "stream-marker-".length), "x".repeat(143217)],
   ];
   for (const chunks of layouts) {
     const counters = {};
@@ -271,8 +312,8 @@ test("streamed overflow uses the same threshold evidence across chunk layouts an
     assert.equal(result.stage, "DIRECT_GET");
     assert.deepEqual(result.oversizeEvidence, {
       mode: "STREAMED_RESPONSE_BODY",
-      responseByteLimit: 65536,
-      minimumObservedResponseBytesAtFailure: 65537,
+      responseByteLimit: 393216,
+      minimumObservedResponseBytesAtFailure: 393217,
     });
     assert.equal(counters.cancel, 1);
     assert.equal(calls.fetch.length, 1);
@@ -287,14 +328,14 @@ test("normal mode cancels on primary-cap crossing without reading the remaining 
     if (diagnosticValue !== undefined) env[STREAM_SIZE_MEASUREMENT_AUTHORIZATION_ENV] = diagnosticValue;
     const { result, calls } = await runWith({
       env,
-      responses: [streamedResponse(200, ["x".repeat(65536), "y", "private-unread-marker"], null, counters)],
+      responses: [streamedResponse(200, ["x".repeat(393216), "y", "private-unread-marker"], null, counters)],
     });
     assert.equal(result.status, "FAILED");
     assert.equal(result.failureCode, "PROVIDER_RESPONSE_TOO_LARGE");
     assert.deepEqual(result.oversizeEvidence, {
       mode: "STREAMED_RESPONSE_BODY",
-      responseByteLimit: 65536,
-      minimumObservedResponseBytesAtFailure: 65537,
+      responseByteLimit: 393216,
+      minimumObservedResponseBytesAtFailure: 393217,
     });
     assert.equal(Object.hasOwn(result, "streamSizeMeasurement"), false);
     assert.equal(counters.cancel, 1);
@@ -310,7 +351,7 @@ test("armed diagnostic does not continue measuring a direct streamed overflow", 
       ...armedEnv(),
       [STREAM_SIZE_MEASUREMENT_AUTHORIZATION_ENV]: STREAM_SIZE_MEASUREMENT_AUTHORIZATION_VALUE,
     },
-    responses: [streamedResponse(200, ["x".repeat(65536), "direct-crossing-marker", "unread-direct-marker"], null, counters)],
+    responses: [streamedResponse(200, ["x".repeat(393216), "direct-crossing-marker", "unread-direct-marker"], null, counters)],
   });
 
   assert.equal(result.status, "FAILED");
@@ -318,8 +359,8 @@ test("armed diagnostic does not continue measuring a direct streamed overflow", 
   assert.equal(result.failureCode, "PROVIDER_RESPONSE_TOO_LARGE");
   assert.deepEqual(result.oversizeEvidence, {
     mode: "STREAMED_RESPONSE_BODY",
-    responseByteLimit: 65536,
-    minimumObservedResponseBytesAtFailure: 65537,
+    responseByteLimit: 393216,
+    minimumObservedResponseBytesAtFailure: 393217,
   });
   assert.equal(Object.hasOwn(result, "streamSizeMeasurement"), false);
   assert.equal(counters.reads, 2);
@@ -335,8 +376,8 @@ test("armed nested diagnostic counts the same stream exactly through EOF without
   assert.equal(Buffer.byteLength(paddedDirectBody), 187);
 
   const layouts = [
-    ["a".repeat(40000), "b".repeat(30000), "private-body-marker"],
-    ["c".repeat(65536), "d".repeat(4464), "private-body-marker"],
+    ["a".repeat(250000), "b".repeat(143217), "private-body-marker"],
+    ["c".repeat(393216), "d", "private-body-marker"],
   ];
   for (const chunks of layouts) {
     const counters = {};
@@ -356,8 +397,8 @@ test("armed nested diagnostic counts the same stream exactly through EOF without
     assert.equal(result.totalResponseBytes, 187);
     assert.deepEqual(result.oversizeEvidence, {
       mode: "STREAMED_RESPONSE_BODY",
-      responseByteLimit: 65536,
-      minimumObservedResponseBytesAtFailure: 65537,
+      responseByteLimit: 393216,
+      minimumObservedResponseBytesAtFailure: 393217,
     });
     assert.deepEqual(result.streamSizeMeasurement, {
       outcome: "EXACT_TOTAL_MEASURED",
@@ -384,7 +425,7 @@ test("armed diagnostic stops at ceiling with deterministic lower bound and no fu
     },
     responses: [
       response(200, JSON.stringify(restDocument(DIRECT_RESOURCE_NAME))),
-      streamedResponse(200, ["x".repeat(65537), "private-crossing-marker" + "y".repeat(1048576), "unread-marker"], null, counters),
+      streamedResponse(200, ["x".repeat(393217), "private-crossing-marker" + "y".repeat(1048576), "unread-marker"], null, counters),
     ],
   });
   assert.equal(result.status, "FAILED");
@@ -415,7 +456,7 @@ test("armed diagnostic stream error reports only safely counted lower bound", as
     },
     responses: [
       response(200, JSON.stringify(restDocument(DIRECT_RESOURCE_NAME))),
-      streamedResponse(200, ["x".repeat(40000), "y".repeat(30000), new Error(transportMarker)], null, counters),
+      streamedResponse(200, ["x".repeat(393217), "y".repeat(12345), new Error(transportMarker)], null, counters),
     ],
   });
   assert.equal(result.status, "FAILED");
@@ -423,7 +464,7 @@ test("armed diagnostic stream error reports only safely counted lower bound", as
   assert.equal(result.stage, "NESTED_GET");
   assert.deepEqual(result.streamSizeMeasurement, {
     outcome: "MEASUREMENT_INCOMPLETE",
-    minimumMeasuredResponseBytes: 70000,
+    minimumMeasuredResponseBytes: 405562,
     diagnosticHardCeilingBytes: DIAGNOSTIC_STREAM_MEASUREMENT_STOP_THRESHOLD_BYTES,
   });
   const serialized = JSON.stringify(result);
@@ -433,7 +474,7 @@ test("armed diagnostic stream error reports only safely counted lower bound", as
 });
 
 test("nested response oversize fails after the direct read without retry or body leakage", async () => {
-  const nestedSecret = `private-nested-body-${"x".repeat(65537)}`;
+  const nestedSecret = `private-nested-body-${"x".repeat(393217)}`;
   const { result, calls } = await runWith({ responses: [
     response(200, JSON.stringify(restDocument(DIRECT_RESOURCE_NAME))),
     response(200, nestedSecret),
@@ -445,8 +486,8 @@ test("nested response oversize fails after the direct read without retry or body
   assert.equal(result.totalResponseBytes, Buffer.byteLength(JSON.stringify(restDocument(DIRECT_RESOURCE_NAME))));
   assert.deepEqual(result.oversizeEvidence, {
     mode: "STREAMED_RESPONSE_BODY",
-    responseByteLimit: 65536,
-    minimumObservedResponseBytesAtFailure: 65537,
+    responseByteLimit: 393216,
+    minimumObservedResponseBytesAtFailure: 393217,
   });
   assert.equal(Object.hasOwn(result, "directResult"), false);
   assert.equal(calls.fetch.length, 2);
@@ -460,7 +501,7 @@ test("real-run analog preserves direct byte accounting and emits only nested dec
   const nestedMarker = "private-nested-provider-body";
   const { result, calls } = await runWith({ responses: [
     response(200, paddedDirectBody),
-    responseWithContentLength(200, nestedMarker, "65537"),
+    responseWithContentLength(200, nestedMarker, "393217"),
   ] });
   assert.equal(result.status, "FAILED");
   assert.equal(result.failureCode, "PROVIDER_RESPONSE_TOO_LARGE");
@@ -469,12 +510,12 @@ test("real-run analog preserves direct byte accounting and emits only nested dec
   assert.equal(result.totalResponseBytes, 187);
   assert.deepEqual(result.oversizeEvidence, {
     mode: "DECLARED_CONTENT_LENGTH",
-    responseByteLimit: 65536,
-    declaredContentLengthBytes: 65537,
+    responseByteLimit: 393216,
+    declaredContentLengthBytes: 393217,
   });
   assert.equal(Object.hasOwn(result, "directResult"), false);
   const serialized = JSON.stringify(result);
-  assert.equal(serialized.includes("65537"), true);
+  assert.equal(serialized.includes("393217"), true);
   assert.equal(serialized.includes(nestedMarker), false);
   assert.equal(calls.fetch.length, 2);
 });
@@ -521,9 +562,9 @@ test("successful output contains only approved schema and sanitized inventory", 
     maxIndexEntryOperations: 0,
     writes: 0,
     retries: 0,
-    directResponseByteLimit: 65536,
-    nestedResponseByteLimit: 65536,
-    totalResponseByteLimit: 131072,
+    directResponseByteLimit: 393216,
+    nestedResponseByteLimit: 393216,
+    totalResponseByteLimit: 524288,
     missingDocumentBillingMinimum: "UNPROVEN",
   });
 });
